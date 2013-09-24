@@ -36,6 +36,10 @@ function printDistributionVersionKey()
 	printf '%s' "${localDistributionVersion}" | tr --complement '[:alpha:][:digit:]' '_'
 }
 
+function keyExists()
+{
+}
+
 declare -A sourcePackages_SourcePackageName=()
 declare -A sourcePackages_Version=()
 declare -A sourcePackages_Url=()
@@ -67,7 +71,7 @@ function addSourcePackageDownload()
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
-	echo ${!sourcePackages_Url[@]}
+	echo ${sourcePackages_Url[@]}
 	
 	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	#if [ ! -z "$existingUrl" ]; then
