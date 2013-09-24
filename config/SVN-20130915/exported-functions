@@ -47,7 +47,7 @@ function addSourcePackageDownload()
 	
 	echo "${key}"
 	echo 'a'
-	echo ${!sourcePackages_Url[@]}
+	echo x"${!sourcePackages_Url[@]}"x
 	echo 'h'
 	echo ${sourcePackages_Url["${key}"]}
 	local -r existingUrl="${sourcePackages_Url["${key}"]}"
