@@ -26,13 +26,14 @@ function printKey()
 	local -r localVersion="$2"
 	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
 	# this is a problem for existence checks
-	tr --complement '[:alpha:][:digit:]' '_' <<<"${localSourcePackageName}:${localVersion}"
+	# printf so as to avoid tr replacing a trailing \n (as would happen with a heredoc)
+	printf '%s' "${localSourcePackageName}:${localVersion}" | tr --complement '[:alpha:][:digit:]' '_'
 }
 
 function printDistributionVersionKey()
 {
 	local -r localDistributionVersion="$1"
-	tr --complement '[:alpha:][:digit:]' '_' <<<"${localDistributionVersion}"
+	printf '%s' "${localDistributionVersion}" | tr --complement '[:alpha:][:digit:]' '_'
 }
 
 declare -A sourcePackages_SourcePackageName=()
@@ -65,8 +66,8 @@ function addSourcePackageDownload()
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
-	echo "$ourSourcePackageName" "$ourVersion" $key
 	local -r existingUrl="${sourcePackages_Url["${key}"]}"
+	echo "$ourSourcePackageName" "$ourVersion" $key x"$existingUrl"x
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
 		# TODO: Verify hashes have not changed
