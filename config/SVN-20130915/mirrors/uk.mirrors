@@ -1,2 +1,4 @@
+sourceMirror global
+
 mirror_gnu=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/
 mirror_perl=http://mirror.bytemark.co.uk/CPAN/src/

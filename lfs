@@ -88,6 +88,30 @@ function exitHelp()
 	exit $1
 }
 
+function computeDefaultMirrors()
+{
+	local -r language="$(locale | grep '^LANG=' | cut -d'=' -f2- | cut -d'.' -f1)"
+	if [ -z "$language" ]; then
+		mirrors=global
+	fi
+	
+	case "$language" in
+		
+		en_GB)
+			mirrors=uk
+		;;
+		
+		#en_US)
+		#	mirrors=us
+		#;;
+		
+		*)
+			mirrors=global
+		;;
+		
+	esac
+}
+
 function parseCommandLine()
 {
 	# Defaults
@@ -95,7 +119,7 @@ function parseCommandLine()
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	toolsFolderName=tools
-	mirrors=global
+	computeDefaultMirrors
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
 	stripToolchainSymbols="yes"
