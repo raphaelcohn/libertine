@@ -1,4 +1,4 @@
-addSourcePackageDownload linx 3.11.1 http://www.kernel.org/pub/linux/kernel/v3.x/linux-3.11.1.tar.xz MD5:466c042aa58d4839396443bf4438fdc5 xz linux-3.11.1
+addSourcePackageDownload linux 3.11.1 http://www.kernel.org/pub/linux/kernel/v3.x/linux-3.11.1.tar.xz MD5:466c042aa58d4839396443bf4438fdc5 xz linux-3.11.1
 function installPackage_toolchain1_linux()
 {
 	make mrproper
