@@ -103,6 +103,7 @@ function addSourcePackageDownload()
 	local -i hasHash=1
 	for hashNameAndValue in $hashesStringSeparated
 	do
+		echo x"$hashNameAndValue"x
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
 			
