@@ -45,6 +45,8 @@ function addSourcePackageDownload()
 	
 	local -r key="${ourSourcePackageName}:${ourVersion}"
 	
+	echo "${key}"
+	echo ${sourcePackages_Url["${key}"]}
 	local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
