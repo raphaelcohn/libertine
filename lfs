@@ -199,11 +199,72 @@ function parseCommandLine()
 			exitError "Please specify a distribution using -d"
 		fi
 	fi
-	
+}
+
+function cleanShell()
+{
+	set +h
+	umask 022
+}
+
+function setPathsAndExports()
+{
 	if [ ! -d "$lfsConfigPath" ]; then
-		exitError "$lfsConfigPath either does not exist or is not a directory"
+		exitError "Config path $lfsConfigPath does not exist or is not a directory"
 	fi
-	readonly distributionPath
+	pushd "$lfsConfigPath">/dev/null
+	lfsConfigPath="$(pwd)"
+	popd >/dev/null
+	
+	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
+	if [ ! -d "$distributionPath" ]; then
+		exitError "Distribution path $distributionPath does not exist or is not a directory"
+	fi
+	
+	readonly profilesPath="$distributionPath"/profiles
+	if [ ! -d "$profilesPath" ]; then
+		exitError "Profiles path $profilesPath does not exist or is not a directory"
+	fi
+	
+	readonly recipesPath="$distributionPath"/recipes
+	if [ ! -d "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a directory"
+	fi
+	
+	readonly exportedFunctions="$distributionPath"/exported-functions
+	if [ ! -f "$exportedFunctions" ]; then
+		exitError "exported-functions $exportedFunctions does not exist or is not a file"
+	fi
+	PATH=. source "$exportedFunctions"
+	
+	if [ ! -d "$lfsPath" ]; then
+		mkdir -m 0755 -p "$lfsPath"
+	fi
+	pushd "$lfsPath">/dev/null
+	lfsPath="$(pwd)"
+	popd >/dev/null
+	
+	export LFS="$lfsPath"/root
+	export LFS_TOOLS="$toolsFolderName"
+	
+	readonly logsPath="$lfsPath"/logs
+	readonly sourcesPath="$LFS"/sources
+	readonly toolsPath="$LFS"/"$LFS_TOOLS"
+	
+	export LC_ALL=POSIX
+	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
+	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
+	
+	if [ -f /proc/cpuinfo ]; then
+		# Can result in 0 if no processor lines present
+		local -ir numberOfCpus="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
+	else
+		local -ir numberOfCpus=0
+	fi
+	
+	if [ $numberOfCpus -ne 0 ]; then
+		export MAKEFLAGS="-j $numberOfCpus"
+	fi
 }
 
 function installDebianDependencies()
@@ -325,66 +386,6 @@ function addProfiles()
 		
 	popd >/dev/null
 	
-}
-
-function setPathsAndExports()
-{
-	if [ ! -d "$lfsConfigPath" ]; then
-		exitError "Config path $lfsConfigPath does not exist or is not a directory"
-	fi
-	pushd "$lfsConfigPath">/dev/null
-	lfsConfigPath="$(pwd)"
-	popd >/dev/null
-	
-	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
-	if [ ! -d "$distributionPath" ]; then
-		exitError "Distribution path $distributionPath does not exist or is not a directory"
-	fi
-	
-	readonly profilesPath="$distributionPath"/profiles
-	if [ ! -d "$profilesPath" ]; then
-		exitError "Profiles path $profilesPath does not exist or is not a directory"
-	fi
-	
-	readonly recipesPath="$distributionPath"/recipes
-	if [ ! -d "$recipesPath" ]; then
-		exitError "Recipes path $recipesPath does not exist or is not a directory"
-	fi
-	
-	readonly exportedFunctions="$distributionPath"/exported-functions
-	if [ ! -f "$exportedFunctions" ]; then
-		exitError "exported-functions $exportedFunctions does not exist or is not a file"
-	fi
-	PATH=. source "$exportedFunctions"
-	
-	if [ ! -d "$lfsPath" ]; then
-		mkdir -m 0755 -p "$lfsPath"
-	fi
-	pushd "$lfsPath">/dev/null
-	lfsPath="$(pwd)"
-	popd >/dev/null
-	
-	export LFS="$lfsPath"/root
-	export LFS_TOOLS="$toolsFolderName"
-	
-	readonly logsPath="$lfsPath"/logs
-	readonly sourcesPath="$LFS"/sources
-	readonly toolsPath="$LFS"/"$LFS_TOOLS"
-	
-	export LC_ALL=POSIX
-	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
-	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
-	
-	if [ -f /proc/cpuinfo ]; then
-		# Can result in 0 if no processor lines present
-		local -ir numberOfCpus="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
-	else
-		local -ir numberOfCpus=0
-	fi
-	
-	if [ $numberOfCpus -ne 0 ]; then
-		export MAKEFLAGS="-j $numberOfCpus"
-	fi
 }
 
 function createSkeletonFolderStructure()
@@ -562,12 +563,6 @@ function verifySources()
 		
 	popd >/dev/null
 	progressMessageSucceeded
-}
-
-function cleanShell()
-{
-	set +h
-	umask 022
 }
 
 function installPackage()
