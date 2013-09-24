@@ -12,9 +12,9 @@ function setDebugging()
 {
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
-		export STORMMQ_BASH_DEBUGGING="y"
+		export LFS_BASH_DEBUGGING="yes"
 	fi
-	if [ "$STORMMQ_BASH_DEBUGGING" = "y" ];then
+	if [ "$LFS_BASH_DEBUGGING" = "yes" ];then
 		set -x
 	fi
 }
@@ -29,7 +29,7 @@ function findOurNameAndPath()
 
 function executeWithCleanEnvironment()
 {
-	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' STORMMQ_BASH_DEBUGGING="$STORMMQ_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='y' "$crudeOurPath"/"$ourName" $@
+	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' "$crudeOurPath"/"$ourName" $@
 }
 
 function exitHelp()
@@ -97,104 +97,95 @@ function parseCommandLine()
 	stripSystemDocs="no"
 	profiles="system"
 	
-	if [ $# -eq 0 ]; then
-		if [ "$LFS_CLEAN_ENVIRONMENT" = "y" ]; then
-			:
-		else
-			executeWithCleanEnvironment "$@"
-		fi
+	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
+		executeWithCleanEnvironment "$@"
 	else
-		if [ "$LFS_CLEAN_ENVIRONMENT" = "y" ]; then
-			# For now, until we need further option handling
-			exitError "Invalid options"
-			
-			OPTERR=1
-			OPTIND=1
-			local option
-			while getopts :hl:d:o: option
-			do
-				case "$option" in
-					
-					h)
-						exitHelp 2
-					;;
-					
-					d)
-						distributionVersion="$OPTARG"
-					;;
-					
-					l)
-						lfsPath="$OPTARG"
-					;;
-					
-					c)
-						lfsConfigPath="$OPTARG"
-					;;
-					
-					o)
-						if [ -z "$OPTARG" ]; then
-							exitError "Invalid option -o requires an argument"
-						fi
-					
-						case "$OPTARG" in
-							
-							no-strip-toolchain-symbols)
-								stripToolchainSymbols="no"
-							;;
-							
-							yes-strip-toolchain-symbols)
-								stripToolchainSymbols="yes"
-							;;
-							
-							no-strip-toolchain-docs)
-								stripToolchainDocs="no"
-							;;
-							
-							yes-strip-toolchain-docs)
-								stripToolchainDocs="yes"
-							;;
-							
-							no-strip-system-symbols)
-								stripSystemSymbols="no"
-							;;
-							
-							yes-strip-system-symbols)
-								stripSystemSymbols="yes"
-							;;
-							
-							no-strip-system-docs)
-								stripSystemDocs="no"
-							;;
-							
-							yes-strip-system-docs)
-								stripSystemDocs="yes"
-							;;
-							
-							*)
-								exitError "Invalid option -o ${OPTARG}"
-							;;
-							
-						esac
-					;;
-					
-					'?')
-						exitError "Invalid option -${OPTARG}"
-					;;
-					
-				esac
-			done
-			
-			shift $((OPTIND - 1))
-			if [ $# -ne 0 ]; then
-				profiles="$@"
-			fi
-			
-			if [ -z "$distributionVersion" ]; then
-				exitError "Please specify a distribution using -d"
-			fi
-			
-		else
-			executeWithCleanEnvironment "$@"
+		# For now, until we need further option handling
+		exitError "Invalid options"
+		
+		OPTERR=1
+		OPTIND=1
+		local option
+		while getopts :hl:d:o: option
+		do
+			case "$option" in
+				
+				h)
+					exitHelp 2
+				;;
+				
+				d)
+					distributionVersion="$OPTARG"
+				;;
+				
+				l)
+					lfsPath="$OPTARG"
+				;;
+				
+				c)
+					lfsConfigPath="$OPTARG"
+				;;
+				
+				o)
+					if [ -z "$OPTARG" ]; then
+						exitError "Invalid option -o requires an argument"
+					fi
+				
+					case "$OPTARG" in
+						
+						no-strip-toolchain-symbols)
+							stripToolchainSymbols="no"
+						;;
+						
+						yes-strip-toolchain-symbols)
+							stripToolchainSymbols="yes"
+						;;
+						
+						no-strip-toolchain-docs)
+							stripToolchainDocs="no"
+						;;
+						
+						yes-strip-toolchain-docs)
+							stripToolchainDocs="yes"
+						;;
+						
+						no-strip-system-symbols)
+							stripSystemSymbols="no"
+						;;
+						
+						yes-strip-system-symbols)
+							stripSystemSymbols="yes"
+						;;
+						
+						no-strip-system-docs)
+							stripSystemDocs="no"
+						;;
+						
+						yes-strip-system-docs)
+							stripSystemDocs="yes"
+						;;
+						
+						*)
+							exitError "Invalid option -o ${OPTARG}"
+						;;
+						
+					esac
+				;;
+				
+				'?')
+					exitError "Invalid option -${OPTARG}"
+				;;
+				
+			esac
+		done
+		
+		shift $((OPTIND - 1))
+		if [ $# -ne 0 ]; then
+			profiles="$@"
+		fi
+		
+		if [ -z "$distributionVersion" ]; then
+			exitError "Please specify a distribution using -d"
 		fi
 	fi
 	
