@@ -38,6 +38,7 @@ function printDistributionVersionKey()
 
 function keyExists()
 {
+	:
 }
 
 declare -A sourcePackages_SourcePackageName=()
