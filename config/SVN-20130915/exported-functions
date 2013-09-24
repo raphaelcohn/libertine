@@ -66,15 +66,17 @@ function addSourcePackageDownload()
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
-	local -r existingUrl="${sourcePackages_Url["${key}"]}"
-	echo "$ourSourcePackageName" "$ourVersion" $key x"$existingUrl"x
-	if [ ! -z "$existingUrl" ]; then
-		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
-		# TODO: Verify hashes have not changed
-		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
-		sourcePackages_Url["${key}"]="$ourUrl"
-		return 0
-	fi
+	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
+	echo ${!sourcePackages_Url[@]}
+	
+	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
+	#if [ ! -z "$existingUrl" ]; then
+	#	# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
+	#	# TODO: Verify hashes have not changed
+	#	warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
+	#	sourcePackages_Url["${key}"]="$ourUrl"
+	#	return 0
+	#fi
 	
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
 	sourcePackages_Version["${key}"]="$ourVersion"
