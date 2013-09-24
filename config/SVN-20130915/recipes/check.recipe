@@ -1,4 +1,4 @@
-addSourcePackageDownload check 0.9.10 http://sourceforge.net/projects/check/files/check/0.9.10/check-0.9.10.tar.gz MD5:6d10a8efb9a683467b92b3bce97aeb30 gzip check-0.9.10
+addSourcePackageDownload 0.9.10 "$sourceforge_mirror"/"$ourSourcePackageName"/"$ourSourcePackageName"-0.9.10.tar.gz MD5:6d10a8efb9a683467b92b3bce97aeb30
 
 function installPackage_toolchain2_check()
 {

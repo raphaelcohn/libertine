@@ -1,6 +1,5 @@
-addSourcePackageDownload perl 5.18.1 http://www.cpan.org/src/5.0/perl-5.18.1.tar.bz2 MD5:4ec1a3f3824674552e749ae420c5e68c bzip2 perl-5.18.1
-
-addPatchDownload perl 5.18.1 http://www.linuxfromscratch.org/patches/lfs/development/perl-5.18.1-libc-1.patch MD5:daf5c64fd7311e924966842680535f8f
+addSourcePackageDownload 5.18.1 "$perl_mirror"/5.0/"$ourSourcePackageName"-5.18.1.tar.bz2 MD5:4ec1a3f3824674552e749ae420c5e68c
+addPatchDownload 5.18.1 "$lfs_patches_mirror"/"$ourSourcePackageName"-5.18.1-libc-1.patch MD5:daf5c64fd7311e924966842680535f8f
 
 function installPackage_toolchain2_perl_5.18.1()
 {

@@ -1,27 +1,46 @@
 function progressMessage()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
 	SECONDS=0
 	printf "$ourName: $1"
 }
 
 function progressMessageFailed()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
 	echo " FAILED (in ${SECONDS}s: $1)"
 	exit 1
 }
 
 function progressMessageSucceeded()
 {
+	if [ $@ -ne 0 ]; then
+		exitError "Too many arguments"
+	fi
 	echo " PASSED (in ${SECONDS}s)"
 }
 
 function warning()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
 	echo "$ourName: WARNING: $1"
 }
 
 function printKey()
 {
+	if [ $@ -ne 2 ]; then
+		exitError "Too many arguments"
+	fi
+	
 	local -r localSourcePackageName="$1"
 	local -r localVersion="$2"
 	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
@@ -32,12 +51,20 @@ function printKey()
 
 function printDistributionVersionKey()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
 	local -r localDistributionVersion="$1"
 	printf '%s' "${localDistributionVersion}" | tr --complement '[:alpha:][:digit:]' '_'
 }
 
 function sourcePackagesKeyExists()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Too many arguments"
+	fi
+	
 	local -r key="$1"
 	local -i index
 	for index in ${!sourcePackages_IndicesToKeys[@]}
@@ -68,17 +95,88 @@ declare -A sourcePackages_SHA512=()
 # TODO: Raw C code downloads, eg http://www.sqlite.org/contrib/download/extension-functions.c?get=25
 # TODO: zip package downloads, eg http://www.sqlite.org/2013/sqlite-doc-3071700.zip
 # TODO: Binary file downloads, eg perl scripts and their ilk. Frankly, too bad.
+# TODO: ar archives, and then deb (double-expansion, use ar x then one of the regular extractors)
+# rpm, cpio, shar archives
+# ? iso files ?
+
 # TODO: Signatures for downloaded files
 # TODO: Signatures, hashes for recipes
+
 function addSourcePackageDownload()
 {
-	local -r ourSourcePackageName="$1"
-	local -r ourVersion="$2"
-	local -r ourUrl="$3"
-	local -r ourHashes="$4"
-	local -r ourCompression="$5"
+	if [ $@ -lt 3 ]; then
+		exitError "Not enough arguments"
+	elif [ $@ -gt 5 ]; then
+		exitError "Too many arguments"
+	fi
+	
+	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r ourVersion="$1"
+	local -r ourUrl="$2"
+	local -r ourHashes="$3"
 	local -r ourFileName="$(basename "$ourUrl")"
-	local -r ourExtractedTarballFolder="$6"
+	
+	local -r compressionExtension="${filename##*.}"
+	
+	if [ $@ -ge 4 ]; then
+		local -r ourExtractedTarballFolder="$4"
+	else
+		local -r withoutCompressionExtension="${ourFileName%.*}"
+		if [ -z "$compressionExtension" ]; then
+			local -r ourExtractedTarballFolder="$withoutCompressionExtension"
+		elif [ "$compressionExtension" = "tar" ]; then
+			local -r ourExtractedTarballFolder="$withoutCompressionExtension"
+		elif [ "$compressionExtension" = "tgz" ]; then
+			local -r ourExtractedTarballFolder="$withoutCompressionExtension"
+		else
+			local -r ourExtractedTarballFolder="${withoutCompressionExtension%.*}"
+		fi
+	fi
+	
+	if [ $@ -eq 5 ]; then
+		local -r ourCompression="$5"
+	else
+		case "$compressionExtension" in
+			tar)
+				local -r ourCompression=''
+			;;
+			
+			gz|tgz)
+				local -r ourCompression=gzip
+			;;
+			
+			bz2)
+				local -r ourCompression=bzip2
+			;;
+			
+			# Not included in dependencies by default
+			# A faster compressor still is lz4
+			lzo)
+				local -r ourCompression=lzop
+			;;
+			
+			# Not included in dependencies by default
+			lz)
+				local -r ourCompression=lzip
+			;;
+			
+			lzma)
+				local -r ourCompression=lzma
+			;;
+			
+			xz)
+				local -r ourCompression=xz
+			;;
+			
+			
+			*)
+				if [ ! -z "$compressionExtension" ]; then
+					exitError "Unknown file extension $compressionExtension"
+				fi
+			;;
+		esac
+	fi
+	
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
@@ -154,6 +252,10 @@ function addSourcePackageDownload()
 
 function patchesKeyExists()
 {
+	if [ $@ -ne 1 ]; then
+		exitError "Not enough arguments"
+	fi
+	
 	local -r key="$1"
 	local -i index
 	for index in ${!patches_IndicesToKeys[@]}
@@ -178,10 +280,14 @@ declare -A patches_SHA512=()
 
 function addPatchDownload()
 {
-	local -r ourSourcePackageName="$1"
-	local -r ourVersion="$2"
-	local -r ourUrl="$3"
-	local -r ourHashes="$4"
+	if [ $@ -ne 3 ]; then
+		exitError "Not enough arguments"
+	fi
+	
+	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r ourVersion="$1"
+	local -r ourUrl="$2"
+	local -r ourHashes="$3"
 	local -r ourFileName="$(basename "$ourUrl")"
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
@@ -256,8 +362,42 @@ function addPatchDownload()
 	fi
 }
 
+function sourceMirror()
+{
+	if [ $@ -ne 1 ]; then
+		exitError "Not exactly 1 argument"
+	fi
+	
+	local -r localMirror="$1"
+	
+	if [ -f "$mirrorsPath"/"$localMirror".mirrors ]; then
+		LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$mirrorsPath"/"$localMirror".mirrors "$distributionVersion" "$localMirror"
+	else
+		exitError "mirrors $localMirror.mirrors does not exist in mirrors path $mirrorsPath or is not a file"
+	fi
+}
+
+function sourceProfile()
+{
+	if [ $@ -ne 1 ]; then
+		exitError "Not exactly 1 argument"
+	fi
+	
+	local -r localProfile="$1"
+	
+	if [ -f "$profilesPath"/"$profile".profile ]; then
+		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$profile".profile "$LFS_PHASE" "$distributionVersion" "$profile"
+	else
+		exitError "profile $profile.profile does not exist in profile path $profilesPath or is not a file"
+	fi
+}
+
 function sourceRecipe()
 {
+	if [ $@ -ne 2 ]; then
+		exitError "Not enough arguments"
+	fi
+	
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
@@ -270,6 +410,10 @@ declare -A installPhase_system=()
 
 function addToInstall()
 {
+	if [ $@ -ne 3 ]; then
+		exitError "Not enough arguments"
+	fi
+	
 	local -r ourSourcePackageName="$1"
 	local -r ourVersion="$2"
 	local -r phase="$3"
@@ -326,6 +470,10 @@ function addToInstall()
 
 function tarExtract()
 {
+	if [ $@ -ne 3 ]; then
+		exitError "Not enough arguments"
+	fi
+	
 	local -r tarball="$1"
 	local -r tarballFolder="$2"
 	local -r tarballCompression="$3"
@@ -340,6 +488,10 @@ function tarExtract()
 
 function extractDependencies()
 {
+	if [ $@ -eq 0 ]; then
+		exitError "Not enough arguments"
+	fi
+	
 	local dependencyKey
 	local localSourcePackageName
 	local localFileName
@@ -375,6 +527,10 @@ function installPackagePrototype()
 
 function createBuildFolderAndPushd()
 {
+	if [ $@ -ne 0 ]; then
+		exitError "Too many arguments"
+	fi
+	
 	local -r buildFolder=../"$ourSourcePackageName"-build
 	rm -rf "$buildFolder"
 	mkdir -m 0755 -p "$buildFolder"
@@ -383,6 +539,10 @@ function createBuildFolderAndPushd()
 
 function popdAndRemoveBuilderFolder()
 {
+	if [ $@ -ne 0 ]; then
+		exitError "Too many arguments"
+	fi
+	
 	popd >/dev/null
 	rm -rf "$buildFolder"
 }

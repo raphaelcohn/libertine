@@ -1,4 +1,4 @@
-addSourcePackageDownload diffutils 3.3 http://ftp.gnu.org/gnu/diffutils/diffutils-3.3.tar.xz MD5:99180208ec2a82ce71f55b0d7389f1b3 xz diffutils-3.3
+addSourcePackageDownload 3.3 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-3.3.tar.xz MD5:99180208ec2a82ce71f55b0d7389f1b3
 
 function installPackage_toolchain2_diffutils()
 {

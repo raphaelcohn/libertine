@@ -1,4 +1,4 @@
-addSourcePackageDownload make 3.82 http://ftp.gnu.org/gnu/make/make-3.82.tar.bz2 MD5:1a11100f3c63fcf5753818e59d63088f bzip2 make-3.82
+addSourcePackageDownload 3.82 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-3.82.tar.bz2 MD5:1a11100f3c63fcf5753818e59d63088f
 
 function installPackage_toolchain2_make()
 {

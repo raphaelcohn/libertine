@@ -1,18 +1,20 @@
-addSourcePackageDownload tcl 8.6.0 http://prdownloads.sourceforge.net/tcl/tcl8.6.0-src.tar.gz MD5:573aa5fe678e9185ef2b3c56b24658d3 gzip tcl-8.6.0
+addSourcePackageDownload 8.6.0 "$sourceforge_mirror"/"$ourSourcePackageName"/"$ourSourcePackageName"8.6.0-src.tar.gz MD5:573aa5fe678e9185ef2b3c56b24658d3 "$ourSourcePackageName"-8.6.0
 
 function installPackage_toolchain2_tcl_8.6.0()
 {
+	local -r majorVersion=8.6
+	
 	sed -i s/500/5000/ generic/regc_nfa.c
 	
 	pushd unix >/dev/null
 		
 		installPackagePrototype
 		
-		chmod -v u+w /"$LFS_TOOLS"/lib/libtcl8.6.so
+		chmod -v u+w /"$LFS_TOOLS"/lib/libtcl${majorVersion}.so
 		
 		make install-private-headers
 		
-		ln -sv tclsh8.6 /"$LFS_TOOLS"/bin/tclsh
+		ln -sv tclsh${majorVersion} /"$LFS_TOOLS"/bin/tclsh
 		
 	popd >/dev/null
 }

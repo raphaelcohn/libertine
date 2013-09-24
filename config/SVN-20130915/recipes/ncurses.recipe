@@ -1,4 +1,4 @@
-addSourcePackageDownload ncurses 5.9 http://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1 gzip ncurses-5.9
+addSourcePackageDownload 5.9 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1
 
 function installPackage_toolchain2_ncurses()
 {

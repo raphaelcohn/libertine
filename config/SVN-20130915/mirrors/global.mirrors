@@ -1,0 +1,13 @@
+mirror_gnu=http://ftp.gnu.org/gnu
+sourceforge_mirror=http://prdownloads.sourceforge.net
+linux_v3_mirror=https://www.kernel.org/pub/linux/kernel/v3.x
+perl_mirror=http://www.cpan.org/src
+
+lfs_patches_mirror=http://www.linuxfromscratch.org/patches/lfs/development
+
+bzip_mirror=http://www.bzip.org
+xz_mirror=http://tukaani.org
+file_mirror=ftp://ftp.astron.com/pub
+mpfr_mirror=http://www.mpfr.org
+gmp_mirror=ftp://ftp.gmplib.org/pub
+mpc_mirror=http://www.multiprecision.org/mpc/download

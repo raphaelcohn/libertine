@@ -1,4 +1,4 @@
-addSourcePackageDownload coreutils 8.21 http://ftp.gnu.org/gnu/coreutils/coreutils-8.21.tar.xz MD5:065ba41828644eca5dd8163446de5d64 xz coreutils-8.21
+addSourcePackageDownload 8.21 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-8.21.tar.xz MD5:065ba41828644eca5dd8163446de5d64
 
 function installPackage_toolchain2_coreutils()
 {

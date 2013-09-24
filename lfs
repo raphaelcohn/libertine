@@ -37,7 +37,7 @@ function exitHelp()
 {
 	cat 1>&2 <<-EOF
 		Usage: ${ourName} -h
-		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
+		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 		
 		Profiles
 		[profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
@@ -62,10 +62,13 @@ function exitHelp()
 		    lfsPath            ${lfsPath}
 		    lfsConfigPath      ${lfsConfigPath}
 		    toolsFolderName    ${toolsFolderName}
+		    mirrors            ${mirrors}
 		    toolchain1Profile  ${toolchain1Profile}
 		    toolchain2Profile  ${toolchain2Profile}
 		    option             See below
 		    profiles           ${profiles}
+		
+		A mirror defines mirror URLs.
 		
 		Options
 		For options, prefix with either 'yes-' to turn it on
@@ -92,6 +95,7 @@ function parseCommandLine()
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	toolsFolderName=tools
+	mirrors=global
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
 	stripToolchainSymbols="yes"
@@ -106,7 +110,7 @@ function parseCommandLine()
 		OPTERR=1
 		OPTIND=1
 		local option
-		while getopts :hl:d:o: option
+		while getopts :hl:d:m:1:2:o: option
 		do
 			case "$option" in
 				
@@ -128,6 +132,10 @@ function parseCommandLine()
 				
 				t)
 					toolsFolderName="$OPTARG"
+				;;
+				
+				m)
+					mirrors="$OPTARG"
 				;;
 				
 				1)
@@ -236,7 +244,12 @@ function setPathsAndExports()
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
-	PATH=. source "$exportedFunctions"
+	source "$exportedFunctions"
+	
+	readonly mirrorsPath="$distributionPath"/mirrors
+	if [ ! -d "$mirrorsPath" ]; then
+		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
+	fi
 	
 	if [ ! -d "$lfsPath" ]; then
 		mkdir -m 0755 -p "$lfsPath"
@@ -356,37 +369,27 @@ function verifyHostSystemRequirements()
 	fi
 }
 
-function addProfiles()
+function sourceMirrors()
 {
-	local profile="$toolchain1Profile"
-	local phase=toolchain1
-	
-	if [ -f "$profilesPath"/"$profile".profile ]; then
-		LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$profile".profile "$phase" "$distributionVersion" "$profile"
-	else
-		exitError "profile $profile.profile does not exist in profile path $profilesPath or is not a file"
-	fi
-	
-	profile="$toolchain2Profile"
-	phase=toolchain2
-	if [ -f "$profilesPath"/"$profile".profile ]; then
-		LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$profile".profile "$phase" "$distributionVersion" "$profile"
-	else
-		exitError "profile $profile.profile does not exist in profile path $profilesPath or is not a file"
-	fi
-	
-	phase=system
-	for profile in $profiles
-	do
-		if [ -f "$profilesPath"/"$profile".profile ]; then
-			LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$profile".profile "$phase" "$distributionVersion" "$profile"
-		else
-			exitError "profile $profile.profile does not exist in profile path $profilesPath or is not a file"
-		fi
-	done
-	
+	pushd "$mirrorsPath" >/dev/null
+		
+		sourceMirror "$mirrors"
+		
+	popd >/dev/null
+}
+
+function sourceProfiles()
+{
 	pushd "$profilesPath" >/dev/null
 		
+		LFS_PHASE="toolchain1" sourceProfile "$toolchain1Profile"
+		
+		LFS_PHASE="toolchain2" sourceProfile "$toolchain2Profile"
+		
+		for profile in $profiles
+		do
+			LFS_PHASE="system" sourceProfile "$profile"
+		done
 		
 	popd >/dev/null
 	
@@ -735,7 +738,8 @@ function main()
 	fi
 	verifyHostSystemRequirements >/dev/null 2>/dev/null
 	
-	addProfiles
+	sourceMirrors
+	sourceProfiles
 	
 	createSkeletonFolderStructure
 	

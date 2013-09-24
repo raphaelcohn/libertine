@@ -1,4 +1,4 @@
-addSourcePackageDownload texinfo 5.1 http://ftp.gnu.org/gnu/texinfo/texinfo-5.1.tar.xz MD5:52ee905a3b705020d2a1b6ec36d53ca6 xz texinfo-5.1
+addSourcePackageDownload 5.1 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-5.1.tar.xz MD5:52ee905a3b705020d2a1b6ec36d53ca6
 
 function installPackage_toolchain2_texinfo()
 {

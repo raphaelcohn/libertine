@@ -1,4 +1,4 @@
-addSourcePackageDownload gettext 0.18.3.1 http://ftp.gnu.org/gnu/gettext/gettext-0.18.3.1.tar.gz MD5:3fc808f7d25487fc72b5759df7419e02 gzip gettext-0.18.3.1
+addSourcePackageDownload 0.18.3.1 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-0.18.3.1.tar.gz MD5:3fc808f7d25487fc72b5759df7419e02
 
 function installPackage_toolchain2_gettext()
 {

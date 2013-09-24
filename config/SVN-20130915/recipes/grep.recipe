@@ -1,4 +1,4 @@
-addSourcePackageDownload grep 2.14 http://ftp.gnu.org/gnu/grep/grep-2.14.tar.xz MD5:d4a3f03849d1e17ce56ab76aa5a24cab xz grep-2.14
+addSourcePackageDownload 2.14 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-2.14.tar.xz MD5:d4a3f03849d1e17ce56ab76aa5a24cab
 
 function installPackage_toolchain2_grep()
 {

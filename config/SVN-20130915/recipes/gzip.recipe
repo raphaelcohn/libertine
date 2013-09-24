@@ -1,4 +1,4 @@
-addSourcePackageDownload gzip 1.6 http://ftp.gnu.org/gnu/gzip/gzip-1.6.tar.xz MD5:da981f86677d58a106496e68de6f8995 xz gzip-1.6
+addSourcePackageDownload 1.6 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-1.6.tar.xz MD5:da981f86677d58a106496e68de6f8995
 
 function installPackage_toolchain2_gzip()
 {

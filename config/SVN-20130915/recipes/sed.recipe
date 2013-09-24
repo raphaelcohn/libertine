@@ -1,4 +1,4 @@
-addSourcePackageDownload sed 4.2.2 http://ftp.gnu.org/gnu/sed/sed-4.2.2.tar.bz2 MD5:7ffe1c7cdc3233e1e0c4b502df253974 bzip2 sed-4.2.2
+addSourcePackageDownload 4.2.2 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-4.2.2.tar.bz2 MD5:7ffe1c7cdc3233e1e0c4b502df253974
 
 function installPackage_toolchain2_sed()
 {
