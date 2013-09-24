@@ -422,7 +422,8 @@ function downloadSources()
 	
 	local key
 	local url
-	for key in ${installPhase_toolchain1["${distributionVersion}"]} ${installPhase_toolchain2["${distributionVersion}"]} ${installPhase_system["${distributionVersion}"]}
+	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
+	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
 	do
 		url="${sourcePackages_Url["${key}"]}"
 		if [ ! -z "$url" ]; then
@@ -530,6 +531,7 @@ function verifySources()
 		local fileName
 		local hashValue
 		local -i exitCode
+		local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 		for hashName in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
 		do
 			set +e
@@ -537,7 +539,7 @@ function verifySources()
 			# this weird syntax converts to lower case, see http://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting for other casing possibilities (second answer)
 			hashProgram=${hashName,,}sum
 			logFilePath="$logsPath"/$hashName.log
-			for key in ${installPhase_toolchain1["${distributionVersion}"]} ${installPhase_toolchain2["${distributionVersion}"]} ${installPhase_system["${distributionVersion}"]}
+			for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
 			do
 				fileName="${sourcePackages_FileName["${key}"]}"
 				hashValue="$(findHashValueForSourcePackage "$hashName" "$key")"
@@ -673,18 +675,19 @@ function installPackages()
 {
 	local -r phase="$1"
 	
+	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 	case "$phase" in
 		
 		toolchain1)
-			local -r packageKeys="${installPhase_toolchain1["${distributionVersion}"]}"
+			local -r packageKeys="${installPhase_toolchain1["${localDistributionVersionKey}"]}"
 		;;
 		
 		toolchain2)
-			local -r packageKeys="${installPhase_toolchain2["${distributionVersion}"]}"
+			local -r packageKeys="${installPhase_toolchain2["${localDistributionVersionKey}"]}"
 		;;
 		
 		system)
-			local -r packageKeys="${installPhase_system["${distributionVersion}"]}"
+			local -r packageKeys="${installPhase_system["${localDistributionVersionKey}"]}"
 		;;
 		
 		*)

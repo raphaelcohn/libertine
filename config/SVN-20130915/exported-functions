@@ -17,11 +17,17 @@ function progressMessageSucceeded()
 
 function printKey()
 {
-	local -r ourSourcePackageName="$1"
-	local -r ourVersion="$2"
+	local -r localSourcePackageName="$1"
+	local -r localVersion="$2"
 	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
 	# this is a problem for existence checks
-	tr --complement --delete '[:alnum:]' <<<"${ourSourcePackageName}:${ourVersion}"
+	tr --complement '[:alnum:]' '_' <<<"${localSourcePackageName}:${localVersion}"
+}
+
+function printDistributionVersionKey()
+{
+	local -r localDistributionVersion="$1"
+	tr --complement '[:alnum:]' '_' <<<"${localDistributionVersion}"
 }
 
 declare -A sourcePackages_SourcePackageName=()
@@ -285,25 +291,27 @@ function addToInstall()
 	# remaining variables are distribution versions (ie software that works together)
 	shift 3
 	local localDistributionVersion
+	local localDistributionVersionKey
 	local previousDependencies=""
 	for localDistributionVersion in $@
 	do
+		localDistributionVersionKey="$(printDistributionVersionKey "$localDistributionVersion")"
 		case "$phase" in
 		
 			toolchain1)
-				echo $localDistributionVersion
-				previousDependencies="${installPhase_toolchain1["${localDistributionVersion}"]}"
-				installPhase_toolchain1["${localDistributionVersion}"]="$previousDependencies $key"
+				echo $localDistributionVersionKey
+				previousDependencies="${installPhase_toolchain1["${localDistributionVersionKey}"]}"
+				installPhase_toolchain1["${localDistributionVersionKey}"]="$previousDependencies $key"
 			;;
 		
 			toolchain2)
-				previousDependencies="${installPhase_toolchain2["${localDistributionVersion}"]}"
-				installPhase_toolchain2["${localDistributionVersion}"]="$previousDependencies $key"
+				previousDependencies="${installPhase_toolchain2["${localDistributionVersionKey}"]}"
+				installPhase_toolchain2["${localDistributionVersionKey}"]="$previousDependencies $key"
 			;;
 		
 			system)
-				previousDependencies="${installPhase_system["${localDistributionVersion}"]}"
-				installPhase_system["${localDistributionVersion}"]="$previousDependencies $key"
+				previousDependencies="${installPhase_system["${localDistributionVersionKey}"]}"
+				installPhase_system["${localDistributionVersionKey}"]="$previousDependencies $key"
 			;;
 		
 			*)
