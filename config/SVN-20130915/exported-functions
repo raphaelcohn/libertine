@@ -26,13 +26,13 @@ function printKey()
 	local -r localVersion="$2"
 	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
 	# this is a problem for existence checks
-	tr --complement '[:alnum:]' '_' <<<"${localSourcePackageName}:${localVersion}"
+	tr --complement '[:alpha:][:digit:]' '_' <<<"${localSourcePackageName}:${localVersion}"
 }
 
 function printDistributionVersionKey()
 {
 	local -r localDistributionVersion="$1"
-	tr --complement '[:alnum:]' '_' <<<"${localDistributionVersion}"
+	tr --complement '[:alpha:][:digit:]' '_' <<<"${localDistributionVersion}"
 }
 
 declare -A sourcePackages_SourcePackageName=()
@@ -304,7 +304,6 @@ function addToInstall()
 		case "$phase" in
 		
 			toolchain1)
-				echo $localDistributionVersionKey
 				previousDependencies="${installPhase_toolchain1["${localDistributionVersionKey}"]}"
 				installPhase_toolchain1["${localDistributionVersionKey}"]="$previousDependencies $key"
 			;;

@@ -576,19 +576,20 @@ function installPackage()
 	local -r key="$2"
 	shift 2
 	
-	local -i exitCode
-	
-	ourSourcePackageName=sourcePackages_SourcePackageName["${key}"]
+	ourSourcePackageName="${sourcePackages_SourcePackageName["${key}"]}"
 	if [ -z "$ourSourcePackageName" ]; then
 		progressMessageFailed "No known package definition for key $key"
 	fi
-	ourVersion=sourcePackages_Version["${key}"]
-	ourCompression=sourcePackages_Compression["${key}"]
-	ourFileName=sourcePackages_FileName["${key}"]
-	ourExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${key}"]
-	ourPatchFileName=patches_FileName["${key}"]
 	
 	progressMessage "Installing phase $phase source package $ourSourcePackageName version $ourVersion"
+	
+	ourVersion="${sourcePackages_Version["${key}"]}"
+	ourCompression="${sourcePackages_Compression["${key}"]}"
+	ourFileName="${sourcePackages_FileName["${key}"]}"
+	ourExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
+	ourPatchFileName="${patches_FileName["${key}"]}"
+	
+	local -i exitCode
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
