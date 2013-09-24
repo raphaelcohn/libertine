@@ -343,20 +343,19 @@ function extractDependencies()
 {
 	local dependencyKey
 	local localSourcePackageName
-	local localVersion
 	local localFileName
 	local localExtractedTarballFolder
 	local localCompression
 	
 	for dependencyKey in $@
 	do
-		IFS=: read -r -d$'\n' localSourcePackageName localVersion <<<"$dependencyKey"
+		localSourcePackageName=sourcePackages_SourcePackageName["${dependencyKey}"]
 		localFileName=sourcePackages_FileName["${dependencyKey}"]
 		localExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${dependencyKey}"]
 		localCompression=sourcePackages_Compression["${dependencyKey}"]
 		
-		if [ -z "$localFileName" ]; then
-			progressMessageFailed "No known source package definition for dependency $localSourcePackageName version $localVersion"
+		if [ -z "$localSourcePackageName" ]; then
+			progressMessageFailed "No known source package definition for dependency key $dependencyKey"
 		fi
 		
 		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
