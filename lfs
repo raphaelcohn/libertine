@@ -100,9 +100,6 @@ function parseCommandLine()
 	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
 		executeWithCleanEnvironment "$@"
 	else
-		# For now, until we need further option handling
-		exitError "Invalid options"
-		
 		OPTERR=1
 		OPTIND=1
 		local option
