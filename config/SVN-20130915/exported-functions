@@ -73,6 +73,7 @@ function addSourcePackageDownload()
 	
 	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
 	echo ${sourcePackages_Url[@]}
+	echo ${!sourcePackages_Url[@]}
 	
 	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	#if [ ! -z "$existingUrl" ]; then
