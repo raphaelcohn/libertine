@@ -45,7 +45,7 @@ function addSourcePackageDownload()
 	
 	local -r key="${ourSourcePackageName}:${ourVersion}"
 	
-	local -r existingUrl=sourcePackages_Url["${key}"]
+	local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
 		# TODO: Verify hashes have not changed
@@ -156,7 +156,7 @@ function addPatchDownload()
 		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
 	fi
 	
-	local -r existingUrl=patches_Url["${key}"]
+	local -r existingUrl="${patches_Url["${key}"]}"
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
 		# TODO: Verify hashes have not changed
