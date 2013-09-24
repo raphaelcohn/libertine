@@ -49,7 +49,7 @@ function addSourcePackageDownload()
 	echo 'a'
 	echo x"${!sourcePackages_Url[@]}"x
 	echo 'h'
-	echo ${sourcePackages_Url[hello]}
+	echo "${sourcePackages_Url[binutils:2.23.2]}"
 	local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
