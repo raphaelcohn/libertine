@@ -29,7 +29,7 @@ function findOurNameAndPath()
 
 function executeWithCleanEnvironment()
 {
-	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' STORMMQ_BASH_DEBUGGING="$STORMMQ_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='y' "$crudeOurPath"/"$ourName"
+	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' STORMMQ_BASH_DEBUGGING="$STORMMQ_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='y' "$crudeOurPath"/"$ourName" $@
 }
 
 function exitHelp()
