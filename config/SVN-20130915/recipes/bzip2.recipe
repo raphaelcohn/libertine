@@ -4,5 +4,5 @@ function installPackage_toolchain2_bzip2()
 {
 	make
 	
-	make PREFIX=/tools install
+	make PREFIX=/"$LFS_TOOLS" install
 }

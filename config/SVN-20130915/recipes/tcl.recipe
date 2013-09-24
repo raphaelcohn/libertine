@@ -8,11 +8,11 @@ function installPackage_toolchain2_tcl_8.6.0()
 		
 		installPackagePrototype
 		
-		chmod -v u+w /tools/lib/libtcl8.6.so
+		chmod -v u+w /"$LFS_TOOLS"/lib/libtcl8.6.so
 		
 		make install-private-headers
 		
-		ln -sv tclsh8.6 /tools/bin/tclsh
+		ln -sv tclsh8.6 /"$LFS_TOOLS"/bin/tclsh
 		
 	popd >/dev/null
 }

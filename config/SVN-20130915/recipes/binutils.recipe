@@ -7,9 +7,9 @@ function installPackage_toolchain1_binutils()
 	createBuildFolderAndPushd
 
 		../"$ourExtractedTarballFolder"/configure \
-		--prefix=/tools \
+		--prefix=/"$LFS_TOOLS" \
 		--with-sysroot="$LFS" \
-		--with-lib-path=/tools/lib \
+		--with-lib-path=/"$LFS_TOOLS"/lib \
 		--target="$LFS_TGT" \
 		--disable-nls \
 		--disable-werror
@@ -19,8 +19,8 @@ function installPackage_toolchain1_binutils()
 		# Ensure toolchain sanity on 64-bit x864
 		case "$(uname -m)" in
 			x86_64)
-				mkdir -m 0755 -p /tools/lib
-				ln --symbolic lib /tools/lib64
+				mkdir -m 0755 -p /"$LFS_TOOLS"/lib
+				ln --symbolic lib /"$LFS_TOOLS"/lib64
 			;;
 		esac
 
@@ -39,9 +39,9 @@ function installPackage_toolchain2_binutils()
 		AR=$LFS_TGT-ar                            \
 		RANLIB=$LFS_TGT-ranlib                    \
 		../"$ourExtractedTarballFolder"/configure \
-		--prefix=/tools                           \
+		--prefix=/"$LFS_TOOLS"                    \
 		--disable-nls                             \
-		--with-lib-path=/tools/lib                \
+		--with-lib-path=/"$LFS_TOOLS"/lib         \
 		--with-sysroot
 		
 		make
@@ -50,7 +50,7 @@ function installPackage_toolchain2_binutils()
 		
 		make -C ld clean
 		make -C ld LIB_PATH=/usr/lib:/lib
-		cp -v ld/ld-new /tools/bin
+		cp -v ld/ld-new /"$LFS_TOOLS"/bin
 		
 	popdAndRemoveBuilderFolder
 }

@@ -14,11 +14,11 @@ function installPackage_toolchain1_gcc()
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
 	do
 		cp -uv "$file"{,.orig}
-		sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' -e 's@/usr@/tools@g' "$file".orig >"$file"
+		sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${LFS_TOOLS}&@g" -e "s@/usr@/${LFS_TOOLS}@g" "$file".orig >"$file"
 		echo '
 #undef STANDARD_STARTFILE_PREFIX_1
 #undef STANDARD_STARTFILE_PREFIX_2
-#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
+#define STANDARD_STARTFILE_PREFIX_1 "/${LFS_TOOLS}/lib/"
 #define STANDARD_STARTFILE_PREFIX_2 ""' >>"$file"
 		touch $file.orig
 	done
@@ -31,12 +31,12 @@ function installPackage_toolchain1_gcc()
 		local -r currentDir="$(pwd)"
 		../"$ourExtractedTarballFolder"/configure        \
 		--target="$LFS_TGT"                              \
-		--prefix=/tools                                  \
+		--prefix=/"$LFS_TOOLS"                                  \
 		--with-sysroot="$LFS"                            \
 		--with-newlib                                    \
 		--without-headers                                \
-		--with-local-prefix=/tools                       \
-		--with-native-system-header-dir=/tools/include   \
+		--with-local-prefix=/"$LFS_TOOLS"                       \
+		--with-native-system-header-dir=/"$LFS_TOOLS"/include   \
 		--disable-nls                                    \
 		--disable-shared                                 \
 		--disable-multilib                               \
@@ -95,9 +95,9 @@ function installPackage_toolchain2_gcc()
 		AR="$LFS_TGT"-ar                                                           \
 		RANLIB="$LFS_TGT"-ranlib                                                   \
 		../"$ourExtractedTarballFolder"/configure                                  \
-		--prefix=/tools                                                            \
-		--with-local-prefix=/tools                                                 \
-		--with-native-system-header-dir=/tools/include                             \
+		--prefix=/"$LFS_TOOLS"                                                            \
+		--with-local-prefix=/"$LFS_TOOLS"                                                 \
+		--with-native-system-header-dir=/"$LFS_TOOLS"/include                             \
 		--enable-clocale=gnu                                                       \
 		--enable-shared                                                            \
 		--enable-threads=posix                                                     \
@@ -114,7 +114,7 @@ function installPackage_toolchain2_gcc()
 		
 		make install
 		
-		ln -sv gcc /tools/bin/cc
+		ln -sv gcc /"$LFS_TOOLS"/bin/cc
 		
 	popdAndRemoveBuilderFolder
 }

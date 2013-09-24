@@ -36,7 +36,7 @@ function exitHelp()
 {
 	cat 1>&2 <<-EOF
 		Usage: ${ourName} -h
-		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
+		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 		
 		Profiles
 		[profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
@@ -57,9 +57,10 @@ function exitHelp()
 		Profiles may be suffixed with [distribution] to target a particular distribution.
 		
 		Defaults
+		    distribution       ${distribution}
 		    lfsPath            ${lfsPath}
 		    lfsConfigPath      ${lfsConfigPath}
-		    distribution       ${distribution}
+		    toolsFolderName    ${toolsFolderName}
 		    toolchain1Profile  ${toolchain1Profile}
 		    toolchain2Profile  ${toolchain2Profile}
 		    option             See below
@@ -89,6 +90,7 @@ function parseCommandLine()
 	distributionVersion=""
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
+	toolsFolderName=tools
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
 	stripToolchainSymbols="yes"
@@ -121,6 +123,18 @@ function parseCommandLine()
 				
 				c)
 					lfsConfigPath="$OPTARG"
+				;;
+				
+				t)
+					toolsFolderName="$OPTARG"
+				;;
+				
+				1)
+					toolchain1Profile="$OPTARG"
+				;;
+				
+				2)
+					toolchain2Profile="$OPTARG"
 				;;
 				
 				o)
@@ -194,8 +208,8 @@ function parseCommandLine()
 
 function installDebianDependencies()
 {
-	sudo apt-get update
-	sudo apt-get install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
+	sudo --quiet --quiet apt-get update
+	sudo --quiet --quiet apt-get install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
 }
 
 function verifyHostSystemRequirements()
@@ -280,12 +294,7 @@ function verifyHostSystemRequirements()
 
 function addProfiles()
 {
-	readonly profilePath="$lfsConfigPath"/"$distributionVersion"/profiles
-	if [ ! -d "$profilePath" ]; then
-		exitError "Profile path $profilePath does not exist or is not a directory"
-	fi
-	
-	pushd "$profilePath" >/dev/null
+	pushd "$profilesPath" >/dev/null
 		
 		local profile="$toolchain1Profile"
 		local phase=toolchain1
@@ -293,7 +302,7 @@ function addProfiles()
 		if [ -f "$profile".profile ]; then
 			PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
 		else
-			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilesPath or is not a file"
 		fi
 		
 		profile="$toolchain2Profile"
@@ -301,7 +310,7 @@ function addProfiles()
 		if [ -f "$profile".profile ]; then
 			PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
 		else
-			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilesPath or is not a file"
 		fi
 		
 		phase=system
@@ -310,7 +319,7 @@ function addProfiles()
 			if [ -f "$profile".profile ]; then
 				PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
 			else
-				exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+				exitError "profile $profile.d or $profile.profile does not exist in profile path $profilesPath or is not a file"
 			fi
 		done
 		
@@ -320,15 +329,51 @@ function addProfiles()
 
 function setPathsAndExports()
 {
+	if [ ! -d "$lfsConfigPath" ]; then
+		exitError "Config path $lfsConfigPath does not exist or is not a directory"
+	fi
+	pushd "$lfsConfigPath">/dev/null
+	lfsConfigPath="$(pwd)"
+	popd >/dev/null
+	
+	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
+	if [ ! -d "$distributionPath" ]; then
+		exitError "Distribution path $distributionPath does not exist or is not a directory"
+	fi
+	
+	readonly profilesPath="$distributionPath"/profiles
+	if [ ! -d "$profilesPath" ]; then
+		exitError "Profiles path $profilesPath does not exist or is not a directory"
+	fi
+	
+	readonly recipesPath="$distributionPath"/recipes
+	if [ ! -d "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a directory"
+	fi
+	
+	readonly exportedFunctions="$distributionPath"/exported-functions
+	if [ ! -f "$exportedFunctions" ]; then
+		exitError "exported-functions $exportedFunctions does not exist or is not a file"
+	fi
+	PATH=. source "$exportedFunctions"
+	
+	if [ ! -d "$lfsPath" ]; then
+		mkdir -m 0755 -p "$lfsPath"
+	fi
+	pushd "$lfsPath">/dev/null
+	lfsPath="$(pwd)"
+	popd >/dev/null
+	
 	export LFS="$lfsPath"/root
+	export LFS_TOOLS="$toolsFolderName"
 	
 	readonly logsPath="$lfsPath"/logs
 	readonly sourcesPath="$LFS"/sources
-	readonly toolsPath="$LFS"/tools
+	readonly toolsPath="$LFS"/"$LFS_TOOLS"
 	
 	export LC_ALL=POSIX
 	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
-	export PATH=/tools/bin:/bin:/usr/bin
+	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	
 	if [ -f /proc/cpuinfo ]; then
 		# Can result in 0 if no processor lines present
@@ -358,7 +403,7 @@ function createSkeletonFolderStructure()
 	# Tools
 	sudo mkdir -m 0755 -p "$toolsPath"
 	# symlink, say, /mnt/lfs/tools as /tools
-	sudo rm -rf /tools
+	sudo rm -rf /"$LFS_TOOLS"
 	sudo ln --symbolic "$toolsPath" /
 	
 	sudo chown -R $UID:$UID "$sourcesPath"
@@ -661,15 +706,15 @@ function installPackages()
 function stripToolchainSymbols()
 {
 	if [ "$stripToolchainSymbols" = "yes" ]; then
-		strip --strip-debug /tools/lib/*
-		strip --strip-unneeded /tools/{,s}bin/*
+		strip --strip-debug /"$LFS_TOOLS"/lib/*
+		strip --strip-unneeded /"$LFS_TOOLS"/{,s}bin/*
 	fi
 }
 
 function stripToolchainDocs
 {
 	if [ "$stripToolchainDocs" = "yes" ]; then
-		rm -rf /tools/{,share}/{info,man,doc}
+		rm -rf /"$LFS_TOOLS"/{,share}/{info,man,doc}
 	fi
 }
 

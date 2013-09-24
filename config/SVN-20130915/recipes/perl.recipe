@@ -6,11 +6,11 @@ function installPackage_toolchain2_perl_5.18.1()
 {
 	patch -Np1 -i ../"$ourSourcePackageName"-"$ourVersion"-libc-1.patch
 	
-	sh Configure -des -Dprefix=/tools
+	sh Configure -des -Dprefix=/"$LFS_TOOLS"
 	
 	make
 	
-	cp -v perl cpan/podlators/pod2man /tools/bin
-	mkdir -pv /tools/lib/perl5/"$ourVersion"
-	cp -Rv lib/* /tools/lib/perl5/"$ourVersion"
+	cp -v perl cpan/podlators/pod2man /"$LFS_TOOLS"/bin
+	mkdir -pv /"$LFS_TOOLS"/lib/perl5/"$ourVersion"
+	cp -Rv lib/* /"$LFS_TOOLS"/lib/perl5/"$ourVersion"
 }

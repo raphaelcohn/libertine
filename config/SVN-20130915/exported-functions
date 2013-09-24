@@ -246,7 +246,7 @@ function sourceRecipe()
 {
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
-	PATH=. LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source ../recipes/"$localSourcePackageName".recipe "$localSourcePackageName"
+	PATH=. LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION"
 }
 
@@ -352,7 +352,7 @@ function extractDependencies()
 
 function installPackagePrototype()
 {
-	./configure --prefix=/tools $@
+	./configure --prefix=/"$LFS_TOOLS" $@
 	
 	make
 	

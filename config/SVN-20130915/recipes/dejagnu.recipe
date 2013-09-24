@@ -2,7 +2,7 @@ addSourcePackageDownload dejagnu 1.5.1 http://ftp.gnu.org/gnu/dejagnu/dejagnu-1.
 
 function installPackage_toolchain2_dejagnu()
 {
-	./configure --prefix=/tools
+	./configure --prefix=/"$LFS_TOOLS"
 
 	make install
 

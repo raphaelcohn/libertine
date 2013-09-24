@@ -5,7 +5,7 @@ function installPackage_toolchain2_expect()
 	cp -v configure{,.orig}
 	sed 's:/usr/local/bin:/bin:' configure.orig >configure
 	
-	./configure --prefix=/tools --with-tcl=/tools/lib --with-tclinclude=/tools/include
+	./configure --prefix=/"$LFS_TOOLS" --with-tcl=/"$LFS_TOOLS"/lib --with-tclinclude=/"$LFS_TOOLS"/include
 	
 	make
 	
