@@ -1,0 +1,8 @@
+addSourcePackageDownload tar 1.26 http://ftp.gnu.org/gnu/tar/tar-1.26.tar.bz2 MD5:2cee42a2ff4f1cd4f9298eeeb2264519 bzip2 tar-1.26
+
+function installPackage_toolchain2_tar()
+{
+	sed -i -e '/gets is a/d' gnu/stdio.in.h
+	
+	installPackagePrototype
+}

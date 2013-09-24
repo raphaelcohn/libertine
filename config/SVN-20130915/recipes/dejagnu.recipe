@@ -1,0 +1,10 @@
+addSourcePackageDownload dejagnu 1.5.1 http://ftp.gnu.org/gnu/dejagnu/dejagnu-1.5.1.tar.gz MD5:8386e04e362345f50ad169f052f4c4ab gzip dejagnu-1.5.1
+
+function installPackage_toolchain2_dejagnu()
+{
+	./configure --prefix=/tools
+
+	make install
+
+	#make check
+}

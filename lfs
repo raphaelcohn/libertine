@@ -1,0 +1,716 @@
+#!/bin/bash -
+set -e
+
+function exitError()
+{
+	local -r error="$1"
+	echo "$ourName: $error" 1>&2
+	exitHelp 1
+}
+
+function setDebugging()
+{
+	# is set -x on?
+	if [[ "$-" == *x* ]]; then
+		export STORMMQ_BASH_DEBUGGING="y"
+	fi
+	if [ "$STORMMQ_BASH_DEBUGGING" = "y" ];then
+		set -x
+	fi
+}
+
+function findOurNameAndPath()
+{
+	readonly ourName="$(basename "$0")"
+	cd "$(dirname "$0")" 1>/dev/null
+	readonly crudeOurPath="$(pwd)"
+	cd - 1>/dev/null
+}
+
+function executeWithCleanEnvironment()
+{
+	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' STORMMQ_BASH_DEBUGGING="$STORMMQ_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='y' "$crudeOurPath"/"$ourName"
+}
+
+function exitHelp()
+{
+	cat 1>&2 <<-EOF
+		Usage: ${ourName} -h
+		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
+		
+		Profiles
+		[profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
+		script, that install and build from source what would be called packages on other systems.
+		
+		If no profile is specified, then the baseline 'lfs' profile is used.
+		
+		profiles are executed in the order listed. Internally, a profile may reference ('source')
+		another profile if it depends on it. This is the equivalent of package management on other
+		systems. A set of profiles is intended to be version-controlled using a source control system
+		such as git and so do not declare explicit version dependencies.
+		
+		The profiles 'toolchain1' and 'toolchain2' are special. Implementors of profiles can assume
+		that these profiles are always sourced. It is an error to specify them in the list of profiles.
+		
+		A profile does not have to just install packages.
+		
+		Profiles may be suffixed with [distribution] to target a particular distribution.
+		
+		Defaults
+		    lfsPath            ${lfsPath}
+		    lfsConfigPath      ${lfsConfigPath}
+		    distribution       ${distribution}
+		    toolchain1Profile  ${toolchain1Profile}
+		    toolchain2Profile  ${toolchain2Profile}
+		    option             See below
+		    profiles           ${profiles}
+		
+		Options
+		For options, prefix with either 'yes-' to turn it on
+		or 'no-' to turn it off. For example, to turn on 'strip-system-docs' :-
+		
+		    ${ourName} -o yes-strip-system-docs
+		
+		-o may be repeated as necessary. Options are evaluated in left-to-right order.
+		Last setting wins.
+		
+		Options are as follows:-     Default
+		    strip-toolchain-symbols  ${stripToolchainSymbols}
+		    strip-toolchain-docs     ${stripToolchainDocs}
+		    strip-system-symbols     ${stripSystemSymbols}
+		    strip-system-docs        ${stripSystemDocs}
+	EOF
+	exit $1
+}
+
+function parseCommandLine()
+{
+	# Defaults
+	distributionVersion=""
+	lfsPath="/var/tmp/lfs"
+	lfsConfigPath="${crudeOurPath}/config"
+	toolchain1Profile=toolchain1
+	toolchain2Profile=toolchain2
+	stripToolchainSymbols="yes"
+	stripToolchainDocs="no"
+	stripSystemSymbols="yes"
+	stripSystemDocs="no"
+	profiles="system"
+	
+	if [ $# -eq 0 ]; then
+		if [ "$LFS_CLEAN_ENVIRONMENT" = "y" ]; then
+			:
+		else
+			executeWithCleanEnvironment "$@"
+		fi
+	else
+		if [ "$LFS_CLEAN_ENVIRONMENT" = "y" ]; then
+			# For now, until we need further option handling
+			exitError "Invalid options"
+			
+			OPTERR=1
+			OPTIND=1
+			local option
+			while getopts :hl:d:o: option
+			do
+				case "$option" in
+					
+					h)
+						exitHelp 2
+					;;
+					
+					d)
+						distributionVersion="$OPTARG"
+					;;
+					
+					l)
+						lfsPath="$OPTARG"
+					;;
+					
+					c)
+						lfsConfigPath="$OPTARG"
+					;;
+					
+					o)
+						if [ -z "$OPTARG" ]; then
+							exitError "Invalid option -o requires an argument"
+						fi
+					
+						case "$OPTARG" in
+							
+							no-strip-toolchain-symbols)
+								stripToolchainSymbols="no"
+							;;
+							
+							yes-strip-toolchain-symbols)
+								stripToolchainSymbols="yes"
+							;;
+							
+							no-strip-toolchain-docs)
+								stripToolchainDocs="no"
+							;;
+							
+							yes-strip-toolchain-docs)
+								stripToolchainDocs="yes"
+							;;
+							
+							no-strip-system-symbols)
+								stripSystemSymbols="no"
+							;;
+							
+							yes-strip-system-symbols)
+								stripSystemSymbols="yes"
+							;;
+							
+							no-strip-system-docs)
+								stripSystemDocs="no"
+							;;
+							
+							yes-strip-system-docs)
+								stripSystemDocs="yes"
+							;;
+							
+							*)
+								exitError "Invalid option -o ${OPTARG}"
+							;;
+							
+						esac)
+					;;
+					
+					'?')
+						exitError "Invalid option -${OPTARG}"
+					;;
+					
+				esac
+			done
+			
+			shift $((OPTIND - 1))
+			if [ $# -ne 0 ]; then
+				profiles="$@"
+			fi
+			
+			if [ -z "$distributionVersion" ]; then
+				exitError "Please specify a distribution using -d"
+			fi
+			
+		else
+			executeWithCleanEnvironment "$@"
+		fi
+	fi
+	
+	if [ ! -d "$lfsConfigPath" ]; then
+		exitError "$lfsConfigPath either does not exist or is not a directory"
+	fi
+	readonly distributionPath
+}
+
+function installDebianDependencies()
+{
+	sudo apt-get update
+	sudo apt-get install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
+}
+
+function verifyHostSystemRequirements()
+{
+	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
+	local -r original_LC_ALL="$LC_ALL"
+	export LC_ALL=C
+	
+	# Must be at least 4.2 (so doesn't work on Mac OS X)
+	bash --version | head -n 1 | cut -d" " -f2-4
+	
+	echo "/bin/sh -> $(readlink -f /bin/sh)"
+	
+	echo -n "Binutils: "; ld --version | head -n 1 | cut -d" " -f3-
+	
+	bison --version | head -n 1
+	
+	if [ -e /usr/bin/yacc ]; then
+		echo "/usr/bin/yacc -> $(readlink -f /usr/bin/yacc)"
+	else
+		echo "yacc not found"
+	fi
+
+	bzip2 --version 2>&1 </dev/null | head -n 1 | cut -d" " -f1,6-
+	
+	echo -n "Coreutils: "; chown --version | head -n 1 | cut -d")" -f2
+	
+	diff --version | head -n 1
+	
+	find --version | head -n 1
+	
+	gawk --version | head -n 1
+	
+	if [ -e /usr/bin/awk ]; then
+		echo "/usr/bin/awk -> `readlink -f /usr/bin/awk`"
+	else
+		echo "awk not found"
+	fi
+
+	gcc --version | head -n 1
+	
+	g++ --version | head -n 1
+	
+	ldd --version | head -n 1 | cut -d" " -f2-  # glibc version
+	
+	grep --version | head -n 1
+	
+	gzip --version | head -n 1
+	
+	cat /proc/version
+	
+	m4 --version | head -n 1
+	
+	make --version | head -n 1
+	
+	patch --version | head -n 1
+	
+	echo Perl `perl -V:version`
+	
+	sed --version | head -n 1
+	
+	tar --version | head -n 1
+	
+	echo "Texinfo: `makeinfo --version | head -n1`"
+	
+	xz --version | head -n 1
+	
+	# Test C++ compiler
+	echo 'main(){}' > dummy.c && g++ -o dummy dummy.c
+	if [ -x dummy ]; then
+		echo "g++ compilation OK"
+	else
+		echo "g++ compilation failed"
+	fi
+	rm -f dummy.c dummy
+	
+	unset LC_ALL
+	if [ ! -z "$original_LC_ALL" ]; then
+		export LC_ALL="$original_LC_ALL"
+	fi
+}
+
+function addProfiles()
+{
+	readonly profilePath="$lfsConfigPath"/"$distributionVersion"/profiles
+	if [ ! -d "$profilePath" ]; then
+		exitError "Profile path $profilePath does not exist or is not a directory"
+	fi
+	
+	pushd "$profilePath" >/dev/null
+		
+		local profile="$toolchain1Profile"
+		local phase=toolchain1
+		
+		if [ -f "$profile".profile ]; then
+			PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
+		else
+			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+		fi
+		
+		profile="$toolchain2Profile"
+		phase=toolchain2
+		if [ -f "$profile".profile ]; then
+			PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
+		else
+			exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+		fi
+		
+		phase=system
+		for profile in $profiles
+		do
+			if [ -f "$profile".profile ]; then
+				PATH=. LFS_PHASE="$phase" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profile".profile "$phase" "$distributionVersion" "$profile"
+			else
+				exitError "profile $profile.d or $profile.profile does not exist in profile path $profilePath or is not a file"
+			fi
+		done
+		
+	popd >/dev/null
+	
+}
+
+function setPathsAndExports()
+{
+	export LFS="$lfsPath"/root
+	
+	readonly logsPath="$lfsPath"/logs
+	readonly sourcesPath="$LFS"/sources
+	readonly toolsPath="$LFS"/tools
+	
+	export LC_ALL=POSIX
+	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
+	export PATH=/tools/bin:/bin:/usr/bin
+	
+	if [ -f /proc/cpuinfo ]; then
+		# Can result in 0 if no processor lines present
+		local -ir numberOfCpus="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
+	else
+		local -ir numberOfCpus=0
+	fi
+	
+	if [ $numberOfCpus -ne 0 ]; then
+		export MAKEFLAGS="-j $numberOfCpus"
+	fi
+}
+
+function createSkeletonFolderStructure()
+{
+	mkdir -m 0755 -p "$LFS"
+	
+	# Logs
+	mkdir -m 0755 -p "$logsPath"
+	rm -rf "$logsPath"/*
+	chmod a+wt "$logsPath"
+	
+	# Sources
+	mkdir -m 0755 -p "$sourcesPath"
+	chmod a+wt "$sourcesPath"
+	
+	# Tools
+	sudo mkdir -m 0755 -p "$toolsPath"
+	# symlink, say, /mnt/lfs/tools as /tools
+	sudo rm -rf /tools
+	sudo ln --symbolic "$toolsPath" /
+	
+	sudo chown -R $UID:$UID "$sourcesPath"
+	sudo chown -R $UID:$UID "$toolsPath"
+}
+
+function downloadSources()
+{
+	progressMessage "Downloading sources"
+	
+	set +e
+	
+	local key
+	local url
+	for key in ${installPhase_toolchain1["${distributionVersion}"]} ${installPhase_toolchain2["${distributionVersion}"]} ${installPhase_system["${distributionVersion}"]}
+	do
+		url="${sourcePackages_Url["${key}"]}"
+		if [ ! -z "$url" ]; then
+			echo "$url"
+		fi
+		url="${patches_Url["${key}"]}"
+		if [ ! -z "$url" ]; then
+			echo "$url"
+		fi
+	done | sort --unique | wget --no-clobber --input-file - --directory-prefix "$sourcesPath" --output-file "$logsPath"/downloads.log 1>&2 2>"$logsPath"/downloads.log
+	
+	local -ir exitCode=$?
+	set -e
+	if [ $exitCode -ne 0 ]; then
+		progressMessageFailed "download of sources failed, check $logsPath/downloads.log"
+	fi
+	progressMessageSucceeded
+}
+
+function findHashValueForSourcePackage()
+{
+	local -r hashName="$1"
+	local -r key="$2"
+	
+	case "$hashName" in)
+		
+		MD5)
+			printf "${sourcePackages_MD5["${key}"]}"
+		;;
+		
+		SHA1)
+			printf "${sourcePackages_SHA1["${key}"]}"
+		;;
+		
+		SHA224)
+			printf "${sourcePackages_SHA224["${key}"]}"
+		;;
+		
+		SHA256)
+			printf "${sourcePackages_SHA256["${key}"]}"
+		;;
+		
+		SHA384)
+			printf "${sourcePackages_SHA256["${key}"]}"
+		;;
+		
+		SHA512)
+			printf "${sourcePackages_SHA512["${key}"]}"
+		;;
+		
+		*)
+			exitError "Unsupported hash algorithm $hashName"
+		;;
+		
+	esac
+}
+
+function findHashValueForPatch()
+{
+	local -r hashName="$1"
+	local -r key="$2"
+	
+	case "$hashName" in)
+		
+		MD5)
+			printf "${patches_MD5["${key}"]}"
+		;;
+		
+		SHA1)
+			printf "${patches_SHA1["${key}"]}"
+		;;
+		
+		SHA224)
+			printf "${patches_SHA224["${key}"]}"
+		;;
+		
+		SHA256)
+			printf "${patches_SHA256["${key}"]}"
+		;;
+		
+		SHA384)
+			printf "${patches_SHA256["${key}"]}"
+		;;
+		
+		SHA512)
+			printf "${patches_SHA512["${key}"]}"
+		;;
+		
+		*)
+			exitError "Unsupported hash algorithm $hashName"
+		;;
+		
+	esac
+}
+
+function verifySources()
+{
+	progressMessage "Verifying sources"
+	pushd "$sourcesPath" >/dev/null
+		
+		local hashName
+		local hashProgram
+		local logFilePath
+		local key
+		local fileName
+		local hashValue
+		local -i exitCode
+		for hashName in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
+		do
+			set +e
+			
+			# this weird syntax converts to lower case, see http://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting for other casing possibilities (second answer)
+			hashProgram=${hashName,,}sum
+			logFilePath="$logsPath"/$hashName.log
+			for key in ${installPhase_toolchain1["${distributionVersion}"]} ${installPhase_toolchain2["${distributionVersion}"]} ${installPhase_system["${distributionVersion}"]}
+			do
+				fileName="${sourcePackages_FileName["${key}"]}"
+				hashValue="$(findHashValueForSourcePackage "$hashName" "$key")"
+				if [ ! -z "$fileName" ]; then
+					if [ ! -z "$hashValue" ]; then
+						echo "$fileName  $hashValue"
+					fi
+				fi
+			
+				fileName="${patches_FileName["${key}"]}"
+				hashValue="$(findHashValueForPatch "$hashName" "$key")"
+			
+				if [ ! -z "$fileName" ]; then
+					if [ ! -z "$hashValue" ]; then
+						echo "$fileName  $hashValue"
+					fi
+				fi
+			done | sort --unique | $hashProgram 1>&2 2>"$logFilePath"
+		
+			exitCode=$?
+			set -e
+			if [ $exitCode -ne 0 ]; then
+				progressMessageFailed "$hashName sums of downloaded sources don't match, check $logFilePath"
+			fi
+		done
+		
+	popd >/dev/null
+	progressMessageSucceeded
+}
+
+function cleanShell()
+{
+	set +h
+	umask 022
+}
+
+function installPackage()
+{
+	local -r phase="$1"
+	local -r key="$2"
+	shift 2
+	
+	local -i exitCode
+	
+	progressMessage "Installing phase $phase package:version $key"
+	
+	ourSourcePackageName=sourcePackages_SourcePackageName["${key}"]
+	if [ -z "$ourSourcePackageName" ]; then
+		progressMessageFailed "No known package definition for $key"
+	fi
+	ourVersion=sourcePackages_Version["${key}"]
+	ourCompression=sourcePackages_Compression["${key}"]
+	ourFileName=sourcePackages_FileName["${key}"]
+	ourExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${key}"]
+	
+	ourPatchFileName=patches_FileName["${key}"]
+	
+	# Use an override (versioned) installer, otherwise the default
+	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
+	local -r installer_unversioned=installPackage_${phase}_${ourSourcePackageName}
+	if type "$installer_versioned" &>/dev/null; then
+		local -r installer="$installer_versioned"
+	elif type "$installer_unversioned" &>/dev/null; then
+		local -r installer="$installer_unversioned"
+	else
+		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
+	fi
+	
+	# We re-check the hashes in case the download happened out-of-process
+	local hashName
+	local hashProgram
+	local logFilePath
+	for hashName in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
+	do
+		# this weird syntax converts to lower case, see http://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting for other casing possibilities (second answer)
+		hashProgram=${hashName,,}sum
+		logFilePath="$logsPath"/$hashName.log
+		
+		hashValue="$(findHashValueForSourcePackage "$hashName" "$key")"
+		if [ ! -z "$hashValue" ]; then
+			set +e
+			$hashProgram <<<"$fileName  $hashValue" 1>&2 2>>"$logFilePath"
+			exitCode=$?
+			set -e
+			if [ $exitCode -ne 0 ]; then
+				progressMessageFailed "$hashName sums of downloaded sources don't match, check $logFilePath"
+			fi
+		fi
+		
+		if [ ! -z "$ourPatchFileName" ]; then
+			hashValue="$(findHashValueForPatch "$hashName" "$key")"
+			if [ ! -z "$hashValue" ]; then
+				set +e
+				$hashProgram <<<"$ourPatchFileName  $hashValue" 1>&2 2>>"$logFilePath"
+				exitCode=$?
+				set -e
+				if [ $exitCode -ne 0 ]; then
+					progressMessageFailed "$hashName sums of downloaded patches don't match, check $logFilePath"
+				fi
+			fi
+		fi
+	done
+	
+	pushd "$sourcesPath" >/dev/null
+		
+		tarExtract "$ourFileName" "$ourExtractedTarballFolder" $ourCompression
+		
+		local -r outLogFile="$logsPath"/"$installer".stdout.log
+		local -r errorLogFile="$logsPath"/"$installer".stderr.log
+		pushd "$ourExtractedTarballFolder" >/dev/null
+			
+			exec 3>&1
+			exec 1>"$outLogFile"
+			exec 4>&2
+			exec 2>"$errorLogFile"
+		
+			set +e
+			$installer "$@"
+			exitCode=$?
+			set -e
+		
+			exec 2>&4
+			exec 4>&-
+			exec 1>&3
+			exec 3>&-
+			
+			if [ $exitCode -ne 0 ]; then
+				progressMessageFailed "$installer failed with exitCode $exitCode, check logs $outLogFile and $errorLogFile"
+			fi
+		
+		popd >/dev/null
+		rm -rf "$ourExtractedTarballFolder"
+		
+	popd >/dev/null
+	
+	progressMessageSucceeded
+}
+
+function installPackages()
+{
+	local -r phase="$1"
+	
+	case "$phase" in
+		
+		toolchain1)
+			local -r packageKeys="${installPhase_toolchain1["${distributionVersion}"]}"
+		;;
+		
+		toolchain2)
+			local -r packageKeys="${installPhase_toolchain2["${distributionVersion}"]}"
+		;;
+		
+		system)
+			local -r packageKeys="${installPhase_system["${distributionVersion}"]}"
+		;;
+		
+		*)
+			exitError "Unknown phase $phase"
+		;;
+		
+	esac
+	
+	local key
+	for key in $packageKeys
+	do
+		installPackage "$phase" "$key"
+	done
+}
+
+function stripToolchainSymbols()
+{
+	if [ "$stripToolchainSymbols" = "yes" ]; then
+		strip --strip-debug /tools/lib/*
+		strip --strip-unneeded /tools/{,s}bin/*
+	fi
+}
+
+function stripToolchainDocs
+{
+	if [ "$stripToolchainDocs" = "yes" ]; then
+		rm -rf /tools/{,share}/{info,man,doc}
+	fi
+}
+
+function main()
+{
+	setDebugging
+	findOurNameAndPath
+	parseCommandLine "$@"
+	
+	setDebugging
+	cleanShell
+	setPathsAndExports
+	
+	if [ -d /etc/dpkg/origins ]; then
+		installDebianDependencies
+	fi
+	verifyHostSystemRequirements
+	
+	addProfiles
+	
+	createSkeletonFolderStructure
+	
+	downloadSources
+	verifySources
+	
+	installPackages toolchain1
+	installPackages toolchain2
+	stripToolchainSymbols
+	stripToolchainDocs
+}
+
+main "$@"

@@ -1,0 +1,120 @@
+# gcc pre-dependencies
+addSourcePackageDownload mpfr 3.1.2 http://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz MD5:e3d203d188b8fe60bb6578dd3152e05c xz mpfr-3.1.2
+addSourcePackageDownload gmp 5.1.2 ftp://ftp.gmplib.org/pub/gmp-5.1.2/gmp-5.1.2.tar.xz MD5:06fe2ca164221c59ce74867155cfc1ac xz gmp-5.1.2
+addSourcePackageDownload mpc 1.0.1 http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679 gzip mpc-1.0.1
+
+addSourcePackageDownload gcc 4.8.1 http://ftp.gnu.org/gnu/gcc/gcc-4.8.1/gcc-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304 bzip2 gcc-4.8.1
+function installPackage_toolchain1_gcc()
+{
+	# TODO: These can be different versions to those used in the eventual system. Not good.
+	extractDependencies mpfr:3.1.2 gmp:5.1.2 mpc:1.0.1
+
+	# Adjust paths to use /tools and remove /usr/include
+	local file
+	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+	do
+		cp -uv "$file"{,.orig}
+		sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' -e 's@/usr@/tools@g' "$file".orig >"$file"
+		echo '
+#undef STANDARD_STARTFILE_PREFIX_1
+#undef STANDARD_STARTFILE_PREFIX_2
+#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
+#define STANDARD_STARTFILE_PREFIX_2 ""' >>"$file"
+		touch $file.orig
+	done
+
+	# Stack protection
+	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+
+	createBuildFolderAndPushd
+
+		local -r currentDir="$(pwd)"
+		../"$ourExtractedTarballFolder"/configure        \
+		--target="$LFS_TGT"                              \
+		--prefix=/tools                                  \
+		--with-sysroot="$LFS"                            \
+		--with-newlib                                    \
+		--without-headers                                \
+		--with-local-prefix=/tools                       \
+		--with-native-system-header-dir=/tools/include   \
+		--disable-nls                                    \
+		--disable-shared                                 \
+		--disable-multilib                               \
+		--disable-decimal-float                          \
+		--disable-threads                                \
+		--disable-libatomic                              \
+		--disable-libgomp                                \
+		--disable-libitm                                 \
+		--disable-libmudflap                             \
+		--disable-libquadmath                            \
+		--disable-libsanitizer                           \
+		--disable-libssp                                 \
+		--disable-libstdc++-v3                           \
+		--enable-languages=c,c++                         \
+		--with-mpfr-include="$currentDir"/../"$ourExtractedTarballFolder"/mpfr/src \
+		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
+
+		make
+
+		make install
+
+		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system. This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+		ln -sv libgcc.a "$(${LFS_TGT}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
+
+	popdAndRemoveBuilderFolder
+}
+
+function installPackage_toolchain2_gcc()
+{
+	cat gcc/limitx.h gcc/glimits.h gcc/limity.h >"$(dirname $("$LFS_TGT"-gcc -print-libgcc-file-name))"/include-fixed/limits.h
+	
+	cp -v gcc/Makefile.in{,.tmp}
+	sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp >gcc/Makefile.in
+
+	# Adjust paths to use /tools and remove /usr/include
+	local file
+	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+	do
+		cp -uv "$file"{,.orig}
+		sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' -e 's@/usr@/tools@g' "$file".orig >"$file"
+		echo '
+#undef STANDARD_STARTFILE_PREFIX_1
+#undef STANDARD_STARTFILE_PREFIX_2
+#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
+#define STANDARD_STARTFILE_PREFIX_2 ""' >>"$file"
+		touch $file.orig
+	done
+	
+	extractDependencies mpfr gmp mpc
+	
+	createBuildFolderAndPushd
+		
+		local -r currentDir="$(pwd)"
+		CC="$LFS_TGT"-gcc                                                          \
+		CXX="$LFS_TGT"-g++                                                         \
+		AR="$LFS_TGT"-ar                                                           \
+		RANLIB="$LFS_TGT"-ranlib                                                   \
+		../"$ourExtractedTarballFolder"/configure                                  \
+		--prefix=/tools                                                            \
+		--with-local-prefix=/tools                                                 \
+		--with-native-system-header-dir=/tools/include                             \
+		--enable-clocale=gnu                                                       \
+		--enable-shared                                                            \
+		--enable-threads=posix                                                     \
+		--enable-__cxa_atexit                                                      \
+		--enable-languages=c,c++                                                   \
+		--disable-libstdcxx-pch                                                    \
+		--disable-multilib                                                         \
+		--disable-bootstrap                                                        \
+		--disable-libgomp                                                          \
+		--with-mpfr-include="$currentDir"/../"$ourExtractedTarballFolder"/mpfr/src \
+		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
+		
+		make
+		
+		make install
+		
+		ln -sv gcc /tools/bin/cc
+		
+	popdAndRemoveBuilderFolder
+}

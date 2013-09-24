@@ -1,0 +1,12 @@
+addSourcePackageDownload bash 4.2 http://ftp.gnu.org/gnu/bash/bash-4.2.tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0 gzip bash-4.2
+
+addPatchDownload bash 4.2 http://www.linuxfromscratch.org/patches/lfs/development/bash-4.2-fixes-12.patch MD5:419f95c173596aea47a23d922598977a
+
+function installPackage_toolchain2_bash_4.2()
+{
+	patch -Np1 -i ../"$ourSourcePackageName"-"$ourVersion"-fixes-12.patch
+	
+	installPackagePrototype --without-bash-malloc
+	
+	ln -sv bash /tools/bin/sh
+}

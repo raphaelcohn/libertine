@@ -1,0 +1,15 @@
+addSourcePackageDownload expect 5.45 http://prdownloads.sourceforge.net/expect/expect5.45.tar.gz MD5:44e1a4f4c877e9ddc5a542dfa7ecc92b gzip expect5.45
+
+function installPackage_toolchain2_expect()
+{
+	cp -v configure{,.orig}
+	sed 's:/usr/local/bin:/bin:' configure.orig >configure
+	
+	./configure --prefix=/tools --with-tcl=/tools/lib --with-tclinclude=/tools/include
+	
+	make
+	
+	#make test
+	
+	make SCRIPTS="" install
+}

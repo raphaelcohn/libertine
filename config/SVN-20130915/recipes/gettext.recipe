@@ -1,0 +1,16 @@
+addSourcePackageDownload gettext 0.18.3.1 http://ftp.gnu.org/gnu/gettext/gettext-0.18.3.1.tar.gz MD5:3fc808f7d25487fc72b5759df7419e02 gzip gettext-0.18.3.1
+
+function installPackage_toolchain2_gettext()
+{
+	pushd gettext-tools >/dev/null
+		
+		EMACS="no" ./configure --prefix=/tools --disable-shared
+		
+		make -C gnulib-lib
+		
+		make -C src msgfmt
+		
+		cp -v src/msgfmt /tools/bin
+		
+	popd >/dev/null
+}

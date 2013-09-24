@@ -1,0 +1,6 @@
+addSourcePackageDownload patch 2.7.1 http://ftp.gnu.org/gnu/patch/patch-2.7.1.tar.xz MD5:e9ae5393426d3ad783a300a338c09b72 xz patch-2.7.1
+
+function installPackage_toolchain2_patch()
+{
+	installPackagePrototype
+}

@@ -1,0 +1,376 @@
+function progressMessage()
+{
+	SECONDS=0
+	printf "$ourName: $1"
+}
+
+function progressMessageFailed()
+{
+	echo " FAILED (in ${SECONDS}s: $1)"
+	exit 1
+}
+
+function progressMessageSucceeded()
+{
+	echo " PASSED (in ${SECONDS}s)"
+}
+
+declare -A sourcePackages_SourcePackageName=()
+declare -A sourcePackages_Version=()
+declare -A sourcePackages_Url=()
+declare -A sourcePackages_Compression=()
+declare -A sourcePackages_FileName=()
+declare -A sourcePackages_ExtractedTarballFolder=()
+declare -A sourcePackages_MD5=()
+declare -A sourcePackages_SHA1=()
+declare -A sourcePackages_SHA224=()
+declare -A sourcePackages_SHA256=()
+declare -A sourcePackages_SHA384=()
+declare -A sourcePackages_SHA512=()
+
+# TODO: Raw C code downloads, eg http://www.sqlite.org/contrib/download/extension-functions.c?get=25
+# TODO: zip package downloads, eg http://www.sqlite.org/2013/sqlite-doc-3071700.zip
+# TODO: Binary file downloads, eg perl scripts and their ilk. Frankly, too bad.
+# TODO: Signatures for downloaded files
+# TODO: Signatures, hashes for recipes
+function addSourcePackageDownload()
+{
+	local -r ourSourcePackageName="$1"
+	local -r ourVersion="$2"
+	local -r ourUrl="$3"
+	local -r ourHashes="$4"
+	local -r ourCompression="$5"
+	local -r ourFileName="$(basename "$ourUrl")"
+	local -r ourExtractedTarballFolder="$6"
+	
+	local -r key="${ourSourcePackageName}:${ourVersion}"
+	
+	local -r existingUrl=sourcePackages_Url["${key}"]
+	if [ ! -z "$existingUrl" ]; then
+		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
+		# TODO: Verify hashes have not changed
+		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
+		sourcePackages_Url["${key}"]="$ourUrl"
+		return 0
+	fi
+	
+	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
+	sourcePackages_Version["${key}"]="$ourVersion"
+	sourcePackages_Url["${key}"]="$ourUrl"
+	sourcePackages_Compression["${key}"]="$ourCompression"
+	sourcePackages_FileName[$key]="$ourFileName"
+	sourcePackages_ExtractedTarballFolder["${key}"]="$ourExtractedTarballFolder"
+	
+	local -r hashesStringSeparated="${ourHashes/,/ }"
+	
+	local hashNameAndValue
+	local hashName
+	local hashValue
+	local -i hasHash=1
+	for hashNameAndValue in $hashesStringSeparated
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		case "$hashName" in)
+			
+			MD5)
+				if [ ! -z "${sourcePackages_MD5["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_MD5["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA1)
+				if [ ! -z "${sourcePackages_SHA1["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_SHA1["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA224)
+				if [ ! -z "${sourcePackages_SHA224["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_SHA224["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA256)
+				if [ ! -z "${sourcePackages_SHA256["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_SHA256["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA384)
+				if [ ! -z "${sourcePackages_SHA384["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_SHA256["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA512)
+				if [ ! -z "${sourcePackages_SHA512["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				sourcePackages_SHA512["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			*)
+				exitError "Unsupported hash algorithm $hashName"
+			;;
+			
+		esac
+	done
+	
+	if [ $hasHash -ne 0 ]; then
+		exitError "No hash algorithms for $ourSourcePackageName $ourVersion"
+	fi
+}
+
+declare -A patches_Url=()
+declare -A patches_FileName=()
+declare -A patches_MD5=()
+declare -A patches_SHA1=()
+declare -A patches_SHA224=()
+declare -A patches_SHA256=()
+declare -A patches_SHA384=()
+declare -A patches_SHA512=()
+
+function addPatchDownload()
+{
+	local -r ourSourcePackageName="$1"
+	local -r ourVersion="$2"
+	local -r ourUrl="$3"
+	local -r ourHashes="$4"
+	local -r ourFileName="$(basename "$ourUrl")"
+	
+	local -r key="${ourSourcePackageName}:${ourVersion}"
+	
+	# Ensure a tar ball download exists
+	if [ -z "${sourcePackages_SourcePackageName["${key}"]}" ]; then
+		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
+	fi
+	
+	local -r existingUrl=patches_Url["${key}"]
+	if [ ! -z "$existingUrl" ]; then
+		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
+		# TODO: Verify hashes have not changed
+		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
+		patches_Url["${key}"]="$ourUrl"
+		return 0
+	fi
+	
+	patches_FileName["${key}"]="$ourFileName"
+	patches_Url["${key}"]="$ourUrl"
+	local -r hashesStringSeparated="${ourHashes/,/ }"
+	
+	local hashNameAndValue
+	local hashName
+	local hashValue
+	local -i hasHash=1
+	for hashNameAndValue in $hashesStringSeparated
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		case "$hashName" in)
+			
+			MD5)
+				if [ ! -z "${patches_MD5["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_MD5["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA1)
+				if [ ! -z "${patches_SHA1["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_SHA1["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA224)
+				if [ ! -z "${patches_SHA224["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_SHA224["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA256)
+				if [ ! -z "${patches_SHA256["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_SHA256["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA384)
+				if [ ! -z "${patches_SHA384["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_SHA256["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			SHA512)
+				if [ ! -z "${patches_SHA512["${key}"]}" ]; then
+					exitError "Do not specify the same hash algorithm ($hashName) twice"
+				fi
+				patches_SHA512["${key}"]="$hashValue"
+				hasHash=0
+			;;
+			
+			*)
+				exitError "Unsupported hash algorithm $hashName"
+			;;
+			
+		esac
+	done
+	
+	if [ $hasHash -ne 0 ]; then
+		exitError "No hash algorithms for $ourSourcePackageName $ourVersion"
+	fi
+}
+
+declare -A installPhase_toolchain1=()
+declare -A installPhase_toolchain2=()
+declare -A installPhase_system=()
+
+function sourceRecipe()
+{
+	local -r localSourcePackageName="$1"
+	local -r ourVersion="$2"
+	PATH=. LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source ../recipes/"$localSourcePackageName".recipe "$localSourcePackageName"
+	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION"
+}
+
+function addToInstall()
+{
+	local -r ourSourcePackageName="$1"
+	local -r ourVersion="$2"
+	local -r phase="$3"
+	local -r key="${ourSourcePackageName}:${ourVersion}"
+	
+	# Use an override (versioned) installer, otherwise the default
+	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
+	local -r installer_unversioned=installPackage_${phase}_${ourSourcePackageName}
+	if type "$installer_versioned" &>/dev/null; then
+		local -r installer="$installer_versioned"
+	elif type "$installer_unversioned" &>/dev/null; then
+		local -r installer="$installer_unversioned"
+	else
+		exitError "No installer $installer_versioned or $installer_unversioned defined for $ourSourcePackageName version $ourVersion"
+	fi
+	
+	# Ensure a tar ball download exists
+	if [ -z "${sourcePackages_SourcePackageName["${key}"]}" ]; then
+		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
+	fi
+	
+	# remaining variables are distribution versions (ie software that works together)
+	shift 3
+	local localDistributionVersion
+	local previousDependencies=""
+	
+	case "$phase" in
+		
+		toolchain1)
+			for localDistributionVersion in $@
+			do
+				previousDependencies=installPhase_toolchain1["${localDistributionVersion}"]
+				installPhase_toolchain1["${localDistributionVersion}"]="$previousDependencies $key"
+			done
+		;;
+		
+		toolchain2)
+			for localDistributionVersion in $@
+			do
+				previousDependencies=installPhase_toolchain2["${localDistributionVersion}"]
+				installPhase_toolchain2["${localDistributionVersion}"]="$previousDependencies $key"
+			done
+		;;
+		
+		system)
+			for localDistributionVersion in $@
+			do
+				previousDependencies=installPhase_system["${localDistributionVersion}"]
+				installPhase_system["${localDistributionVersion}"]="$previousDependencies $key"
+			done
+		;;
+		
+		*)
+			exitError "Unsupported phase $phase"
+		;;
+		
+	esac
+}
+
+function tarExtract()
+{
+	local -r tarball="$1"
+	local -r tarballFolder="$2"
+	local -r tarballCompression="$3"
+	
+	rm -rf "$tarballFolder"
+	if [ -z "$ourCompression" ]; then
+		tar --extract --file "$tarball"
+	else
+		tar --extract --file "$tarball" --$tarballCompression
+	fi
+}
+
+function extractDependencies()
+{
+	local dependencyKey
+	local localSourcePackageName
+	local localVersion
+	local localFileName
+	local localExtractedTarballFolder
+	local localCompression
+	
+	for dependencyKey in $@
+	do
+		IFS=: read -r -d$'\n' localSourcePackageName localVersion <<<"$dependencyKey"
+		localFileName=sourcePackages_FileName["${dependencyKey}"]
+		localExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${dependencyKey}"]
+		localCompression=sourcePackages_Compression["${dependencyKey}"]
+		
+		if [ -z "$localFileName" ]; then
+			progressMessageFailed "No known source package definition for dependency $localSourcePackageName version $localVersion"
+		fi
+		
+		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
+		mv "$localExtractedTarballFolder" "$localSourcePackageName"
+	done
+}
+
+function installPackagePrototype()
+{
+	./configure --prefix=/tools $@
+	
+	make
+	
+	#make check
+	
+	make install
+}
+
+function createBuildFolderAndPushd()
+{
+	local -r buildFolder=../"$ourSourcePackageName"-build
+	rm -rf "$buildFolder"
+	mkdir -m 0755 -p "$buildFolder"
+	pushd "$buildFolder" >/dev/null
+}
+
+function popdAndRemoveBuilderFolder()
+{
+	popd >/dev/null
+	rm -rf "$buildFolder"
+}

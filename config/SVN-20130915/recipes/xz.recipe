@@ -1,0 +1,6 @@
+addSourcePackageDownload xz 5.0.5 http://tukaani.org/xz/xz-5.0.5.tar.xz MD5:aa17280f4521dbeebed0fbd11cd7fa30 xz xz-5.0.5
+
+function installPackage_toolchain2_xz()
+{
+	installPackagePrototype
+}

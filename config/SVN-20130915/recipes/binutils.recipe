@@ -1,0 +1,56 @@
+addSourcePackageDownload binutils 2.23.2 http://ftp.gnu.org/gnu/binutils/binutils-2.23.2.tar.bz2 MD5:4f8fa651e35ef262edc01d60fb45702e bzip2 binutils-2.23.2
+
+function installPackage_toolchain1_binutils()
+{
+	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
+
+	createBuildFolderAndPushd
+
+		../"$ourExtractedTarballFolder"/configure \
+		--prefix=/tools \
+		--with-sysroot="$LFS" \
+		--with-lib-path=/tools/lib \
+		--target="$LFS_TGT" \
+		--disable-nls \
+		--disable-werror
+
+		make
+
+		# Ensure toolchain sanity on 64-bit x864
+		case "$(uname -m)" in
+			x86_64)
+				mkdir -m 0755 -p /tools/lib
+				ln --symbolic lib /tools/lib64
+			;;
+		esac
+
+		make install
+
+	popdAndRemoveBuilderFolder
+}
+
+function installPackage_toolchain2_binutils()
+{
+	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
+	
+	createBuildFolderAndPushd
+		
+		CC=$LFS_TGT-gcc                           \
+		AR=$LFS_TGT-ar                            \
+		RANLIB=$LFS_TGT-ranlib                    \
+		../"$ourExtractedTarballFolder"/configure \
+		--prefix=/tools                           \
+		--disable-nls                             \
+		--with-lib-path=/tools/lib                \
+		--with-sysroot
+		
+		make
+		
+		make install
+		
+		make -C ld clean
+		make -C ld LIB_PATH=/usr/lib:/lib
+		cp -v ld/ld-new /tools/bin
+		
+	popdAndRemoveBuilderFolder
+}
