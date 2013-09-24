@@ -69,7 +69,7 @@ function addSourcePackageDownload()
 	if [ ! -z "$existingUrl" ]; then
 		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
 		# TODO: Verify hashes have not changed
-		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
+		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
 		sourcePackages_Url["${key}"]="$ourUrl"
 		return 0
 	fi

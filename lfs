@@ -732,7 +732,7 @@ function main()
 	if [ -d /etc/dpkg/origins ]; then
 		installDebianDependencies
 	fi
-	verifyHostSystemRequirements
+	verifyHostSystemRequirements >/dev/null 2>/dev/null
 	
 	addProfiles
 	
