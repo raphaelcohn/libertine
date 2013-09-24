@@ -252,10 +252,6 @@ function addPatchDownload()
 	fi
 }
 
-declare -A installPhase_toolchain1=()
-declare -A installPhase_toolchain2=()
-declare -A installPhase_system=()
-
 function sourceRecipe()
 {
 	local -r localSourcePackageName="$1"
@@ -263,6 +259,10 @@ function sourceRecipe()
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION"
 }
+
+declare -A installPhase_toolchain1=()
+declare -A installPhase_toolchain2=()
+declare -A installPhase_system=()
 
 function addToInstall()
 {
@@ -291,38 +291,31 @@ function addToInstall()
 	shift 3
 	local localDistributionVersion
 	local previousDependencies=""
-	
-	case "$phase" in
+	for localDistributionVersion in $@
+	do
+		case "$phase" in
 		
-		toolchain1)
-			for localDistributionVersion in $@
-			do
+			toolchain1)
 				previousDependencies="${installPhase_toolchain1["${localDistributionVersion}"]}"
 				installPhase_toolchain1["${localDistributionVersion}"]="$previousDependencies $key"
-			done
-		;;
+			;;
 		
-		toolchain2)
-			for localDistributionVersion in $@
-			do
+			toolchain2)
 				previousDependencies="${installPhase_toolchain2["${localDistributionVersion}"]}"
 				installPhase_toolchain2["${localDistributionVersion}"]="$previousDependencies $key"
-			done
-		;;
+			;;
 		
-		system)
-			for localDistributionVersion in $@
-			do
+			system)
 				previousDependencies="${installPhase_system["${localDistributionVersion}"]}"
 				installPhase_system["${localDistributionVersion}"]="$previousDependencies $key"
-			done
-		;;
+			;;
 		
-		*)
-			exitError "Unsupported phase $phase"
-		;;
+			*)
+				exitError "Unsupported phase $phase"
+			;;
 		
-	esac
+		esac
+	done
 }
 
 function tarExtract()
