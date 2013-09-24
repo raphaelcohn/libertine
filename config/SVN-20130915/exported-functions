@@ -46,6 +46,7 @@ function addSourcePackageDownload()
 	local -r key="${ourSourcePackageName}:${ourVersion}"
 	
 	echo "${key}"
+	echo $sourcePackages_Url
 	echo ${sourcePackages_Url["${key}"]}
 	local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	if [ ! -z "$existingUrl" ]; then
