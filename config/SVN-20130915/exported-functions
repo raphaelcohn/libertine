@@ -297,7 +297,7 @@ function addToInstall()
 		toolchain1)
 			for localDistributionVersion in $@
 			do
-				previousDependencies=installPhase_toolchain1["${localDistributionVersion}"]
+				previousDependencies="${installPhase_toolchain1["${localDistributionVersion}"]}"
 				installPhase_toolchain1["${localDistributionVersion}"]="$previousDependencies $key"
 			done
 		;;
@@ -305,7 +305,7 @@ function addToInstall()
 		toolchain2)
 			for localDistributionVersion in $@
 			do
-				previousDependencies=installPhase_toolchain2["${localDistributionVersion}"]
+				previousDependencies="${installPhase_toolchain2["${localDistributionVersion}"]}"
 				installPhase_toolchain2["${localDistributionVersion}"]="$previousDependencies $key"
 			done
 		;;
@@ -313,7 +313,7 @@ function addToInstall()
 		system)
 			for localDistributionVersion in $@
 			do
-				previousDependencies=installPhase_system["${localDistributionVersion}"]
+				previousDependencies="${installPhase_system["${localDistributionVersion}"]}"
 				installPhase_system["${localDistributionVersion}"]="$previousDependencies $key"
 			done
 		;;
