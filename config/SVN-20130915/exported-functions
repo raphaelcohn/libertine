@@ -71,10 +71,13 @@ function addSourcePackageDownload()
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
-	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
-	echo ${sourcePackages_Url[@]}
-	echo ${!sourcePackages_Url[@]}
+	local -i index
+	for index in ${!sourcePackages_Keys[@]}
+	do
+		echo ${sourcePackages_Keys[$index]}
+	done
 	
+	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
 	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
 	#if [ ! -z "$existingUrl" ]; then
 	#	# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
@@ -84,6 +87,7 @@ function addSourcePackageDownload()
 	#	return 0
 	#fi
 	
+	sourcePackages_Keys["${key}"]="$key"
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
 	sourcePackages_Version["${key}"]="$ourVersion"
 	sourcePackages_Url["${key}"]="$ourUrl"
