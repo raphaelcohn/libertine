@@ -107,6 +107,7 @@ function addSourcePackageDownload()
 		case "$hashName" in
 			
 			MD5)
+				echo "${sourcePackages_MD5["${key}"]}"
 				if [ ! -z "${sourcePackages_MD5["${key}"]}" ]; then
 					exitError "Do not specify the same hash algorithm ($hashName) twice"
 				fi
