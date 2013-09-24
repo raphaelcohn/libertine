@@ -36,11 +36,22 @@ function printDistributionVersionKey()
 	printf '%s' "${localDistributionVersion}" | tr --complement '[:alpha:][:digit:]' '_'
 }
 
-function keyExists()
+function sourcePackagesKeyExists()
 {
-	:
+	local -r key="$1"
+	local -i index
+	for index in ${!sourcePackages_IndicesToKeys[@]}
+	do
+		if [ "$key" = "${sourcePackages_IndicesToKeys[$index]}" ]; then
+			# key already exists
+			return 0
+		fi
+	done
+	return 1
 }
 
+# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
+declare -a sourcePackages_IndicesToKeys=()
 declare -A sourcePackages_SourcePackageName=()
 declare -A sourcePackages_Version=()
 declare -A sourcePackages_Url=()
@@ -71,23 +82,16 @@ function addSourcePackageDownload()
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
-	#local -i index
-	#for index in ${!sourcePackages_Keys[@]}
-	#do
-	#	echo ${sourcePackages_Keys[$index]}
-	#done
+	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
+	if sourcePackagesKeyExists "$key"; then
+		local -r existingUrl="${sourcePackages_Url["${key}"]}"
+		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
+		sourcePackages_Url["${key}"]="$ourUrl"
+		# TODO: Verify hashes have not changed
+		return 0
+	fi
+	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
 	
-	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
-	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
-	#if [ ! -z "$existingUrl" ]; then
-	#	# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
-	#	# TODO: Verify hashes have not changed
-	#	warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
-	#	sourcePackages_Url["${key}"]="$ourUrl"
-	#	return 0
-	#fi
-	
-	sourcePackages_Keys["${key}"]="$key"
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
 	sourcePackages_Version["${key}"]="$ourVersion"
 	sourcePackages_Url["${key}"]="$ourUrl"
@@ -103,55 +107,35 @@ function addSourcePackageDownload()
 	local -i hasHash=1
 	for hashNameAndValue in $hashesStringSeparated
 	do
-		echo x"$hashNameAndValue"x
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
 			
 			MD5)
-				echo "${sourcePackages_MD5["${key}"]}"
-				if [ ! -z "${sourcePackages_MD5["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_MD5["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA1)
-				if [ ! -z "${sourcePackages_SHA1["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_SHA1["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA224)
-				if [ ! -z "${sourcePackages_SHA224["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_SHA224["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA256)
-				if [ ! -z "${sourcePackages_SHA256["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_SHA256["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA384)
-				if [ ! -z "${sourcePackages_SHA384["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_SHA256["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA512)
-				if [ ! -z "${sourcePackages_SHA512["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				sourcePackages_SHA512["${key}"]="$hashValue"
 				hasHash=0
 			;;
@@ -168,6 +152,21 @@ function addSourcePackageDownload()
 	fi
 }
 
+function patchesKeyExists()
+{
+	local -r key="$1"
+	local -i index
+	for index in ${!patches_IndicesToKeys[@]}
+	do
+		if [ "$key" = "${patches_IndicesToKeys[$index]}" ]; then
+			# key already exists
+			return 0
+		fi
+	done
+	return 1
+}
+
+declare -a patches_IndicesToKeys=()
 declare -A patches_Url=()
 declare -A patches_FileName=()
 declare -A patches_MD5=()
@@ -188,18 +187,19 @@ function addPatchDownload()
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# Ensure a tar ball download exists
-	if [ -z "${sourcePackages_SourcePackageName["${key}"]}" ]; then
+	if ! sourcePackagesKeyExists "$key"; then
 		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
 	fi
 	
-	local -r existingUrl="${patches_Url["${key}"]}"
-	if [ ! -z "$existingUrl" ]; then
-		# All we are allowed to do is change the download url - hashes et al may not change otherwise this is a different package!
-		# TODO: Verify hashes have not changed
-		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
+	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
+	if patchesKeyExists "$key"; then
+		local -r existingUrl="${patches_Url["${key}"]}"
+		warning "Overriding URL for $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
 		patches_Url["${key}"]="$ourUrl"
+		# TODO: Verify hashes have not changed
 		return 0
 	fi
+	patches_IndicesToKeys["${#patches_IndicesToKeys[@]}"]="$key"
 	
 	patches_FileName["${key}"]="$ourFileName"
 	patches_Url["${key}"]="$ourUrl"
@@ -215,49 +215,31 @@ function addPatchDownload()
 		case "$hashName" in
 			
 			MD5)
-				if [ ! -z "${patches_MD5["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_MD5["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA1)
-				if [ ! -z "${patches_SHA1["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_SHA1["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA224)
-				if [ ! -z "${patches_SHA224["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_SHA224["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA256)
-				if [ ! -z "${patches_SHA256["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_SHA256["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA384)
-				if [ ! -z "${patches_SHA384["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_SHA256["${key}"]="$hashValue"
 				hasHash=0
 			;;
 			
 			SHA512)
-				if [ ! -z "${patches_SHA512["${key}"]}" ]; then
-					exitError "Do not specify the same hash algorithm ($hashName) twice"
-				fi
 				patches_SHA512["${key}"]="$hashValue"
 				hasHash=0
 			;;
@@ -305,7 +287,7 @@ function addToInstall()
 	fi
 	
 	# Ensure a tar ball download exists
-	if [ -z "${sourcePackages_SourcePackageName["${key}"]}" ]; then
+	if ! sourcePackagesKeyExists "$key"; then
 		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
 	fi
 	
