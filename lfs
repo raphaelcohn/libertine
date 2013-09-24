@@ -410,7 +410,7 @@ function findHashValueForSourcePackage()
 	local -r hashName="$1"
 	local -r key="$2"
 	
-	case "$hashName" in)
+	case "$hashName" in
 		
 		MD5)
 			printf "${sourcePackages_MD5["${key}"]}"
@@ -448,7 +448,7 @@ function findHashValueForPatch()
 	local -r hashName="$1"
 	local -r key="$2"
 	
-	case "$hashName" in)
+	case "$hashName" in
 		
 		MD5)
 			printf "${patches_MD5["${key}"]}"
