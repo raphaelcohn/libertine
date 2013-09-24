@@ -6,7 +6,7 @@ sourceRecipe dejagnu 1.5.1
 sourceRecipe check 0.9.10
 sourceRecipe ncurses 5.9
 sourceRecipe bash 4.2
-sourceRecipe bzip 1.0.6
+sourceRecipe bzip2 1.0.6
 sourceRecipe coreutils 8.21
 sourceRecipe diffutils 3.3
 sourceRecipe file 5.14
