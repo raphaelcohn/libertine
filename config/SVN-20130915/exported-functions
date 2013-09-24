@@ -15,6 +15,11 @@ function progressMessageSucceeded()
 	echo " PASSED (in ${SECONDS}s)"
 }
 
+function warning()
+{
+	echo "$ourName: WARNING: $1"
+}
+
 function printKey()
 {
 	local -r localSourcePackageName="$1"
