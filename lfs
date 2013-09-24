@@ -5,7 +5,8 @@ function exitError()
 {
 	local -r error="$1"
 	echo "$ourName: $error" 1>&2
-	exitHelp 1
+	#exitHelp 1
+	exit 1
 }
 
 function setDebugging()

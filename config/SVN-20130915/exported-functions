@@ -71,11 +71,11 @@ function addSourcePackageDownload()
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
-	local -i index
-	for index in ${!sourcePackages_Keys[@]}
-	do
-		echo ${sourcePackages_Keys[$index]}
-	done
+	#local -i index
+	#for index in ${!sourcePackages_Keys[@]}
+	#do
+	#	echo ${sourcePackages_Keys[$index]}
+	#done
 	
 	# Doesn't work as an existence check as bash returns the value of the LAST KEY ADDED!
 	#local -r existingUrl="${sourcePackages_Url["${key}"]}"
