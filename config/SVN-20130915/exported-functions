@@ -15,6 +15,15 @@ function progressMessageSucceeded()
 	echo " PASSED (in ${SECONDS}s)"
 }
 
+function printKey()
+{
+	local -r ourSourcePackageName="$1"
+	local -r ourVersion="$2"
+	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
+	# this is a problem for existence checks
+	tr --complement --delete '[:alnum:]' <<<"${ourSourcePackageName}:${ourVersion}"
+}
+
 declare -A sourcePackages_SourcePackageName=()
 declare -A sourcePackages_Version=()
 declare -A sourcePackages_Url=()
@@ -43,7 +52,7 @@ function addSourcePackageDownload()
 	local -r ourFileName="$(basename "$ourUrl")"
 	local -r ourExtractedTarballFolder="$6"
 	
-	local -r key="${ourSourcePackageName}:${ourVersion}"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	echo "${key}"
 	echo 'a'
@@ -154,7 +163,7 @@ function addPatchDownload()
 	local -r ourHashes="$4"
 	local -r ourFileName="$(basename "$ourUrl")"
 	
-	local -r key="${ourSourcePackageName}:${ourVersion}"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# Ensure a tar ball download exists
 	if [ -z "${sourcePackages_SourcePackageName["${key}"]}" ]; then
@@ -260,7 +269,7 @@ function addToInstall()
 	local -r ourSourcePackageName="$1"
 	local -r ourVersion="$2"
 	local -r phase="$3"
-	local -r key="${ourSourcePackageName}:${ourVersion}"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
