@@ -70,7 +70,7 @@ function addSourcePackageDownload()
 	for hashNameAndValue in $hashesStringSeparated
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
-		case "$hashName" in)
+		case "$hashName" in
 			
 			MD5)
 				if [ ! -z "${sourcePackages_MD5["${key}"]}" ]; then
@@ -176,7 +176,7 @@ function addPatchDownload()
 	for hashNameAndValue in $hashesStringSeparated
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
-		case "$hashName" in)
+		case "$hashName" in
 			
 			MD5)
 				if [ ! -z "${patches_MD5["${key}"]}" ]; then
