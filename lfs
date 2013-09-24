@@ -269,8 +269,8 @@ function setPathsAndExports()
 
 function installDebianDependencies()
 {
-	sudo --quiet --quiet apt-get update
-	sudo --quiet --quiet apt-get install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
+	sudo apt-get --quiet --quiet update
+	sudo apt-get --quiet --quiet install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
 }
 
 function verifyHostSystemRequirements()
@@ -337,6 +337,8 @@ function verifyHostSystemRequirements()
 	echo "Texinfo: `makeinfo --version | head -n1`"
 	
 	xz --version | head -n 1
+	
+	sudo -V | head -n 1
 	
 	# Test C++ compiler
 	echo 'main(){}' > dummy.c && g++ -o dummy dummy.c
