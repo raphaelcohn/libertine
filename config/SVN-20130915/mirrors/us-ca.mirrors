@@ -1,0 +1,4 @@
+sourceMirror global
+
+mirror_gnu=https://mirrors.kernel.org/gnu/
+mirror_perl=http://www.perl.com/CPAN/
