@@ -507,21 +507,26 @@ function extractDependencies()
 		exitError "Not enough arguments"
 	fi
 	
-	local dependencyKey
+	local dependency
 	local localSourcePackageName
+	local localVersion
+	local key
 	local localFileName
 	local localExtractedTarballFolder
 	local localCompression
 	
-	for dependencyKey in $@
+	for dependency in $@
 	do
-		localSourcePackageName=sourcePackages_SourcePackageName["${dependencyKey}"]
-		localFileName=sourcePackages_FileName["${dependencyKey}"]
-		localExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${dependencyKey}"]
-		localCompression=sourcePackages_Compression["${dependencyKey}"]
+		IFS=: read -r -d $'\t' localSourcePackageName localVersion <<<"$dependency"
+		
+		key="$(printKey "$localSourcePackageName" "$localVersion")"
+		
+		localFileName=sourcePackages_FileName["${key}"]
+		localExtractedTarballFolder=sourcePackages_ExtractedTarballFolder["${key}"]
+		localCompression=sourcePackages_Compression["${key}"]
 		
 		if [ -z "$localSourcePackageName" ]; then
-			progressMessageFailed "No known source package definition for dependency key $dependencyKey"
+			progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
 		fi
 		
 		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
