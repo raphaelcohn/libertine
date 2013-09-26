@@ -102,7 +102,7 @@ function addSourcePackageDownload()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(basename "$ourUrl")"
 	
-	local -r compressionExtension="${filename##*.}"
+	local -r compressionExtension="${ourFileName##*.}"
 	
 	if [ $# -ge 4 ]; then
 		local -r ourExtractedTarballFolder="$4"
