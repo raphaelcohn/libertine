@@ -597,16 +597,12 @@ function downloadFileAndCheckHash()
 	progressMessageSucceeded
 }
 
-function downloadFileAndCheckHashWithMessage()
-{
-}
-
 function downloadKeyrings()
 {
 	local -i keyringNumber
 	for keyringNumber in ${!keyrings_Url[@]}
 	do
-		downloadFileAndCheckHashWithMessage "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Hashes[$keyringNumber]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Hashes[$keyringNumber]}"
 	done
 }
 
@@ -617,11 +613,11 @@ function downloadSources()
 	local -i patchNumber
 	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
 	do
-		downloadFileAndCheckHashWithMessage "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
+		downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
 		
 		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do
-			downloadFileAndCheckHashWithMessage "patch" "${patches_Url[$patchNumber]}" "$patchesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
+			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$patchesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
 		done
 	done
 }
