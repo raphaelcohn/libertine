@@ -629,15 +629,15 @@ function downloadSources()
 	local -i patchNumber
 	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]}
 	do
-		downloadSource "toolchain1"
+		downloadSource "toolchain1" "$key"
 	done
 	for key in ${installPhase_toolchain2["${localDistributionVersionKey}"]}
 	do
-		downloadSource "toolchain2"
+		downloadSource "toolchain2" "$key"
 	done
 	for key in ${installPhase_system["${localDistributionVersionKey}"]}
 	do
-		downloadSource "system"
+		downloadSource "system" "$key"
 	done
 	set +x
 }
