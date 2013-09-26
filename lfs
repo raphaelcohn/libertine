@@ -287,13 +287,13 @@ function setPathsAndExports()
 	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	
 	if [ -f /proc/cpuinfo ]; then
-		local -ir numberOfCpus="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
+		local -ir highestCpuZeroBased="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
 	else
-		local -ir numberOfCpus=0
+		local -ir highestCpuZeroBased=0
 	fi
 	
 	if [ $numberOfCpus -ne 0 ]; then
-		export MAKEFLAGS="-j $numberOfCpus"
+		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
 		echo "$MAKEFLAGS"
 	fi
 }
