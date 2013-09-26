@@ -445,7 +445,7 @@ function verifyHash()
 	pushd "$toPath">/dev/null
 		set +e
 		echo "$fileName  $hashValue"
-		$hashProgram --check <<<"$fileName  $hashValue" 1>&2 2>"$logFile"
+		$hashProgram --binary --check --warn --strict <<<"${hashValue}* $fileName" 1>&2 2>"$logFile"
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
