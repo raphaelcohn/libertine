@@ -356,24 +356,23 @@ function sourceRecipe()
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	
 	if [ $# -eq 3 ]; then
-		local -r onlyForPhase="$3"
+		local -r onlyInstallForPhase="$3"
 		
-		case "$onlyForPhase" in
+		case "$onlyInstallForPhase" in
 			
 			toolchain1|toolchain2|system)
 				:
 			;;
 			
 			*)
-				exitError "Unknown phase $onlyForPhase"
+				exitError "Unknown phase $onlyInstallForPhase"
 			;;
 			
 		esac
 		
-		if [ "$onlyForPhase" != "$LFS_PHASE" ]; then
+		if [ "$onlyInstallForPhase" = "$LFS_PHASE" ]; then
 			addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
 		fi
-		
 	else
 		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
 	fi
