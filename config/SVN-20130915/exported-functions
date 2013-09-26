@@ -8,6 +8,15 @@ function progressMessage()
 	printf "$ourName: $1"
 }
 
+function progressMessageUpdate()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
+	printf " $1"
+}
+
 function progressMessageFailed()
 {
 	if [ $# -ne 1 ]; then

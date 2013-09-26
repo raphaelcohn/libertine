@@ -642,13 +642,10 @@ function installPackage()
 	shift 2
 	
 	ourSourcePackageName="${sourcePackages_SourcePackageName["${key}"]}"
-	if [ -z "$ourSourcePackageName" ]; then
-		progressMessageFailed "No known package definition for key $key"
-	fi
+	ourVersion="${sourcePackages_Version["${key}"]}"
 	
 	progressMessage "Installing phase $phase source package $ourSourcePackageName version $ourVersion"
 	
-	ourVersion="${sourcePackages_Version["${key}"]}"
 	ourCompression="${sourcePackages_Compression["${key}"]}"
 	ourFileName="${sourcePackages_FileName["${key}"]}"
 	ourExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
@@ -670,6 +667,7 @@ function installPackage()
 	pushd "$sourcesPath" >/dev/null
 		
 		tarExtract "$ourFileName" "$ourExtractedTarballFolder" "$ourCompression"
+		progressMessageUpdate ", extraction complete, logs in $logsPath/$installer.*.log"
 		
 		local -r outLogFile="$logsPath"/"$installer".stdout.log
 		local -r errorLogFile="$logsPath"/"$installer".stderr.log
