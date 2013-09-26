@@ -180,7 +180,6 @@ function addSourcePackageDownload()
 		esac
 	fi
 	
-	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
