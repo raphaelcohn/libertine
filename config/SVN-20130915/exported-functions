@@ -293,10 +293,10 @@ function sourceProfile()
 	
 	local -r localProfile="$1"
 	
-	if [ -f "$profilesPath"/"$profile".profile ]; then
-		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$profile".profile "$LFS_PHASE" "$distributionVersion" "$profile"
+	if [ -f "$profilesPath"/"$localProfile".profile ]; then
+		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$distributionVersion" source "$profilesPath"/"$localProfile".profile "$LFS_PHASE" "$distributionVersion" "$localProfile"
 	else
-		exitError "profile $profile.profile does not exist in profile path $profilesPath or is not a file"
+		exitError "profile $localProfile.profile does not exist in profile path $profilesPath or is not a file"
 	fi
 }
 
