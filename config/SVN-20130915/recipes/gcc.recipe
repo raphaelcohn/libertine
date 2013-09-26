@@ -1,5 +1,5 @@
 # gcc pre-dependencies
-sourceRecipe mpc 3.1.2
+sourceRecipe mpfr 3.1.2
 sourceRecipe gmp 5.1.2
 sourceRecipe mpc 1.0.1
 
