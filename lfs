@@ -465,7 +465,7 @@ function verifySignature()
 		exitError "Keyrings must be gpg - $keyring is not"
 	fi
 	
-	if [ ! -f "$keyring" ]; then
+	if [ ! -f "$keyringsPath"/"$keyring" ]; then
 		exitError "$keyringsPath"/"$keyring does not exist"
 	fi
 	

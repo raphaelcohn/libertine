@@ -211,7 +211,6 @@ function addSourcePackageDownload()
 declare -a patches_Url=()
 declare -a patches_FileName=()
 declare -a patches_Hashes=()
-
 function addPatchDownload()
 {
 	if [ $# -ne 3 ]; then
