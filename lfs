@@ -490,7 +490,7 @@ function verifySignature()
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
-	if [ $@ -ne 4 ]; then
+	if [ $# -ne 4 ]; then
 		exitError "Not exactly 4 arguments"
 	fi
 	
@@ -535,7 +535,7 @@ function downloadFileAndCheckHash()
 	local hashValue
 	local hashProgram
 	local -i hasHash=1
-	for hashNameAndValue in ${ourHashes/,/ }
+	for hashNameAndValue in ${hashes/,/ }
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
