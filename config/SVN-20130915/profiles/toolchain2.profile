@@ -17,7 +17,7 @@ sourceRecipe grep 2.14
 sourceRecipe gzip 1.6
 sourceRecipe m4 1.4.16
 sourceRecipe make 3.82
-sourceRecipe patch 2.71
+sourceRecipe patch 2.7.1
 sourceRecipe perl 5.18.1
 sourceRecipe sed 4.2.2
 sourceRecipe tar 1.26
