@@ -470,14 +470,7 @@ function verifySignature()
 	fi
 	
 	#--trustdb-name trustdb.gpg \
-	gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty \
-	--no-default-keyring \
-	--homedir "$keyringsPath" \
-	--secret-keyring secring.gpg \
-	--primary-keyring pubring.gpg \
-	--keyring "$keyring" \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 2>&1 1>$logsPath/downloads/$fileName.sig.log
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning --no-random-seed-file --ignore-time-conflict --no-verbose --quiet --batch --no-tty --exit-on-status-write-error --no-default-keyring --homedir "$keyringsPath" --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" --verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 2>&1 >$logsPath/downloads/$fileName.sig.log
 }
 
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
