@@ -1,5 +1,10 @@
 function processTimezoneMirrors()
 {
+	local -r timezonesMapFile="$mirrorsPath"/timezones-to-mirrors.map
+	if [ ! -f "$timezonesMapFile" ]; then
+		exitError "$timezonesMapFile does not exist or is not a file"
+	fi
+	
 	if [ -z "$TZ" ]; then
 		if [ -f /etc/timezone ]; then
 			local -r timezone="$(head -n 1 /etc/timezone)"
