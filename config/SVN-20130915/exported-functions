@@ -1,6 +1,6 @@
 function progressMessage()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Incorrect arguments"
 	fi
 	
@@ -10,7 +10,7 @@ function progressMessage()
 
 function progressMessageFailed()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Incorrect arguments"
 	fi
 	
@@ -20,7 +20,7 @@ function progressMessageFailed()
 
 function progressMessageSucceeded()
 {
-	if [ $@ -ne 0 ]; then
+	if [ $# -ne 0 ]; then
 		exitError "Too many arguments"
 	fi
 	echo " PASSED (in ${SECONDS}s)"
@@ -28,7 +28,7 @@ function progressMessageSucceeded()
 
 function warning()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Incorrect arguments"
 	fi
 	
@@ -37,7 +37,7 @@ function warning()
 
 function printKey()
 {
-	if [ $@ -ne 2 ]; then
+	if [ $# -ne 2 ]; then
 		exitError "Too many arguments"
 	fi
 	
@@ -51,7 +51,7 @@ function printKey()
 
 function printDistributionVersionKey()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Incorrect arguments"
 	fi
 	
@@ -61,7 +61,7 @@ function printDistributionVersionKey()
 
 function sourcePackagesKeyExists()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Too many arguments"
 	fi
 	
@@ -90,9 +90,9 @@ declare -A sourcePackages_Patches=()
 
 function addSourcePackageDownload()
 {
-	if [ $@ -lt 3 ]; then
+	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
-	elif [ $@ -gt 5 ]; then
+	elif [ $# -gt 5 ]; then
 		exitError "Too many arguments"
 	fi
 	
@@ -104,7 +104,7 @@ function addSourcePackageDownload()
 	
 	local -r compressionExtension="${filename##*.}"
 	
-	if [ $@ -ge 4 ]; then
+	if [ $# -ge 4 ]; then
 		local -r ourExtractedTarballFolder="$4"
 	else
 		local -r withoutCompressionExtension="${ourFileName%.*}"
@@ -131,7 +131,7 @@ function addSourcePackageDownload()
 	# TODO: split compression from tar for non-tar formats
 	#
 	
-	if [ $@ -eq 5 ]; then
+	if [ $# -eq 5 ]; then
 		local -r ourCompression="$5"
 	else
 		case "$compressionExtension" in
@@ -214,7 +214,7 @@ declare -a patches_Hashes=()
 
 function addPatchDownload()
 {
-	if [ $@ -ne 3 ]; then
+	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -287,7 +287,7 @@ function sourceMirror()
 
 function sourceProfile()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Not exactly 1 argument"
 	fi
 	
@@ -302,7 +302,7 @@ function sourceProfile()
 
 function sourceKeyring()
 {
-	if [ $@ -ne 2 ]; then
+	if [ $# -ne 2 ]; then
 		exitError "Not exactly 2 arguments"
 	fi
 	
@@ -319,7 +319,7 @@ function sourceKeyring()
 
 function sourceRecipe()
 {
-	if [ $@ -ne 2 ]; then
+	if [ $# -ne 2 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -335,7 +335,7 @@ declare -A installPhase_system=()
 
 function addToInstall()
 {
-	if [ $@ -ne 3 ]; then
+	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -403,7 +403,7 @@ function addToInstall()
 # for maximum confusion, cpe:/a:gnu:gzip:1.2.4a
 function addCPE()
 {
-	if [ $@ -ne 2 ]; then
+	if [ $# -ne 2 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -423,7 +423,7 @@ function addCPE()
 # Called inside sourceRecipe
 function addCVE()
 {
-	if [ $@ -ne 2 ]; then
+	if [ $# -ne 2 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -461,7 +461,7 @@ function addCVE()
 
 function tarExtract()
 {
-	if [ $@ -ne 3 ]; then
+	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -479,7 +479,7 @@ function tarExtract()
 
 function extractDependencies()
 {
-	if [ $@ -eq 0 ]; then
+	if [ $# -eq 0 ]; then
 		exitError "Not enough arguments"
 	fi
 	
@@ -518,7 +518,7 @@ function installPackagePrototype()
 
 function createBuildFolderAndPushd()
 {
-	if [ $@ -ne 0 ]; then
+	if [ $# -ne 0 ]; then
 		exitError "Too many arguments"
 	fi
 	
@@ -530,7 +530,7 @@ function createBuildFolderAndPushd()
 
 function popdAndRemoveBuilderFolder()
 {
-	if [ $@ -ne 0 ]; then
+	if [ $# -ne 0 ]; then
 		exitError "Too many arguments"
 	fi
 	
