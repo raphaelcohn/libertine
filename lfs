@@ -267,7 +267,6 @@ function setPathsAndExports()
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
-	source "$exportedFunctions"
 	
 	if [ ! -d "$lfsPath" ]; then
 		mkdir -m 0755 -p "$lfsPath"
@@ -442,7 +441,7 @@ function verifyHash()
 	local -r hashProgram="$3"
 	local -r hashValue="$4"
 	
-	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgam.log
+	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
 		set +e
 		$hashProgram --check <<<"$fileName  $hashValue" 1>&2 2>"$logFile"
@@ -787,10 +786,11 @@ function main()
 	fi
 	verifyHostSystemRequirements >/dev/null 2>/dev/null
 	
+	createSkeletonFolderStructure
+	
+	source "$exportedFunctions"
 	sourceMirrors
 	sourceProfiles
-	
-	createSkeletonFolderStructure
 	
 	downloadKeyrings
 	downloadSources
