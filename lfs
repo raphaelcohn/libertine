@@ -514,7 +514,7 @@ function downloadFileAndCheckHash()
 		curl --fail --silent --show-error \
 		--user-agent "lfs/${distributionVersion}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
-		--tlsv1 --any-auth --netrc-optional \
+		--tlsv1 --anyauth --netrc-optional \
 		--compressed --remote-time \
 		--dump-header "$logsPath"/downloads/"$fileName".headers.log \
 		--trace-time --trace-ascii "$logsPath"/downloads/"$fileName".trace-ascii.log \
