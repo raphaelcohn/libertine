@@ -294,7 +294,7 @@ function setPathsAndExports()
 	
 	if [ $numberOfCpus -ne 0 ]; then
 		export MAKEFLAGS="-j $numberOfCpus"
-		warning "$MAKEFLAGS"
+		echo "$MAKEFLAGS"
 	fi
 }
 
