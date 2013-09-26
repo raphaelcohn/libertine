@@ -3,13 +3,13 @@ addPatchDownload 5.18.1 "$LFS_MIRROR_PATCHES"/"$LFS_SOURCE_PACKAGE_NAME"-5.18.1-
 
 function installPackage_toolchain2_perl_5.18.1()
 {
-	patch -Np1 -i ../"$ourSourcePackageName"-"$ourVersion"-libc-1.patch
+	#patch -Np1 -i ../"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"-libc-1.patch
 	
 	sh Configure -des -Dprefix=/"$LFS_TOOLS"
 	
 	make
 	
 	cp -v perl cpan/podlators/pod2man /"$LFS_TOOLS"/bin
-	mkdir -pv /"$LFS_TOOLS"/lib/perl5/"$ourVersion"
-	cp -Rv lib/* /"$LFS_TOOLS"/lib/perl5/"$ourVersion"
+	mkdir -pv /"$LFS_TOOLS"/lib/perl5/"$LFS_SOURCE_PACKAGE_VERSION"
+	cp -Rv lib/* /"$LFS_TOOLS"/lib/perl5/"$LFS_SOURCE_PACKAGE_VERSION"
 }

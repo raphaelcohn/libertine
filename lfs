@@ -641,21 +641,24 @@ function installPackage()
 	local -r key="$2"
 	shift 2
 	
-	ourSourcePackageName="${sourcePackages_SourcePackageName["${key}"]}"
-	ourVersion="${sourcePackages_Version["${key}"]}"
+	LFS_DISTRIBUTION_VERSION="$distributionVersion"
+	LFS_PHASE="$phase"
+	LFS_KEY="$key"
+	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
+	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
 	
-	progressMessage "Installing phase $phase source package $ourSourcePackageName version $ourVersion"
+	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION"
 	
-	ourCompression="${sourcePackages_Compression["${key}"]}"
-	ourFileName="${sourcePackages_FileName["${key}"]}"
-	ourExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
-	ourPatchFileName="${patches_FileName["${key}"]}"
+	local -r ourCompression="${sourcePackages_Compression["${key}"]}"
+	local -r ourFileName="${sourcePackages_FileName["${key}"]}"
+	LFS_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder["${key}"]}"
+	LFS_PATCHES="${sourcePackages_Patches["${key}"]}"
 	
 	local -i exitCode
 	
 	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
-	local -r installer_unversioned=installPackage_${phase}_${ourSourcePackageName}
+	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
+	local -r installer_unversioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}
 	if type "$installer_versioned" &>/dev/null; then
 		local -r installer="$installer_versioned"
 	elif type "$installer_unversioned" &>/dev/null; then
@@ -666,23 +669,36 @@ function installPackage()
 	
 	pushd "$sourcesPath" >/dev/null
 		
-		tarExtract "$ourFileName" "$ourExtractedTarballFolder" "$ourCompression"
+		tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression"
+		
 		progressMessageUpdate "extraction complete, logs in $logsPath/$installer.*.log"
 		
 		local -r outLogFile="$logsPath"/"$installer".stdout.log
 		local -r errorLogFile="$logsPath"/"$installer".stderr.log
-		pushd "$ourExtractedTarballFolder" >/dev/null
+		
+		pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
 			
 			exec 3>&1
 			exec 1>"$outLogFile"
 			exec 4>&2
 			exec 2>"$errorLogFile"
-		
+			
 			set +e
-			$installer "$@"
+			(
+				local -i patchNumber
+				for patchNumber in $LFS_PATCHES
+				do
+					if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+						exit 1
+					fi
+				done
+				if ! $installer "$@"; then
+					exit 2
+				fi
+			)
 			exitCode=$?
 			set -e
-		
+			
 			exec 2>&4
 			exec 4>&-
 			exec 1>&3
@@ -693,7 +709,7 @@ function installPackage()
 			fi
 		
 		popd >/dev/null
-		rm -rf "$ourExtractedTarballFolder"
+		rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
 		
 	popd >/dev/null
 	

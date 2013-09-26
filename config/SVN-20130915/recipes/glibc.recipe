@@ -11,10 +11,10 @@ function installPackage_toolchain1_glibc()
 	
 	createBuildFolderAndPushd
 		
-		../"$ourExtractedTarballFolder"/configure                         \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure                         \
 		--prefix=/"$LFS_TOOLS"                                                   \
 		--host="$LFS_TGT"                                                 \
-		--build="$(../"$ourExtractedTarballFolder"/scripts/config.guess)" \
+		--build="$(../"$LFS_EXTRACTED_TARBALL_FOLDER"/scripts/config.guess)" \
 		--disable-profile                                                 \
 		--enable-kernel=2.6.32                                            \
 		--with-headers=/"$LFS_TOOLS"/include                                     \
@@ -31,7 +31,7 @@ function installPackage_toolchain1_glibc()
 	# libstdc++ built here, as it's part of gcc
 	createBuildFolderAndPushd
 		
-		../"$ourExtractedTarballFolder"/libstdc++-v3/configure \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
 		--prefix=/"$LFS_TOOLS"                                        \
 		--disable-multilib                                     \

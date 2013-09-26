@@ -528,7 +528,7 @@ function tarExtract()
 	local -r tarballFolder="$2"
 	local -r tarballCompression="$3"
 	
-	rm -rf "$tarballFolder"
+	rm -rf -- "$tarballFolder"
 	if [ -z "$ourCompression" ]; then
 		tar --extract --file "$tarball"
 	else
@@ -587,7 +587,7 @@ function createBuildFolderAndPushd()
 	fi
 	
 	local -r buildFolder=../"$ourSourcePackageName"-build
-	rm -rf "$buildFolder"
+	rm -rf -- "$buildFolder"
 	mkdir -m 0755 -p "$buildFolder"
 	pushd "$buildFolder" >/dev/null
 }
@@ -598,6 +598,7 @@ function popdAndRemoveBuilderFolder()
 		exitError "Too many arguments"
 	fi
 	
+	local -r buildFolder=../"$ourSourcePackageName"-build
 	popd >/dev/null
-	rm -rf "$buildFolder"
+	rm -rf -- "$buildFolder"
 }

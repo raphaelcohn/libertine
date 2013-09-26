@@ -6,7 +6,7 @@ function installPackage_toolchain1_binutils()
 
 	createBuildFolderAndPushd
 
-		../"$ourExtractedTarballFolder"/configure \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix=/"$LFS_TOOLS" \
 		--with-sysroot="$LFS" \
 		--with-lib-path=/"$LFS_TOOLS"/lib \
@@ -38,7 +38,7 @@ function installPackage_toolchain2_binutils()
 		CC=$LFS_TGT-gcc                           \
 		AR=$LFS_TGT-ar                            \
 		RANLIB=$LFS_TGT-ranlib                    \
-		../"$ourExtractedTarballFolder"/configure \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix=/"$LFS_TOOLS"                    \
 		--disable-nls                             \
 		--with-lib-path=/"$LFS_TOOLS"/lib         \
