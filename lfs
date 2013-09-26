@@ -292,7 +292,7 @@ function setPathsAndExports()
 		local -ir highestCpuZeroBased=0
 	fi
 	
-	if [ $numberOfCpus -ne 0 ]; then
+	if [ $highestCpuZeroBased -ne 0 ]; then
 		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
 		echo "$MAKEFLAGS"
 	fi
