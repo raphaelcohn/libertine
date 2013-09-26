@@ -5,8 +5,6 @@ sourceRecipe mpc 1.0.1 system
 
 addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304
 
-echo "$LFS_SOURCE_PACKAGE_NAME"
-
 function installPackage_toolchain1_gcc()
 {
 	# TODO: These can be different versions to those used in the eventual system. Not good.
