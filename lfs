@@ -529,7 +529,7 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
-	progressMessage "Checking $downloadName $url hashes of $toPath/$fileName"
+	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
 	
 	local hashNameAndValue
 	local hashName
@@ -610,6 +610,7 @@ function downloadKeyrings()
 
 function downloadSources()
 {
+	set -x
 	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 	local key
 	local -i patchNumber
@@ -622,6 +623,7 @@ function downloadSources()
 			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$patchesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
 		done
 	done
+	set +x
 }
 
 function installPackage()
