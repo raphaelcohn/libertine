@@ -1,4 +1,4 @@
-addSourcePackageDownload 5.0.5 "$mirror_xz"/"$ourSourcePackageName"/"$ourSourcePackageName"-5.0.5.tar.xz MD5:aa17280f4521dbeebed0fbd11cd7fa30
+addSourcePackageDownload 5.0.5 "$LFS_MIRROR_XZ"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.0.5.tar.xz MD5:aa17280f4521dbeebed0fbd11cd7fa30
 
 function installPackage_toolchain2_xz()
 {

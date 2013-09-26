@@ -523,7 +523,7 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download failed, check logs $logsPath/downloads/$fileName.*.log"
+			progressMessageFailed "download $downloadName failed, check logs $logsPath/downloads/$fileName.*.log"
 		else
 			progressMessageSucceeded
 		fi
@@ -587,7 +587,7 @@ function downloadFileAndCheckHash()
 		
 		if [ "$hashProgram" != gpg ]; then
 			if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
-				progressMessageFailed "hash digest (sum) does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
+				progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
 			fi
 		fi
 	done

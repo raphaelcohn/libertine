@@ -1,4 +1,4 @@
-addSourcePackageDownload 3.3 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-3.3.tar.xz MD5:99180208ec2a82ce71f55b0d7389f1b3
+addSourcePackageDownload 3.3 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-3.3.tar.xz MD5:99180208ec2a82ce71f55b0d7389f1b3
 
 function installPackage_toolchain2_diffutils()
 {

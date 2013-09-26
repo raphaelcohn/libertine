@@ -1,4 +1,4 @@
-addSourcePackageDownload 1.6 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-1.6.tar.xz MD5:da981f86677d58a106496e68de6f8995
+addSourcePackageDownload 1.6 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-1.6.tar.xz MD5:da981f86677d58a106496e68de6f8995
 
 function installPackage_toolchain2_gzip()
 {

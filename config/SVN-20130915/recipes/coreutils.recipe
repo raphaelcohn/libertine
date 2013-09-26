@@ -1,4 +1,4 @@
-addSourcePackageDownload 8.21 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-8.21.tar.xz MD5:065ba41828644eca5dd8163446de5d64
+addSourcePackageDownload 8.21 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-8.21.tar.xz MD5:065ba41828644eca5dd8163446de5d64
 
 function installPackage_toolchain2_coreutils()
 {

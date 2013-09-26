@@ -1,4 +1,4 @@
-addSourcePackageDownload 5.1 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-5.1.tar.xz MD5:52ee905a3b705020d2a1b6ec36d53ca6
+addSourcePackageDownload 5.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.1.tar.xz MD5:52ee905a3b705020d2a1b6ec36d53ca6
 
 function installPackage_toolchain2_texinfo()
 {

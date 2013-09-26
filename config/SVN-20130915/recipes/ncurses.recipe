@@ -1,4 +1,4 @@
-addSourcePackageDownload 5.9 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1
+addSourcePackageDownload 5.9 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1
 
 function installPackage_toolchain2_ncurses()
 {

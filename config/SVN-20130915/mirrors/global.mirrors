@@ -1,17 +1,17 @@
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
-mirror_cve=http://www.cvedetails.com/product
+LFS_MIRROR_CVE=http://www.cvedetails.com/product
 
-mirror_gnu=http://ftp.gnu.org/gnu
-mirror_sourceforge=http://prdownloads.sourceforge.net
-mirror_linux_v3=https://www.kernel.org/pub/linux/kernel/v3.x
-mirror_perl=http://www.cpan.org/src
+LFS_MIRROR_GNU=http://ftp.gnu.org/gnu
+LFS_MIRROR_SOURCEFORGE=http://prdownloads.sourceforge.net
+LFS_MIRROR_LINUX_v3=https://www.kernel.org/pub/linux/kernel/v3.x
+LFS_MIRROR_PERL=http://www.cpan.org/src
 
-lfs_patches_mirror=http://www.linuxfromscratch.org/patches/lfs/development
+LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development
 
-mirror_bzip=http://www.bzip.org
-mirror_xz=http://tukaani.org
-mirror_file=ftp://ftp.astron.com/pub
-mirror_mpfr=http://www.mpfr.org
-mirror_gmp=ftp://ftp.gmplib.org/pub
-mirror_mpc=http://www.multiprecision.org/mpc/download
+LFS_MIRROR_BZIP=http://www.bzip.org
+LFS_MIRROR_XZ=http://tukaani.org
+LFS_MIRROR_FILE=ftp://ftp.astron.com/pub
+LFS_MIRROR_MPFR=http://www.mpfr.org
+LFS_MIRROR_GMP=ftp://ftp.gmplib.org/pub
+LFS_MIRROR_MPC=http://www.multiprecision.org/mpc/download

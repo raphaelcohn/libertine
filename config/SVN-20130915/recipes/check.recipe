@@ -1,4 +1,4 @@
-addSourcePackageDownload 0.9.10 "$mirror_sourceforge"/"$ourSourcePackageName"/"$ourSourcePackageName"-0.9.10.tar.gz MD5:6d10a8efb9a683467b92b3bce97aeb30
+addSourcePackageDownload 0.9.10 "$LFS_MIRROR_SOURCEFORGE"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-0.9.10.tar.gz MD5:6d10a8efb9a683467b92b3bce97aeb30
 
 function installPackage_toolchain2_check()
 {

@@ -1,4 +1,4 @@
-addSourcePackageDownload 1.26 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-1.26.tar.bz2 MD5:2cee42a2ff4f1cd4f9298eeeb2264519
+addSourcePackageDownload 1.26 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-1.26.tar.bz2 MD5:2cee42a2ff4f1cd4f9298eeeb2264519
 
 function installPackage_toolchain2_tar()
 {

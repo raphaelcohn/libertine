@@ -1,4 +1,4 @@
-addSourcePackageDownload 2.18 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-2.18.tar.xz MD5:88fbbceafee809e82efd52efa1e3c58f
+addSourcePackageDownload 2.18 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-2.18.tar.xz MD5:88fbbceafee809e82efd52efa1e3c58f
 
 function installPackage_toolchain1_glibc()
 {
