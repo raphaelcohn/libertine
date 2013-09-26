@@ -361,7 +361,7 @@ declare -A installPhase_toolchain2=()
 declare -A installPhase_system=()
 function addToInstall()
 {
-	if [ $# -ne 3 ]; then
+	if [ $# -lt 4 ]; then
 		exitError "Not enough arguments"
 	fi
 	
