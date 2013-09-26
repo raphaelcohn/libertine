@@ -394,6 +394,7 @@ function addToInstall()
 	for localDistributionVersion in $@
 	do
 		localDistributionVersionKey="$(printDistributionVersionKey "$localDistributionVersion")"
+		
 		case "$phase" in
 		
 			toolchain1)

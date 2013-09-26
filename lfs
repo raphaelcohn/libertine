@@ -608,23 +608,36 @@ function downloadKeyrings()
 	done
 }
 
+function downloadSource()
+{
+	local -r downloadPhase="$1"
+	local -r key="$2"
+	downloadFileAndCheckHash "source package ($downloadPhase)" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
+	
+	local -i patchNumber
+	for patchNumber in ${sourcePackages_Patches["${key}"]}
+	do
+		downloadFileAndCheckHash "patch ($downloadPhase)" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
+	done
+}
+
 function downloadSources()
 {
 	set -x
 	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 	local key
 	local -i patchNumber
-	echo ${installPhase_toolchain1["${localDistributionVersionKey}"]}
-	echo ${installPhase_toolchain2["${localDistributionVersionKey}"]}
-	echo ${installPhase_system["${localDistributionVersionKey}"]}
-	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
+	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]}
 	do
-		downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
-		
-		for patchNumber in ${sourcePackages_Patches["${key}"]}
-		do
-			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$patchesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
-		done
+		downloadSource "toolchain1"
+	done
+	for key in ${installPhase_toolchain2["${localDistributionVersionKey}"]}
+	do
+		downloadSource "toolchain2"
+	done
+	for key in ${installPhase_system["${localDistributionVersionKey}"]}
+	do
+		downloadSource "system"
 	done
 	set +x
 }
