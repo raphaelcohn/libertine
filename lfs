@@ -469,10 +469,10 @@ function verifySignature()
 		exitError "$keyringsPath"/"$keyring does not exist"
 	fi
 	
+	#--trustdb-name trustdb.gpg \
 	gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict --quiet --batch --no-default-keyring \
 	--homedir "$keyringsPath" \
 	--secret-keyring secring.gpg \
-	--trustdb-name trustdb.gpg \
 	--primary-keyring pubring.gpg \
 	--keyring "$keyring" \
 	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" 2>&1 1>$logsPath/downloads/$fileName.sig.log
@@ -623,7 +623,6 @@ function downloadSource()
 
 function downloadSources()
 {
-	set -x
 	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 	local key
 	local -i patchNumber
@@ -639,7 +638,6 @@ function downloadSources()
 	do
 		downloadSource "system" "$key"
 	done
-	set +x
 }
 
 function installPackage()
