@@ -186,7 +186,7 @@ function addSourcePackageDownload()
 	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
 	if sourcePackagesKeyExists "$key"; then
 		local -r existingUrl="${sourcePackages_Url["${key}"]}"
-		if [ "$existingUrl" != "$ourUrl" ]
+		if [ "$existingUrl" != "$ourUrl" ]; then
 			if [ "${sourcePackages_Hashes["${key}"]}" != "$ourHashes" ]; then
 				exitError "Override of URL for source package $ourSourcePackageName version $ourVersion specifies different hashes"
 			fi
