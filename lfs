@@ -445,12 +445,10 @@ function verifyHash()
 	pushd "$toPath">/dev/null
 		set +e
 		$hashProgram --binary --check --warn --strict <<<"${hashValue}* $fileName" 1>&2 2>"$logFile"
-		exitCode=$?
-		set -e
-		if [ $exitCode -ne 0 ]; then
-			return 2
-		fi
+		local -ir exitCode=$?
 	popd >/dev/null
+	
+	return $exitCode
 }
 
 function verifySignature()
@@ -481,22 +479,24 @@ function verifySignature()
 	--trustdb-name trustdb.gpg
 	--primary-keyring pubring.gpg \
 	--keyring "$keyring" \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName"
-	
-	exitError "CHECK SIG OUTPUT"
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" 1>&2 2>$logsPath/downloads/$fileName.sig.log
 }
 
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -ne 4 ]; then
-		exitError "Not exactly 4 arguments"
+	if [ $# -ne 5 ]; then
+		exitError "Not exactly 5 arguments"
 	fi
 	
-	local -r url="$1"
-	local -r toPath="$2"
-	local -r fileName="$3"
-	local -r hashes="$4"
+	local -r downloadName="$1"
+	local -r url="$2"
+	local -r toPath="$3"
+	local -r fileName="$4"
+	local -r hashes="$5"
+	local -i exitCode
+	
+	progressMessage "Downloading $downloadName $url to $toPath/$fileName with hashes $hashes"
 	
 	mkdir -m 0755 -p "$logsPath"/downloads
 	
@@ -522,10 +522,10 @@ function downloadFileAndCheckHash()
 		--config "$HOME"/.curlrc \
 		--url "$url" --output "$toPath"/"$fileName" \
 		1>"$logsPath"/downloads/"$fileName".stdout.log
-		local -i exitCode=$?
+		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			return 1
+			progressMessageFailed "download failed, check logs $logsPath/downloads/$fileName.*.log"
 		fi
 	fi
 	
@@ -572,7 +572,9 @@ function downloadFileAndCheckHash()
 			SIG)
 				hashProgram=gpg
 				hasHash=0
-				verifySignature "$toPath" "$fileName" "$hashValue"
+				if ! verifySignature "$toPath" "$fileName" "$hashValue"; then
+					progressMessageFailed "signature does not match, check logs $logsPath/downloads/$fileName.sig.log"
+				fi
 			;;
 			
 			*)
@@ -582,54 +584,21 @@ function downloadFileAndCheckHash()
 		esac
 		
 		if [ "$hashProgram" != gpg ]; then
-			verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"
+			if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
+				progressMessageFailed "hash digest (sum) does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
+			fi
 		fi
 	done
 	
 	if [ $hasHash -ne 0 ]; then
-		return 3
+		progressMessageFailed "no hash algorithms specified"
 	fi
+	
+	progressMessageSucceeded
 }
 
 function downloadFileAndCheckHashWithMessage()
 {
-	local -r downloadName="$1"
-	local -r url="$2"
-	local -r toPath="$3"
-	local -r fileName="$4"
-	local -r hashes="$5"
-	local -i exitCode
-	
-	progressMessage "Downloading $downloadName $url to $toPath/$fileName with hashes $hashes"
-	
-	set +e
-	downloadFileAndCheckHash "$url" "$toPath" "$fileName" "$hashes"
-	exitCode=$?
-	set -e
-	
-	case $exitCode in
-		
-		0)
-			progressMessageSucceeded
-		;;
-		
-		1)
-			progressMessageFailed "download failed, check logs $logsPath/downloads/$fileName.*.log"
-		;;
-		
-		2)
-			progressMessageFailed "hash digest (sum) does not match, check logs $logsPath/downloads/$fileName.*.log"
-		;;
-		
-		3)
-			progressMessageFailed "no hash algorithms specified"
-		;;
-		
-		*)
-			progressMessageFailed "unknown exit code $exitCode"
-		;;
-		
-	esac
 }
 
 function downloadKeyrings()
