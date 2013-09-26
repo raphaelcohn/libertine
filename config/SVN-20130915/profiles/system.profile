@@ -9,8 +9,8 @@ function downloadsList()
 		tar	automake	1.14	"$mirror_gnu"/automake/automake-1.14.tar.xz	cb3fba6d631cddf12e230fd0cc1890df	xz	automake-1.14.tar.xz	automake-1.14
 		tar	bc	1.06.95	http://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2	5126a721b73f97d715bb72c13c889035	bzip2	bc-1.06.95.tar.bz2	bc-1.06.95
 		tar	bison	3.0	"$mirror_gnu"/bison/bison-3.0.tar.xz	a2624994561aa69f056c904c1ccb2880	xz	bison-3.0.tar.xz	bison-3.0
-		tar	e2fsprogs	1.42.8	"$sourceforge_mirror"/"$ourSourcePackageName"/e2fsprogs-1.42.8.tar.gz	8ef664b6eb698aa6b733df59b17b9ed4	gzip	e2fsprogs-1.42.8.tar.gz	e2fsprogs-1.42.8
-		tar	flex	2.5.37	"$sourceforge_mirror"/"$ourSourcePackageName"/flex-2.5.37.tar.bz2	c75940e1fc25108f2a7b3ef42abdae06	bzip2	flex-2.5.37.tar.bz2	flex-2.5.37
+		tar	e2fsprogs	1.42.8	"$mirror_sourceforge"/"$ourSourcePackageName"/e2fsprogs-1.42.8.tar.gz	8ef664b6eb698aa6b733df59b17b9ed4	gzip	e2fsprogs-1.42.8.tar.gz	e2fsprogs-1.42.8
+		tar	flex	2.5.37	"$mirror_sourceforge"/"$ourSourcePackageName"/flex-2.5.37.tar.bz2	c75940e1fc25108f2a7b3ef42abdae06	bzip2	flex-2.5.37.tar.bz2	flex-2.5.37
 		tar	gdbm	1.10	"$mirror_gnu"/gdbm/gdbm-1.10.tar.gz	88770493c2559dc80b561293e39d3570	gzip	gdbm-1.10.tar.gz	gdbm-1.10
 		tar	groff	1.22.2	"$mirror_gnu"/groff/groff-1.22.2.tar.gz	9f4cd592a5efc7e36481d8d8d8af6d16	gzip	groff-1.22.2.tar.gz	groff-1.22.2
 		tar	grub	2.00	"$mirror_gnu"/grub/grub-2.00.tar.xz	a1043102fbc7bcedbf53e7ee3d17ab91	xz	grub-2.00.tar.xz	grub-2.00
@@ -27,7 +27,7 @@ function downloadsList()
 		tar	man-pages	3.53	http://www.kernel.org/pub/linux/docs/man-pages/man-pages-3.53.tar.xz	c3ab5df043bc95de69f73cb71a3c7bb6	xz	man-pages-3.53.tar.xz	man-pages-3.53
 		tar	pkg-config	0.28	http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz	aa3c86e67551adc3ac865160e34a2a0d	gzip	pkg-config-0.28.tar.gz	pkg-config-0.28
 		tar	procps-ng	3.3.8	http://sourceforge.net/projects/procps-ng/files/Production/procps-ng-3.3.8.tar.xz	aecbeeda2ab308f8d09dddcb4cb9a572	xz	procps-ng-3.3.8.tar.xz	procps-ng-3.3.8
-		tar	psmisc	22.20	"$sourceforge_mirror"/"$ourSourcePackageName"/psmisc-22.20.tar.gz	a25fc99a6dc7fa7ae6e4549be80b401f	gzip	psmisc-22.20.tar.gz	psmisc-22.20
+		tar	psmisc	22.20	"$mirror_sourceforge"/"$ourSourcePackageName"/psmisc-22.20.tar.gz	a25fc99a6dc7fa7ae6e4549be80b401f	gzip	psmisc-22.20.tar.gz	psmisc-22.20
 		tar	readline	6.2	"$mirror_gnu"/readline/readline-6.2.tar.gz	67948acb2ca081f23359d0256e9a271c	gzip	readline-6.2.tar.gz	readline-6.2
 		tar	shadow	4.1.5.1	http://pkg-shadow.alioth.debian.org/releases/shadow-4.1.5.1.tar.bz2	a00449aa439c69287b6d472191dc2247	bzip2	shadow-4.1.5.1.tar.bz2	shadow-4.1.5.1
 		tar	sysklogd	1.5	http://www.infodrom.org/projects/sysklogd/download/sysklogd-1.5.tar.gz	e053094e8103165f98ddafe828f6ae4b	gzip	sysklogd-1.5.tar.gz	sysklogd-1.5

@@ -1,0 +1,43 @@
+function processLanguageMirrors()
+{
+	local -r languagesMapFile="$mirrorsPath"/languages-to-mirrors.map
+	if [ ! -f "$languagesMapFile" ]; then
+		exitError "$languagesMapFile does not exist or is not a file"
+	fi
+
+	if [ -z "$LC_ALL" ]; then
+		if [ -z "$LC_TIME" ]; then
+			if [ -z "$LANG" ]; then
+				# erm, could use LANGUAGE with some amendments
+				if [ -z "$LANGUAGE" ]; then
+					local -r languageWithCodeset="POSIX.UTF-8"
+				else
+					local -r languageWithCodeset="${LANGUAGE%:*}.UTF-8"
+				fi
+			else
+				local -r languageWithCodeset="$LANG"
+			fi
+		else
+			local -r languageWithCodeset="$LC_TIME"
+		fi
+	else
+		local -r languageWithCodeset="$LC_ALL"
+	fi
+
+	# [language[_territory][.codeset][@modifier]] or /path/to/locale
+	if [ "${languageWithCodeset:0:1}" = "/" ]; then
+		exitError "We do not support locales that are files ($language) - http://pubs.opengroup.org/onlinepubs/007908799/xbd/envvar.html"
+	fi
+
+	local -r languageAndTerritory="${languageWithCodeset%.*}"
+	
+	# Contents of file based on /usr/share/zoneinfo/zone.tab
+	# And files in /usr/share/zoneinfo
+	mirrorsFromLanguage="$(awk -v IFS='\t' -v OFS='\t' -v LANGUAGE_AND_TERRITORY="^${languageAndTerritory}$" '$1 ~ LANGUAGE_AND_TERRITORY {print $2}' "$languagesMapFile" | head -n 1)"
+	if [ -z "$mirrorsFromLanguage" ]; then
+		mirrorsFromLanguage=global
+	fi
+	
+	source "$mirrorsFromLanguage"
+}
+processLanguageMirrors

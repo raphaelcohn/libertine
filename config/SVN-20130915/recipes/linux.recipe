@@ -1,4 +1,4 @@
-addSourcePackageDownload 3.11.1 "$linux_v3_mirror"/"$ourSourcePackageName"-3.11.1.tar.xz MD5:466c042aa58d4839396443bf4438fdc5
+addSourcePackageDownload 3.11.1 "$mirror_linux_v3"/"$ourSourcePackageName"-3.11.1.tar.xz MD5:466c042aa58d4839396443bf4438fdc5
 
 function installPackage_toolchain1_linux()
 {

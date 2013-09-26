@@ -1,13 +1,17 @@
+# eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
+# eg http://www.cvedetails.com/product/21050/GNU-Bash.html
+mirror_cve=http://www.cvedetails.com/product
+
 mirror_gnu=http://ftp.gnu.org/gnu
-sourceforge_mirror=http://prdownloads.sourceforge.net
-linux_v3_mirror=https://www.kernel.org/pub/linux/kernel/v3.x
-perl_mirror=http://www.cpan.org/src
+mirror_sourceforge=http://prdownloads.sourceforge.net
+mirror_linux_v3=https://www.kernel.org/pub/linux/kernel/v3.x
+mirror_perl=http://www.cpan.org/src
 
 lfs_patches_mirror=http://www.linuxfromscratch.org/patches/lfs/development
 
-bzip_mirror=http://www.bzip.org
-xz_mirror=http://tukaani.org
-file_mirror=ftp://ftp.astron.com/pub
-mpfr_mirror=http://www.mpfr.org
-gmp_mirror=ftp://ftp.gmplib.org/pub
-mpc_mirror=http://www.multiprecision.org/mpc/download
+mirror_bzip=http://www.bzip.org
+mirror_xz=http://tukaani.org
+mirror_file=ftp://ftp.astron.com/pub
+mirror_mpfr=http://www.mpfr.org
+mirror_gmp=ftp://ftp.gmplib.org/pub
+mirror_mpc=http://www.multiprecision.org/mpc/download

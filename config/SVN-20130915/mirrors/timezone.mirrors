@@ -1,0 +1,22 @@
+function processTimezoneMirrors()
+{
+	if [ -z "$TZ" ]; then
+		if [ -f /etc/timezone ]; then
+			local -r timezone="$(head -n 1 /etc/timezone)"
+		else
+			local -r timezone="Etc/UTC"
+		fi
+	else
+		local -r timezone="$TZ"
+	fi
+	
+	# Contents of file based on /usr/share/zoneinfo/zone.tab
+	# And files in /usr/share/zoneinfo
+	mirrorsFromTimezone="$(awk -v IFS='\t' -v OFS='\t' -v TIMEZONE="^${timezone}$" '$1 ~ TIMEZONE {print $2}' "$timezonesMapFile" | head -n 1)"
+	if [ -z "$mirrorsFromTimezone" ]; then
+		mirrorsFromTimezone=language
+	fi
+	
+	sourceMirror "$mirrorsFromTimezone"
+}
+processTimezoneMirrors

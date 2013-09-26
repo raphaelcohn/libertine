@@ -1,0 +1,13 @@
+TIMEZONE	MIRROR
+America/Los_Angeles	us-ca
+America/Monterey	us-ca
+SystemV/PST8PDT	us-ca
+UCT	language
+UTC	language
+Greenwich	language
+Zulu	language
+Etc/UCT	language
+Etc/UTC	language
+Etc/Greenwich	language
+Etc/Zulu	language
+CET	language

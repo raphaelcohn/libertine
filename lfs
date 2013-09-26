@@ -62,13 +62,18 @@ function exitHelp()
 		    lfsPath            ${lfsPath}
 		    lfsConfigPath      ${lfsConfigPath}
 		    toolsFolderName    ${toolsFolderName}
-		    mirrors            ${mirrors}
+		    mirrors            Computed from /etc/timezone using timezones-to-mirrors.map
 		    toolchain1Profile  ${toolchain1Profile}
 		    toolchain2Profile  ${toolchain2Profile}
 		    option             See below
 		    profiles           ${profiles}
 		
-		A mirror defines mirror URLs.
+		A mirror defines mirror URLs. If a mirror is 'language', then locale
+		settings (LANG) are used to determine the actual mirrors. Note that if the timezone is
+		Etc/UTC or something similar, then the 'language' mirrors are used.
+		
+		At this time we don't support the metalink (.meta4) protocol for mirrors (as it requires additional
+		runtime dependencies).
 		
 		Options
 		For options, prefix with either 'yes-' to turn it on
@@ -88,30 +93,6 @@ function exitHelp()
 	exit $1
 }
 
-function computeDefaultMirrors()
-{
-	local -r language="$(locale | grep '^LANG=' | cut -d'=' -f2- | cut -d'.' -f1)"
-	if [ -z "$language" ]; then
-		mirrors=global
-	fi
-	
-	case "$language" in
-		
-		en_GB)
-			mirrors=uk
-		;;
-		
-		#en_US)
-		#	mirrors=us
-		#;;
-		
-		*)
-			mirrors=global
-		;;
-		
-	esac
-}
-
 function parseCommandLine()
 {
 	# Defaults
@@ -119,7 +100,7 @@ function parseCommandLine()
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	toolsFolderName=tools
-	computeDefaultMirrors
+	computeMirrorsFromLocale="yes"
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
 	stripToolchainSymbols="yes"
@@ -160,6 +141,7 @@ function parseCommandLine()
 				
 				m)
 					mirrors="$OPTARG"
+					computeMirrorsFromLocale="no"
 				;;
 				
 				1)
@@ -254,9 +236,24 @@ function setPathsAndExports()
 		exitError "Distribution path $distributionPath does not exist or is not a directory"
 	fi
 	
+	readonly mirrorsPath="$distributionPath"/mirrors
+	if [ ! -d "$mirrorsPath" ]; then
+		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
+	fi
+	
 	readonly profilesPath="$distributionPath"/profiles
 	if [ ! -d "$profilesPath" ]; then
 		exitError "Profiles path $profilesPath does not exist or is not a directory"
+	fi
+	
+	readonly keyringsPath="$distributionPath"/keyrings
+	if [ ! -d "$keyringsPath" ]; then
+		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
+	fi
+	
+	readonly signaturesPath="$distributionPath"/signatures
+	if [ ! -d "$signaturesPath" ]; then
+		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
 	
 	readonly recipesPath="$distributionPath"/recipes
@@ -269,11 +266,6 @@ function setPathsAndExports()
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
 	source "$exportedFunctions"
-	
-	readonly mirrorsPath="$distributionPath"/mirrors
-	if [ ! -d "$mirrorsPath" ]; then
-		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
-	fi
 	
 	if [ ! -d "$lfsPath" ]; then
 		mkdir -m 0755 -p "$lfsPath"
@@ -442,160 +434,214 @@ function createSkeletonFolderStructure()
 	sudo chown -R $UID:$UID "$toolsPath"
 }
 
-function downloadSources()
+# metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
+function downloadFileAndCheckHash()
 {
-	progressMessage "Downloading sources"
+	if [ $@ -ne 4 ]; then
+		exitError "Not exactly 4 arguments"
+	fi
+	
+	local -r url="$1"
+	local -r toPath="$2"
+	local -r fileName="$3"
+	local -r hashes="$4"
+	
+	if [ ! -f "$toPath"/"$fileName" ]; then
+		
+		rm -rf "$toPath"/"$fileName"
+		
+		# We re-load the config after specifying our options
+		touch "$HOME"/.curlrc
+		
+		mkdir -m 0755 -p "$logsPath"/downloads
+		
+		local -r referrer="$(dirname "$url")/"
+		
+		set +e
+		curl --fail --silent --show-error \
+		--user-agent "lfs/${distributionVersion}" --referrer "$referrer";auto \
+		--location --max-redirs 5 --retry 20 \
+		--tlsv1 --any-auth --netrc-optional \
+		--compressed --remote-time \
+		--dump-header "$logsPath"/downloads/"$fileName".headers.log \
+		--trace-time --trace-ascii "$logsPath"/downloads/"$fileName".trace-ascii.log \
+		--stderr "$logsPath"/downloads/"$fileName".stderr.log \
+		--write-out '%{url_effective}\t%{http_code}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n' \
+		--config "$HOME"/.curlrc \
+		--url "$url" --output "$toPath"/"$fileName" \
+		1>"$logsPath"/downloads/"$fileName".stdout.log
+		local -i exitCode=$?
+		set -e
+		if [ $exitCode -ne 0 ]; then
+			return 1
+		fi
+	fi
+	
+	local -r hashesStringSeparated="${ourHashes/,/ }"
+	local hashNameAndValue
+	local hashName
+	local hashValue
+	local hashProgram
+	local logFile
+	local keyring
+	local keyrings
+	local -i hasHash=1
+	for hashNameAndValue in $hashesStringSeparated
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		case "$hashName" in
+			
+			MD5)
+				hashProgram=md5sum
+				hasHash=0
+			;;
+			
+			SHA1)
+				hashProgram=sha1sum
+				hasHash=0
+			;;
+			
+			SHA224)
+				hashProgram=sha224sum
+				hasHash=0
+			;;
+			
+			SHA256)
+				hashProgram=sha256sum
+				hasHash=0
+			;;
+			
+			SHA384)
+				hashProgram=sha384sum
+				hasHash=0
+			;;
+			
+			SHA512)
+				hashProgram=sha512sum
+				hasHash=0
+			;;
+			
+			SIG)
+				hashProgram=gpg
+				hasHash=0
+				
+				keyrings=""
+				pushd "$keyringsPath">/dev/null
+					for keyring in *.gpg
+					do
+						if [ "$keyring" = "secring.gpg" ]; then
+							continue
+						elif [ "$keyring" = "trustdb.gpg" ]; then
+							continue
+						fi
+						keyrings="$keyrings --keyring $keyring"
+					done
+				popd >/dev/null
+				
+				# hashValue is currently ignored as it's usually binary. It might be ascii-armored.
+				# It could be the URL of the signature, but then we need its hash too
+				# or it could be the keyring to use - that makes a lot more sense
+				
+				gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict --quiet --batch --no-default-keyring \
+				--homedir "$keyringsPath" \
+				--secret-keyring secring.gpg \
+				--trustdb-name trustdb.gpg
+				--primary-keyring pubring.gpg \
+				$keyrings \
+				--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName"
+				
+				exitError "CHECK SIG OUTPUT"
+			;;
+			
+			*)
+				exitError "Unsupported hash algorithm $hashName for $toPath/$fileName"
+			;;
+			
+		esac
+		
+		if [ "$hashProgram" != gpg ]; the
+			logFile="$logsPath"/downloads/"$fileName".$hashProgam.log
+			pushd "$sourcesPath">/dev/null
+				set +e
+				$hashProgram --check <<<"$keyringFileName  $hashValue" 1>&2 2>"$logFile"
+				exitCode=$?
+				set -e
+				if [ $exitCode -ne 0 ]; then
+					return 2
+				fi
+			popd >/dev/null
+		fi
+	done
+	
+	if [ $hasHash -ne 0 ]; then
+		return 3
+	fi
+}
+
+function downloadFileAndCheckHashWithMessage()
+{
+	local -r downloadName="$1"
+	local -r url="$2"
+	local -r toPath="$3"
+	local -r fileName="$4"
+	local -r hashes="$5"
+	local -i exitCode
+	
+	progressMessage "Downloading $downloadName $url to $toPath/$fileName with hashes $hashes"
 	
 	set +e
+	downloadFileAndCheckHash "$url" "$toPath" "$fileName" "$hashes"
+	exitCode=$?
+	set -e
 	
-	local key
-	local url
+	case $exitCode in
+		
+		0)
+			progressMessageSucceeded
+		;;
+		
+		1)
+			progressMessageFailed "download failed, check logs $logsPath/downloads/$fileName.*.log"
+		;;
+		
+		2)
+			progressMessageFailed "hash digest (sum) does not match, check logs $logsPath/downloads/$fileName.*.log"
+		;;
+		
+		3)
+			progressMessageFailed "no hash algorithms specified"
+		;;
+		
+		*)
+			progressMessageFailed "unknown exit code $exitCode"
+		;;
+		
+	esac
+}
+
+function downloadKeyrings()
+{
+	local -i keyringNumber
+	for keyringNumber in ${!keyrings_Url[@]}
+	do
+		downloadFileAndCheckHashWithMessage "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Hashes[$keyringNumber]}"
+	done
+}
+
+function downloadSources()
+{
 	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
+	local key
+	local -i patchNumber
 	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
 	do
-		url="${sourcePackages_Url["${key}"]}"
-		if [ ! -z "$url" ]; then
-			echo "$url"
-		fi
-		url="${patches_Url["${key}"]}"
-		if [ ! -z "$url" ]; then
-			echo "$url"
-		fi
-	done | sort --unique | wget --no-clobber --input-file - --directory-prefix "$sourcesPath" --output-file "$logsPath"/downloads.log 1>&2 2>"$logsPath"/downloads.log
-	
-	local -ir exitCode=$?
-	set -e
-	if [ $exitCode -ne 0 ]; then
-		progressMessageFailed "download of sources failed, check $logsPath/downloads.log"
-	fi
-	progressMessageSucceeded
-}
-
-function findHashValueForSourcePackage()
-{
-	local -r hashName="$1"
-	local -r key="$2"
-	
-	case "$hashName" in
+		downloadFileAndCheckHashWithMessage "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
 		
-		MD5)
-			printf "${sourcePackages_MD5["${key}"]}"
-		;;
-		
-		SHA1)
-			printf "${sourcePackages_SHA1["${key}"]}"
-		;;
-		
-		SHA224)
-			printf "${sourcePackages_SHA224["${key}"]}"
-		;;
-		
-		SHA256)
-			printf "${sourcePackages_SHA256["${key}"]}"
-		;;
-		
-		SHA384)
-			printf "${sourcePackages_SHA256["${key}"]}"
-		;;
-		
-		SHA512)
-			printf "${sourcePackages_SHA512["${key}"]}"
-		;;
-		
-		*)
-			exitError "Unsupported hash algorithm $hashName"
-		;;
-		
-	esac
-}
-
-function findHashValueForPatch()
-{
-	local -r hashName="$1"
-	local -r key="$2"
-	
-	case "$hashName" in
-		
-		MD5)
-			printf "${patches_MD5["${key}"]}"
-		;;
-		
-		SHA1)
-			printf "${patches_SHA1["${key}"]}"
-		;;
-		
-		SHA224)
-			printf "${patches_SHA224["${key}"]}"
-		;;
-		
-		SHA256)
-			printf "${patches_SHA256["${key}"]}"
-		;;
-		
-		SHA384)
-			printf "${patches_SHA256["${key}"]}"
-		;;
-		
-		SHA512)
-			printf "${patches_SHA512["${key}"]}"
-		;;
-		
-		*)
-			exitError "Unsupported hash algorithm $hashName"
-		;;
-		
-	esac
-}
-
-function verifySources()
-{
-	progressMessage "Verifying sources"
-	pushd "$sourcesPath" >/dev/null
-		
-		local hashName
-		local hashProgram
-		local logFilePath
-		local key
-		local fileName
-		local hashValue
-		local -i exitCode
-		local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
-		for hashName in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
+		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do
-			set +e
-			
-			# this weird syntax converts to lower case, see http://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting for other casing possibilities (second answer)
-			hashProgram=${hashName,,}sum
-			logFilePath="$logsPath"/$hashName.log
-			for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
-			do
-				fileName="${sourcePackages_FileName["${key}"]}"
-				hashValue="$(findHashValueForSourcePackage "$hashName" "$key")"
-				if [ ! -z "$fileName" ]; then
-					if [ ! -z "$hashValue" ]; then
-						echo "$fileName  $hashValue"
-					fi
-				fi
-			
-				fileName="${patches_FileName["${key}"]}"
-				hashValue="$(findHashValueForPatch "$hashName" "$key")"
-			
-				if [ ! -z "$fileName" ]; then
-					if [ ! -z "$hashValue" ]; then
-						echo "$fileName  $hashValue"
-					fi
-				fi
-			done | sort --unique | $hashProgram 1>&2 2>"$logFilePath"
-		
-			exitCode=$?
-			set -e
-			if [ $exitCode -ne 0 ]; then
-				progressMessageFailed "$hashName sums of downloaded sources don't match, check $logFilePath"
-			fi
+			downloadFileAndCheckHashWithMessage "patch" "${patches_Url[$patchNumber]}" "$patchesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
 		done
-		
-	popd >/dev/null
-	progressMessageSucceeded
+	done
 }
 
 function installPackage()
@@ -629,41 +675,6 @@ function installPackage()
 	else
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
-	
-	# We re-check the hashes in case the download happened out-of-process
-	local hashName
-	local hashProgram
-	local logFilePath
-	for hashName in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
-	do
-		# this weird syntax converts to lower case, see http://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting for other casing possibilities (second answer)
-		hashProgram=${hashName,,}sum
-		logFilePath="$logsPath"/$hashName.log
-		
-		hashValue="$(findHashValueForSourcePackage "$hashName" "$key")"
-		if [ ! -z "$hashValue" ]; then
-			set +e
-			$hashProgram <<<"$fileName  $hashValue" 1>&2 2>>"$logFilePath"
-			exitCode=$?
-			set -e
-			if [ $exitCode -ne 0 ]; then
-				progressMessageFailed "$hashName sums of downloaded sources don't match, check $logFilePath"
-			fi
-		fi
-		
-		if [ ! -z "$ourPatchFileName" ]; then
-			hashValue="$(findHashValueForPatch "$hashName" "$key")"
-			if [ ! -z "$hashValue" ]; then
-				set +e
-				$hashProgram <<<"$ourPatchFileName  $hashValue" 1>&2 2>>"$logFilePath"
-				exitCode=$?
-				set -e
-				if [ $exitCode -ne 0 ]; then
-					progressMessageFailed "$hashName sums of downloaded patches don't match, check $logFilePath"
-				fi
-			fi
-		fi
-	done
 	
 	pushd "$sourcesPath" >/dev/null
 		
@@ -767,8 +778,8 @@ function main()
 	
 	createSkeletonFolderStructure
 	
+	downloadKeyrings
 	downloadSources
-	verifySources
 	
 	installPackages toolchain1
 	installPackages toolchain2

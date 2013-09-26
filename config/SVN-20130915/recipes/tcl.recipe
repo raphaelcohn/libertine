@@ -1,4 +1,4 @@
-addSourcePackageDownload 8.6.0 "$sourceforge_mirror"/"$ourSourcePackageName"/"$ourSourcePackageName"8.6.0-src.tar.gz MD5:573aa5fe678e9185ef2b3c56b24658d3 "$ourSourcePackageName"-8.6.0
+addSourcePackageDownload 8.6.0 "$mirror_sourceforge"/"$ourSourcePackageName"/"$ourSourcePackageName"8.6.0-src.tar.gz MD5:573aa5fe678e9185ef2b3c56b24658d3 "$ourSourcePackageName"-8.6.0
 
 function installPackage_toolchain2_tcl_8.6.0()
 {

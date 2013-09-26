@@ -1,5 +1,10 @@
-addSourcePackageDownload 4.2 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-4.2.tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0
+addSourcePackageDownload 4.2 "$mirror_gnu"/"$ourSourcePackageName"/"$ourSourcePackageName"-4.2.tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0,SIG:x
 addPatchDownload 4.2 "$lfs_patches_mirror"/"$ourSourcePackageName"-4.2-fixes-12.patch MD5:419f95c173596aea47a23d922598977a
+addCPE 4.2 cpe:/a:gnu:bash:4.2
+
+addCVE 21050 GNU-Bash
+
+# itsecdb.com OVAL definitions for testing for compliance (eg file permissions)
 
 function installPackage_toolchain2_bash_4.2()
 {
