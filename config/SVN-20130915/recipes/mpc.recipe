@@ -1,1 +1,7 @@
 addSourcePackageDownload 1.0.1 "$LFS_MIRROR_MPC"/"$LFS_SOURCE_PACKAGE_NAME"-1.0.1.tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679
+
+function installPackage_toolchain1_mpc()
+{
+	# Exists to satisfy the build system; mpc is a dependency of gcc
+	:
+}
