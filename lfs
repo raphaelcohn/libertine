@@ -614,6 +614,9 @@ function downloadSources()
 	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
 	local key
 	local -i patchNumber
+	echo ${installPhase_toolchain1["${localDistributionVersionKey}"]}
+	echo ${installPhase_toolchain2["${localDistributionVersionKey}"]}
+	echo ${installPhase_system["${localDistributionVersionKey}"]}
 	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]} ${installPhase_toolchain2["${localDistributionVersionKey}"]} ${installPhase_system["${localDistributionVersionKey}"]}
 	do
 		downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
