@@ -286,7 +286,6 @@ function setPathsAndExports()
 	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	
 	if [ -f /proc/cpuinfo ]; then
-		# Can result in 0 if no processor lines present
 		local -ir numberOfCpus="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
 	else
 		local -ir numberOfCpus=0
@@ -434,6 +433,61 @@ function createSkeletonFolderStructure()
 	sudo chown -R $UID:$UID "$toolsPath"
 }
 
+function verifyHash()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r hashProgram="$3"
+	local -r hashValue="$4"
+	
+	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgam.log
+	pushd "$toPath">/dev/null
+		set +e
+		$hashProgram --check <<<"$fileName  $hashValue" 1>&2 2>"$logFile"
+		exitCode=$?
+		set -e
+		if [ $exitCode -ne 0 ]; then
+			return 2
+		fi
+	popd >/dev/null
+}
+
+function verifySignature()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	# ignored for now
+	local -r hashValue="$3"
+	
+	local keyrings=""
+	pushd "$keyringsPath">/dev/null
+		local keyring
+		for keyring in *.gpg
+		do
+			if [ "$keyring" = "secring.gpg" ]; then
+				continue
+			elif [ "$keyring" = "trustdb.gpg" ]; then
+				continue
+			fi
+			keyrings="$keyrings --keyring $keyring"
+		done
+	popd >/dev/null
+	
+	# hashValue is currently ignored as it's usually binary. It might be ascii-armored.
+	# It could be the URL of the signature, but then we need its hash too
+	# or it could be the keyring to use - that makes a lot more sense
+	
+	gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict --quiet --batch --no-default-keyring \
+	--homedir "$keyringsPath" \
+	--secret-keyring secring.gpg \
+	--trustdb-name trustdb.gpg
+	--primary-keyring pubring.gpg \
+	$keyrings \
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName"
+	
+	exitError "CHECK SIG OUTPUT"
+}
+
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
@@ -477,16 +531,12 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
-	local -r hashesStringSeparated="${ourHashes/,/ }"
 	local hashNameAndValue
 	local hashName
 	local hashValue
 	local hashProgram
-	local logFile
-	local keyring
-	local keyrings
 	local -i hasHash=1
-	for hashNameAndValue in $hashesStringSeparated
+	for hashNameAndValue in ${ourHashes/,/ }
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
@@ -524,33 +574,7 @@ function downloadFileAndCheckHash()
 			SIG)
 				hashProgram=gpg
 				hasHash=0
-				
-				keyrings=""
-				pushd "$keyringsPath">/dev/null
-					for keyring in *.gpg
-					do
-						if [ "$keyring" = "secring.gpg" ]; then
-							continue
-						elif [ "$keyring" = "trustdb.gpg" ]; then
-							continue
-						fi
-						keyrings="$keyrings --keyring $keyring"
-					done
-				popd >/dev/null
-				
-				# hashValue is currently ignored as it's usually binary. It might be ascii-armored.
-				# It could be the URL of the signature, but then we need its hash too
-				# or it could be the keyring to use - that makes a lot more sense
-				
-				gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict --quiet --batch --no-default-keyring \
-				--homedir "$keyringsPath" \
-				--secret-keyring secring.gpg \
-				--trustdb-name trustdb.gpg
-				--primary-keyring pubring.gpg \
-				$keyrings \
-				--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName"
-				
-				exitError "CHECK SIG OUTPUT"
+				verifySignature "$toPath" "$fileName" "$hashValue"
 			;;
 			
 			*)
@@ -559,17 +583,8 @@ function downloadFileAndCheckHash()
 			
 		esac
 		
-		if [ "$hashProgram" != gpg ]; the
-			logFile="$logsPath"/downloads/"$fileName".$hashProgam.log
-			pushd "$sourcesPath">/dev/null
-				set +e
-				$hashProgram --check <<<"$keyringFileName  $hashValue" 1>&2 2>"$logFile"
-				exitCode=$?
-				set -e
-				if [ $exitCode -ne 0 ]; then
-					return 2
-				fi
-			popd >/dev/null
+		if [ "$hashProgram" != gpg ]; then
+			verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"
 		fi
 	done
 	
