@@ -232,17 +232,17 @@ function addPatchDownload()
 	fi
 	
 	# Check for duplicate patches
-	local existingPatchNumber
+	local -i existingPatchNumber
 	local -i patchExists=1
 	for existingPatchNumber in ${sourcePackages_Patches["${key}"]}
 	do
 		if [ ${patches_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
 			if [ ${patches_Url[$existingPatchNumber]} != "$ourUrl" ]; then
-				if [ "${patches_Hashes["${key}"]}" != "$ourHashes" ]; then
+				if [ "${patches_Hashes[$existingPatchNumber]}" != "$ourHashes" ]; then
 					exitError "Override of URL for patch $ourFileName to $ourSourcePackageName version $ourVersion specifies different hashes"
 				fi
-				warning "Overriding URL for patch $ourFileName to $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
-				patches_Url["${key}"]="$ourUrl"
+				warning "Overriding URL for patch $ourFileName to $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
+				patches_Url[$existingPatchNumber]="$ourUrl"
 			fi
 			patchExists=0
 			break
@@ -300,21 +300,48 @@ function sourceProfile()
 	fi
 }
 
+declare -a keyrings_Url=()
+declare -a keyrings_FileName=()
+declare -a keyrings_Hashes=()
 function sourceKeyring()
 {
 	if [ $# -ne 2 ]; then
 		exitError "Not exactly 2 arguments"
 	fi
 	
-	local -r url="$1"
-	local -r hashes="$2"
-	local -r fileName="$(basename "$url")"
+	local -r ourUrl="$1"
+	local -r ourHashes="$2"
+	local -r ourFileName="$(basename "$ourUrl")"
 	
-	if [ "${fileName##*.}" != "gpg" ]; then
-		exitError "Only gpg keyrings are supported - which is not so for this url: $url"
+	if [ "${ourFileName##*.}" != "gpg" ]; then
+		exitError "Only gpg keyrings are supported - which is not so for this url: $ourUrl"
 	fi
 	
-	downloadFileAndCheckHashWithMessage "keyring" "$url" "$signaturesPath" "$fileName" "$hashes"
+	local -i existingKeyringNumber
+	local -i keyringExists=1
+	for existingKeyringNumber in ${!keyrings_FileName[@]}
+	do
+		if [ ${keyrings_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
+			if [ ${keyrings_Url[$existingPatchNumber]} != "$ourUrl" ]; then
+				if [ "${keyrings_Hashes[$existingKeyringNumber]}" != "$ourHashes" ]; then
+					exitError "Override of URL for keyring $ourFileName specifies different hashes"
+				fi
+				warning "Overriding URL for keyring $ourFileName to $ourUrl (hashes, etc not changed)"
+				keyrings_Url[$existingKeyringNumber]="$ourUrl"
+			fi
+			keyringExists=0
+			break
+		fi
+	done
+	
+	if [ $keyringExists -eq 0 ]; then
+		return 0
+	fi
+	
+	local -ir keyringNumber=${#patches_Url[@]}
+	keyrings_Url[$keyringNumber]="$ourUrl"
+	keyrings_FileName[$keyringNumber]="$ourFileName"
+	keyrings_Hashes[$keyringNumber]="$ourHashes"
 }
 
 function sourceRecipe()
@@ -332,7 +359,6 @@ function sourceRecipe()
 declare -A installPhase_toolchain1=()
 declare -A installPhase_toolchain2=()
 declare -A installPhase_system=()
-
 function addToInstall()
 {
 	if [ $# -ne 3 ]; then
