@@ -443,12 +443,8 @@ function verifyHash()
 	
 	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
-		set +e
-		$hashProgram --check --warn --strict <<<"${hashValue}  ${fileName}" 1>&2 2>"$logFile"
-		local -ir exitCode=$?
+		$hashProgram --check --quiet --warn --strict <<<"${hashValue}  ${fileName}" 2>&1 1>"$logFile"
 	popd >/dev/null
-	
-	return $exitCode
 }
 
 function verifySignature()
@@ -479,7 +475,7 @@ function verifySignature()
 	--trustdb-name trustdb.gpg
 	--primary-keyring pubring.gpg \
 	--keyring "$keyring" \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" 1>&2 2>$logsPath/downloads/$fileName.sig.log
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" 2>&1 1>$logsPath/downloads/$fileName.sig.log
 }
 
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
@@ -496,11 +492,11 @@ function downloadFileAndCheckHash()
 	local -r hashes="$5"
 	local -i exitCode
 	
-	progressMessage "Downloading $downloadName $url to $toPath/$fileName with hashes $hashes"
-	
 	mkdir -m 0755 -p "$logsPath"/downloads
 	
 	if [ ! -f "$toPath"/"$fileName" ]; then
+		
+		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
 		
 		rm -rf "$toPath"/"$fileName"
 		
@@ -526,8 +522,12 @@ function downloadFileAndCheckHash()
 		set -e
 		if [ $exitCode -ne 0 ]; then
 			progressMessageFailed "download failed, check logs $logsPath/downloads/$fileName.*.log"
+		else
+			progressMessageSucceeded
 		fi
 	fi
+	
+	progressMessage "Checking $downloadName $url hashes of $toPath/$fileName"
 	
 	local hashNameAndValue
 	local hashName
