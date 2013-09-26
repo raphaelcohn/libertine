@@ -444,7 +444,7 @@ function verifyHash()
 	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
 		set +e
-		$hashProgram --check --warn --strict <<<"${hashValue}* $fileName" 1>&2 2>"$logFile"
+		$hashProgram --check --warn --strict <<<"${hashValue} *${fileName}" 1>&2 2>"$logFile"
 		local -ir exitCode=$?
 	popd >/dev/null
 	
