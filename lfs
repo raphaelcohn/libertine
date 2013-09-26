@@ -494,8 +494,10 @@ function downloadFileAndCheckHash()
 	
 	mkdir -m 0755 -p "$logsPath"/downloads
 	
-	if [ ! -f "$toPath"/"$fileName" ]; then
-		
+	if [ -f "$toPath"/"$fileName" ]; then
+		progressMessage "Using downloaded $downloadName $url at $toPath/$fileName"
+		progressMessageSucceeded
+	else
 		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
 		
 		rm -rf "$toPath"/"$fileName"
