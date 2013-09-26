@@ -498,14 +498,14 @@ function downloadFileAndCheckHash()
 	local -r fileName="$3"
 	local -r hashes="$4"
 	
+	mkdir -m 0755 -p "$logsPath"/downloads
+	
 	if [ ! -f "$toPath"/"$fileName" ]; then
 		
 		rm -rf "$toPath"/"$fileName"
 		
 		# We re-load the config after specifying our options
 		touch "$HOME"/.curlrc
-		
-		mkdir -m 0755 -p "$logsPath"/downloads
 		
 		local -r referer="$(dirname "$url")/"
 		
