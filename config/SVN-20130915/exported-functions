@@ -306,6 +306,15 @@ function sourceKeyring()
 		exitError "Not exactly 2 arguments"
 	fi
 	
+	local -r url="$1"
+	local -r hashes="$2"
+	local -r fileName="$(basename "$url")"
+	
+	if [ "${fileName##*.}" != "gpg" ]; then
+		exitError "Only gpg keyrings are supported - which is not so for this url: $url"
+	fi
+	
+	downloadFileAndCheckHashWithMessage "keyring" "$url" "$signaturesPath" "$fileName" "$hashes"
 }
 
 function sourceRecipe()

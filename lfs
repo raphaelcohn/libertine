@@ -62,15 +62,18 @@ function exitHelp()
 		    lfsPath            ${lfsPath}
 		    lfsConfigPath      ${lfsConfigPath}
 		    toolsFolderName    ${toolsFolderName}
-		    mirrors            Computed from /etc/timezone using timezones-to-mirrors.map
+		    mirrors            ${mirrors}
 		    toolchain1Profile  ${toolchain1Profile}
 		    toolchain2Profile  ${toolchain2Profile}
 		    option             See below
 		    profiles           ${profiles}
 		
-		A mirror defines mirror URLs. If a mirror is 'language', then locale
-		settings (LANG) are used to determine the actual mirrors. Note that if the timezone is
-		Etc/UTC or something similar, then the 'language' mirrors are used.
+		A mirror defines mirror URLs. If a mirror is 'timezone', then timezone settings used to determine the actual mirrors.
+		Note that if the timezone is Etc/UTC or something similar, then the 'language' mirrors are used. These use the LC_CTYPE,
+		LANG and LANGUAGE environment variables in order. The 'global' mirror can be specified to override this. A list of mirrors
+		is in <lfsConfigPath>/mirrors . Conversions from timezone and language are controlled using <lfsConfigPath>/timezones-to-mirrors.map
+		and <lfsConfigPath>/languages-to-mirrors.map respectively. Note that some mirrors, eg for the UK, are incomplete and source
+		the global mirrors first to provide defaults. mirrors may be symlinks.
 		
 		At this time we don't support the metalink (.meta4) protocol for mirrors (as it requires additional
 		runtime dependencies).
@@ -100,7 +103,7 @@ function parseCommandLine()
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	toolsFolderName=tools
-	computeMirrorsFromLocale="yes"
+	mirrors="timezone"
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
 	stripToolchainSymbols="yes"
@@ -141,7 +144,6 @@ function parseCommandLine()
 				
 				m)
 					mirrors="$OPTARG"
-					computeMirrorsFromLocale="no"
 				;;
 				
 				1)
@@ -388,7 +390,7 @@ function sourceMirrors()
 {
 	pushd "$mirrorsPath" >/dev/null
 		
-		sourceMirror "$mirror"
+		sourceMirror "$mirrors"
 		
 	popd >/dev/null
 }
@@ -456,33 +458,30 @@ function verifySignature()
 {
 	local -r toPath="$1"
 	local -r fileName="$2"
-	# ignored for now
-	local -r hashValue="$3"
+	local -r keyring="$3"
 	
-	local keyrings=""
-	pushd "$keyringsPath">/dev/null
-		local keyring
-		for keyring in *.gpg
-		do
-			if [ "$keyring" = "secring.gpg" ]; then
-				continue
-			elif [ "$keyring" = "trustdb.gpg" ]; then
-				continue
-			fi
-			keyrings="$keyrings --keyring $keyring"
-		done
-	popd >/dev/null
+	case "$keyring" in
+		
+		secring.gpg|trustdb.gpg)
+			exitError "The keyring $keyring is not a public keyring"
+		;;
+		
+	esac
 	
-	# hashValue is currently ignored as it's usually binary. It might be ascii-armored.
-	# It could be the URL of the signature, but then we need its hash too
-	# or it could be the keyring to use - that makes a lot more sense
+	if [ "${keyring##*.}" != "gpg" ]; then
+		exitError "Keyrings must be gpg - $keyring is not"
+	fi
+	
+	if [ ! -f "$keyring" ]; then
+		exitError "$keyringsPath"/"$keyring does not exist"
+	fi
 	
 	gpg --no-options --no-greeting --no-permission-warning --no-random-seed-file --ignore-time-conflict --quiet --batch --no-default-keyring \
 	--homedir "$keyringsPath" \
 	--secret-keyring secring.gpg \
 	--trustdb-name trustdb.gpg
 	--primary-keyring pubring.gpg \
-	$keyrings \
+	--keyring "$keyring" \
 	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName"
 	
 	exitError "CHECK SIG OUTPUT"
