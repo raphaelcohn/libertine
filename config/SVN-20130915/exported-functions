@@ -353,7 +353,7 @@ function sourceRecipe()
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
-	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
+	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
 }
 
 declare -A installPhase_toolchain1=()
