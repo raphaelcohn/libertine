@@ -344,14 +344,25 @@ function sourceKeyring()
 
 function sourceRecipe()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Not enough arguments"
+	if [ $# -lt 2 ]; then
+		exitError "Too few arguments"
+	elif [ $# -gt 3 ]; then
+		exitError "Too many arguments"
 	fi
 	
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
+	if [ $# -eq 3 ]; then
+		local -r onlyForPhase="$1"
+	else
+		local -r onlyForPhase=""
+	fi
+	
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
-	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
+	
+	if [ "$onlyForPhase" != "$LFS_PHASE" ]; then
+		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
+	fi
 }
 
 declare -A installPhase_toolchain1=()

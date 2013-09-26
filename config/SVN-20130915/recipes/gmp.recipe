@@ -1,7 +1,1 @@
 addSourcePackageDownload 5.1.2 "$LFS_MIRROR_GMP"/"$LFS_SOURCE_PACKAGE_NAME"-5.1.2/"$LFS_SOURCE_PACKAGE_NAME"-5.1.2.tar.xz MD5:06fe2ca164221c59ce74867155cfc1ac
-
-function installPackage_toolchain1_gmp()
-{
-	# Exists to satisfy the build system; gmp is a dependency of gcc
-	:
-}
