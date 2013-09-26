@@ -263,7 +263,7 @@ function addPatchDownload()
 previousMirrors=""
 function sourceMirror()
 {
-	if [ $@ -ne 1 ]; then
+	if [ $# -ne 1 ]; then
 		exitError "Not exactly 1 argument"
 	fi
 	
