@@ -294,7 +294,6 @@ function setPathsAndExports()
 	
 	if [ $highestCpuZeroBased -ne 0 ]; then
 		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
-		echo "$MAKEFLAGS"
 	fi
 }
 
@@ -668,7 +667,7 @@ function installPackage()
 	pushd "$sourcesPath" >/dev/null
 		
 		tarExtract "$ourFileName" "$ourExtractedTarballFolder" "$ourCompression"
-		progressMessageUpdate ", extraction complete, logs in $logsPath/$installer.*.log"
+		progressMessageUpdate "extraction complete, logs in $logsPath/$installer.*.log"
 		
 		local -r outLogFile="$logsPath"/"$installer".stdout.log
 		local -r errorLogFile="$logsPath"/"$installer".stderr.log
