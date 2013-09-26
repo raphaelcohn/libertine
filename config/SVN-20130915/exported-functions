@@ -201,7 +201,7 @@ function addSourcePackageDownload()
 	sourcePackages_Version["${key}"]="$ourVersion"
 	sourcePackages_Url["${key}"]="$ourUrl"
 	sourcePackages_Compression["${key}"]="$ourCompression"
-	sourcePackages_FileName[$key]="$ourFileName"
+	sourcePackages_FileName["${key}"]="$ourFileName"
 	sourcePackages_ExtractedTarballFolder["${key}"]="$ourExtractedTarballFolder"
 	sourcePackages_Hashes["${key}"]="$ourHashes"
 	# Need a key that is phase-
@@ -353,7 +353,7 @@ function sourceRecipe()
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
-	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION"
+	addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
 }
 
 declare -A installPhase_toolchain1=()
