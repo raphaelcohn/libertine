@@ -444,7 +444,6 @@ function verifyHash()
 	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
 		set +e
-		echo "${hashValue}  ${fileName}"
 		$hashProgram --check --warn --strict <<<"${hashValue}  ${fileName}" 1>&2 2>"$logFile"
 		local -ir exitCode=$?
 	popd >/dev/null
@@ -535,7 +534,7 @@ function downloadFileAndCheckHash()
 	local hashValue
 	local hashProgram
 	local -i hasHash=1
-	for hashNameAndValue in ${hashes/,/ }
+	for hashNameAndValue in ${hashes//,/ }
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
