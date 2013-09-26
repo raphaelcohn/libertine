@@ -508,11 +508,11 @@ function downloadFileAndCheckHash()
 		
 		mkdir -m 0755 -p "$logsPath"/downloads
 		
-		local -r referrer="$(dirname "$url")/"
+		local -r referer="$(dirname "$url")/"
 		
 		set +e
 		curl --fail --silent --show-error \
-		--user-agent "lfs/${distributionVersion}" --referrer "$referrer";auto \
+		--user-agent "lfs/${distributionVersion}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
 		--tlsv1 --any-auth --netrc-optional \
 		--compressed --remote-time \
