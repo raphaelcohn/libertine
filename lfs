@@ -388,7 +388,7 @@ function sourceMirrors()
 {
 	pushd "$mirrorsPath" >/dev/null
 		
-		sourceMirror "$mirrors"
+		sourceMirror "$mirror"
 		
 	popd >/dev/null
 }

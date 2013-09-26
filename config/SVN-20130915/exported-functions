@@ -266,7 +266,7 @@ function sourceMirror()
 	if [ $# -ne 1 ]; then
 		exitError "Not exactly 1 argument"
 	fi
-	set -x
+	
 	local -r localMirror="$1"
 	
 	local previousMirror
