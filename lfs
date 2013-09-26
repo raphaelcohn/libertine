@@ -669,7 +669,9 @@ function installPackage()
 	
 	pushd "$sourcesPath" >/dev/null
 		
-		tarExtract "$ourFileName" "$ourExtractedTarballFolder" $ourCompression
+		set -x
+		tarExtract "$ourFileName" "$ourExtractedTarballFolder" "$ourCompression"
+		set +x
 		
 		local -r outLogFile="$logsPath"/"$installer".stdout.log
 		local -r errorLogFile="$logsPath"/"$installer".stderr.log
