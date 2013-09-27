@@ -571,12 +571,19 @@ function installPackagePrototype()
 
 function createBuildFolderAndPushd()
 {
-	if [ $# -ne 0 ]; then
+	if [ $# -gt 1 ]; then
 		exitError "Too many arguments"
 	fi
 	
-	local -r buildFolder=../"$ourSourcePackageName"-build
-	rm -rf -- "$buildFolder"
+	if [ $# -eq 1 ]; then
+		local -r localSourcePackageName="$1"
+		local -r buildFolder=../"$localSourcePackageName"-build
+	else
+		local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r buildFolder=../"$localSourcePackageName"-build
+		rm -rf -- "$buildFolder"
+	fi
+	
 	mkdir -m 0755 -p "$buildFolder"
 	pushd "$buildFolder" >/dev/null
 }
@@ -587,7 +594,7 @@ function popdBuildFolder()
 		exitError "Too many arguments"
 	fi
 	
-	local -r buildFolder=../"$ourSourcePackageName"-build
+	local -r buildFolder=../"$LFS_SOURCE_PACKAGE_NAME"-build
 	popd >/dev/null
 	#rm -rf -- "$buildFolder"
 }

@@ -30,7 +30,7 @@ function installPackage_toolchain1_glibc()
 	popdBuildFolder
 	
 	# libstdc++ built here, as it's part of gcc
-	createBuildFolderAndPushd
+	createBuildFolderAndPushd "gcc-build"
 		
 		../"$LFS_EXTRACTED_TARBALL_FOLDER"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
