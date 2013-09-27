@@ -440,6 +440,7 @@ function verifyHostSystemRequirements()
 			LFS_CURRENT_DEBIAN_PACKAGES=""
 			function anonymous()
 			{
+				set -e
 				source "$dependencyCheck"
 				return $?
 			}
@@ -454,14 +455,12 @@ function verifyHostSystemRequirements()
 		export LC_ALL="$original_LC_ALL"
 	fi
 	
-	set -x
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
 			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes update
 			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
 		fi
 	fi
-	set +x
 }
 
 function sourceMirrors()
