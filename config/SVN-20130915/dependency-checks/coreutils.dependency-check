@@ -1,0 +1,11 @@
+registerDebianPackage coreutils
+essentialProgramCheck chown awk
+
+chown --version | awk 'NR==1 { print $(NF) }' | verifyDependency coreutils 6.9
+
+essentialProgramCheck rm mv mktemp cp
+
+essentialProgramCheck cut tr readlink
+
+# The sha2*sum programs were added 2006-04-18; the md5 and sha1 exist from before coreutils 5.0 (2003)
+essentialProgramCheck md5sum sha1sum sha224sum sha256sum sha384sum sha512sum

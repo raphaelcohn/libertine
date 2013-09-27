@@ -1,0 +1,2 @@
+essentialProgramCheck uname sed
+uname -r | sed -r 's/-[a-z]+//g' | sed -r 's/-/\./g' | verifyDependency linux 2.6.32

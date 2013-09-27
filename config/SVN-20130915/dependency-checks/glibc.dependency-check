@@ -1,0 +1,4 @@
+registerDebianPackage libc-bin
+
+essentialProgramCheck ldd awk
+ldd --version | awk 'NR==1 { print $(NF) }' | verifyDependency glibc 2.5.1 2.18

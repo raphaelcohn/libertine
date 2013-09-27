@@ -1,0 +1,4 @@
+registerDebianPackage bison
+essentialProgramCheck bison awk
+bison --version | awk 'NR==1 {print $(NF) }' | verifyDependency bison 2.3
+#echo "/usr/bin/yacc -> $(readlink -f /usr/bin/yacc)"

@@ -3,43 +3,106 @@ set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o 
 
 function ensureWhichInstalled()
 {
-	local -r firstEncounteredInFunction="$1"
 	set +e
 	which
 	local -ir exitCode=$?
 	set -e
 	if [ $exitCode = 127 ]; then
-		exitError "Program which does not exist on path $PATH (needed in $firstEncounteredInFunction)"
+		exitError "Program which does not exist on path $PATH"
 	fi
+}
+
+debianPackagesToInstallForDependencies=""
+LFS_CURRENT_DEBIAN_PACKAGES=""
+function registerDebianPackage()
+{
+	LFS_CURRENT_DEBIAN_PACKAGES="$@"
 }
 
 function essentialProgramCheck()
 {
-	local -r firstEncounteredInFunction="$1"
-	shift 1
 	local program
 	for program in $@
 	do
 		if ! which "$program" 1>/dev/null 2>/dev/null; then
-			exitError "Program $program does not exist on path $PATH (needed in $firstEncounteredInFunction)"
+			exitError "Program $program does not exist on path $PATH"
 		fi
 	done
 }
 
-function essentialProgramChecks()
+function verifyDependency()
 {
-	ensureWhichInstalled essentialProgramChecks
+	if [ $# -lt 3 ]; then
+		exitError "Needs at least 2 arguments"
+	fi
+	if [ $# -gt 3 ]; then
+		exitError "Needs no more than 3 arguments"
+	fi
 	
-	# Major functions with minor functions with dependencies are included under the major function
-	essentialProgramCheck findOurNameAndPath basename dirname
-	essentialProgramCheck executeWithCleanEnvironment bash
+	local -r sourcePackageName="$1"
 	
-	essentialProgramCheck installDebianDependencies sudo apt-get
-	essentialProgramCheck setPathsAndExports mkdir uname awk sort head
-	essentialProgramCheck 'dependency-functions' cut sed readlink chown
-	essentialProgramCheck 'exported-functions' tr rm tar mv curl md5sum sha1sum sha224sum sha256sum sha384sum sha512sum gpg
+	local version
+	read -r -d$'\n' version
 	
-	# how to handle the need for unlzma, etc, if no packages use it?
+	# May be incomplete, eg part of the left-hand regex
+	# eg 4.2.25(1)-release might be 4.2
+	local -r minimumVersion="$2"
+	
+	# 0 is equal, =
+	# 1 is greater than, >
+	# 2 is less than, <
+	set +e
+	compareVersions "$version" "$minimumVersion"
+	local -i comparison=$?
+	set -e
+	if [ $comparison -eq 2 ]; then
+		warning "Dependency $sourcePackageName has a version, $version, less than the minimum known to work, $minimumVersion"
+	fi
+	
+	if [ $# -eq 3 ]; then
+		local -r maximumVersion="$3"
+		
+		set +e
+		compareVersions "$version" "$maximumVersion"
+		local -i comparison=$?
+		set -e
+		if [ $comparison -eq 1 ]; then
+			warning "Dependency $sourcePackageName has a version, $version, greater than the maximum known to work, $maximumVersion"
+		fi
+	fi
+}
+
+# Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
+function compareVersions()
+{
+	if [[ $1 == $2 ]]; then
+		return 0
+	fi
+	
+	local IFS=.
+	local i ver1=($1) ver2=($2)
+	
+	# fill empty fields in ver1 with zeros
+	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+	do
+		ver1[i]=0
+	done
+	
+	for ((i=0; i<${#ver1[@]}; i++))
+	do
+		if [[ -z ${ver2[i]} ]]; then
+			# fill empty fields in ver2 with zeros
+			ver2[i]=0
+		fi
+		if ((10#${ver1[i]} > 10#${ver2[i]})); then
+			return 1
+		fi
+		if ((10#${ver1[i]} < 10#${ver2[i]})); then
+			return 2
+		fi
+	done
+	
+	return 0
 }
 
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
@@ -93,6 +156,7 @@ function findOurNameAndPath()
 
 function executeWithCleanEnvironment()
 {
+	essentialProgramCheck env
 	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' "$crudeOurPath"/"$ourName" $@
 }
 
@@ -283,6 +347,8 @@ function parseCommandLine()
 
 function setPathsAndExports()
 {
+	essentialProgramCheck mkdir uname awk sort
+	
 	if [ ! -d "$lfsConfigPath" ]; then
 		exitError "Config path $lfsConfigPath does not exist or is not a directory"
 	fi
@@ -344,7 +410,9 @@ function setPathsAndExports()
 	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	
 	if [ -f /proc/cpuinfo ]; then
-		local -ir highestCpuZeroBased="$(awk '$1 ~ /processor/ { print $3}' /proc/cpuinfo | sort --unique --reverse | head -n 1)"
+		local highestCpu
+		read -r -d $'\n' highestCpu < <(awk '$1 ~ /processor/ { print $3 }' /proc/cpuinfo | sort --unique --reverse --numeric-sort)
+		local -ir highestCpuZeroBased=$highestCpu
 	else
 		local -ir highestCpuZeroBased=0
 	fi
@@ -354,100 +422,43 @@ function setPathsAndExports()
 	fi
 }
 
-function installDebianDependencies()
-{
-	#sudo apt-get --quiet --quiet update
-	sudo apt-get --quiet --quiet install bash binutils bison bzip2 coreutils diffutils findutils gawk gcc g++ libc-bin grep gzip m4 make patch perl-base sed tar texinfo xz-utils
-}
-
 function verifyHostSystemRequirements()
 {
-	readonly dependencyFunctions="$distributionPath"/dependency-functions
-	if [ ! -f "$dependencyFunctions" ]; then
-		exitError "dependency-functions $dependencyFunctions does not exist or is not a file"
+	readonly dependencyChecks="$distributionPath"/dependency-checks
+	if [ ! -d "$dependencyChecks" ]; then
+		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
-	source "$dependencyFunctions"
 	
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	local -r original_LC_ALL="$LC_ALL"
 	export LC_ALL=C
-	
-	# Must be at least 4.2 (so doesn't work on Mac OS X)
-	bash --version | head -n 1 | cut -d" " -f2-4
-	
-	echo "/bin/sh -> $(readlink -f /bin/sh)"
-	
-	echo -n "Binutils: "; ld --version | head -n 1 | cut -d" " -f3-
-	
-	bison --version | head -n 1
-	
-	if [ -e /usr/bin/yacc ]; then
-		echo "/usr/bin/yacc -> $(readlink -f /usr/bin/yacc)"
-	else
-		echo "yacc not found"
-	fi
-
-	bzip2 --version 2>&1 </dev/null | head -n 1 | cut -d" " -f1,6-
-	
-	echo -n "Coreutils: "; chown --version | head -n 1 | cut -d")" -f2
-	
-	diff --version | head -n 1
-	
-	find --version | head -n 1
-	
-	gawk --version | head -n 1
-	
-	if [ -e /usr/bin/awk ]; then
-		echo "/usr/bin/awk -> `readlink -f /usr/bin/awk`"
-	else
-		echo "awk not found"
-	fi
-
-	gcc --version | head -n 1
-	
-	g++ --version | head -n 1
-	
-	ldd --version | head -n 1 | cut -d" " -f2-  # glibc version
-	
-	grep --version | head -n 1
-	
-	gzip --version | head -n 1
-	
-	cat /proc/version
-	
-	m4 --version | head -n 1
-	
-	make --version | head -n 1
-	
-	patch --version | head -n 1
-	
-	echo Perl `perl -V:version`
-	
-	sed --version | head -n 1
-	
-	tar --version | head -n 1
-	
-	echo "Texinfo: `makeinfo --version | head -n1`"
-	
-	xz --version | head -n 1
-	
-	sudo -V | head -n 1
-	
-	# Test C++ compiler
-	echo 'main(){}' > dummy.c && g++ -o dummy dummy.c
-	if [ -x dummy ]; then
-		echo "g++ compilation OK"
-	else
-		echo "g++ compilation failed"
-	fi
-	rm -f dummy.c dummy
-	
+	pushd "$dependencyChecks" >/dev/null
+		local dependencyCheck
+		local -i exitCode
+		for dependencyCheck in *.dependency-check
+		do
+			set +e
+			LFS_CURRENT_DEBIAN_PACKAGES=""
+			source "$dependencyCheck"
+			exitCode=$?
+			set -e
+			if [ $exitCode -ne 0 ]; then
+				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
+			fi
+			LFS_CURRENT_DEBIAN_PACKAGES=""
+		done
+	popd >/dev/null
 	unset LC_ALL
 	if [ ! -z "$original_LC_ALL" ]; then
 		export LC_ALL="$original_LC_ALL"
 	fi
 	
-	exit 5
+	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
+		if which apt-get 1>/dev/null 2>/dev/null; then
+			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes update
+			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
+		fi
+	fi
 }
 
 function sourceMirrors()
@@ -832,22 +843,17 @@ function main()
 {
 	setDebugging
 	findOurNameAndPath
-	essentialProgramChecks
+	ensureWhichInstalled
 	parseCommandLine "$@"
 	
 	setPathsAndExports
 	
 	verifyHostSystemRequirements
-	if [ -d /etc/dpkg/origins ]; then
-		installDebianDependencies
-	fi
-	
-	createSkeletonFolderStructure
-	
 	source "$exportedFunctions"
 	sourceMirrors
 	sourceProfiles
 	
+	createSkeletonFolderStructure
 	downloadKeyrings
 	downloadSources
 	

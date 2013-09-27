@@ -1,0 +1,3 @@
+registerDebianPackage sed
+essentialProgramCheck sed awk
+sed --version | awk 'NR==1 { print $(NF) }' | verifyDependency sed 4.1.5

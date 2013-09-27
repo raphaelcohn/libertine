@@ -1,0 +1,3 @@
+registerDebianPackage binutils
+essentialProgramCheck ld awk
+ld --version | awk 'NR==1 {print ($NF) }' | verifyDependency binutils 2.17 2.32.2

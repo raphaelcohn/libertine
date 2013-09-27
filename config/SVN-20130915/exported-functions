@@ -100,7 +100,7 @@ function addSourcePackageDownload()
 	local -r ourVersion="$1"
 	local -r ourUrl="$2"
 	local -r ourHashes="$3"
-	local -r ourFileName="$(basename "$ourUrl")"
+	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
@@ -220,7 +220,7 @@ function addPatchDownload()
 	local -r ourVersion="$1"
 	local -r ourUrl="$2"
 	local -r ourHashes="$3"
-	local -r ourFileName="$(basename "$ourUrl")"
+	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
@@ -309,7 +309,7 @@ function sourceKeyring()
 	
 	local -r ourUrl="$1"
 	local -r ourHashes="$2"
-	local -r ourFileName="$(basename "$ourUrl")"
+	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	if [ "${ourFileName##*.}" != "gpg" ]; then
 		exitError "Only gpg keyrings are supported - which is not so for this url: $ourUrl"
@@ -376,8 +376,6 @@ function sourceRecipe()
 	else
 		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
 	fi
-	
-	
 }
 
 declare -A installPhase_toolchain1=()

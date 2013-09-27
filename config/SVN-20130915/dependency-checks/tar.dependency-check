@@ -1,0 +1,3 @@
+registerDebianPackage tar
+essentialProgramCheck tar awk
+tar --version | awk 'NR==1 { print $(NF) }' | verifyDependency tar 1.18

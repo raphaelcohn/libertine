@@ -1,0 +1,5 @@
+registerDebianPackage gpg
+
+essentialProgramCheck gpg awk
+# 1.4.7 was released 2007
+gpg --version | awk 'NR==1 { print $(NF) }' | verifyDependency gpg 1.4.7

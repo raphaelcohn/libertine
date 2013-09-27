@@ -1,0 +1,26 @@
+registerDebianPackage g++
+
+essentialProgramCheck g++ awk
+g++ --version | awk 'NR==1 { print $(NF) }' | verifyDependency gcc 4.1.2 4.8.1
+
+function test_C_Plus_Plus_Compiler()
+{
+	local -r tempFolder="$(mktemp --directory)"
+	trap "rm -rf -- '${tempFolder}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	
+	pushd "$tempFolder" >/dev/null
+		
+		echo 'main(){}' >dummy.c
+		
+		g++ -o dummy dummy.c 1>/dev/null 2>/dev/null || exitError "g++ compiler failed"
+		
+		if [ ! -x dummy ]; then
+			exitError "g++ compiler dependency broken"
+		fi
+		
+	popd >/dev/null
+	
+	rm -rf -- "${tempFolder}"
+	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+}
+test_C_Plus_Plus_Compiler
