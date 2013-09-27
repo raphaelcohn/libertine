@@ -25,7 +25,8 @@ function essentialProgramCheck()
 	for program in $@
 	do
 		if ! which "$program" 1>/dev/null 2>/dev/null; then
-			exitError "Program $program does not exist on path $PATH"
+			warning "Program $program does not exist on path $PATH"
+			return 100
 		fi
 	done
 }
@@ -437,15 +438,15 @@ function verifyHostSystemRequirements()
 		local -i exitCode
 		for dependencyCheck in *.dependency-check
 		do
-			set +e
 			LFS_CURRENT_DEBIAN_PACKAGES=""
-			source "$dependencyCheck"
-			exitCode=$?
-			set -e
-			if [ $exitCode -ne 0 ]; then
+			function anonymous()
+			{
+				source "$dependencyCheck"
+			}
+			
+			if ! anonymous; then
 				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
 			fi
-			LFS_CURRENT_DEBIAN_PACKAGES=""
 		done
 	popd >/dev/null
 	unset LC_ALL
