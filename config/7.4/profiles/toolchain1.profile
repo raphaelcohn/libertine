@@ -2,5 +2,5 @@ sourceKeyring $LFS_MIRROR_GNU/gnu-keyring.gpg MD5:ea2df5cf03e548e657bbcc2b8e1c15
 
 sourceRecipe binutils 2.23.2
 sourceRecipe gcc 4.8.1
-sourceRecipe linux 3.11.1
+sourceRecipe linux 3.10.10
 sourceRecipe glibc 2.18

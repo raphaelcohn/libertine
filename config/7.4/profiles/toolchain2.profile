@@ -12,7 +12,7 @@ sourceRecipe diffutils 3.3
 sourceRecipe file 5.14
 sourceRecipe findutils 4.4.2
 sourceRecipe gawk 4.1.0
-sourceRecipe gettext 0.18.3.1
+sourceRecipe gettext 0.18.3
 sourceRecipe grep 2.14
 sourceRecipe gzip 1.6
 sourceRecipe m4 1.4.16
