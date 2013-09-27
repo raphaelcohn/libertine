@@ -421,7 +421,7 @@ function setPathsAndExports()
 
 function registerDebianPackage()
 {
-	prinf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
+	printf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
 }
 
 function verifyHostSystemRequirements()
