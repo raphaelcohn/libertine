@@ -448,6 +448,7 @@ function verifyHostSystemRequirements()
 			if ! anonymous; then
 				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
 			fi
+set +x
 		done
 	popd >/dev/null
 	unset LC_ALL
