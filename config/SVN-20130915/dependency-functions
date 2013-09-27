@@ -45,7 +45,7 @@ function verifyDependency()
 	local -i comparison=$?
 	set -e
 	if [ $comparison -eq 2 ]; then
-		exitError "Dependency $sourcePackageName has a version, $version, less than the minimum $minimumVersion"
+		exitError "Dependency $sourcePackageName has a version, $version, less than the minimum known to work, $minimumVersion"
 	fi
 	
 	set +e
@@ -53,10 +53,8 @@ function verifyDependency()
 	local -i comparison=$?
 	set -e
 	if [ $comparison -eq 1 ]; then
-		warning "Dependency $sourcePackageName has a version, $version, greater than the maximum $maximumVersion"
+		warning "Dependency $sourcePackageName has a version, $version, greater than the maximum known to work, $maximumVersion"
 	fi
-	
-	exit 5
 }
 
 # Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
@@ -103,4 +101,5 @@ function parse_bash()
 }
 
 verifyDependency bash 3.2 4.2.25 parse_bash stdout bash --version
+echo "/bin/sh -> $(readlink -f /bin/sh)"
 

@@ -69,7 +69,7 @@ function warning()
 		exitError "Incorrect arguments"
 	fi
 	
-	echo "$ourName: WARNING: $1"
+	echo "$ourName: WARNING: $1" 1>&2
 }
 
 function setDebugging()
@@ -279,12 +279,6 @@ function parseCommandLine()
 			exitError "Please specify a distribution using -d"
 		fi
 	fi
-}
-
-function cleanShell()
-{
-	set +h
-	umask 022
 }
 
 function setPathsAndExports()
@@ -841,14 +835,12 @@ function main()
 	essentialProgramChecks
 	parseCommandLine "$@"
 	
-	setDebugging
-	cleanShell
 	setPathsAndExports
 	
+	verifyHostSystemRequirements
 	if [ -d /etc/dpkg/origins ]; then
 		installDebianDependencies
 	fi
-	verifyHostSystemRequirements
 	
 	createSkeletonFolderStructure
 	
