@@ -1,8 +1,8 @@
 
 function verifyDependency()
 {
-	if [ $# -lt 4 ]; then
-		exitError "Needs at least 4 arguments"
+	if [ $# -ne 3 ]; then
+		exitError "Needs 3 arguments"
 	fi
 	
 	local -r sourcePackageName="$1"
