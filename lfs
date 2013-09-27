@@ -383,6 +383,8 @@ function verifyHostSystemRequirements()
 	if [ ! -z "$original_LC_ALL" ]; then
 		export LC_ALL="$original_LC_ALL"
 	fi
+	
+	exit 5
 }
 
 function sourceMirrors()
@@ -776,7 +778,7 @@ function main()
 	if [ -d /etc/dpkg/origins ]; then
 		installDebianDependencies
 	fi
-	verifyHostSystemRequirements >/dev/null 2>/dev/null
+	verifyHostSystemRequirements
 	
 	createSkeletonFolderStructure
 	
