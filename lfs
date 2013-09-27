@@ -440,7 +440,7 @@ function verifyHostSystemRequirements()
 			LFS_CURRENT_DEBIAN_PACKAGES=""
 			function anonymous()
 			{
-				set -e
+				echo $-
 				source "$dependencyCheck"
 				return $?
 			}
