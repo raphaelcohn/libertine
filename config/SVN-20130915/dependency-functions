@@ -1,3 +1,4 @@
+
 function verifyDependency()
 {
 	if [ $# -lt 6 ]; then
@@ -35,25 +36,27 @@ function verifyDependency()
 	shift 5
 	local -r version="$($@ | $parseVersionFunction)"
 	echo $version
-	exit 5
 	
-	# Code to compare versions...
+	# 0 is equal, =
+	# 1 is greater than, >
+	# 2 is less than, <
 	set +e
-	vercomp "$left" "$right"
-	case $? in
-		0)
-			# equal, =
-		;;
-		
-		1)
-			# greater than, >
-		;;
-		
-		2)
-			# less than, <
-		;;
-	esac
+	vercomp "$version" "$minimumVersion"
+	local -i comparison=$?
 	set -e
+	if [ $comparison -eq 2 ]; then
+		exitError "Dependency $sourcePackageName has a version, $version, less than the minimum $minimumVersion"
+	fi
+	
+	set +e
+	vercomp "$version" "$maximumVersion"
+	local -i comparison=$?
+	set -e
+	if [ $comparison -eq 1 ]; then
+		warning "Dependency $sourcePackageName has a version, $version, greater than the maximum $maximumVersion"
+	fi
+	
+	exit 5
 }
 
 # Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
@@ -91,7 +94,12 @@ function vercomp()
 
 function parse_bash()
 {
-	head -n 1 | cut -d' ' -f3
+	# eg GNU bash, version 4.2.25(1)-release (x86_64-pc-linux-gnu) becomes
+	# 4.2.25(1)-release
+	# then 4.2.25(1)-
+	# then 4.2.25.0
+	# We drop the '-release' because we can't cope with it in our version compare
+	head -n 1 | cut -d' ' -f4 | sed 's/-.*//g' | sed 's/(\([0-9]*\))/\.\1/g'
 }
 
 verifyDependency bash 3.2 4.2.25 parse_bash stdout bash --version

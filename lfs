@@ -1,11 +1,64 @@
 #!/bin/bash -
-set -e
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
+
+function ensureWhichInstalled()
+{
+	local -r firstEncounteredInFunction="$1"
+	set +e
+	which
+	local -ir exitCode=$?
+	set -e
+	if [ $exitCode = 127 ]; then
+		exitError "Program which does not exist on path $PATH (needed in $firstEncounteredInFunction)"
+	fi
+}
+
+function essentialProgramCheck()
+{
+	local -r firstEncounteredInFunction="$1"
+	shift 1
+	local program
+	for program in $@
+	do
+		if ! which "$program" 1>/dev/null 2>/dev/null; then
+			exitError "Program $program does not exist on path $PATH (needed in $firstEncounteredInFunction)"
+		fi
+	done
+}
+
+function essentialProgramChecks()
+{
+	ensureWhichInstalled essentialProgramChecks
+	
+	# Major functions with minor functions with dependencies are included under the major function
+	essentialProgramCheck findOurNameAndPath basename dirname
+	essentialProgramCheck executeWithCleanEnvironment bash
+	essentialProgramCheck exitHelp cat
+	
+	essentialProgramCheck installDebianDependencies sudo apt-get
+	essentialProgramCheck setPathsAndExports mkdir uname awk sort head
+	essentialProgramCheck 'dependency-functions' cut sed readlink chown
+	essentialProgramCheck 'exported-functions' tr rm tar mv curl md5sum sha1sum sha224sum sha256sum sha384sum sha512sum gpg
+}
+
+# The purpose of these functions is to provide internal implementations of logic we can't be 100%
+# sure of exists in the environment or is implemented as we would like for critical pieces of code.
+# Such a critical piece is code executed before and during command line arg parsing (eg exitError)
+# They will usually be MUCH slower than their external equivalents
+function purebash_dirname()
+{
+	echo "${1%/*}"
+}
+
+function purebash_basename()
+{
+	echo "${1##*/}"
+}
 
 function exitError()
 {
 	local -r error="$1"
 	echo "$ourName: $error" 1>&2
-	#exitHelp 1
 	exit 1
 }
 
@@ -22,10 +75,10 @@ function setDebugging()
 
 function findOurNameAndPath()
 {
-	readonly ourName="$(basename "$0")"
-	cd "$(dirname "$0")" 1>/dev/null
+	readonly ourName="$(purebash_basename "$0")"
+	pushd "$(purebash_dirname "$0")" >/dev/null
 	readonly crudeOurPath="$(pwd)"
-	cd - 1>/dev/null
+	popd >/dev/null
 }
 
 function executeWithCleanEnvironment()
@@ -35,7 +88,7 @@ function executeWithCleanEnvironment()
 
 function exitHelp()
 {
-	cat 1>&2 <<-EOF
+	echo "
 		Usage: ${ourName} -h
 		Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 		
@@ -92,7 +145,7 @@ function exitHelp()
 		    strip-toolchain-docs     ${stripToolchainDocs}
 		    strip-system-symbols     ${stripSystemSymbols}
 		    strip-system-docs        ${stripSystemDocs}
-	EOF
+	" 1>&2
 	exit $1
 }
 
@@ -115,8 +168,9 @@ function parseCommandLine()
 	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
 		executeWithCleanEnvironment "$@"
 	else
-		OPTERR=1
-		OPTIND=1
+		local OPTERR=1
+		local OPTIND=1
+		local OPTARG
 		local option
 		while getopts :hl:d:m:1:2:o: option
 		do
@@ -775,6 +829,7 @@ function main()
 {
 	setDebugging
 	findOurNameAndPath
+	essentialProgramChecks
 	parseCommandLine "$@"
 	
 	setDebugging
