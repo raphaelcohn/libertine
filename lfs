@@ -26,7 +26,7 @@ function essentialProgramCheck()
 	do
 		if ! which "$program" 1>/dev/null 2>/dev/null; then
 			warning "Program $program does not exist on path $PATH"
-			exit 100
+			return 100
 		fi
 	done
 }
