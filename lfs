@@ -881,9 +881,9 @@ function main()
 	downloadSources
 	
 	if [ "$skipToolchain1" = "no" ]; then
+		rm -rf /tools/*
 		installPackages toolchain1
 	fi
-	exitError "Examine toolchain1"
 	if [ "$skipToolchain2" = "no" ]; then
 		installPackages toolchain2
 		stripToolchainSymbols
