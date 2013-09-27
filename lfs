@@ -33,12 +33,13 @@ function essentialProgramChecks()
 	# Major functions with minor functions with dependencies are included under the major function
 	essentialProgramCheck findOurNameAndPath basename dirname
 	essentialProgramCheck executeWithCleanEnvironment bash
-	essentialProgramCheck exitHelp cat
 	
 	essentialProgramCheck installDebianDependencies sudo apt-get
 	essentialProgramCheck setPathsAndExports mkdir uname awk sort head
 	essentialProgramCheck 'dependency-functions' cut sed readlink chown
 	essentialProgramCheck 'exported-functions' tr rm tar mv curl md5sum sha1sum sha224sum sha256sum sha384sum sha512sum gpg
+	
+	# how to handle the need for unlzma, etc, if no packages use it?
 }
 
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
@@ -60,6 +61,15 @@ function exitError()
 	local -r error="$1"
 	echo "$ourName: $error" 1>&2
 	exit 1
+}
+
+function warning()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
+	echo "$ourName: WARNING: $1"
 }
 
 function setDebugging()

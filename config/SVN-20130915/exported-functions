@@ -35,15 +35,6 @@ function progressMessageSucceeded()
 	echo " PASSED (in ${SECONDS}s)"
 }
 
-function warning()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	echo "$ourName: WARNING: $1"
-}
-
 function printKey()
 {
 	if [ $# -ne 2 ]; then
