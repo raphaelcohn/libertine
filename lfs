@@ -442,7 +442,9 @@ function verifyHostSystemRequirements()
 		do
 			LFS_CURRENT_DEBIAN_PACKAGES=""
 			echo $-
-			if ! source "$dependencyCheck"; then
+			set -v
+			
+			if ! (source "$dependencyCheck"); then
 				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
 			fi
 
