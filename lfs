@@ -21,6 +21,9 @@ function registerDebianPackage()
 
 function essentialProgramCheck()
 {
+	# This nasty hack exists because source'd files override the set -xxxx options!
+	set -e
+	
 	local program
 	for program in $@
 	do
@@ -441,14 +444,21 @@ function verifyHostSystemRequirements()
 			function anonymous()
 			{
 				echo $-
-				source "$dependencyCheck"
+				source 
 				return $?
 			}
 			
-			if ! anonymous; then
+			if ! source "$dependencyCheck"; then
 				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
 			fi
+
+
+
+
 set +x
+
+
+
 		done
 	popd >/dev/null
 	unset LC_ALL
