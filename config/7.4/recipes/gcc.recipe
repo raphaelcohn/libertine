@@ -63,7 +63,7 @@ function installPackage_toolchain1_gcc()
 		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system. This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
 		ln -sv libgcc.a "$(${LFS_TGT}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
 
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 }
 
 function installPackage_toolchain2_gcc()
@@ -118,5 +118,5 @@ function installPackage_toolchain2_gcc()
 		
 		ln -sv gcc /"$LFS_TOOLS"/bin/cc
 		
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 }

@@ -27,7 +27,7 @@ function installPackage_toolchain1_binutils()
 
 		make install
 
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 }
 
 function installPackage_toolchain2_binutils()
@@ -53,5 +53,5 @@ function installPackage_toolchain2_binutils()
 		make -C ld LIB_PATH=/usr/lib:/lib
 		cp -v ld/ld-new /"$LFS_TOOLS"/bin
 		
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 }

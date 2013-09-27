@@ -581,7 +581,7 @@ function createBuildFolderAndPushd()
 	pushd "$buildFolder" >/dev/null
 }
 
-function popdAndRemoveBuilderFolder()
+function popdBuildFolder()
 {
 	if [ $# -ne 0 ]; then
 		exitError "Too many arguments"
@@ -589,5 +589,5 @@ function popdAndRemoveBuilderFolder()
 	
 	local -r buildFolder=../"$ourSourcePackageName"-build
 	popd >/dev/null
-	rm -rf -- "$buildFolder"
+	#rm -rf -- "$buildFolder"
 }

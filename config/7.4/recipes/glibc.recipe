@@ -27,7 +27,7 @@ function installPackage_toolchain1_glibc()
 		
 		make install
 		
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 	
 	# libstdc++ built here, as it's part of gcc
 	createBuildFolderAndPushd
@@ -46,6 +46,6 @@ function installPackage_toolchain1_glibc()
 		
 		make install
 		
-	popdAndRemoveBuilderFolder
+	popdBuildFolder
 }
 
