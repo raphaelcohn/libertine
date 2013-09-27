@@ -1,4 +1,4 @@
-addSourcePackageDownload 0.18.3.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-0.18.3.1.tar.gz MD5:3fc808f7d25487fc72b5759df7419e02
+addSourcePackageDownload 0.18.3 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-0.18.3.tar.gz MD5:3fc808f7d25487fc72b5759df7419e02
 
 function installPackage_toolchain2_gettext()
 {
