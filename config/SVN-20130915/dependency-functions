@@ -1,0 +1,98 @@
+function verifyDependency()
+{
+	if [ $# -lt 6 ]; then
+		exitError "Needs at least 6 arguments"
+	fi
+	
+	local -r sourcePackageName="$1"
+	
+	# May be incomplete, eg part of the left-hand regex
+	# eg 4.2.25(1)-release might be 4.2
+	local -r minimumVersion="$2"
+	
+	# Really only for warnings
+	local -r maximumVersion="$3"
+	
+	local -r parseVersionFunction="$4"
+	if ! type "$parseVersionFunction" &>/dev/null; then
+		exitError "Unknown parse function $parseVersionFunction"
+	fi
+	
+	local -r versionOutputOnStream="$5"
+	case "$versionOutputOnStream" in
+		
+		stdout|stderr)
+			:
+		;;
+		
+		*)
+			exitError "Unsupported versionOutputOnStream $versionOutputOnStream - use either stdout or stderr"
+		;;
+		
+	esac
+	
+	# Remaining arguments are those to execute to produce output on stdout
+	shift 5
+	local -r version="$($@ | $parseVersionFunction)"
+	echo $version
+	exit 5
+	
+	# Code to compare versions...
+	set +e
+	vercomp "$left" "$right"
+	case $? in
+		0)
+			# equal, =
+		;;
+		
+		1)
+			# greater than, >
+		;;
+		
+		2)
+			# less than, <
+		;;
+	esac
+	set -e
+}
+
+# Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
+function vercomp()
+{
+	if [[ $1 == $2 ]]; then
+		return 0
+	fi
+	
+	local IFS=.
+	local i ver1=($1) ver2=($2)
+	
+	# fill empty fields in ver1 with zeros
+	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+	do
+		ver1[i]=0
+	done
+	
+	for ((i=0; i<${#ver1[@]}; i++))
+	do
+		if [[ -z ${ver2[i]} ]]; then
+			# fill empty fields in ver2 with zeros
+			ver2[i]=0
+		fi
+		if ((10#${ver1[i]} > 10#${ver2[i]})); then
+			return 1
+		fi
+		if ((10#${ver1[i]} < 10#${ver2[i]})); then
+			return 2
+		fi
+	done
+	
+	return 0
+}
+
+function parse_bash()
+{
+	head -n 1 | cut -d' ' -f3
+}
+
+verifyDependency bash 3.2 4.2.25 parse_bash stdout bash --version
+

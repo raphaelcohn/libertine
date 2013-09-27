@@ -305,6 +305,12 @@ function installDebianDependencies()
 
 function verifyHostSystemRequirements()
 {
+	readonly dependencyFunctions="$distributionPath"/dependency-functions
+	if [ ! -f "$dependencyFunctions" ]; then
+		exitError "dependency-functions $dependencyFunctions does not exist or is not a file"
+	fi
+	source "$dependencyFunctions"
+	
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	local -r original_LC_ALL="$LC_ALL"
 	export LC_ALL=C
