@@ -12,13 +12,6 @@ function ensureWhichInstalled()
 	fi
 }
 
-debianPackagesToInstallForDependencies=""
-LFS_CURRENT_DEBIAN_PACKAGES=""
-function registerDebianPackage()
-{
-	LFS_CURRENT_DEBIAN_PACKAGES="$@"
-}
-
 function essentialProgramCheck()
 {
 	# This nasty hack exists because source'd files override the set -xxxx options!
@@ -426,42 +419,51 @@ function setPathsAndExports()
 	fi
 }
 
+function registerDebianPackage()
+{
+	prinf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
+}
+
 function verifyHostSystemRequirements()
 {
+	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
+	
 	readonly dependencyChecks="$distributionPath"/dependency-checks
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
-	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
+	
+	local debianPackagesToInstallForDependencies=""
+	
 	local -r original_LC_ALL="$LC_ALL"
 	export LC_ALL=C
-	pushd "$dependencyChecks" >/dev/null
-		local dependencyCheck
-		local -i exitCode
-		for dependencyCheck in *.dependency-check
-		do
-			LFS_CURRENT_DEBIAN_PACKAGES=""
-			echo $-
-			set -v
-			
-			if ! (source "$dependencyCheck"); then
-				debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $LFS_CURRENT_DEBIAN_PACKAGES"
-			fi
-
-
-
-
-set +x
-
-
-
-		done
-	popd >/dev/null
+	
+		pushd "$dependencyChecks" >/dev/null
+			local dependencyCheck
+			local -i exitCode
+			for dependencyCheck in *.dependency-check
+			do
+				# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
+				LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(mktemp)"
+				trap "rm -rf -- '${LFS_CURRENT_DEBIAN_PACKAGES}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+					# done as subshell to overcome the fact that commands are executing outside of a function
+					if ! (source "$dependencyCheck"); then
+						if [ -z "$debianPackagesToInstallForDependencies" ]; then
+							debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+						else
+							debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+						fi
+					fi
+				rm -rf -- "${LFS_CURRENT_DEBIAN_PACKAGES}"
+				trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+			done
+		popd >/dev/null
+		
 	unset LC_ALL
 	if [ ! -z "$original_LC_ALL" ]; then
 		export LC_ALL="$original_LC_ALL"
 	fi
-	
+
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
 			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes update
