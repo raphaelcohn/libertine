@@ -2,7 +2,7 @@ addSourcePackageDownload 1.5.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LF
 
 function installPackage_toolchain2_dejagnu()
 {
-	./configure --prefix=/"$LFS_TOOLS"
+	./configure --prefix=/"$LFS_TOOLS" --with-tcl=/"$LFS_TOOLS"/lib --with-tclinclude=/"$LFS_TOOLS"/include
 
 	make install
 
