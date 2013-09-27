@@ -1,3 +1,4 @@
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
 addSourcePackageDownload 0.9.10 "$LFS_MIRROR_SOURCEFORGE"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-0.9.10.tar.gz MD5:6d10a8efb9a683467b92b3bce97aeb30
 
 function installPackage_toolchain2_check()

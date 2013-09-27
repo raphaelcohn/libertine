@@ -1,3 +1,5 @@
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
+
 sourceRecipe binutils 2.23.2
 sourceRecipe gcc 4.8.1
 sourceRecipe tcl 8.6.0

@@ -1,1 +1,2 @@
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
 addSourcePackageDownload 1.0.1 "$LFS_MIRROR_MPC"/"$LFS_SOURCE_PACKAGE_NAME"-1.0.1.tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679

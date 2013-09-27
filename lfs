@@ -1,6 +1,6 @@
 #!/bin/bash -
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
-set -e
+
 function ensureWhichInstalled()
 {
 	set +e
@@ -154,7 +154,7 @@ function findOurNameAndPath()
 function executeWithCleanEnvironment()
 {
 	essentialProgramCheck env
-	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' "$crudeOurPath"/"$ourName" $@
+	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' bash --noprofile --norc -- "$crudeOurPath"/"$ourName" $@
 }
 
 function exitHelp()
@@ -455,34 +455,26 @@ function verifyHostSystemRequirements()
 	
 	local debianPackagesToInstallForDependencies=""
 	
-	local -r original_LC_ALL="$LC_ALL"
-	export LC_ALL=C
-	
-		pushd "$dependencyChecks" >/dev/null
-			local dependencyCheck
-			local -i exitCode
-			for dependencyCheck in *.dependency-check
-			do
-				# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
-				LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(mktemp)"
-				trap "rm -rf -- '${LFS_CURRENT_DEBIAN_PACKAGES}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-					# done as subshell to overcome the fact that commands are executing outside of a function
-					if ! (source "$dependencyCheck"); then
-						if [ -z "$debianPackagesToInstallForDependencies" ]; then
-							debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-						else
-							debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-						fi
+	pushd "$dependencyChecks" >/dev/null
+		local dependencyCheck
+		local -i exitCode
+		for dependencyCheck in *.dependency-check
+		do
+			# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
+			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(mktemp)"
+			trap "rm -rf -- '${LFS_CURRENT_DEBIAN_PACKAGES}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+				# done as subshell to overcome the fact that commands are executing outside of a function
+				if ! (source "$dependencyCheck"); then
+					if [ -z "$debianPackagesToInstallForDependencies" ]; then
+						debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+					else
+						debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
 					fi
-				rm -rf -- "${LFS_CURRENT_DEBIAN_PACKAGES}"
-				trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-			done
-		popd >/dev/null
-		
-	unset LC_ALL
-	if [ ! -z "$original_LC_ALL" ]; then
-		export LC_ALL="$original_LC_ALL"
-	fi
+				fi
+			rm -rf -- "${LFS_CURRENT_DEBIAN_PACKAGES}"
+			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+		done
+	popd >/dev/null
 
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
@@ -891,6 +883,7 @@ function main()
 	if [ "$skipToolchain1" = "no" ]; then
 		installPackages toolchain1
 	fi
+	exitError "Examine toolchain1"
 	if [ "$skipToolchain2" = "no" ]; then
 		installPackages toolchain2
 		stripToolchainSymbols
