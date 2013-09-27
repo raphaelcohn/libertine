@@ -211,6 +211,8 @@ or 'no-' to turn it off. For example, to turn on 'strip-system-docs' :-
 Last setting wins.
 
 Options are as follows:-     Default
+    skip-toolchain1          ${skipToolchain1}
+    skip-toolchain2          ${skipToolchain2}
     strip-toolchain-symbols  ${stripToolchainSymbols}
     strip-toolchain-docs     ${stripToolchainDocs}
     strip-system-symbols     ${stripSystemSymbols}
@@ -229,6 +231,8 @@ function parseCommandLine()
 	mirrors="timezone"
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
+	skipToolchain1="no"
+	skipToolchain2="no"
 	stripToolchainSymbols="yes"
 	stripToolchainDocs="no"
 	stripSystemSymbols="yes"
@@ -284,6 +288,22 @@ function parseCommandLine()
 					fi
 				
 					case "$OPTARG" in
+						
+						no-skip-toolchain1)
+							skipToolchain1="no"
+						;;
+						
+						yes-skip-toolchain1)
+							skipToolchain1="yes"
+						;;
+						
+						no-skip-toolchain2)
+							skipToolchain2="no"
+						;;
+						
+						yes-skip-toolchain2)
+							skipToolchain2="yes"
+						;;
 						
 						no-strip-toolchain-symbols)
 							stripToolchainSymbols="no"
@@ -868,10 +888,14 @@ function main()
 	downloadKeyrings
 	downloadSources
 	
-	installPackages toolchain1
-	installPackages toolchain2
-	stripToolchainSymbols
-	stripToolchainDocs
+	if [ "$skipToolchain1" = "no" ]; then
+		installPackages toolchain1
+	fi
+	if [ "$skipToolchain2" = "no" ]; then
+		installPackages toolchain2
+		stripToolchainSymbols
+		stripToolchainDocs
+	fi
 }
 
 main "$@"
