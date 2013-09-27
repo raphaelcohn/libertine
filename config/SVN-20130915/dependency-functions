@@ -1,8 +1,8 @@
 
 function verifyDependency()
 {
-	if [ $# -lt 6 ]; then
-		exitError "Needs at least 6 arguments"
+	if [ $# -lt 4 ]; then
+		exitError "Needs at least 4 arguments"
 	fi
 	
 	local -r sourcePackageName="$1"
@@ -14,27 +14,8 @@ function verifyDependency()
 	# Really only for warnings
 	local -r maximumVersion="$3"
 	
-	local -r parseVersionFunction="$4"
-	if ! type "$parseVersionFunction" &>/dev/null; then
-		exitError "Unknown parse function $parseVersionFunction"
-	fi
-	
-	local -r versionOutputOnStream="$5"
-	case "$versionOutputOnStream" in
-		
-		stdout|stderr)
-			:
-		;;
-		
-		*)
-			exitError "Unsupported versionOutputOnStream $versionOutputOnStream - use either stdout or stderr"
-		;;
-		
-	esac
-	
-	# Remaining arguments are those to execute to produce output on stdout
-	shift 5
-	local -r version="$($@ | $parseVersionFunction)"
+	local version
+	read -r -d$'\n' version
 	echo $version
 	
 	# 0 is equal, =
@@ -90,16 +71,7 @@ function vercomp()
 	return 0
 }
 
-function parse_bash()
-{
-	# eg GNU bash, version 4.2.25(1)-release (x86_64-pc-linux-gnu) becomes
-	# 4.2.25(1)-release
-	# then 4.2.25(1)-
-	# then 4.2.25.0
-	# We drop the '-release' because we can't cope with it in our version compare
-	head -n 1 | cut -d' ' -f4 | sed 's/-.*//g' | sed 's/(\([0-9]*\))/\.\1/g'
-}
-
-verifyDependency bash 3.2 4.2.25 parse_bash stdout bash --version
+bash --version | awk 'NR==1 {print $(NF-1) }' | sed -e 's/-.*//g' -e 's/(\([0-9]*\))/\.\1/g' | verifyDependency bash 3.2 4.2.25
 echo "/bin/sh -> $(readlink -f /bin/sh)"
 
+ld --version | awk 'NR==1 {print ($NF) }' | verifyDependency binutils X Y
