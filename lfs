@@ -455,8 +455,8 @@ function verifyHostSystemRequirements()
 	
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
-			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes update
-			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
+			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes update
+			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
 		fi
 	fi
 }
