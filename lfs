@@ -429,7 +429,6 @@ function verifyHostSystemRequirements()
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
-	set -x
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	local -r original_LC_ALL="$LC_ALL"
 	export LC_ALL=C
@@ -442,6 +441,7 @@ function verifyHostSystemRequirements()
 			function anonymous()
 			{
 				source "$dependencyCheck"
+				return $?
 			}
 			
 			if ! anonymous; then
@@ -454,6 +454,7 @@ function verifyHostSystemRequirements()
 		export LC_ALL="$original_LC_ALL"
 	fi
 	
+	set -x
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
 			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies ): " apt-get --quiet --quiet --yes update
