@@ -105,21 +105,21 @@ function addSourcePackageDownload()
 	local -r compressionExtension="${ourFileName##*.}"
 	
 	if [ $# -ge 4 ]; then
-		local -r ourExtractedTarballFolder="$4"
+		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
 	else
 		local -r withoutCompressionExtension="${ourFileName%.*}"
 		if [ -z "$compressionExtension" ]; then
-			local -r ourExtractedTarballFolder="$withoutCompressionExtension"
+			local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
 		else
 			case "$compressionExtension" in
 				
 				# The various abominations are also slackware packages (txz, tgz especially)
 				tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
-					local -r ourExtractedTarballFolder="$withoutCompressionExtension"
+					local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
 				;;
 				
 				*)
-					local -r ourExtractedTarballFolder="${withoutCompressionExtension%.*}"
+					local -r LFS_EXTRACTED_TARBALL_FOLDER="${withoutCompressionExtension%.*}"
 				;;
 				
 			esac
@@ -201,7 +201,7 @@ function addSourcePackageDownload()
 	sourcePackages_Url["${key}"]="$ourUrl"
 	sourcePackages_Compression["${key}"]="$ourCompression"
 	sourcePackages_FileName["${key}"]="$ourFileName"
-	sourcePackages_ExtractedTarballFolder["${key}"]="$ourExtractedTarballFolder"
+	sourcePackages_ExtractedTarballFolder["${key}"]="$LFS_EXTRACTED_TARBALL_FOLDER"
 	sourcePackages_Hashes["${key}"]="$ourHashes"
 	# Need a key that is phase-
 	sourcePackages_Patches["${key}"]=""

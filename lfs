@@ -517,6 +517,10 @@ function createSkeletonFolderStructure()
 	# Logs
 	mkdir -m 0755 -p "$logsPath"
 	rm -rf "$logsPath"/*
+	mkdir -m 0755 -p "$logsPath"/downloads
+	mkdir -m 0755 -p "$logsPath"/toolchain1
+	mkdir -m 0755 -p "$logsPath"/toolchain2
+	mkdir -m 0755 -p "$logsPath"/system
 	chmod a+wt "$logsPath"
 	
 	# Sources
@@ -734,6 +738,25 @@ function downloadSources()
 	done
 }
 
+function installPackageInternal()
+{
+	local -r installer="$1"
+	(
+		echo $-
+		local -i patchNumber
+		for patchNumber in $LFS_PATCHES
+		do
+			echo "Applying patch ${patches_FileName[$patchNumber]}"
+			if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+				exit 1
+			fi
+		done
+		if ! $installer; then
+			exit 2
+		fi
+	)
+}
+
 function installPackage()
 {
 	local -r phase="$1"
@@ -766,35 +789,27 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
+	local -r extractStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
+	local -r extractStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
+	
 	pushd "$sourcesPath" >/dev/null
 		
-		tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression"
+		tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"
 		
-		progressMessageUpdate "extraction complete, logs in $logsPath/$installer.*.log"
+		progressMessageUpdate "extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
 		
-		local -r outLogFile="$logsPath"/"$installer".stdout.log
-		local -r errorLogFile="$logsPath"/"$installer".stderr.log
+		local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
 		pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
 			
 			exec 3>&1
-			exec 1>"$outLogFile"
+			exec 1>"$installStdOutLogFile"
 			exec 4>&2
-			exec 2>"$errorLogFile"
+			exec 2>"$installStdErrLogFile"
 			
 			set +e
-			(
-				local -i patchNumber
-				for patchNumber in $LFS_PATCHES
-				do
-					if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
-						exit 1
-					fi
-				done
-				if ! $installer "$@"; then
-					exit 2
-				fi
-			)
+			installPackageInternal "$installer"
 			exitCode=$?
 			set -e
 			
@@ -804,7 +819,7 @@ function installPackage()
 			exec 3>&-
 			
 			if [ $exitCode -ne 0 ]; then
-				progressMessageFailed "$installer failed with exitCode $exitCode, check logs $outLogFile and $errorLogFile"
+				progressMessageFailed "$installer failed with exitCode $exitCode, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
 			fi
 		
 		popd >/dev/null
@@ -882,6 +897,7 @@ function main()
 	
 	if [ "$skipToolchain1" = "no" ]; then
 		rm -rf /tools/*
+		rm -rf "$logsPath"
 		installPackages toolchain1
 	fi
 	if [ "$skipToolchain2" = "no" ]; then

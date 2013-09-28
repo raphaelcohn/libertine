@@ -96,7 +96,7 @@ function installPackage_toolchain2_gcc()
 		CXX="$LFS_TGT"-g++                                                         \
 		AR="$LFS_TGT"-ar                                                           \
 		RANLIB="$LFS_TGT"-ranlib                                                   \
-		../"$ourExtractedTarballFolder"/configure                                  \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure                                  \
 		--prefix=/"$LFS_TOOLS"                                                            \
 		--with-local-prefix=/"$LFS_TOOLS"                                                 \
 		--with-native-system-header-dir=/"$LFS_TOOLS"/include                             \
