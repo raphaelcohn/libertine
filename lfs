@@ -897,7 +897,6 @@ function main()
 	
 	if [ "$skipToolchain1" = "no" ]; then
 		rm -rf /tools/*
-		rm -rf "$logsPath"
 		installPackages toolchain1
 	fi
 	if [ "$skipToolchain2" = "no" ]; then
