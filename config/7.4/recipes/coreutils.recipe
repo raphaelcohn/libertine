@@ -1,4 +1,4 @@
-set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
+set -o errexit +o hashall;unset CDPATH;umask 022
 addSourcePackageDownload 8.21 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-8.21.tar.xz MD5:065ba41828644eca5dd8163446de5d64,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain2_coreutils()

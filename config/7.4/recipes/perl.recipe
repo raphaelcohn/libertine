@@ -1,4 +1,4 @@
-set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
+set -o errexit +o hashall;unset CDPATH;umask 022
 addSourcePackageDownload 5.18.1 "$LFS_MIRROR_PERL"/5.0/"$LFS_SOURCE_PACKAGE_NAME"-5.18.1.tar.bz2 MD5:4ec1a3f3824674552e749ae420c5e68c
 addPatchDownload 5.18.1 "$LFS_MIRROR_PATCHES"/"$LFS_SOURCE_PACKAGE_NAME"-5.18.1-libc-1.patch MD5:daf5c64fd7311e924966842680535f8f
 

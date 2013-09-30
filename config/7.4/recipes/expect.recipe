@@ -1,4 +1,4 @@
-set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset CDPATH;umask 022
+set -o errexit +o hashall;unset CDPATH;umask 022
 addSourcePackageDownload 5.45 "$LFS_MIRROR_SOURCEFORGE"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"5.45.tar.gz MD5:44e1a4f4c877e9ddc5a542dfa7ecc92b
 
 function installPackage_toolchain2_expect()
