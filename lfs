@@ -916,7 +916,6 @@ function downloadFileAndCheckHash()
 					;;
 			
 					HKP_UNCOMPRESSED)
-					set -x
 						temporaryFolder="$(temporaryFolderToRemoveOnExit)"
 						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
 						
