@@ -1007,11 +1007,6 @@ function installPackageInternal()
 {
 	local -r installer="$1"
 	(
-		echo "HELLO WORLD"
-		echo $-
-		echo "HELLO WORLD"
-		exit 50
-		
 		local -i patchNumber
 		for patchNumber in $LFS_PATCHES
 		do
