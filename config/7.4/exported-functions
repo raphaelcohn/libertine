@@ -95,6 +95,10 @@ function addSignature()
 				signatureNumber=${#signatures_Url[@]}
 				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
 				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
+				
+				if [ "$hashName" = "HKP" ]; then
+					sourceHkp "$hashValue"
+				fi
 			;;
 		esac
 	done
