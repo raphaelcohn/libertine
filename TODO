@@ -1,6 +1,5 @@
 * Hashes? for gnupg detached signatures
 * Signatures of tar balls AFTER decompression, eg linux releases likes https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.10.tar.sign
-* --recv-keys for specific linux keys, say
 * Signatures ending in .asc or .gpg
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)

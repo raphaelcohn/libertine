@@ -79,6 +79,7 @@ function sourcePackagesKeyExists()
 
 declare -a signatures_Url=()
 declare -a signatures_FileName=()
+declare -a signatures_Compression=()
 
 function addSignature()
 {
@@ -86,19 +87,33 @@ function addSignature()
 	local -r ourHashesSpaceSeparated="$2"
 	
 	local hashNameAndValue
+	local hashName
+	local hashValue
+	local hashSignatureFileName
+	local hashSignatureUrl
+	
 	local -i signatureNumber
 	for hashNameAndValue in $ourHashesSpaceSeparated
 	do
-		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
 		case "$hashName" in
-			KEYRING|KEYFILE|HKP)
+			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				signatureNumber=${#signatures_Url[@]}
-				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
-				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
 				
-				if [ "$hashName" = "HKP" ]; then
-					sourceHkp "$hashValue"
+				if [ -z "$hashSignatureFileName" ]; then
+					hashSignatureFileName="$(purebash_basename "$ourUnsignedUrl".sig)"
 				fi
+				hashSignatureUrl="$(purebash_dirname "$ourUnsignedUrl")"/"$hashSignatureFileName"
+				
+				signatures_Url[$signatureNumber]="$hashSignatureUrl"
+				signatures_FileName[$signatureNumber]="$hashSignatureFileName"
+				signatures_Compression[$signatureNumber]=""
+				
+				case "$hashName" in
+					HKP|HKP_UNCOMPRESSED)
+						sourceHkp "$hashValue"
+					;;
+				esac
 			;;
 		esac
 	done
@@ -167,7 +182,7 @@ function addSourcePackageDownload()
 			;;
 			
 			gz|tgz)
-				local -r ourCompression=ungzip
+				local -r ourCompression=gzip
 			;;
 			
 			bz2|bz|tbz2|tbz)
@@ -180,7 +195,6 @@ function addSourcePackageDownload()
 				local -r ourCompression=lzop
 			;;
 			
-			# Not included in dependencies by default
 			lz|tlz)
 				local -r ourCompression=lzip
 			;;
@@ -193,10 +207,9 @@ function addSourcePackageDownload()
 				local -r ourCompression=xz
 			;;
 			
-			# Not included in dependencies by default
 			Z|tz|taz)
 				# eg gzip downloads
-				local -r ourCompression=uncompress
+				local -r ourCompression=compress
 			;;
 			
 			*)
@@ -234,6 +247,7 @@ function addSourcePackageDownload()
 declare -a patches_Url=()
 declare -a patches_FileName=()
 declare -a patches_Hashes=()
+declare -a patches_Compression=()
 function addPatchDownload()
 {
 	if [ $# -ne 3 ]; then
@@ -269,6 +283,7 @@ function addPatchDownload()
 	patches_Url[$patchNumber]="$ourUrl"
 	patches_FileName[$patchNumber]="$ourFileName"
 	patches_Hashes[$patchNumber]="${ourHashes//,/ }"
+	patches_Compression[$patchNumber]=""
 	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
 	
 	addSignature "$ourUrl" "${patches_Hashes[$patchNumber]}"
@@ -317,6 +332,7 @@ function sourceProfile()
 declare -a keyrings_Url=()
 declare -a keyrings_FileName=()
 declare -a keyrings_Hashes=()
+declare -a keyrings_Compression=()
 function sourceKeyring()
 {
 	if [ $# -ne 2 ]; then
@@ -346,6 +362,7 @@ function sourceKeyring()
 	keyrings_Url[$keyringNumber]="$ourUrl"
 	keyrings_FileName[$keyringNumber]="$ourFileName"
 	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
+	keyrings_Compression[$keyringNumber]=""
 	
 	addSignature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
 }
@@ -353,6 +370,7 @@ function sourceKeyring()
 declare -a keys_Url=()
 declare -a keys_FileName=()
 declare -a keys_Hashes=()
+declare -a keys_Compression=()
 function sourceKey()
 {
 	if [ $# -lt 2 ]; then
@@ -385,6 +403,7 @@ function sourceKey()
 	keys_Url[$keyNumber]="$ourUrl"
 	keys_FileName[$keyNumber]="$ourFileName"
 	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
+	keys_Compression[$keyNumber]=""
 	
 	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
 }

@@ -12,6 +12,42 @@ function ensureWhichInstalled()
 	fi
 }
 
+declare -a filesToRemoveOnExit=()
+
+function removeFilesOnExit()
+{
+	local -i fileIndex
+	for fileIndex in  in ${!filesToRemoveOnExit[@]}
+	do
+		rm -rf -- "${filesToRemoveOnExit[$fileIndex]}"
+	done
+}
+
+function enableRemoveFilesOnExit()
+{
+	trap removeFilesOnExit 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+}
+
+function addFileToRemoveOnExit()
+{
+	local -r fileToRemove="$1"
+	filesToRemoveOnExit[${#filesToRemoveOnExit[*]}]="$fileToRemove"
+}
+
+function temporaryFileToRemoveOnExit()
+{
+	local -r fileToRemove="$(mktemp)"
+	addFileToRemoveOnExit "$fileToRemove"
+	echo "$fileToRemove"
+}
+
+function temporaryFolderToRemoveOnExit()
+{
+	local -r fileToRemove="$(mktemp --directory)"
+	addFileToRemoveOnExit "$fileToRemove"
+	echo "$fileToRemove"
+}
+
 function essentialProgramCheck()
 {
 	# This nasty hack exists because source'd files override the set -xxxx options!
@@ -471,18 +507,15 @@ function verifyHostSystemRequirements()
 		for dependencyCheck in *.dependency-check
 		do
 			# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
-			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(mktemp)"
-			trap "rm -rf -- '${LFS_CURRENT_DEBIAN_PACKAGES}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-				# done as subshell to overcome the fact that commands are executing outside of a function
-				if ! (source "$dependencyCheck"); then
-					if [ -z "$debianPackagesToInstallForDependencies" ]; then
-						debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-					else
-						debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-					fi
+			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(temporaryFileToRemoveOnExit)"
+			# done as subshell to overcome the fact that commands are executing outside of a function
+			if ! (source "$dependencyCheck"); then
+				if [ -z "$debianPackagesToInstallForDependencies" ]; then
+					debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+				else
+					debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
 				fi
-			rm -rf -- "${LFS_CURRENT_DEBIAN_PACKAGES}"
-			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+			fi
 		done
 	popd >/dev/null
 
@@ -652,31 +685,25 @@ function verifyKeyFileSignature()
 		exitError "$keysPath"/"$keyFile does not exist"
 	fi
 	
-	local -r gpgHome="$(mktemp --directory)"
-	trap "rm -rf -- '${gpgHome}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-		cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
-		
-		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-		--no-random-seed-file --ignore-time-conflict \
-		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-		--import "$keysPath"/"$keyFile" </dev/null 1>$logsPath/downloads/$fileName.keyfile.log 2>&1
-		local -i exitCode=$?
-		if [ $exitCode -ne 0 ]; then
-			rm -rf -- "${gpgHome}"
-			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-			return $exitCode
-		fi
-		
-		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-		--no-random-seed-file --ignore-time-conflict \
-		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-		--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.keyfile.log 2>&1
-		exitCode=$?
+	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
+	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
 	
-	rm -rf -- "${gpgHome}"
-	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+	--import "$keysPath"/"$keyFile" </dev/null 1>$logsPath/downloads/$fileName.keyfile.log 2>&1
+	local -i exitCode=$?
+	if [ $exitCode -ne 0 ]; then
+		return $exitCode
+	fi
+	
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.keyfile.log 2>&1
+	exitCode=$?
 	
 	return $exitCode
 }
@@ -691,55 +718,82 @@ function verifyHkpSignature()
 		exitError "$keysPath"/"$keyId does not exist"
 	fi
 	
-	local -r gpgHome="$(mktemp --directory)"
-	trap "rm -rf -- '${gpgHome}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-		cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
-		
-		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-		--no-random-seed-file --ignore-time-conflict \
-		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-		--import "$keysPath"/"$keyId" </dev/null 1>$logsPath/downloads/$fileName.hkp.log 2>&1
-		local -i exitCode=$?
-		if [ $exitCode -ne 0 ]; then
-			rm -rf -- "${gpgHome}"
-			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
-			return $exitCode
-		fi
-		
-		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-		--no-random-seed-file --ignore-time-conflict \
-		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-		--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.hkp.log 2>&1
-		exitCode=$?
+	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
+	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
 	
-	rm -rf -- "${gpgHome}"
-	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+	--import "$keysPath"/"$keyId" </dev/null 1>$logsPath/downloads/$fileName.hkp.log 2>&1
+	local -i exitCode=$?
+	if [ $exitCode -ne 0 ]; then
+		return $exitCode
+	fi
+	
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.hkp.log 2>&1
+	exitCode=$?
 	
 	return $exitCode
+}
+
+function decompressFileToStdout()
+{
+	local -r decompressionOption="$1"
+	local -r fileToDecompress="$2"
+	if [ "$decompressionOption" = "" ]; then
+		cat $fileToDecompress
+	fi
+	
+	case "$decompressionOption" in
+		gzip|compress)
+			gzip --decompress --stdout --no-name --quiet -- "$fileToDecompress"
+		;;
+		
+		bzip2)
+			bzip2 --decompress --stdout --quiet -- "$fileToDecompress"
+		;;
+		
+		lzop)
+			lzop --decompress --stdout --no-name --quiet -- "$fileToDecompress"
+		;;
+		
+		lzip)
+			lzip --decompress --quiet --stdout -- "$fileToDecompress"
+		;;
+		
+		lzma)
+			xz --format=lzma --decompress --stdout -- "$fileToDecompress"
+		;;
+		
+		xz)
+			xz --decompress --stdout --quiet --quiet -- "$fileToDecompress"
+		;;
+		
+		*)
+			exitError "Unknown compression option $decompressionOption"
+		;;
+	esac
 }
 
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -lt 5 ]; then
-		exitError "Needs 5 or 6 arguments"
-	fi
-	if [ $# -gt 6 ]; then
-		exitError "Needs 5 or 6 arguments"
+	if [ $# -ne 7 ]; then
+		exitError "Needs 7 arguments"
 	fi
 	
 	local -r downloadName="$1"
 	local -r url="$2"
 	local -r toPath="$3"
 	local -r fileName="$4"
-	local -r hashes="$5"
-	if [ $# -eq 6 ]; then
-		local -r hashesMayBeEmpty="$6"
-	else
-		local -r hashesMayBeEmpty="no"
-	fi
+	local -r decompressionOption="$5"
+	local -r hashesMayBeEmpty="$6"
+	local -r hashes="$7"
 	local -i exitCode
 	
 	mkdir -m 0755 -p "$logsPath"/downloads
@@ -790,11 +844,14 @@ function downloadFileAndCheckHash()
 	local hashNameAndValue
 	local hashName
 	local hashValue
+	local hashSignatureFileName
 	local hashProgram
 	local -i hasHash=1
+	local progressMessage
+	local temporaryFolder
 	for hashNameAndValue in ${hashes}
 	do
-		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
 		case "$hashName" in
 			
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
@@ -805,26 +862,40 @@ function downloadFileAndCheckHash()
 				fi
 			;;
 			
-			KEYRING)
+			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				hasHash=0
-				if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue"; then
-					progressMessageFailed "Keyring signature does not match, check logs $logsPath/downloads/$fileName.keyring.log"
-				fi
+				progressMessage="$hashName signature does not match, check logs $logsPath/downloads/$fileName.${hashName,,}.log"
+				case "$hashName" in
+					KEYRING)
+						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					KEYFILE)
+						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					HKP)
+						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					HKP_UNCOMPRESSED)
+						temporaryFolder="$(temporaryFolderToRemoveOnExit)"
+						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/decompressed
+						
+						if ! verifyHkpSignature "$temporaryFolder" decompressed "$hashValue"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+				esac
+				
 			;;
 			
-			KEYFILE)
-				hasHash=0
-				if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue"; then
-					progressMessageFailed "Key file signature does not match, check logs $logsPath/downloads/$fileName.keyfile.log"
-				fi
-			;;
-			
-			HKP)
-				hasHash=0
-				if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue"; then
-					progressMessageFailed "HKP signature does not match, check logs $logsPath/downloads/$fileName.hkp.log"
-				fi
-			;;
 			
 			*)
 				exitError "Unsupported hash algorithm $hashName for $toPath/$fileName"
@@ -845,7 +916,7 @@ function downloadSignatures()
 	local -i signatureNumber
 	for signatureNumber in ${!signatures_Url[@]}
 	do
-		downloadFileAndCheckHash "signature" "${signatures_Url[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "" "yes"
+		downloadFileAndCheckHash "signature" "${signatures_Url[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "${signatures_Compression[$signatureNumber]}" "yes" ""
 	done
 }
 
@@ -854,7 +925,7 @@ function downloadKeyrings()
 	local -i keyringNumber
 	for keyringNumber in ${!keyrings_Url[@]}
 	do
-		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Hashes[$keyringNumber]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
 	done
 }
 
@@ -863,7 +934,7 @@ function downloadKeys()
 	local -i keyNumber
 	for keyNumber in ${!keys_Url[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Hashes[$keyNumber]}" "yes"
+		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Compression[$keyNumber]}" "yes" "${keys_Hashes[$keyNumber]}"
 	done
 }
 
@@ -871,12 +942,12 @@ function downloadSource()
 {
 	local -r downloadPhase="$1"
 	local -r key="$2"
-	downloadFileAndCheckHash "source package ($downloadPhase)" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Hashes["${key}"]}"
+	downloadFileAndCheckHash "source package ($downloadPhase)" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
 	
 	local -i patchNumber
 	for patchNumber in ${sourcePackages_Patches["${key}"]}
 	do
-		downloadFileAndCheckHash "patch ($downloadPhase)" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Hashes[$patchNumber]}"
+		downloadFileAndCheckHash "patch ($downloadPhase)" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
 	done
 }
 
@@ -1046,6 +1117,7 @@ function main()
 {
 	setDebugging
 	findOurNameAndPath
+	removeFilesOnExit
 	ensureWhichInstalled
 	parseCommandLine "$@"
 	
@@ -1059,7 +1131,6 @@ function main()
 	createSkeletonFolderStructure
 	
 	rehashCertificateAuthorities
-	
 	
 	# Must have been processed using c_rehash
 	

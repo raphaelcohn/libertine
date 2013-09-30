@@ -6,8 +6,7 @@ g++ --version | awk 'NR==1 { print $(NF) }' | verifyDependency gcc 4.1.2 4.8.1
 
 function test_C_Plus_Plus_Compiler()
 {
-	local -r tempFolder="$(mktemp --directory)"
-	trap "rm -rf -- '${tempFolder}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	local -r tempFolder="$(temporaryFolderToRemoveOnExit)"
 	
 	pushd "$tempFolder" >/dev/null
 		
@@ -20,8 +19,5 @@ function test_C_Plus_Plus_Compiler()
 		fi
 		
 	popd >/dev/null
-	
-	rm -rf -- "${tempFolder}"
-	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
 }
 test_C_Plus_Plus_Compiler
