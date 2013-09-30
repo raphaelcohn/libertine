@@ -132,22 +132,25 @@ declare -A sourcePackages_Patches=()
 
 function addSourcePackageDownload()
 {
-	if [ $# -lt 3 ]; then
+	if [ $# -lt 4 ]; then
 		exitError "Not enough arguments"
-	elif [ $# -gt 5 ]; then
+	elif [ $# -gt 6 ]; then
 		exitError "Too many arguments"
 	fi
 	
 	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
 	local -r ourVersion="$1"
-	local -r ourUrl="$2"
-	local -r ourHashes="$3"
+	local -r ourMirror="$2"
+	local -r ourRelativePath="$3"
+	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourHashes="$4"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
-	if [ $# -ge 4 ]; then
-		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
+	if [ $# -ge 5 ]; then
+		local -r LFS_EXTRACTED_TARBALL_FOLDER="$5"
 	else
 		local -r withoutCompressionExtension="${ourFileName%.*}"
 		if [ -z "$compressionExtension" ]; then
@@ -173,8 +176,8 @@ function addSourcePackageDownload()
 	# TODO: split compression from tar for non-tar formats
 	#
 	
-	if [ $# -eq 5 ]; then
-		local -r ourCompression="$5"
+	if [ $# -eq 6 ]; then
+		local -r ourCompression="$6"
 	else
 		case "$compressionExtension" in
 			tar)
@@ -250,14 +253,16 @@ declare -a patches_Hashes=()
 declare -a patches_Compression=()
 function addPatchDownload()
 {
-	if [ $# -ne 3 ]; then
+	if [ $# -ne 4 ]; then
 		exitError "Not enough arguments"
 	fi
 	
 	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
 	local -r ourVersion="$1"
-	local -r ourUrl="$2"
-	local -r ourHashes="$3"
+	local -r ourMirror="$2"
+	local -r ourRelativePath="$3"
+	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourHashes="$4"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
@@ -335,12 +340,14 @@ declare -a keyrings_Hashes=()
 declare -a keyrings_Compression=()
 function sourceKeyring()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Not exactly 2 arguments"
+	if [ $# -ne 3 ]; then
+		exitError "Not exactly 3 arguments"
 	fi
 	
-	local -r ourUrl="$1"
-	local -r ourHashes="$2"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	if [ "${ourFileName##*.}" != "gpg" ]; then
@@ -373,19 +380,22 @@ declare -a keys_Hashes=()
 declare -a keys_Compression=()
 function sourceKey()
 {
-	if [ $# -lt 2 ]; then
-		exitError "Not 2 or 3 arguments"
+	if [ $# -lt 3 ]; then
+		exitError "Not 3 or 4 arguments"
 	fi
-	if [ $# -gt 3 ]; then
-		exitError "Not 2 or 3 arguments"
+	if [ $# -gt 4 ]; then
+		exitError "Not 3 or 4 arguments"
 	fi
 	
-	local -r ourUrl="$1"
-	local -r ourHashes="$2"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	
+	local -r ourHashes="$3"
 	if [ $# -eq 2 ]; then
 		local -r ourFileName="$(purebash_basename "$ourUrl")"
 	else
-		local -r ourFileName="$3"
+		local -r ourFileName="$4"
 	fi
 	
 	local -i existingKeyNumber
@@ -419,7 +429,7 @@ function sourceHkp()
 		exitError "Not 1 or 2 arguments"
 	fi
 	
-	sourceKey "${hkpUrlTemplate}${keyId}" "" "$keyId"
+	sourceKey "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
 }
 
 function sourceRecipe()

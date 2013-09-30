@@ -4,7 +4,7 @@ sourceRecipe mpfr 3.1.2 system
 sourceRecipe gmp 5.1.2 system
 sourceRecipe mpc 1.0.1 system
 
-addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304,KEYRING:gnu-keyring.gpg
+addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain1_gcc()
 {

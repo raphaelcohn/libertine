@@ -1,6 +1,6 @@
 set -o errexit +o hashall
-addSourcePackageDownload 4.2 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.2.tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0,KEYRING:gnu-keyring.gpg
-addPatchDownload 4.2 "$LFS_MIRROR_PATCHES"/"$LFS_SOURCE_PACKAGE_NAME"-4.2-fixes-12.patch MD5:419f95c173596aea47a23d922598977a
+addSourcePackageDownload 4.2 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.2.tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0,KEYRING:gnu-keyring.gpg
+addPatchDownload 4.2 "$LFS_MIRROR_PATCHES" "$LFS_SOURCE_PACKAGE_NAME"-4.2-fixes-12.patch MD5:419f95c173596aea47a23d922598977a
 addCPE 4.2 cpe:/a:gnu:bash:4.2
 
 addCVE 21050 GNU-Bash

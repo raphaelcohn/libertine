@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-addSourcePackageDownload 5.9 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1,KEYRING:gnu-keyring.gpg
+addSourcePackageDownload 5.9 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.9.tar.gz MD5:8cb9c412e5f2d96bc6f459aa8c6282a1,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain2_ncurses()
 {

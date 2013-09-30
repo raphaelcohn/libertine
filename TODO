@@ -1,9 +1,11 @@
-* Hashes? for gnupg detached signatures
-* Signatures of tar balls AFTER decompression, eg linux releases likes https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.10.tar.sign
 * Signatures ending in .asc or .gpg
+* curlrc files for most options (allowing customisation)
+* better download location (outside of the chroot) with support for mirrors, ie so we can ship a files-only, CD-like set
+	* No need to go mental
+	* But allows us to offer our own host quite simply
+* linking of certificate-authorities to particular packages
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
 	* Example: GNU Bash is http://www.cvedetails.com/product/21050/GNU-Bash.html
 	* Not everything is listed, of course
-

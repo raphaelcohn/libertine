@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-addSourcePackageDownload 5.45 "$LFS_MIRROR_SOURCEFORGE"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"5.45.tar.gz MD5:44e1a4f4c877e9ddc5a542dfa7ecc92b
+addSourcePackageDownload 5.45 "$LFS_MIRROR_SOURCEFORGE" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"5.45.tar.gz MD5:44e1a4f4c877e9ddc5a542dfa7ecc92b
 
 function installPackage_toolchain2_expect()
 {

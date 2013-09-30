@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-addSourcePackageDownload 2.23.2 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-2.23.2.tar.bz2 MD5:4f8fa651e35ef262edc01d60fb45702e,KEYRING:gnu-keyring.gpg
+addSourcePackageDownload 2.23.2 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-2.23.2.tar.bz2 MD5:4f8fa651e35ef262edc01d60fb45702e,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain1_binutils()
 {
