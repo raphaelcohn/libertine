@@ -550,8 +550,8 @@ function rehashCertificateAuthorities()
 	# Bottom of http://www.sks-keyservers.net/overview-of-pools.php :  https://sks-keyservers.net/sks-keyservers.netCA.pem
 	# http://people.spodhuis.org/phil.pennock/pgp-keyservers  is also a reference
 	
-	if ! which c_rehash; then
-		warning "c_rehash isn't present, can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificateauthorities)"
+	if ! which openssl; then
+		warning "openssl isn't present, so we can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificate authorities)"
 		return 0
 	fi
 	
