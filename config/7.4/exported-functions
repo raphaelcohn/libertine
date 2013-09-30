@@ -391,7 +391,8 @@ function sourceHkp()
 	
 	sourceKey "${hkpUrlTemplate}${keyId}" ""
 	env
-	echo "$hkpUrlTemplate"
+	set
+	echo "$hkpUrlTemplate" "$LFS_MIRROR_GNU"
 	exit 7
 }
 
