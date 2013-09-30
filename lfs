@@ -375,13 +375,78 @@ function setPathsAndExports()
 	
 	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
 	if [ ! -d "$distributionPath" ]; then
+		exitError "distribution path $distributionPath does not exist or is not a directory"
+	fi
 	
 	readonly certificateAuthoritiesPath="$distributionPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	exit 7
+	readonly mirrorsPath="$distributionPath"/mirrors
+	if [ ! -d "$mirrorsPath" ]; then
+		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
+	fi
+	
+	readonly profilesPath="$distributionPath"/profiles
+	if [ ! -d "$profilesPath" ]; then
+		exitError "Profiles path $profilesPath does not exist or is not a directory"
+	fi
+	
+	readonly keyringsPath="$distributionPath"/keyrings
+	if [ ! -d "$keyringsPath" ]; then
+		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
+	fi
+	
+	readonly keysPath="$distributionPath"/keys
+	if [ ! -d "$keysPath" ]; then
+		exitError "Keys path $keysPath does not exist or is not a directory"
+	fi
+	
+	readonly signaturesPath="$distributionPath"/signatures
+	if [ ! -d "$signaturesPath" ]; then
+		exitError "Signatures path $signaturesPath does not exist or is not a directory"
+	fi
+	
+	readonly recipesPath="$distributionPath"/recipes
+	if [ ! -d "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a directory"
+	fi
+	
+	readonly exportedFunctions="$distributionPath"/exported-functions
+	if [ ! -f "$exportedFunctions" ]; then
+		exitError "exported-functions $exportedFunctions does not exist or is not a file"
+	fi
+	
+	if [ ! -d "$lfsPath" ]; then
+		mkdir -m 0755 -p "$lfsPath"
+	fi
+	pushd "$lfsPath">/dev/null
+	lfsPath="$(pwd)"
+	popd >/dev/null
+	
+	export LFS="$lfsPath"/root
+	export LFS_TOOLS="$toolsFolderName"
+	
+	readonly logsPath="$lfsPath"/logs
+	readonly sourcesPath="$LFS"/sources
+	readonly toolsPath="$LFS"/"$LFS_TOOLS"
+	
+	export LC_ALL=POSIX
+	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
+	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
+	
+	if [ -f /proc/cpuinfo ]; then
+		local highestCpu
+		read -r -d $'\n' highestCpu < <(awk '$1 ~ /processor/ { print $3 }' /proc/cpuinfo | sort --unique --reverse --numeric-sort)
+		local -ir highestCpuZeroBased=$highestCpu
+	else
+		local -ir highestCpuZeroBased=0
+	fi
+	
+	if [ $highestCpuZeroBased -ne 0 ]; then
+		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
+	fi
 }
 
 function registerDebianPackage()
