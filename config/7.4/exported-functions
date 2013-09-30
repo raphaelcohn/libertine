@@ -77,6 +77,29 @@ function sourcePackagesKeyExists()
 	return 1
 }
 
+declare -a signatures_Url=()
+declare -a signatures_FileName=()
+
+function addSignature()
+{
+	local -r ourUnsignedUrl="$1"
+	local -r ourHashesSpaceSeparated="$2"
+	
+	local hashNameAndValue
+	local -i signatureNumber
+	for hashNameAndValue in $ourHashesSpaceSeparated
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		case "$hashName" in
+			KEYRING|KEYFILE)
+				signatureNumber=${#signatures_Url[@]}
+				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
+				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
+			;;
+		esac
+	done
+}
+
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
 declare -a sourcePackages_IndicesToKeys=()
 declare -A sourcePackages_SourcePackageName=()
@@ -87,9 +110,6 @@ declare -A sourcePackages_FileName=()
 declare -A sourcePackages_ExtractedTarballFolder=()
 declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
-
-declare -a signatures_Url=()
-declare -a signatures_FileName=()
 
 function addSourcePackageDownload()
 {
@@ -204,29 +224,7 @@ function addSourcePackageDownload()
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]=""
 	
-	set -x
 	addSignature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
-	set +x
-}
-
-function addSignature()
-{
-	local -r ourUnsignedUrl="$1"
-	local -r ourHashesSpaceSeparated="$2"
-	
-	local hashNameAndValue
-	local -i signatureNumber
-	for hashNameAndValue in 
-	do
-		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
-		case "$hashName" in
-			KEYRING|KEYFILE)
-				signatureNumber=${#signatures_Url[@]}
-				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
-				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
-			;;
-		esac
-	done
 }
 
 declare -a patches_Url=()
