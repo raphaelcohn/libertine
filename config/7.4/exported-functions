@@ -142,7 +142,7 @@ function addSourcePackageDownload()
 	local -r ourVersion="$1"
 	local -r ourMirror="$2"
 	local -r ourRelativePath="$3"
-	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	local -r ourHashes="$4"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
@@ -261,7 +261,7 @@ function addPatchDownload()
 	local -r ourVersion="$1"
 	local -r ourMirror="$2"
 	local -r ourRelativePath="$3"
-	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	local -r ourHashes="$4"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
@@ -346,7 +346,7 @@ function sourceKeyring()
 	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
-	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
@@ -389,7 +389,7 @@ function sourceKey()
 	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
-	local -r ourUrl="$ourMirror"/"$ourRelativePath"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	
 	local -r ourHashes="$3"
 	if [ $# -eq 3 ]; then
