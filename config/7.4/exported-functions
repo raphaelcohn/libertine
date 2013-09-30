@@ -88,6 +88,9 @@ declare -A sourcePackages_ExtractedTarballFolder=()
 declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
 
+declare -a signatures_Url=()
+declare -a signatures_FileName=()
+
 function addSourcePackageDownload()
 {
 	if [ $# -lt 3 ]; then
@@ -186,11 +189,7 @@ function addSourcePackageDownload()
 	if sourcePackagesKeyExists "$key"; then
 		local -r existingUrl="${sourcePackages_Url["${key}"]}"
 		if [ "$existingUrl" != "$ourUrl" ]; then
-			if [ "${sourcePackages_Hashes["${key}"]}" != "$ourHashes" ]; then
-				exitError "Override of URL for source package $ourSourcePackageName version $ourVersion specifies different hashes"
-			fi
-			warning "Overriding URL for source package $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl (hashes, etc not changed)"
-			sourcePackages_Url["${key}"]="$ourUrl"
+			warning "Attempt to override URL IGNORED for source package $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl to $ourUrl"
 		fi
 		return 0
 	fi
@@ -202,9 +201,30 @@ function addSourcePackageDownload()
 	sourcePackages_Compression["${key}"]="$ourCompression"
 	sourcePackages_FileName["${key}"]="$ourFileName"
 	sourcePackages_ExtractedTarballFolder["${key}"]="$LFS_EXTRACTED_TARBALL_FOLDER"
-	sourcePackages_Hashes["${key}"]="$ourHashes"
-	# Need a key that is phase-
+	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]=""
+	
+	addSignature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
+}
+
+function addSignature()
+{
+	local -r ourUnsignedUrl="$1"
+	local -r ourHashesSpaceSeparated="$2"
+	
+	local hashNameAndValue
+	local -i signatureNumber
+	for hashNameAndValue in 
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
+		case "$hashName" in
+			KEYRING|KEYFILE)
+				signatureNumber=${#signatures_Url[@]}
+				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
+				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
+			;;
+		esac
+	done
 }
 
 declare -a patches_Url=()
@@ -236,26 +256,19 @@ function addPatchDownload()
 	do
 		if [ ${patches_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
 			if [ ${patches_Url[$existingPatchNumber]} != "$ourUrl" ]; then
-				if [ "${patches_Hashes[$existingPatchNumber]}" != "$ourHashes" ]; then
-					exitError "Override of URL for patch $ourFileName to $ourSourcePackageName version $ourVersion specifies different hashes"
-				fi
-				warning "Overriding URL for patch $ourFileName to $ourSourcePackageName version $ourVersion to $ourUrl (hashes, etc not changed)"
-				patches_Url[$existingPatchNumber]="$ourUrl"
+				warning "Attempt to override URL IGNORED for patch $ourFileName to $ourSourcePackageName version $ourVersion to $ourUrl"
 			fi
-			patchExists=0
-			break
+			return 0
 		fi
 	done
-	
-	if [ $patchExists -eq 0 ]; then
-		return 0
-	fi
 	
 	local -ir patchNumber=${#patches_Url[@]}
 	patches_Url[$patchNumber]="$ourUrl"
 	patches_FileName[$patchNumber]="$ourFileName"
-	patches_Hashes[$patchNumber]="$ourHashes"
+	patches_Hashes[$patchNumber]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
+	
+	addSignature "$ourUrl" "${patches_Hashes[$patchNumber]}"
 }
 
 previousMirrors=""
@@ -320,26 +333,19 @@ function sourceKeyring()
 	for existingKeyringNumber in ${!keyrings_FileName[@]}
 	do
 		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
-			if [ ${keyrings_Url[$existingKeyringNumber]} != "$ourUrl" ]; then
-				if [ "${keyrings_Hashes[$existingKeyringNumber]}" != "$ourHashes" ]; then
-					exitError "Override of URL for keyring $ourFileName specifies different hashes"
-				fi
-				warning "Overriding URL for keyring $ourFileName to $ourUrl (hashes, etc not changed)"
-				keyrings_Url[$existingKeyringNumber]="$ourUrl"
+			if [ ${keyrings_FileName[$existingPatchNumber]} != "$ourUrl" ]; then
+				warning "Attempt to override URL IGNORED for keyring $ourFileName to $ourUrl"
 			fi
-			keyringExists=0
-			break
+			return 0
 		fi
 	done
-	
-	if [ $keyringExists -eq 0 ]; then
-		return 0
-	fi
 	
 	local -ir keyringNumber=${#patches_Url[@]}
 	keyrings_Url[$keyringNumber]="$ourUrl"
 	keyrings_FileName[$keyringNumber]="$ourFileName"
 	keyrings_Hashes[$keyringNumber]="$ourHashes"
+	
+	addSignature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
 }
 
 declare -a keys_Url=()
@@ -360,26 +366,19 @@ function sourceKey()
 	for existingKeyNumber in ${!keys_FileName[@]}
 	do
 		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
-			if [ ${keys_Url[$existingKeyNumber]} != "$ourUrl" ]; then
-				if [ "${keys_Hashes[$existingKeyNumber]}" != "$ourHashes" ]; then
-					exitError "Override of URL for key $ourFileName specifies different hashes"
-				fi
-				warning "Overriding URL for key $ourFileName to $ourUrl (hashes, etc not changed)"
-				keys_Url[$existingKeyNumber]="$ourUrl"
+			if [ ${keys[$existingPatchNumber]} != "$ourUrl" ]; then
+				warning "Attempt to override URL IGNORED for key $ourFileName to $ourUrl"
 			fi
-			keyExists=0
-			break
+			return 0
 		fi
 	done
-	
-	if [ $keyExists -eq 0 ]; then
-		return 0
-	fi
 	
 	local -ir keyNumber=${#patches_Url[@]}
 	keys_Url[$keyNumber]="$ourUrl"
 	keys_FileName[$keyNumber]="$ourFileName"
 	keys_Hashes[$keyNumber]="$ourHashes"
+	
+	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
 }
 
 function sourceRecipe()

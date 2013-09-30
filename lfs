@@ -631,8 +631,11 @@ function verifyKeyFileSignature()
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -ne 5 ]; then
-		exitError "Not exactly 5 arguments"
+	if [ $# -lt 5 ]; then
+		exitError "Needs 5 or 6 arguments"
+	fi
+	if [ $# -gt 6 ]; then
+		exitError "Needs 5 or 6 arguments"
 	fi
 	
 	local -r downloadName="$1"
@@ -640,6 +643,11 @@ function downloadFileAndCheckHash()
 	local -r toPath="$3"
 	local -r fileName="$4"
 	local -r hashes="$5"
+	if [ $# -eq 6 ]; then
+		local -r doNotUseHashes="$6"
+	else
+		local -r doNotUseHashes="no"
+	fi
 	local -i exitCode
 	
 	mkdir -m 0755 -p "$logsPath"/downloads
@@ -677,6 +685,10 @@ function downloadFileAndCheckHash()
 		else
 			progressMessageSucceeded
 		fi
+	fi
+	
+	if [ "$doNotUseHashes" = "yes" ]; then
+		return 0
 	fi
 	
 	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
@@ -725,6 +737,15 @@ function downloadFileAndCheckHash()
 	fi
 	
 	progressMessageSucceeded
+}
+
+function downloadSignatures()
+{
+	local -i signatureNumber
+	for signatureNumber in ${!signatures_Url[@]}
+	do
+		downloadFileAndCheckHash "signature" "${signatures_Url[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "" "yes"
+	done
 }
 
 function downloadKeyrings()
@@ -935,6 +956,7 @@ function main()
 	sourceProfiles
 	
 	createSkeletonFolderStructure
+	downloadSignatures
 	downloadKeyrings
 	downloadKeys
 	downloadSources

@@ -1,5 +1,9 @@
-* GnuPG detached signatures as a form of hash, in addition to md5, sha1, etc hashes
+* Hashes? for gnupg detached signatures
+* Signatures of tar balls AFTER decompression, eg linux releases likes https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.10.tar.sign
+* --recv-keys for specific linux keys, say
+
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
 	* Example: GNU Bash is http://www.cvedetails.com/product/21050/GNU-Bash.html
 	* Not everything is listed, of course
+

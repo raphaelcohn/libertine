@@ -4,7 +4,7 @@ set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o 
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
 LFS_MIRROR_CVE=http://www.cvedetails.com/product
 
-LFS_MIRROR_GNU=http://ftp.gnu.org/gnu
+LFS_MIRROR_GNU=https://ftp.gnu.org/gnu
 LFS_MIRROR_SOURCEFORGE=http://prdownloads.sourceforge.net
 LFS_MIRROR_LINUX_v3=https://www.kernel.org/pub/linux/kernel/v3.x
 LFS_MIRROR_PERL=http://www.cpan.org/src
