@@ -91,7 +91,7 @@ function addSignature()
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
-			KEYRING|KEYFILE)
+			KEYRING|KEYFILE|HKP)
 				signatureNumber=${#signatures_Url[@]}
 				signatures_Url[$signatureNumber]="$ourUnsignedUrl".sig
 				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
@@ -376,6 +376,19 @@ function sourceKey()
 	keys_Hashes[$keyNumber]="$ourHashes"
 	
 	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
+}
+
+function sourceHkp()
+{
+	local -r keyId="$1"
+	if [ $# -eq 1 ]; then
+		local -r keyServer="$LFS_MIRROR_KEYSERVER"
+	elif [ $# -eq 2 ]; then
+		local -r keyServer="$2"
+	else
+		exitError "Not 1 or 2 arguments"
+	fi
+	sourceKey "${LFS_MIRROR_HKP}${keyId}"
 }
 
 function sourceRecipe()

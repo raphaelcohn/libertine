@@ -375,7 +375,10 @@ function setPathsAndExports()
 	
 	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
 	if [ ! -d "$distributionPath" ]; then
-		exitError "Distribution path $distributionPath does not exist or is not a directory"
+	
+	readonly certificateAuthoritiesPath="$distributionPath"/certificate-authorities
+	if [ ! -d "$certificateAuthoritiesPath" ]; then
+		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
 	readonly mirrorsPath="$distributionPath"/mirrors
@@ -542,6 +545,50 @@ function createSkeletonFolderStructure()
 	sudo chown -R $UID:$UID "$toolsPath"
 }
 
+function rehashCertificateAuthorities()
+{
+	# Bottom of http://www.sks-keyservers.net/overview-of-pools.php :  https://sks-keyservers.net/sks-keyservers.netCA.pem
+	# http://people.spodhuis.org/phil.pennock/pgp-keyservers  is also a reference
+	
+	if ! which c_rehash; then
+		warning "c_rehash isn't present, can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificateauthorities)"
+		return 0
+	fi
+	
+	pushd "$certificateAuthoritiesPath" >/dev/null
+		local values
+		local hashValue
+		local sha1ColonSeparated
+		local hashIndex
+		local hashFile
+		local hashValue2
+		local sha1ColonSeparated2
+		for certificateAuthority in *.pem
+		do
+			values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
+			IFS=$'\t' read -r -d $'\n' hashValue sha1ColonSeparated <<<"$values"
+			hashIndex=0
+			while :
+			do
+				hashFile="$hashValue"."$hashIndex"
+				if [ -L "$hashFile" ]; then
+					# It's possible this is a symlink to the same (or similar) file)
+					values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
+					IFS=$'\t' read -r -d $'\n' hashValue2 sha1ColonSeparated2 <<<"$values"
+					if [ "$sha1ColonSeparated2" = "$sha1ColonSeparated" ]; then
+						break
+					fi
+					hashIndex=$((hashIndex+1))
+				elif [ -e "$hashFile" ]; then
+					rm -rf -- "$hashFile"
+					ln --symbolic "$certificateAuthority" "$hashFile"
+					break
+				fi
+			done
+		done
+	popd >/dev/null
+}
+
 function verifyHash()
 {
 	local -r toPath="$1"
@@ -628,6 +675,45 @@ function verifyKeyFileSignature()
 	return $exitCode
 }
 
+function verifyHkpSignature()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r keyId="$3"
+	
+	if [ ! -f "$keysPath"/"$keyId" ]; then
+		exitError "$keysPath"/"$keyId does not exist"
+	fi
+	
+	local -r gpgHome="$(mktemp --directory)"
+	trap "rm -rf -- '${gpgHome}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+		cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
+		
+		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+		--no-random-seed-file --ignore-time-conflict \
+		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+		--import "$keysPath"/"$keyId" </dev/null 1>$logsPath/downloads/$fileName.hkp.log 2>&1
+		local -i exitCode=$?
+		if [ $exitCode -ne 0 ]; then
+			rm -rf -- "${gpgHome}"
+			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+			return $exitCode
+		fi
+		
+		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+		--no-random-seed-file --ignore-time-conflict \
+		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+		--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.hkp.log 2>&1
+		exitCode=$?
+	
+	rm -rf -- "${gpgHome}"
+	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	
+	return $exitCode
+}
+
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
@@ -669,7 +755,7 @@ function downloadFileAndCheckHash()
 		curl --fail --silent --show-error \
 		--user-agent "lfs/${distributionVersion}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
-		--tlsv1 --anyauth --netrc-optional \
+		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
 		--compressed --remote-time \
 		--dump-header "$logsPath"/downloads/"$fileName".headers.log \
 		--trace-time --trace-ascii "$logsPath"/downloads/"$fileName".trace-ascii.log \
@@ -722,6 +808,13 @@ function downloadFileAndCheckHash()
 				hasHash=0
 				if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue"; then
 					progressMessageFailed "Key file signature does not match, check logs $logsPath/downloads/$fileName.keyfile.log"
+				fi
+			;;
+			
+			HKP)
+				hasHash=0
+				if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue"; then
+					progressMessageFailed "HKP signature does not match, check logs $logsPath/downloads/$fileName.hkp.log"
 				fi
 			;;
 			
@@ -956,6 +1049,12 @@ function main()
 	sourceProfiles
 	
 	createSkeletonFolderStructure
+	
+	rehashCertificateAuthorities
+	
+	
+	# Must have been processed using c_rehash
+	
 	downloadSignatures
 	downloadKeyrings
 	downloadKeys
