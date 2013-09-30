@@ -1009,11 +1009,11 @@ function installPackageInternal()
 	do
 		echo "Applying patch ${patches_FileName[$patchNumber]}"
 		if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
-			exit 100
+			return 100
 		fi
 	done
 	
-	exit 70
+	return 70
 	set -e
 	$installer
 }
