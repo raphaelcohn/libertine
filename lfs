@@ -1004,19 +1004,18 @@ function downloadSources()
 function installPackageInternal()
 {
 	local -r installer="$1"
-	(
-		local -i patchNumber
-		for patchNumber in $LFS_PATCHES
-		do
-			echo "Applying patch ${patches_FileName[$patchNumber]}"
-			if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
-				exit 1
-			fi
-		done
-		if ! $installer; then
-			exit 2
+	local -i patchNumber
+	for patchNumber in $LFS_PATCHES
+	do
+		echo "Applying patch ${patches_FileName[$patchNumber]}"
+		if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+			exit 100
 		fi
-	)
+	done
+	
+	exit 70
+	set -e
+	$installer
 }
 
 function installPackage()
@@ -1056,39 +1055,32 @@ function installPackage()
 	
 	pushd "$sourcesPath" >/dev/null
 		
-		tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"
+		if ! tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
+			progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
+		else
+			progressMessageUpdate "extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
 		
-		progressMessageUpdate "extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
+			local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+			local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
-		local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
+			
+				local -i failed=1
+				if installPackageInternal "$installer" 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"; then
+					failed=0
+				else
+					failed=1
+				fi
 		
-		pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
-			
-			exec 3>&1
-			exec 1>"$installStdOutLogFile"
-			exec 4>&2
-			exec 2>"$installStdErrLogFile"
-			
-			set +e
-			installPackageInternal "$installer"
-			exitCode=$?
-			set -e
-			
-			exec 2>&4
-			exec 4>&-
-			exec 1>&3
-			exec 3>&-
-			
-			if [ $exitCode -ne 0 ]; then
-				progressMessageFailed "$installer failed with exitCode $exitCode, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
-			fi
-		
-		popd >/dev/null
-		rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+			popd >/dev/null
+			rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+		fi
 		
 	popd >/dev/null
 	
+	if [ $failed -eq 1 ]; then
+		progressMessageFailed "$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
+	fi
 	progressMessageSucceeded
 }
 
