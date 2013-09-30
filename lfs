@@ -1085,7 +1085,6 @@ function installPackage()
 					done
 				
 					$installer  1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
-					installPackageInternal "$installer"
 					
 				removeLastTrapHandler
 				
