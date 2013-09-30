@@ -922,7 +922,6 @@ function downloadFileAndCheckHash()
 						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
 						fi
-					set +x
 					;;
 				esac
 				
