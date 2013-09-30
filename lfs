@@ -116,11 +116,6 @@ function purebash_basename()
 	echo "${1##*/}"
 }
 
-function naive_cat()
-{
-	echo -n -E
-}
-
 function exitError()
 {
 	local -r error="$1"
