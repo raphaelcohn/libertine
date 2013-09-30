@@ -351,13 +351,20 @@ declare -a keys_FileName=()
 declare -a keys_Hashes=()
 function sourceKey()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Not exactly 2 arguments"
+	if [ $# -lt 2 ]; then
+		exitError "Not 2 or 3 arguments"
+	fi
+	if [ $# -gt 3 ]; then
+		exitError "Not 2 or 3 arguments"
 	fi
 	
 	local -r ourUrl="$1"
 	local -r ourHashes="$2"
-	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	if [ $# -eq 2 ]; then
+		local -r ourFileName="$(purebash_basename "$ourUrl")"
+	else
+		local -r ourFileName="$3"
+	fi
 	
 	local -i existingKeyNumber
 	for existingKeyNumber in ${!keys_FileName[@]}
@@ -389,7 +396,7 @@ function sourceHkp()
 		exitError "Not 1 or 2 arguments"
 	fi
 	
-	sourceKey "${hkpUrlTemplate}${keyId}" ""
+	sourceKey "${hkpUrlTemplate}${keyId}" "" "$keyId"
 }
 
 function sourceRecipe()
