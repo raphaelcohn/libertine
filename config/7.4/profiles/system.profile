@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 
 # Happens with a different dependency order
 #addToInstall binutils 2.23.2 system SVN-20130915

@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 registerDebianPackage gzip
 essentialProgramCheck gzip awk
 gzip --version | awk 'NR==1 { print $(NF) }' | verifyDependency gzip 1.3.12

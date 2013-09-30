@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 registerDebianPackage m4
 essentialProgramCheck m4 awk
 m4 --version | awk 'NR==1 { print $(NF) }' | verifyDependency m4 1.4.10

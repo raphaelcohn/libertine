@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 registerDebianPackage sed
 essentialProgramCheck sed awk
 sed --version | awk 'NR==1 { print $(NF) }' | verifyDependency sed 4.1.5

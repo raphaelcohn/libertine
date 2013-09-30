@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 addSourcePackageDownload 2.7.1 "$LFS_MIRROR_GNU"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-2.7.1.tar.xz MD5:e9ae5393426d3ad783a300a338c09b72,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain2_patch()

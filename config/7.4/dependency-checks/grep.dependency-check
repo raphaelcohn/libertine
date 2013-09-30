@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 registerDebianPackage grep
 essentialProgramCheck grep awk sed
 grep --version | awk 'NR==1 { print $(NF) }' | sed -e 's/[a-z]/\.0/g' | verifyDependency grep 2.5.1 2.18

@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 # gcc pre-dependencies, only installed if this is the system phase
 sourceRecipe mpfr 3.1.2 system
 sourceRecipe gmp 5.1.2 system

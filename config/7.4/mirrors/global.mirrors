@@ -1,4 +1,4 @@
-set -o errexit +o hashall;unset CDPATH;umask 022
+set -o errexit +o hashall
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
