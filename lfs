@@ -918,9 +918,9 @@ function downloadFileAndCheckHash()
 					HKP_UNCOMPRESSED)
 					set -x
 						temporaryFolder="$(temporaryFolderToRemoveOnExit)"
-						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/decompressed
+						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
 						
-						if ! verifyHkpSignature "$temporaryFolder" decompressed "$hashValue" "$signatureFileName" "yes"; then
+						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					set +x
