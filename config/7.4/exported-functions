@@ -386,7 +386,7 @@ function sourceKey()
 	if [ $# -gt 4 ]; then
 		exitError "Not 3 or 4 arguments"
 	fi
-	
+	set -x
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
 	local -r ourUrl="$ourMirror"/"$ourRelativePath"
