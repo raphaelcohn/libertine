@@ -390,6 +390,9 @@ function sourceHkp()
 	fi
 	
 	sourceKey "${hkpUrlTemplate}${keyId}" ""
+	env
+	echo "$hkpUrlTemplate"
+	exit 7
 }
 
 function sourceRecipe()
