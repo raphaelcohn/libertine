@@ -576,7 +576,9 @@ function verifySignature()
 	fi
 	
 	#--trustdb-name trustdb.gpg \
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning --no-random-seed-file --ignore-time-conflict --no-verbose --quiet --batch --no-tty --exit-on-status-write-error --no-default-keyring --homedir "$keyringsPath" --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" --verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 2>&1 >$logsPath/downloads/$fileName.sig.log
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning --no-random-seed-file --ignore-time-conflict --no-verbose --quiet --batch --no-tty --exit-on-status-write-error --no-default-keyring --homedir "$keyringsPath" --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" --verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>$logsPath/downloads/$fileName.gpg.log 2>&1
+	local -ir exitCode=$?
+	return $exitCode
 }
 
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
@@ -642,37 +644,15 @@ function downloadFileAndCheckHash()
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
 			
-			MD5)
-				hashProgram=md5sum
+			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
+				hashProgram=${hashName,,}
 				hasHash=0
+				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
+					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
+				fi
 			;;
 			
-			SHA1)
-				hashProgram=sha1sum
-				hasHash=0
-			;;
-			
-			SHA224)
-				hashProgram=sha224sum
-				hasHash=0
-			;;
-			
-			SHA256)
-				hashProgram=sha256sum
-				hasHash=0
-			;;
-			
-			SHA384)
-				hashProgram=sha384sum
-				hasHash=0
-			;;
-			
-			SHA512)
-				hashProgram=sha512sum
-				hasHash=0
-			;;
-			
-			SIG)
+			GPG)
 				hashProgram=gpg
 				hasHash=0
 				if ! verifySignature "$toPath" "$fileName" "$hashValue"; then
@@ -685,12 +665,6 @@ function downloadFileAndCheckHash()
 			;;
 			
 		esac
-		
-		if [ "$hashProgram" != gpg ]; then
-			if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
-				progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
-			fi
-		fi
 	done
 	
 	if [ $hasHash -ne 0 ]; then
