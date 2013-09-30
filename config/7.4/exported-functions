@@ -341,7 +341,7 @@ function sourceKeyring()
 	local -ir keyringNumber=${#patches_Url[@]}
 	keyrings_Url[$keyringNumber]="$ourUrl"
 	keyrings_FileName[$keyringNumber]="$ourFileName"
-	keyrings_Hashes[$keyringNumber]="$ourHashes"
+	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
 	
 	addSignature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
 }
@@ -373,7 +373,7 @@ function sourceKey()
 	local -ir keyNumber=${#patches_Url[@]}
 	keys_Url[$keyNumber]="$ourUrl"
 	keys_FileName[$keyNumber]="$ourFileName"
-	keys_Hashes[$keyNumber]="$ourHashes"
+	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
 	
 	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
 }
@@ -388,7 +388,7 @@ function sourceHkp()
 	else
 		exitError "Not 1 or 2 arguments"
 	fi
-	sourceKey "${LFS_MIRROR_HKP}${keyId}"
+	sourceKey "${LFS_MIRROR_HKP}${keyId}" ""
 }
 
 function sourceRecipe()

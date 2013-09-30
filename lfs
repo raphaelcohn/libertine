@@ -731,9 +731,9 @@ function downloadFileAndCheckHash()
 	local -r fileName="$4"
 	local -r hashes="$5"
 	if [ $# -eq 6 ]; then
-		local -r doNotUseHashes="$6"
+		local -r hashesMayBeEmpty="$6"
 	else
-		local -r doNotUseHashes="no"
+		local -r hashesMayBeEmpty="no"
 	fi
 	local -i exitCode
 	
@@ -774,8 +774,10 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
-	if [ "$doNotUseHashes" = "yes" ]; then
-		return 0
+	if [ "$hashesMayBeEmpty" = "yes" ]; then
+		if [ ${#hashes} -eq 0 ]; then
+			return 0
+		fi
 	fi
 	
 	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
@@ -785,7 +787,7 @@ function downloadFileAndCheckHash()
 	local hashValue
 	local hashProgram
 	local -i hasHash=1
-	for hashNameAndValue in ${hashes//,/ }
+	for hashNameAndValue in ${hashes}
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue <<<"$hashNameAndValue"
 		case "$hashName" in
@@ -856,7 +858,7 @@ function downloadKeys()
 	local -i keyNumber
 	for keyNumber in ${!keys_Url[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Hashes[$keyNumber]}"
+		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Hashes[$keyNumber]}" "yes"
 	done
 }
 
