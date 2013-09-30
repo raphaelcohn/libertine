@@ -97,9 +97,7 @@ function addSignature()
 				signatures_FileName[$signatureNumber]="$(purebash_basename "$ourUnsignedUrl".sig)"
 				
 				if [ "$hashName" = "HKP" ]; then
-					set -x
 					sourceHkp "$hashValue"
-					set +x
 				fi
 			;;
 		esac
@@ -364,6 +362,7 @@ function sourceKey()
 		exitError "Not 2 or 3 arguments"
 	fi
 	
+	set -x
 	local -r ourUrl="$1"
 	local -r ourHashes="$2"
 	if [ $# -eq 2 ]; then
@@ -387,6 +386,7 @@ function sourceKey()
 	keys_Url[$keyNumber]="$ourUrl"
 	keys_FileName[$keyNumber]="$ourFileName"
 	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
+	set +x
 	
 	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
 }
