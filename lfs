@@ -572,6 +572,7 @@ function rehashCertificateAuthorities()
 			while :
 			do
 				hashFile="$hashValue"."$hashIndex"
+				
 				if [ -L "$hashFile" ]; then
 					# It's possible this is a symlink to the same (or similar) file)
 					values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
@@ -580,11 +581,15 @@ function rehashCertificateAuthorities()
 						break
 					fi
 					hashIndex=$((hashIndex+1))
-				elif [ -e "$hashFile" ]; then
-					rm -rf -- "$hashFile"
-					ln --symbolic "$certificateAuthority" "$hashFile"
-					break
+					continue
 				fi
+				
+				if [ -e "$hashFile" ]; then
+					rm -rf -- "$hashFile"
+				fi
+				
+				ln --symbolic "$certificateAuthority" "$hashFile"
+				break
 			done
 		done
 	popd >/dev/null
