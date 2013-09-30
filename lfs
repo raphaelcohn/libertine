@@ -12,6 +12,29 @@ function ensureWhichInstalled()
 	fi
 }
 
+declare -a trapHandlers=()
+
+function runOnTrap()
+{
+	local trapHandler
+	for trapHandler in ${trapHandlers[@]}
+	do
+		$trapHandler
+	done
+}
+
+function addNextTrapHandler()
+{
+	local trapHandler="$1"
+	trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	trapHandlers[${#trapHandlers[*]}]="$trapHandler"
+}
+
+function removeLastTrapHandler()
+{
+	unset trapHandlers[$((${#trapHandlers[*]}-1))]
+}
+
 declare -a filesToRemoveOnExit=()
 
 function removeFilesOnExit()
@@ -21,11 +44,6 @@ function removeFilesOnExit()
 	do
 		rm -rf -- "${filesToRemoveOnExit[$fileIndex]}"
 	done
-}
-
-function enableRemoveFilesOnExit()
-{
-	trap removeFilesOnExit 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
 }
 
 function addFileToRemoveOnExit()
@@ -1001,23 +1019,10 @@ function downloadSources()
 	done
 }
 
-function installPackageInternal()
+INSTALLATION_FAILED_MESSAGE=""
+function installationFailedTrapHandler()
 {
-	local -r installer="$1"
-	local -i patchNumber
-	for patchNumber in $LFS_PATCHES
-	do
-		echo "Applying patch ${patches_FileName[$patchNumber]}"
-		if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
-			return 100
-		fi
-	done
-	
-	set -x
-	set -e
-	$installer
-	local -ir exitCode=$?
-	return $?
+	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE"
 }
 
 function installPackage()
@@ -1066,15 +1071,24 @@ function installPackage()
 			local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
-			
-				local -i failed=1
-				if installPackageInternal "$installer" 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"; then
-					failed=0
-				else
-					echo "X" $? "X"
-					failed=1
-				fi
-		
+				
+				INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
+				addNextTrapHandler installationFailedTrapHandler
+					
+					local -i patchNumber
+					for patchNumber in $LFS_PATCHES
+					do
+						echo "Applying patch ${patches_FileName[$patchNumber]}" 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
+						if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}" 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"; then
+							exit 100
+						fi
+					done
+				
+					$installer  1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
+					installPackageInternal "$installer"
+					
+				removeLastTrapHandler
+				
 			popd >/dev/null
 			rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
 		fi
@@ -1138,7 +1152,7 @@ function main()
 {
 	setDebugging
 	findOurNameAndPath
-	removeFilesOnExit
+	addNextTrapHandler removeFilesOnExit
 	ensureWhichInstalled
 	parseCommandLine "$@"
 	
