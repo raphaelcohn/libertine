@@ -645,7 +645,7 @@ function downloadFileAndCheckHash()
 		case "$hashName" in
 			
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
-				hashProgram=${hashName,,}
+				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
 					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
