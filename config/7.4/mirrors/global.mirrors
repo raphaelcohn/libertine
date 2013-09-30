@@ -17,8 +17,8 @@ LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development
 # keyserver.ubuntu.com
 # The key id is post-pended after 0x, eg http://keyserver.kjsl.org:11371/pks/lookup?op=get&options=mr&search=0xAFE7BCBD for dejagnu 1.5.1
 # Notes:  http://www.sks-keyservers.net/overview-of-pools.php  lists HKPS servers, but they use a strange CA...
-#LFS_MIRROR_HKP=http://keyserver.kjsl.org:11371/pks/lookup?op=get&options=mr&search=0x
-LFS_MIRROR_HKP=https://hkps.pool.sks-keyservers.net//pks/lookup?op=get&options=mr&search=0x
+#LFS_MIRROR_HKP='http://keyserver.kjsl.org:11371/pks/lookup?op=get&options=mr&search=0x'
+LFS_MIRROR_HKP='https://hkps.pool.sks-keyservers.net//pks/lookup?op=get&options=mr&search=0x'
 
 LFS_MIRROR_GNU=https://ftp.gnu.org/gnu
 LFS_MIRROR_SOURCEFORGE=http://prdownloads.sourceforge.net
