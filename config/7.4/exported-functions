@@ -362,7 +362,6 @@ function sourceKey()
 		exitError "Not 2 or 3 arguments"
 	fi
 	
-	set -x
 	local -r ourUrl="$1"
 	local -r ourHashes="$2"
 	if [ $# -eq 2 ]; then
@@ -382,11 +381,10 @@ function sourceKey()
 		fi
 	done
 	
-	local -ir keyNumber=${#patches_Url[@]}
+	local -ir keyNumber=${#keys_Url[@]}
 	keys_Url[$keyNumber]="$ourUrl"
 	keys_FileName[$keyNumber]="$ourFileName"
 	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
-	set +x
 	
 	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
 }
