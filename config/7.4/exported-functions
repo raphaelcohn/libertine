@@ -251,7 +251,6 @@ function addPatchDownload()
 	
 	# Check for duplicate patches
 	local -i existingPatchNumber
-	local -i patchExists=1
 	for existingPatchNumber in ${sourcePackages_Patches["${key}"]}
 	do
 		if [ ${patches_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
@@ -329,7 +328,6 @@ function sourceKeyring()
 	fi
 	
 	local -i existingKeyringNumber
-	local -i keyringExists=1
 	for existingKeyringNumber in ${!keyrings_FileName[@]}
 	do
 		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
@@ -362,7 +360,6 @@ function sourceKey()
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -i existingKeyNumber
-	local -i keyExists=1
 	for existingKeyNumber in ${!keys_FileName[@]}
 	do
 		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then

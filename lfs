@@ -762,7 +762,7 @@ function downloadKeys()
 	local -i keyNumber
 	for keyNumber in ${!keys_Url[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${key_Hashes[$keyNumber]}"
+		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Hashes[$keyNumber]}"
 	done
 }
 
