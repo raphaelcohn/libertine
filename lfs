@@ -741,11 +741,13 @@ function downloadFileAndCheckHash()
 
 function downloadSignatures()
 {
+	set -x
 	local -i signatureNumber
 	for signatureNumber in ${!signatures_Url[@]}
 	do
 		downloadFileAndCheckHash "signature" "${signatures_Url[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "" "yes"
 	done
+	set +x
 }
 
 function downloadKeyrings()
