@@ -1013,9 +1013,11 @@ function installPackageInternal()
 		fi
 	done
 	
-	return 70
+	set -x
 	set -e
 	$installer
+	local -ir exitCode=$?
+	return $?
 }
 
 function installPackage()
@@ -1069,6 +1071,7 @@ function installPackage()
 				if installPackageInternal "$installer" 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"; then
 					failed=0
 				else
+					echo "X" $? "X"
 					failed=1
 				fi
 		
