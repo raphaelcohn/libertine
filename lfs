@@ -393,6 +393,11 @@ function setPathsAndExports()
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
+	readonly keysPath="$distributionPath"/keys
+	if [ ! -d "$keysPath" ]; then
+		exitError "Keys path $keysPath does not exist or is not a directory"
+	fi
+	
 	readonly signaturesPath="$distributionPath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
@@ -553,7 +558,7 @@ function verifyHash()
 	return $exitCode
 }
 
-function verifySignature()
+function verifyKeyringSignature()
 {
 	local -r toPath="$1"
 	local -r fileName="$2"
@@ -575,9 +580,51 @@ function verifySignature()
 		exitError "$keyringsPath"/"$keyring does not exist"
 	fi
 	
-	#--trustdb-name trustdb.gpg \
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning --no-random-seed-file --ignore-time-conflict --no-verbose --quiet --batch --no-tty --exit-on-status-write-error --no-default-keyring --homedir "$keyringsPath" --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" --verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>$logsPath/downloads/$fileName.gpg.log 2>&1
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$keyringsPath" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" \
+	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>$logsPath/downloads/$fileName.keyring.log 2>&1
 	local -ir exitCode=$?
+	return $exitCode
+}
+
+function verifyKeyFileSignature()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r keyFile="$3"
+	
+	if [ ! -f "$keysPath"/"$keyFile" ]; then
+		exitError "$keysPath"/"$keyFile does not exist"
+	fi
+	
+	local -r gpgHome="$(mktemp --directory)"
+	trap "rm -rf -- '${gpgHome}'" 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+		cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
+		
+		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+		--no-random-seed-file --ignore-time-conflict \
+		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+		--import "$keysPath"/"$keyFile" </dev/null 1>$logsPath/downloads/$fileName.keyfile.log 2>&1
+		local -i exitCode=$?
+		if [ $exitCode -ne 0 ]; then
+			rm -rf -- "${gpgHome}"
+			trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+			return $exitCode
+		fi
+		
+		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+		--no-random-seed-file --ignore-time-conflict \
+		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+		 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
+		--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.keyfile.log 2>&1
+		exitCode=$?
+	
+	rm -rf -- "${gpgHome}"
+	trap - 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM
+	
 	return $exitCode
 }
 
@@ -652,11 +699,17 @@ function downloadFileAndCheckHash()
 				fi
 			;;
 			
-			GPG)
-				hashProgram=gpg
+			KEYRING)
 				hasHash=0
-				if ! verifySignature "$toPath" "$fileName" "$hashValue"; then
-					progressMessageFailed "signature does not match, check logs $logsPath/downloads/$fileName.sig.log"
+				if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue"; then
+					progressMessageFailed "Keyring signature does not match, check logs $logsPath/downloads/$fileName.keyring.log"
+				fi
+			;;
+			
+			KEYFILE)
+				hasHash=0
+				if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue"; then
+					progressMessageFailed "Key file signature does not match, check logs $logsPath/downloads/$fileName.keyfile.log"
 				fi
 			;;
 			
@@ -680,6 +733,15 @@ function downloadKeyrings()
 	for keyringNumber in ${!keyrings_Url[@]}
 	do
 		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Hashes[$keyringNumber]}"
+	done
+}
+
+function downloadKeys()
+{
+	local -i keyNumber
+	for key in ${!keys_Url[@]}
+	do
+		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${key_Hashes[$keyNumber]}"
 	done
 }
 
@@ -874,6 +936,7 @@ function main()
 	
 	createSkeletonFolderStructure
 	downloadKeyrings
+	downloadKeys
 	downloadSources
 	
 	if [ "$skipToolchain1" = "no" ]; then

@@ -319,8 +319,8 @@ function sourceKeyring()
 	local -i keyringExists=1
 	for existingKeyringNumber in ${!keyrings_FileName[@]}
 	do
-		if [ ${keyrings_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
-			if [ ${keyrings_Url[$existingPatchNumber]} != "$ourUrl" ]; then
+		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
+			if [ ${keyrings_Url[$existingKeyringNumber]} != "$ourUrl" ]; then
 				if [ "${keyrings_Hashes[$existingKeyringNumber]}" != "$ourHashes" ]; then
 					exitError "Override of URL for keyring $ourFileName specifies different hashes"
 				fi
@@ -340,6 +340,46 @@ function sourceKeyring()
 	keyrings_Url[$keyringNumber]="$ourUrl"
 	keyrings_FileName[$keyringNumber]="$ourFileName"
 	keyrings_Hashes[$keyringNumber]="$ourHashes"
+}
+
+declare -a keys_Url=()
+declare -a keys_FileName=()
+declare -a keys_Hashes=()
+function sourceKey()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Not exactly 2 arguments"
+	fi
+	
+	local -r ourUrl="$1"
+	local -r ourHashes="$2"
+	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	
+	local -i existingKeyNumber
+	local -i keyExists=1
+	for existingKeyNumber in ${!keys_FileName[@]}
+	do
+		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
+			if [ ${keys_Url[$existingKeyNumber]} != "$ourUrl" ]; then
+				if [ "${keys_Hashes[$existingKeyNumber]}" != "$ourHashes" ]; then
+					exitError "Override of URL for key $ourFileName specifies different hashes"
+				fi
+				warning "Overriding URL for key $ourFileName to $ourUrl (hashes, etc not changed)"
+				keys_Url[$existingKeyNumber]="$ourUrl"
+			fi
+			keyExists=0
+			break
+		fi
+	done
+	
+	if [ $keyExists -eq 0 ]; then
+		return 0
+	fi
+	
+	local -ir keyNumber=${#patches_Url[@]}
+	keys_Url[$keyNumber]="$ourUrl"
+	keys_FileName[$keyNumber]="$ourFileName"
+	keys_Hashes[$keyNumber]="$ourHashes"
 }
 
 function sourceRecipe()
