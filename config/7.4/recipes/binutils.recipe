@@ -3,6 +3,8 @@ addSourcePackageDownload 2.23.2 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$L
 
 function installPackage_toolchain1_binutils()
 {
+	blash-blash
+	
 	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
 
 	createBuildFolderAndPushd
