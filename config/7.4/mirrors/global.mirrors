@@ -4,8 +4,6 @@ set -o errexit +o hashall
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
 LFS_MIRROR_CVE=http://www.cvedetails.com/product
 
-LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development
-
 # NOTE: Must be reliable and support options=mr (ie binary keys), or, simply a static URL based web-server
 # Not:-
 # - eu.pool.sks-keyservers.net  is out - unreliable
@@ -21,6 +19,7 @@ LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development
 LFS_MIRROR_HKP='https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'
 
 # Trailing / is SIGNIFICANT
+LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development/
 LFS_MIRROR_GNU=https://ftp.gnu.org/gnu/
 LFS_MIRROR_SOURCEFORGE=https://prdownloads.sourceforge.net/
 LFS_MIRROR_LINUX_v3=https://www.kernel.org/pub/linux/kernel/v3.x/
