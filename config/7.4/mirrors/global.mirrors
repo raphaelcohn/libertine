@@ -21,7 +21,7 @@ LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development
 LFS_MIRROR_HKP='https://hkps.pool.sks-keyservers.net//pks/lookup?op=get&options=mr&search=0x'
 
 LFS_MIRROR_GNU=https://ftp.gnu.org/gnu
-LFS_MIRROR_SOURCEFORGE=http://prdownloads.sourceforge.net
+LFS_MIRROR_SOURCEFORGE=https://prdownloads.sourceforge.net
 LFS_MIRROR_LINUX_v3=https://www.kernel.org/pub/linux/kernel/v3.x
 LFS_MIRROR_PERL=http://www.cpan.org/src
 LFS_MIRROR_BZIP=http://www.bzip.org
