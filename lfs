@@ -546,9 +546,11 @@ function verifyHash()
 	
 	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
-		echo $-
 		$hashProgram --check --strict <<<"${hashValue}  ${fileName}" 1>"$logFile" 2>&1
+		local -ir exitCode=$?
 	popd >/dev/null
+	
+	return $exitCode
 }
 
 function verifySignature()
