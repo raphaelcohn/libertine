@@ -116,6 +116,11 @@ function purebash_basename()
 	echo "${1##*/}"
 }
 
+function naive_cat()
+{
+	echo -n -E
+}
+
 function exitError()
 {
 	local -r error="$1"
@@ -159,7 +164,7 @@ function executeWithCleanEnvironment()
 
 function exitHelp()
 {
-	echo "Usage: ${ourName} -h
+	echo -n -E "Usage: ${ourName} -h
 Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 
 Profiles
@@ -168,8 +173,8 @@ script, that install and build from source what would be called packages on othe
 
 If no profile is specified, then the baseline 'lfs' profile is used.
 
-profiles are executed in the order listed. Internally, a profile may reference ('source')
-another profile if it depends on it. This is the equivalent of package management on other
+profiles are executed in the order listed. Internally, a profile may reference (source)
+another profile it depends on. This is the equivalent of package management on other
 systems. A set of profiles is intended to be version-controlled using a source control system
 such as git and so do not declare explicit version dependencies.
 
@@ -192,7 +197,7 @@ Defaults
     profiles           ${profiles}
 
 A mirror defines mirror URLs. If a mirror is 'timezone', then timezone settings used to determine the actual mirrors.
-Note that if the timezone is Etc/UTC or something similar, then the 'language' mirrors are used. These use the LC_CTYPE,
+If Etc/UTC or something similar is the timezone, then the 'language' mirrors are used. These use the LC_CTYPE,
 LANG and LANGUAGE environment variables in order. The 'global' mirror can be specified to override this. A list of mirrors
 is in <lfsConfigPath>/mirrors . Conversions from timezone and language are controlled using <lfsConfigPath>/timezones-to-mirrors.map
 and <lfsConfigPath>/languages-to-mirrors.map respectively. Note that some mirrors, eg for the UK, are incomplete and source
