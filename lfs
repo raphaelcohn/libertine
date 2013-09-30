@@ -381,6 +381,7 @@ function setPathsAndExports()
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
+	exit 7
 }
 
 function registerDebianPackage()
@@ -451,8 +452,6 @@ function sourceProfiles()
 		done
 		
 	popd >/dev/null
-	
-	exit 7
 }
 
 function createSkeletonFolderStructure()
