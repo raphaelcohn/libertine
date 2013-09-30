@@ -388,7 +388,11 @@ function sourceHkp()
 	else
 		exitError "Not 1 or 2 arguments"
 	fi
+	
 	sourceKey "${LFS_MIRROR_HKP}${keyId}" ""
+	env
+	echo "$LFS_MIRROR_HKP"
+	exit 7
 }
 
 function sourceRecipe()
