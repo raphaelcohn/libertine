@@ -649,6 +649,14 @@ function verifyKeyringSignature()
 	local -r toPath="$1"
 	local -r fileName="$2"
 	local -r keyring="$3"
+	local -r signatureFileName="$4"
+	local -r isCompressed="$5"
+	
+	if [ "$isCompressed" = "no" ]; then
+		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile.log
+	else
+		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile_uncompressed.log
+	fi
 	
 	case "$keyring" in
 		
@@ -670,7 +678,7 @@ function verifyKeyringSignature()
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$keyringsPath" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>$logsPath/downloads/$fileName.keyring.log 2>&1
+	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>"$logFileName" 2>&1
 	local -ir exitCode=$?
 	return $exitCode
 }
@@ -680,9 +688,17 @@ function verifyKeyFileSignature()
 	local -r toPath="$1"
 	local -r fileName="$2"
 	local -r keyFile="$3"
+	local -r signatureFileName="$4"
+	local -r isCompressed="$5"
 	
 	if [ ! -f "$keysPath"/"$keyFile" ]; then
 		exitError "$keysPath"/"$keyFile does not exist"
+	fi
+	
+	if [ "$isCompressed" = "no" ]; then
+		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile.log
+	else
+		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile_uncompressed.log
 	fi
 	
 	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
@@ -692,7 +708,7 @@ function verifyKeyFileSignature()
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--import "$keysPath"/"$keyFile" </dev/null 1>$logsPath/downloads/$fileName.keyfile.log 2>&1
+	--import "$keysPath"/"$keyFile" </dev/null 1>"$logFileName" 2>&1
 	local -i exitCode=$?
 	if [ $exitCode -ne 0 ]; then
 		return $exitCode
@@ -702,7 +718,7 @@ function verifyKeyFileSignature()
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.keyfile.log 2>&1
+	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
 	exitCode=$?
 	
 	return $exitCode
@@ -713,9 +729,17 @@ function verifyHkpSignature()
 	local -r toPath="$1"
 	local -r fileName="$2"
 	local -r keyId="$3"
+	local -r signatureFileName="$4"
+	local -r isCompressed="$5"
 	
 	if [ ! -f "$keysPath"/"$keyId" ]; then
 		exitError "$keysPath"/"$keyId does not exist"
+	fi
+	
+	if [ "$isCompressed" = "no" ]; then
+		local -r logFileName="$logsPath"/downloads/"$fileName".hkp.log
+	else
+		local -r logFileName="$logsPath"/downloads/"$fileName".hkp_uncompressed.log
 	fi
 	
 	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
@@ -725,7 +749,7 @@ function verifyHkpSignature()
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--import "$keysPath"/"$keyId" </dev/null 1>$logsPath/downloads/$fileName.hkp.log 2>&1
+	--import "$keysPath"/"$keyId" </dev/null 1>"$logFileName" 2>&1
 	local -i exitCode=$?
 	if [ $exitCode -ne 0 ]; then
 		return $exitCode
@@ -735,7 +759,7 @@ function verifyHkpSignature()
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--verify "$signaturesPath"/"$fileName".sig "$toPath"/"$fileName" </dev/null 1>>$logsPath/downloads/$fileName.hkp.log 2>&1
+	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
 	exitCode=$?
 	
 	return $exitCode
@@ -848,6 +872,7 @@ function downloadFileAndCheckHash()
 	local hashProgram
 	local -i hasHash=1
 	local progressMessage
+	local signatureFileName
 	local temporaryFolder
 	for hashNameAndValue in ${hashes}
 	do
@@ -865,21 +890,27 @@ function downloadFileAndCheckHash()
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				hasHash=0
 				progressMessage="$hashName signature does not match, check logs $logsPath/downloads/$fileName.${hashName,,}.log"
+				if [ -z "$hashSignatureFileName" ]; then
+					signatureFileName="$fileName".sig
+				else
+					signatureFileName="$hashSignatureFileName"
+				fi
+				
 				case "$hashName" in
 					KEYRING)
-						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue"; then
+						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					KEYFILE)
-						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue"; then
+						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					HKP)
-						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue"; then
+						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
@@ -889,7 +920,7 @@ function downloadFileAndCheckHash()
 						temporaryFolder="$(temporaryFolderToRemoveOnExit)"
 						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/decompressed
 						
-						if ! verifyHkpSignature "$temporaryFolder" decompressed "$hashValue"; then
+						if ! verifyHkpSignature "$temporaryFolder" decompressed "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					set +x
