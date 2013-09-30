@@ -204,7 +204,9 @@ function addSourcePackageDownload()
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]=""
 	
+	set -x
 	addSignature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
+	set +x
 }
 
 function addSignature()
