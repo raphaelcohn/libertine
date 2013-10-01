@@ -29,15 +29,14 @@ function installPackage_toolchain1_glibc()
 		
 	popdBuildFolder
 	
-		pwd 1>&2
+	pwd 1>&2
 	
-		echo 'main(){}' >dummy.c
-	
-		"$LFS_TGT"-gcc dummy.c
-		readelf -l a.out | grep ": /$LFS_TOOLS"
+	echo 'main(){}' >dummy.c
+	"$LFS_TGT"-gcc dummy.c
+	readelf -l a.out | grep ": /$LFS_TOOLS"
 		# [Requesting program interpreter: /tools/lib/ld-linux.so.2]
 		exit 5
-	
-		rm -f -v dummy.c a.out
+	#PATH=/tools/bin:/bin:/usr/bin x86_64-lfs-linux-gnu-gcc -print-search-dirs
+	#rm -f -v dummy.c a.out
 }
 
