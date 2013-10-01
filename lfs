@@ -1004,7 +1004,7 @@ function downloadSources()
 		key="${sourcePackages_IndicesToKeys[$index]}"
 		url="${sourcePackages_Url["${key}"]}"
 		if [ ! -z "$url" ]; then
-			downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
+			downloadFileAndCheckHash "source package" "$url" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
 		fi
 		
 		local -i patchNumber
@@ -1059,43 +1059,45 @@ function installPackage()
 	
 	pushd "$sourcesPath" >/dev/null
 		
-		if ! tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
-			progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
-		else
-			progressMessageUpdate "extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
-		
-			local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-			local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
-		
-			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
-				
-				INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
-				addNextTrapHandler installationFailedTrapHandler
-					
-					exec 6>&1 1>"$installStdOutLogFile"
-					exec 7>&2 2>"$installStdErrLogFile"
-						
-						local -i patchNumber
-						for patchNumber in $LFS_PATCHES
-						do
-							echo "Applying patch ${patches_FileName[$patchNumber]}"
-							if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
-								exit 100
-							fi
-						done
-						
-						set -x
-						$installer
-						set +x
-						
-					exec 1>&6 6>&-
-					exec 2>&7 7>&-
-					
-				removeLastTrapHandler
-				
-			popd >/dev/null
-			rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
+			if ! tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
+				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
+			else
+				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log)"
+			fi
 		fi
+	
+		local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+	
+		pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
+			
+			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
+			addNextTrapHandler installationFailedTrapHandler
+				
+				exec 6>&1 1>"$installStdOutLogFile"
+				exec 7>&2 2>"$installStdErrLogFile"
+					
+					local -i patchNumber
+					for patchNumber in $LFS_PATCHES
+					do
+						echo "Applying patch ${patches_FileName[$patchNumber]}"
+						if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+							exit 100
+						fi
+					done
+					
+					set -x
+					$installer
+					set +x
+					
+				exec 1>&6 6>&-
+				exec 2>&7 7>&-
+				
+			removeLastTrapHandler
+			
+		popd >/dev/null
+		rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
 		
 	popd >/dev/null
 	
