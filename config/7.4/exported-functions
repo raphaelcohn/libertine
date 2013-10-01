@@ -631,8 +631,10 @@ function extractDependencies()
 	
 	for dependency in $@
 	do
+		echo $dependency
+		echo $@
 		IFS=: read -r -d $'\t' localSourcePackageName localVersion <<<"$dependency"
-		
+		echo "HERE"
 		key="$(printKey "$localSourcePackageName" "$localVersion")"
 		
 		localFileName=sourcePackages_FileName["${key}"]
