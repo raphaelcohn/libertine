@@ -6,3 +6,4 @@ sourceRecipe binutils 2.23.2
 sourceRecipe gcc 4.8.1
 sourceRecipe linux 3.10.10
 sourceRecipe glibc 2.18
+sourceRecipe libstdc++ 4.8.1

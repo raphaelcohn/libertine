@@ -28,34 +28,5 @@ function installPackage_toolchain1_glibc()
 		make install
 		
 	popdBuildFolder
-	
-	# libstdc++ built here, as it's part of gcc
-	createBuildFolderAndPushd "gcc-build"
-		
-		../"$LFS_EXTRACTED_TARBALL_FOLDER"/libstdc++-v3/configure \
-		--host="$LFS_TGT"                                      \
-		--prefix=/"$LFS_TOOLS"                                        \
-		--disable-multilib                                     \
-		--disable-shared                                       \
-		--disable-nls                                          \
-		--disable-libstdcxx-threads                            \
-		--disable-libstdcxx-pch                                \
-		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$ourVersion"
-		
-		make
-		
-		make install
-		
-		echo 'main(){}' >dummy.c
-		
-		"$LFS_TGT"-gcc dummy.c
-		readelf -l a.out | grep ": /$LFS_TOOLS"
-		# [Requesting program interpreter: /tools/lib/ld-linux.so.2]
-		exit 5
-		
-		rm -f -v dummy.c a.out
-		
-		
-	popdBuildFolder
 }
 

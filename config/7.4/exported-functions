@@ -453,7 +453,6 @@ function sourceRecipe()
 	fi
 }
 
-# The download list might be larger, because a package might be a dependency (eg gcc)
 declare -A phase_SourcesPackagesToInstall=()
 function addToInstall()
 {
@@ -477,10 +476,6 @@ function addToInstall()
 	fi
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
-	
-	if ! sourcePackagesKeyExists "$key"; then
-		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
-	fi
 	
 	local previousDependenciesInstall="${phase_SourcesPackagesToInstall["${phase}"]}"
 	phase_SourcesPackagesToInstall["${phase}"]="$previousDependenciesInstall $key"
@@ -618,11 +613,9 @@ function createBuildFolderAndPushd()
 	fi
 	
 	if [ $# -eq 1 ]; then
-		local -r localSourcePackageName="$1"
-		local -r buildFolder=../"$localSourcePackageName"-build
+		local -r buildFolder=../"$1"-build
 	else
-		local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-		local -r buildFolder=../"$localSourcePackageName"-build
+		local -r buildFolder=../"$LFS_SOURCE_PACKAGE_NAME"-build
 		rm -rf -- "$buildFolder"
 	fi
 	
