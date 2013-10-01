@@ -83,13 +83,15 @@ function installPackage_toolchain2_gcc()
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
 	do
 		cp -uv "$file"{,.orig}
-		sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' -e 's@/usr@/tools@g' "$file".orig >"$file"
-		echo '
-#undef STANDARD_STARTFILE_PREFIX_1
-#undef STANDARD_STARTFILE_PREFIX_2
-#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
-#define STANDARD_STARTFILE_PREFIX_2 ""' >>"$file"
-		touch $file.orig
+		sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${LFS_TOOLS}&@g" -e "s@/usr@/${LFS_TOOLS}@g" "$file".orig >"$file"
+		cat >>"$file" <<-EOF
+			
+			#undef STANDARD_STARTFILE_PREFIX_1
+			#undef STANDARD_STARTFILE_PREFIX_2
+			#define STANDARD_STARTFILE_PREFIX_1 "/${LFS_TOOLS}/lib/"
+			#define STANDARD_STARTFILE_PREFIX_2 ""
+		EOF
+		touch "$file".orig
 	done
 	
 	extractDependencyIntoBuildFolder mpfr $gccMpfrVersion
@@ -126,4 +128,31 @@ function installPackage_toolchain2_gcc()
 		ln -sv gcc /"$LFS_TOOLS"/bin/cc
 		
 	popdBuildFolder
+	
+	verifyGcc
+}
+
+# similar to verifyGlibc except we use 'cc' rather than "$LFS_TGT"-gcc
+function verifyGcc()
+{
+	echo 'main(){}' >dummy.c
+	cc dummy.c
+	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
+	
+	case "$(uname -m)" in
+		x86_64)
+			local -r libraryFolderName=lib64
+		;;
+		
+		*)
+			local -r libraryFolderName=lib
+		;;
+	esac
+	
+	if [ "$(purebash_dirname "$interpreter")" != /"$LFS_TOOLS"/"$libraryFolderName" ]; then
+		echo "$interpreter is incorrect"
+		exit 3
+	fi
+	
+	rm -f -v dummy.c a.out
 }

@@ -29,14 +29,29 @@ function installPackage_toolchain1_glibc()
 		
 	popdBuildFolder
 	
-	pwd 1>&2
-	
-	echo 'main(){}' >dummy.c
-	"$LFS_TGT"-gcc dummy.c
-	readelf -l a.out | grep ": /$LFS_TOOLS"
-		# [Requesting program interpreter: /tools/lib/ld-linux.so.2]
-		exit 5
-	#PATH=/tools/bin:/bin:/usr/bin x86_64-lfs-linux-gnu-gcc -print-search-dirs
-	#rm -f -v dummy.c a.out
+	verifyGlibc
 }
 
+function verifyGlibc()
+{
+	echo 'main(){}' >dummy.c
+	"$LFS_TGT"-gcc dummy.c
+	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
+	
+	case "$(uname -m)" in
+		x86_64)
+			local -r libraryFolderName=lib64
+		;;
+		
+		*)
+			local -r libraryFolderName=lib
+		;;
+	esac
+	
+	if [ "$(purebash_dirname "$interpreter")" != /"$LFS_TOOLS"/"$libraryFolderName" ]; then
+		echo "$interpreter is incorrect"
+		exit 3
+	fi
+	
+	rm -f -v dummy.c a.out
+}
