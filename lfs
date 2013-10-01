@@ -1022,7 +1022,7 @@ function downloadSources()
 INSTALLATION_FAILED_MESSAGE=""
 function installationFailedTrapHandler()
 {
-	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE"
+	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE (exit code was $?)" >>/dev/stdout
 }
 
 function installPackage()
@@ -1084,7 +1084,7 @@ function installPackage()
 						fi
 					done
 				
-					$installer  1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
+					$installer 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
 					
 				removeLastTrapHandler
 				

@@ -3,6 +3,7 @@
 * better download location (outside of the chroot) with support for mirrors, ie so we can ship a files-only, CD-like set
 	* No need to go mental
 	* But allows us to offer our own host quite simply
+* Better use of unxz, etc, so we optimise the linux sign check
 * linking of certificate-authorities to particular packages
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
