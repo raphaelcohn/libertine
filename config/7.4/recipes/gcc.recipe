@@ -26,15 +26,14 @@ function installPackage_toolchain1_gcc()
 #undef STANDARD_STARTFILE_PREFIX_2
 #define STANDARD_STARTFILE_PREFIX_1 "/${LFS_TOOLS}/lib/"
 #define STANDARD_STARTFILE_PREFIX_2 ""' >>"$file"
-		touch $file.orig
+		touch "$file".orig
 	done
 
 	# Stack protection
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
 	createBuildFolderAndPushd
-
-		local -r currentDir="$(pwd)"
+		
 		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TGT"                              \
 		--prefix=/"$LFS_TOOLS"                                  \
@@ -57,8 +56,8 @@ function installPackage_toolchain1_gcc()
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
 		--enable-languages=c,c++                         \
-		--with-mpfr-include="$currentDir"/../"$LFS_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
-		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
+		--with-mpfr-include="$(pwd)"/../"$LFS_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
 
 		make
 

@@ -26,16 +26,6 @@ function installPackage_toolchain1_libstdc++()
 		make
 	
 		make install
-	
-		echo 'main(){}' >dummy.c
-	
-		"$LFS_TGT"-gcc dummy.c
-		readelf -l a.out | grep ": /$LFS_TOOLS"
-		# [Requesting program interpreter: /tools/lib/ld-linux.so.2]
-		exit 5
-	
-		rm -f -v dummy.c a.out
-	
-	
+		
 	popdBuildFolder
 }

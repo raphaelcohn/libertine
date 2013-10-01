@@ -9,6 +9,5 @@ function installPackage_toolchain1_linux()
 	
 	make INSTALL_HDR_PATH=dest headers_install
 	
-	mkdir -m 0755 -p /"$LFS_TOOLS"/include
 	cp -rv dest/include/* /"$LFS_TOOLS"/include
 }
