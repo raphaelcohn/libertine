@@ -998,11 +998,15 @@ function downloadSources()
 {
 	local -i index
 	local key
+	local url
 	for index in ${!sourcePackages_IndicesToKeys[@]}
 	do
 		key="${sourcePackages_IndicesToKeys[$index]}"
-		downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
-	
+		url="${sourcePackages_Url["${key}"]}"
+		if [ ! -z "$url" ]; then
+			downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
+		fi
+		
 		local -i patchNumber
 		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do

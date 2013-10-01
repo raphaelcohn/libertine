@@ -58,8 +58,14 @@
 	* X  disk compression adjustment
 	* Z  compression dirty (read-only)
 
+* Capabilities
+
 * ACLs
-	
+	* use setacl / getfacl; can also replace chmod, etc
+	* allow multiple users and multiple groups to have permission bits set on a file
+	* for all intents and purposes, this means all files outside of /home could be owned by root:root with classic permissions r--r----- (ie read only to root)
+	* there is also a 'mask' value, which allows more restrictive permissions for ACL'd users/groups (or it should be set to the least permissions viable). Mask doesn't affect classic settings
+	* mask is changed by chmod, though, to user/group/other setting
 
 * Post-package sha512 / sha1 sums of all files
 	Also record file layout, file system, file perms, ACLs, any user id & group id, File type (file/folder/symlink/char device/block device/pipe/domain socket)

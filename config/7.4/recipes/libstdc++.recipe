@@ -1,7 +1,10 @@
 set -o errexit +o hashall
 
 # Bit of an oddity, as this depends on gcc-build already existing and is part of the gcc package
+set -x
 addSourcePackageWithoutDownload "$LFS_SOURCE_PACKAGE_NAME" 4.8.1
+set +x
+
 function installPackage_toolchain1_libstdc++()
 {
 	createBuildFolderAndPushd "gcc"
