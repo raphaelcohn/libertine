@@ -633,7 +633,7 @@ function extractDependencies()
 	do
 		echo $dependency
 		echo $@
-		IFS=: read -r -d $'\t' localSourcePackageName localVersion <<<"$dependency"
+		IFS=: read -r -d $'\n' localSourcePackageName localVersion <<<"$dependency"
 		echo "HERE"
 		key="$(printKey "$localSourcePackageName" "$localVersion")"
 		
