@@ -129,7 +129,6 @@ declare -A sourcePackages_FileName=()
 declare -A sourcePackages_ExtractedTarballFolder=()
 declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
-
 function addSourcePackageDownload()
 {
 	if [ $# -lt 4 ]; then
@@ -145,7 +144,6 @@ function addSourcePackageDownload()
 	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	local -r ourHashes="$4"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
-	
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
@@ -442,45 +440,30 @@ function sourceRecipe()
 	
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
+	if [ $# -eq 3 ]; then
+		local -r reasonNotToAddToInstall="$3"
+	else
+		local -r reasonNotToAddToInstall=""
+	fi
 	
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	
-	if [ $# -eq 3 ]; then
-		local -r onlyInstallForPhase="$3"
-		
-		case "$onlyInstallForPhase" in
-			
-			toolchain1|toolchain2|system)
-				:
-			;;
-			
-			*)
-				exitError "Unknown phase $onlyInstallForPhase"
-			;;
-			
-		esac
-		
-		if [ "$onlyInstallForPhase" = "$LFS_PHASE" ]; then
-			addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
-		fi
-	else
-		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE" "$distributionVersion"
+	if [ -z "$canAddToInstall" ]; then
+		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
 	fi
 }
 
-declare -A installPhase_toolchain1=()
-declare -A installPhase_toolchain2=()
-declare -A installPhase_system=()
+# The download list might be larger, because a package might be a dependency (eg gcc)
+declare -A phase_SourcesPackagesToInstall=()
 function addToInstall()
 {
-	if [ $# -lt 4 ]; then
-		exitError "Not enough arguments"
+	if [ $# -ne 3 ]; then
+		exitError "Needs 3 arguments"
 	fi
 	
 	local -r ourSourcePackageName="$1"
 	local -r ourVersion="$2"
 	local -r phase="$3"
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
@@ -493,43 +476,14 @@ function addToInstall()
 		exitError "No installer $installer_versioned or $installer_unversioned defined for $ourSourcePackageName version $ourVersion"
 	fi
 	
-	# Ensure a tar ball download exists
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	
 	if ! sourcePackagesKeyExists "$key"; then
 		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
 	fi
 	
-	# remaining variables are distribution versions (ie software that works together)
-	shift 3
-	local localDistributionVersion
-	local localDistributionVersionKey
-	local previousDependencies=""
-	for localDistributionVersion in $@
-	do
-		localDistributionVersionKey="$(printDistributionVersionKey "$localDistributionVersion")"
-		
-		case "$phase" in
-		
-			toolchain1)
-				previousDependencies="${installPhase_toolchain1["${localDistributionVersionKey}"]}"
-				installPhase_toolchain1["${localDistributionVersionKey}"]="$previousDependencies $key"
-			;;
-		
-			toolchain2)
-				previousDependencies="${installPhase_toolchain2["${localDistributionVersionKey}"]}"
-				installPhase_toolchain2["${localDistributionVersionKey}"]="$previousDependencies $key"
-			;;
-		
-			system)
-				previousDependencies="${installPhase_system["${localDistributionVersionKey}"]}"
-				installPhase_system["${localDistributionVersionKey}"]="$previousDependencies $key"
-			;;
-		
-			*)
-				exitError "Unsupported phase $phase"
-			;;
-		
-		esac
-	done
+	local previousDependenciesInstall="${phase_SourcesPackagesToInstall["${phase}"]}"
+	phase_SourcesPackagesToInstall["${phase}"]="$previousDependenciesInstall $key"
 }
 
 # Also https://www.scaprepo.com/ is a good place to query

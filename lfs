@@ -987,35 +987,20 @@ function downloadKeys()
 	done
 }
 
-function downloadSource()
-{
-	local -r downloadPhase="$1"
-	local -r key="$2"
-	downloadFileAndCheckHash "source package ($downloadPhase)" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
-	
-	local -i patchNumber
-	for patchNumber in ${sourcePackages_Patches["${key}"]}
-	do
-		downloadFileAndCheckHash "patch ($downloadPhase)" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
-	done
-}
-
 function downloadSources()
 {
-	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
+	local -i index
 	local key
-	local -i patchNumber
-	for key in ${installPhase_toolchain1["${localDistributionVersionKey}"]}
+	for index in ${!sourcePackages_IndicesToKeys[@]}
 	do
-		downloadSource "toolchain1" "$key"
-	done
-	for key in ${installPhase_toolchain2["${localDistributionVersionKey}"]}
-	do
-		downloadSource "toolchain2" "$key"
-	done
-	for key in ${installPhase_system["${localDistributionVersionKey}"]}
-	do
-		downloadSource "system" "$key"
+		key="${sourcePackages_IndicesToKeys[$index]}"
+		downloadFileAndCheckHash "source package" "${sourcePackages_Url["${key}"]}" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
+	
+		local -i patchNumber
+		for patchNumber in ${sourcePackages_Patches["${key}"]}
+		do
+			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
+		done
 	done
 }
 
@@ -1109,30 +1094,8 @@ function installPackage()
 function installPackages()
 {
 	local -r phase="$1"
-	
-	local -r localDistributionVersionKey="$(printDistributionVersionKey "$distributionVersion")"
-	case "$phase" in
-		
-		toolchain1)
-			local -r packageKeys="${installPhase_toolchain1["${localDistributionVersionKey}"]}"
-		;;
-		
-		toolchain2)
-			local -r packageKeys="${installPhase_toolchain2["${localDistributionVersionKey}"]}"
-		;;
-		
-		system)
-			local -r packageKeys="${installPhase_system["${localDistributionVersionKey}"]}"
-		;;
-		
-		*)
-			exitError "Unknown phase $phase"
-		;;
-		
-	esac
-	
 	local key
-	for key in $packageKeys
+	for key in ${phase_SourcesPackagesToInstall["${phase}"]}
 	do
 		installPackage "$phase" "$key"
 	done
