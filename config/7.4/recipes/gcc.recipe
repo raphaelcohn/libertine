@@ -38,7 +38,7 @@ function installPackage_toolchain1_gcc()
 		EOF
 		touch "$file".orig
 	done
-
+exit 70
 	# Stack protection
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
