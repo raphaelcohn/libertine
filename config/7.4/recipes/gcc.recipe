@@ -1,15 +1,19 @@
 set -o errexit +o hashall
+
 # gcc pre-dependencies, only installed if this is the system phase
-sourceRecipe mpfr 3.1.2 system
-sourceRecipe gmp 5.1.2 system
-sourceRecipe mpc 1.0.1 system
+gccMpfrVersion=3.1.2
+gccGmpVersion=5.1.2
+gccMpcVersion=1.0.1
+sourceRecipe mpfr $gccMpfrVersion system
+sourceRecipe gmp $gccGmpVersion system
+sourceRecipe mpc $gccMpcVersion system
 
 addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304,KEYRING:gnu-keyring.gpg
 
 function installPackage_toolchain1_gcc()
 {
-	# TODO: These can be different versions to those used in the eventual system. Not good.
-	extractDependencies mpfr:3.1.2 gmp:5.1.2 mpc:1.0.1
+	set -x
+	extractDependencies mpfr:$gccMpfrVersion gmp:$gccGmpVersion mpc:$gccMpcVersion
 
 	# Adjust paths to use /tools and remove /usr/include
 	local file
