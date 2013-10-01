@@ -641,6 +641,7 @@ function extractDependencies()
 			progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
 		fi
 		
+		pwd
 		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
 		mv "$localExtractedTarballFolder" "$localSourcePackageName"
 	done
