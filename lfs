@@ -851,6 +851,13 @@ function downloadFileAndCheckHash()
 		# We re-load the config after specifying our options
 		touch "$HOME"/.curlrc
 		
+		# Only enabled compression for uncompressed files, because a few badly configured servers (eg http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz) then stream the non-gz tarball
+		if [ -z "$decompressionOption" ]; then
+			local -r curlCompressionOption="--compressed "
+		else
+			local -r curlCompressionOption=""
+		fi
+		
 		local -r referer="$(dirname "$url")/"
 		
 		set +e
@@ -858,7 +865,7 @@ function downloadFileAndCheckHash()
 		--user-agent "lfs/${distributionVersion}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
-		--compressed --remote-time \
+		${curlCompressionOption}--remote-time \
 		--dump-header "$logsPath"/downloads/"$fileName".headers.log \
 		--trace-time --trace-ascii "$logsPath"/downloads/"$fileName".trace-ascii.log \
 		--stderr "$logsPath"/downloads/"$fileName".stderr.log \

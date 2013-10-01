@@ -565,7 +565,7 @@ function tarExtract()
 	if [ -z "$ourCompression" ]; then
 		tar --extract --file "$tarball"
 	else
-		tar --extract --file "$tarball" --$tarballCompression
+		tar --extract --$tarballCompression --file "$tarball"
 	fi
 }
 
@@ -595,7 +595,6 @@ function extractDependencies()
 			progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
 		fi
 		
-		pwd
 		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
 		mv "$localExtractedTarballFolder" "$localSourcePackageName"
 	done
