@@ -1094,9 +1094,6 @@ function installPackage()
 		
 	popd >/dev/null
 	
-	if [ $failed -eq 1 ]; then
-		progressMessageFailed "$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
-	fi
 	progressMessageSucceeded
 }
 
