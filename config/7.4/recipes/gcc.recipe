@@ -21,14 +21,6 @@ function installPackage_toolchain1_gcc()
 	do
 		cp -uv "$file"{,.orig}
 		sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${LFS_TOOLS}&@g" -e "s@/usr@/${LFS_TOOLS}@g" "$file".orig >"$file"
-		
-		cat <<-EOF
-			
-			#undef STANDARD_STARTFILE_PREFIX_1
-			#undef STANDARD_STARTFILE_PREFIX_2
-			#define STANDARD_STARTFILE_PREFIX_1 "/${LFS_TOOLS}/lib/"
-			#define STANDARD_STARTFILE_PREFIX_2 ""
-		EOF
 		cat >>"$file" <<-EOF
 			
 			#undef STANDARD_STARTFILE_PREFIX_1
@@ -38,7 +30,7 @@ function installPackage_toolchain1_gcc()
 		EOF
 		touch "$file".orig
 	done
-exit 70
+	
 	# Stack protection
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
