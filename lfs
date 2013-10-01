@@ -1022,7 +1022,7 @@ function downloadSources()
 INSTALLATION_FAILED_MESSAGE=""
 function installationFailedTrapHandler()
 {
-	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE (exit code was $?)" >>/dev/stdout
+	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
 }
 
 function installPackage()
@@ -1075,16 +1075,22 @@ function installPackage()
 				INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
 				addNextTrapHandler installationFailedTrapHandler
 					
-					local -i patchNumber
-					for patchNumber in $LFS_PATCHES
-					do
-						echo "Applying patch ${patches_FileName[$patchNumber]}" 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
-						if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}" 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"; then
-							exit 100
-						fi
-					done
-				
-					$installer 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
+					exec 6>&1 1>"$installStdOutLogFile"
+					exec 7>&2 2>"$installStdErrLogFile"
+						
+						local -i patchNumber
+						for patchNumber in $LFS_PATCHES
+						do
+							echo "Applying patch ${patches_FileName[$patchNumber]}"
+							if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+								exit 100
+							fi
+						done
+						
+						$installer
+						
+					exec 1>&6 6>&-
+					exec 2>&7 7>&-
 					
 				removeLastTrapHandler
 				
