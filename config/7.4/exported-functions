@@ -129,6 +129,26 @@ declare -A sourcePackages_FileName=()
 declare -A sourcePackages_ExtractedTarballFolder=()
 declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
+function addSourcePackageWithoutDownload()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	local -r ourSourcePackageName="$1"
+	local -r ourVersion="$2"
+	
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	
+	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
+	if sourcePackagesKeyExists "$key"; then
+		return 0
+	fi
+	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
+	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
+	sourcePackages_Version["${key}"]="$ourVersion"
+}
+
 function addSourcePackageDownload()
 {
 	if [ $# -lt 4 ]; then
@@ -231,10 +251,9 @@ function addSourcePackageDownload()
 		fi
 		return 0
 	fi
-	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
 	
-	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
-	sourcePackages_Version["${key}"]="$ourVersion"
+	addSourcePackageWithoutDownload "$ourSourcePackageName" "$ourVersion"
+	
 	sourcePackages_Url["${key}"]="$ourUrl"
 	sourcePackages_Compression["${key}"]="$ourCompression"
 	sourcePackages_FileName["${key}"]="$ourFileName"

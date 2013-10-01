@@ -1030,7 +1030,7 @@ function installPackage()
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
 	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
 	
-	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION"
+	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
 	local -r ourCompression="${sourcePackages_Compression["${key}"]}"
 	local -r ourFileName="${sourcePackages_FileName["${key}"]}"

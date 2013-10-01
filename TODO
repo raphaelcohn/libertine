@@ -5,8 +5,62 @@
 	* But allows us to offer our own host quite simply
 * Better use of unxz, etc, so we optimise the linux sign check
 * linking of certificate-authorities to particular packages
+* Reduce need to sudo
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
 	* Example: GNU Bash is http://www.cvedetails.com/product/21050/GNU-Bash.html
 	* Not everything is listed, of course
+
+* SUID / GUID binary (and library) finding
+	* Remove the attributes
+	* Whitelist of permitted binaries PER package
+
+* Post-package removal of binaries / files
+
+* Post-package permissions changes
+	* Apply Attributes
+		* chattr
+		* lsattr
+	* Apply ACLs
+		* getfacl
+		* setfacl
+	* Change regular perms
+		* Particularly, for binaries, remove world permissions
+		* Actually, for all files, remove world permissions
+	* Create an user
+	* Create a group
+	* Add a binary to a particular group / user combination
+	* Mock group of groups
+
+* Attributes (chattr / lsattr, part of e2fsprogs)
+	Security
+	* a  append-only, unless root / CAP_LINUX_IMMUTABLE
+	* d  not backed up by dump (ie sensitive,  file system local, etc)
+	* h  file is or was >2TB (read-only)
+	* i  file is read-only, can not be written to or linked to (can only be made writable by root / CAP_LINUX_IMMUTABLE)
+		- very useful for binaries and libraries and even config
+	* s  deleted file is zeroed (limitations, but seems like a sensible choice for most files) (ignored on ext2/3)
+	* T  tell the block allocator to put subfolders into different blocks
+		- useful for stormmq; useful for /home to split up users
+	* u  undeletion! (ignored on ext2/3)
+	Other
+	* A  atime is not modified
+	* D  dirsync, synchronous write of changes
+	* e  extents
+	* I  hash indexed (read-only)
+	* j  sync of data to ext3 journal before writing to file; no effect if ext3 mounted data=journal
+	* S  'sync mount option' per file
+	* t  no tail-merging. Can't imagine much use for this
+	Compression
+	* E  compression error (read-only)
+	* c  automatic disk compression (ignored on ext2/3)
+	* X  disk compression adjustment
+	* Z  compression dirty (read-only)
+
+* ACLs
+	
+
+* Post-package sha512 / sha1 sums of all files
+	Also record file layout, file system, file perms, ACLs, any user id & group id, File type (file/folder/symlink/char device/block device/pipe/domain socket)
+* Linux capabilities and audit
