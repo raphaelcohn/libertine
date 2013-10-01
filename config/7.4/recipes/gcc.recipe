@@ -12,7 +12,6 @@ addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LF
 
 function installPackage_toolchain1_gcc()
 {
-	set -x
 	extractDependencies mpfr:$gccMpfrVersion gmp:$gccGmpVersion mpc:$gccMpcVersion
 
 	# Adjust paths to use /tools and remove /usr/include
