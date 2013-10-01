@@ -1,12 +1,18 @@
 set -o errexit +o hashall
 
-# Bit of an oddity, as this depends on gcc-build already existing and is part of the gcc package
-addSourcePackageWithoutDownload "$LFS_SOURCE_PACKAGE_NAME" 4.8.1
+# Bit of an oddity, as this depends on gcc.recipe already having run
+# Unlike all other installers, this one uses someone else's tar ball (in this case, gcc)
+function addMe()
+{
+	local -r key="$(printKey gcc "$LFS_SOURCE_PACKAGE_VERSION")"
+	addSourcePackageWithoutDownload "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION" ${sourcePackages_Compression["${key}"]} ${sourcePackages_FileName["${key}"]} ${sourcePackages_ExtractedTarballFolder["${key}"]}
+}
+addMe
 
 function installPackage_toolchain1_libstdc++()
 {
 	createBuildFolderAndPushd "gcc"
-		
+	
 		../gcc-"$LFS_SOURCE_PACKAGE_VERSION"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
 		--prefix=/"$LFS_TOOLS"                                        \
@@ -16,20 +22,20 @@ function installPackage_toolchain1_libstdc++()
 		--disable-libstdcxx-threads                            \
 		--disable-libstdcxx-pch                                \
 		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$LFS_SOURCE_PACKAGE_VERSION"
-		
+	
 		make
-		
+	
 		make install
-		
+	
 		echo 'main(){}' >dummy.c
-		
+	
 		"$LFS_TGT"-gcc dummy.c
 		readelf -l a.out | grep ": /$LFS_TOOLS"
 		# [Requesting program interpreter: /tools/lib/ld-linux.so.2]
 		exit 5
-		
+	
 		rm -f -v dummy.c a.out
-		
-		
+	
+	
 	popdBuildFolder
 }

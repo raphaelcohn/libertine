@@ -1036,8 +1036,8 @@ function installPackage()
 	
 	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
-	local -r ourCompression="${sourcePackages_Compression["${key}"]}"
-	local -r ourFileName="${sourcePackages_FileName["${key}"]}"
+	LFS_OUR_COMPRESSION="${sourcePackages_Compression["${key}"]}"
+	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
 	LFS_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder["${key}"]}"
 	LFS_PATCHES="${sourcePackages_Patches["${key}"]}"
 	
@@ -1060,7 +1060,7 @@ function installPackage()
 	pushd "$sourcesPath" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
-			if ! tarExtract "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$ourCompression" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
+			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
 				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
 			else
 				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log)"
@@ -1069,8 +1069,10 @@ function installPackage()
 	
 		local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
 		local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
-	
-		pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
+		
+		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
+			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
+		fi
 			
 			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
@@ -1095,9 +1097,11 @@ function installPackage()
 				exec 2>&7 7>&-
 				
 			removeLastTrapHandler
-			
-		popd >/dev/null
-		rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+		
+		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
+			popd >/dev/null
+			rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+		fi
 		
 	popd >/dev/null
 	

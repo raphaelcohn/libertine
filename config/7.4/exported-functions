@@ -131,9 +131,15 @@ declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
 function addSourcePackageWithoutDownload()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
-	fi
+	case $# in
+		2|5)
+			:
+		;;
+		
+		*)
+			exitError "Needs 2 or 5 arguments"
+		;;
+	esac
 	
 	local -r ourSourcePackageName="$1"
 	local -r ourVersion="$2"
@@ -147,6 +153,12 @@ function addSourcePackageWithoutDownload()
 	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
 	sourcePackages_Version["${key}"]="$ourVersion"
+	
+	if [ $# -eq 5 ]; then
+		sourcePackages_Compression["${key}"]="$3"
+		sourcePackages_FileName["${key}"]="$4"
+		sourcePackages_ExtractedTarballFolder["${key}"]="$5"
+	fi
 }
 
 function addSourcePackageDownload()
@@ -252,12 +264,9 @@ function addSourcePackageDownload()
 		return 0
 	fi
 	
-	addSourcePackageWithoutDownload "$ourSourcePackageName" "$ourVersion"
+	addSourcePackageWithoutDownload "$ourSourcePackageName" "$ourVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
 	
 	sourcePackages_Url["${key}"]="$ourUrl"
-	sourcePackages_Compression["${key}"]="$ourCompression"
-	sourcePackages_FileName["${key}"]="$ourFileName"
-	sourcePackages_ExtractedTarballFolder["${key}"]="$LFS_EXTRACTED_TARBALL_FOLDER"
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]=""
 	
@@ -465,7 +474,7 @@ function sourceRecipe()
 		local -r reasonNotToAddToInstall=""
 	fi
 	
-	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
+	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	
 	if [ -z "$reasonNotToAddToInstall" ]; then
 		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
@@ -583,35 +592,28 @@ function tarExtract()
 	fi
 }
 
-function extractDependencies()
+# Assumes it is in the build folder
+function extractDependencyIntoBuildFolder()
 {
-	if [ $# -eq 0 ]; then
-		exitError "Not enough arguments"
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
 	fi
 	
-	local dependency
-	local localSourcePackageName
-	local localVersion
-	local key
-	local localFileName
-	local localExtractedTarballFolder
-	local localCompression
-	for dependency in $@
-	do
-		IFS=: read -r -d $'\n' localSourcePackageName localVersion <<<"$dependency"
-		key="$(printKey "$localSourcePackageName" "$localVersion")"
-		
-		localFileName=${sourcePackages_FileName["${key}"]}
-		localExtractedTarballFolder=${sourcePackages_ExtractedTarballFolder["${key}"]}
-		localCompression=${sourcePackages_Compression["${key}"]}
-		
-		if [ -z "$localSourcePackageName" ]; then
-			progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
-		fi
-		
-		tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
-		mv "$localExtractedTarballFolder" "$localSourcePackageName"
-	done
+	local -r localSourcePackageName="$1"
+	local -r localVersion="$2"
+	
+	local -r key="$(printKey "$localSourcePackageName" "$localVersion")"
+	
+	local -r localFileName=${sourcePackages_FileName["${key}"]}
+	local -r localExtractedTarballFolder=${sourcePackages_ExtractedTarballFolder["${key}"]}
+	local -r localCompression=${sourcePackages_Compression["${key}"]}
+	
+	if [ -z "$localSourcePackageName" ]; then
+		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
+	fi
+	
+	tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
+	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
 }
 
 function installPackagePrototype()
