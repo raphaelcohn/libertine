@@ -448,7 +448,7 @@ function sourceRecipe()
 	
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	
-	if [ -z "$canAddToInstall" ]; then
+	if [ -z "$reasonNotToAddToInstall" ]; then
 		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
 	fi
 }
