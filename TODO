@@ -5,12 +5,32 @@
 	* But allows us to offer our own host quite simply
 * Better use of unxz, etc, so we optimise the linux sign check
 * linking of certificate-authorities to particular packages
-* Reduce need to sudo
+* SUDO profile so can automate build (ie template for sudoers)
+* Multiple symlinks for /tools so we can distinguish by distribution and profile hashes
+
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
 	* Example: GNU Bash is http://www.cvedetails.com/product/21050/GNU-Bash.html
 	* Not everything is listed, of course
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 * SUID / GUID binary (and library) finding
 	* Remove the attributes

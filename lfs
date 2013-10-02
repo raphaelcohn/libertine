@@ -214,7 +214,7 @@ function executeWithCleanEnvironment()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-t toolsFolderName] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
+Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 
 Profiles
 [profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
@@ -238,7 +238,6 @@ Defaults
     distribution       ${distribution}
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
-    toolsFolderName    ${toolsFolderName}
     mirrors            ${mirrors}
     toolchain1Profile  ${toolchain1Profile}
     toolchain2Profile  ${toolchain2Profile}
@@ -265,12 +264,11 @@ or 'no-' to turn it off. For example, to turn on 'strip-system-docs' :-
 Last setting wins.
 
 Options are as follows:-     Default
-    skip-toolchain1          ${skipToolchain1}
-    skip-toolchain2          ${skipToolchain2}
-    strip-toolchain-symbols  ${stripToolchainSymbols}
-    strip-toolchain-docs     ${stripToolchainDocs}
-    strip-system-symbols     ${stripSystemSymbols}
-    strip-system-docs        ${stripSystemDocs}
+    skip-toolchain-if-backup-exists  ${skipToolchainIfBackupExists}
+    strip-toolchain-symbols          ${stripToolchainSymbols}
+    strip-toolchain-docs             ${stripToolchainDocs}
+    strip-system-symbols             ${stripSystemSymbols}
+    strip-system-docs                ${stripSystemDocs}
 " 1>&2
 	exit $1
 }
@@ -278,17 +276,15 @@ Options are as follows:-     Default
 function parseCommandLine()
 {
 	# Defaults
-	distributionVersion=""
+	distribution=""
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
-	toolsFolderName=tools
 	mirrors="timezone"
 	toolchain1Profile=toolchain1
 	toolchain2Profile=toolchain2
-	skipToolchain1="no"
-	skipToolchain2="no"
+	skipToolchainIfBackupExists="yes"
 	stripToolchainSymbols="yes"
-	stripToolchainDocs="no"
+	stripToolchainDocs="yes"
 	stripSystemSymbols="yes"
 	stripSystemDocs="no"
 	profiles="system"
@@ -309,7 +305,7 @@ function parseCommandLine()
 				;;
 				
 				d)
-					distributionVersion="$OPTARG"
+					distribution="$OPTARG"
 				;;
 				
 				l)
@@ -318,10 +314,6 @@ function parseCommandLine()
 				
 				c)
 					lfsConfigPath="$OPTARG"
-				;;
-				
-				t)
-					toolsFolderName="$OPTARG"
 				;;
 				
 				m)
@@ -343,20 +335,12 @@ function parseCommandLine()
 				
 					case "$OPTARG" in
 						
-						no-skip-toolchain1)
-							skipToolchain1="no"
+						no-skip-toolchain-if-backup-exists)
+							skipToolchainIfBackupExists="no"
 						;;
 						
-						yes-skip-toolchain1)
-							skipToolchain1="yes"
-						;;
-						
-						no-skip-toolchain2)
-							skipToolchain2="no"
-						;;
-						
-						yes-skip-toolchain2)
-							skipToolchain2="yes"
+						yes-skip-toolchain-if-backup-exists)
+							skipToolchainIfBackupExists="yes"
 						;;
 						
 						no-strip-toolchain-symbols)
@@ -410,7 +394,7 @@ function parseCommandLine()
 			profiles="$@"
 		fi
 		
-		if [ -z "$distributionVersion" ]; then
+		if [ -z "$distribution" ]; then
 			exitError "Please specify a distribution using -d"
 		fi
 	fi
@@ -418,7 +402,7 @@ function parseCommandLine()
 
 function setPathsAndExports()
 {
-	essentialProgramCheck mkdir uname awk sort
+	essentialProgramCheck mkdir uname awk sort md5sum
 	
 	if [ ! -d "$lfsConfigPath" ]; then
 		exitError "Config path $lfsConfigPath does not exist or is not a directory"
@@ -427,47 +411,47 @@ function setPathsAndExports()
 	lfsConfigPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly distributionPath="$lfsConfigPath"/"$distributionVersion"
-	if [ ! -d "$distributionPath" ]; then
-		exitError "distribution path $distributionPath does not exist or is not a directory"
+	readonly distributionConfigPath="$lfsConfigPath"/"$distribution"
+	if [ ! -d "$distributionConfigPath" ]; then
+		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
 	fi
 	
-	readonly certificateAuthoritiesPath="$distributionPath"/certificate-authorities
+	readonly certificateAuthoritiesPath="$distributionConfigPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	readonly mirrorsPath="$distributionPath"/mirrors
+	readonly mirrorsPath="$distributionConfigPath"/mirrors
 	if [ ! -d "$mirrorsPath" ]; then
 		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
 	fi
 	
-	readonly profilesPath="$distributionPath"/profiles
+	readonly profilesPath="$distributionConfigPath"/profiles
 	if [ ! -d "$profilesPath" ]; then
 		exitError "Profiles path $profilesPath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$distributionPath"/keyrings
+	readonly keyringsPath="$distributionConfigPath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$distributionPath"/keys
+	readonly keysPath="$distributionConfigPath"/keys
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$distributionPath"/signatures
+	readonly signaturesPath="$distributionConfigPath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
 	
-	readonly recipesPath="$distributionPath"/recipes
+	readonly recipesPath="$distributionConfigPath"/recipes
 	if [ ! -d "$recipesPath" ]; then
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly exportedFunctions="$distributionPath"/exported-functions
+	readonly exportedFunctions="$distributionConfigPath"/exported-functions
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
@@ -479,16 +463,20 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	export LFS="$lfsPath"/root
-	export LFS_TOOLS="$toolsFolderName"
-	
 	readonly logsPath="$lfsPath"/logs
-	readonly sourcesPath="$LFS"/sources
-	readonly toolsPath="$LFS"/"$LFS_TOOLS"
+	
+	export LFS="$lfsPath"/"$distribution"
+	
+	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
+	export LFS_TOOLS=tools-"$distribution"-"$(md5sum config/7.4/profiles/toolchain1.profile config/7.4/profiles/toolchain2.profile | awk -v ORS='-' '{print $1}')"
+	
+	readonly LFS_SOURCES_PATH="$LFS"/sources
+	readonly LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
+	
+	readonly toolsBackUpPath="$LFS"/"$LFS_TOOLS".backup
 	
 	export LC_ALL=POSIX
 	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
-	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	
 	if [ -f /proc/cpuinfo ]; then
 		local highestCpu
@@ -497,7 +485,6 @@ function setPathsAndExports()
 	else
 		local -ir highestCpuZeroBased=0
 	fi
-	
 	if [ $highestCpuZeroBased -ne 0 ]; then
 		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
 	fi
@@ -512,7 +499,7 @@ function verifyHostSystemRequirements()
 {
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	
-	readonly dependencyChecks="$distributionPath"/dependency-checks
+	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
@@ -547,24 +534,34 @@ function verifyHostSystemRequirements()
 
 function sourceMirrors()
 {
+	progressMessage "Sourcing mirror $mirrors"
+	
 	pushd "$mirrorsPath" >/dev/null
 		
 		sourceMirror "$mirrors"
 		
 	popd >/dev/null
+	
+	progressMessageSucceeded
 }
 
 function sourceProfiles()
 {
 	pushd "$profilesPath" >/dev/null
 		
+		progressMessage "Sourcing toolchain1 profile $toolchain1Profile"
 		LFS_PHASE="toolchain1" sourceProfile "$toolchain1Profile"
+		progressMessageSucceeded
 		
+		progressMessage "Sourcing toolchain2 profile $toolchain1Profile"
 		LFS_PHASE="toolchain2" sourceProfile "$toolchain2Profile"
+		progressMessageSucceeded
 		
 		for profile in $profiles
 		do
+			progressMessage "Sourcing system profile $profile"
 			LFS_PHASE="system" sourceProfile "$profile"
+			progressMessageSucceeded
 		done
 		
 	popd >/dev/null
@@ -584,17 +581,15 @@ function createSkeletonFolderStructure()
 	chmod a+wt "$logsPath"
 	
 	# Sources
-	mkdir -m 0755 -p "$sourcesPath"
-	chmod a+wt "$sourcesPath"
+	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
+	chmod a+wt "$LFS_SOURCES_PATH"
 	
-	# Tools
-	sudo mkdir -m 0755 -p "$toolsPath"
-	# symlink, say, /mnt/lfs/tools as /tools
-	sudo rm -rf /"$LFS_TOOLS"
-	sudo ln --symbolic "$toolsPath" /
-	
-	sudo chown -R $UID:$UID "$sourcesPath"
-	sudo chown -R $UID:$UID "$toolsPath"
+	# Tools Symlink
+	if [ ! -L /"$LFS_TOOLS" ]; then
+		# symlink, say, /mnt/lfs/tools as /tools
+		sudo rm -rf -- /"$LFS_TOOLS"
+		sudo ln --symbolic "$LFS_TOOLS_PATH" /
+	fi
 }
 
 function rehashCertificateAuthorities()
@@ -862,7 +857,7 @@ function downloadFileAndCheckHash()
 		
 		set +e
 		curl --fail --silent --show-error \
-		--user-agent "lfs/${distributionVersion}" --referer "${referer};auto" \
+		--user-agent "lfs/${distribution}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
 		${curlCompressionOption}--remote-time \
@@ -1004,13 +999,13 @@ function downloadSources()
 		key="${sourcePackages_IndicesToKeys[$index]}"
 		url="${sourcePackages_Url["${key}"]}"
 		if [ ! -z "$url" ]; then
-			downloadFileAndCheckHash "source package" "$url" "$sourcesPath" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
+			downloadFileAndCheckHash "source package" "$url" "$LFS_SOURCES_PATH" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
 		fi
 		
 		local -i patchNumber
 		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do
-			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$sourcesPath" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
+			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
 		done
 	done
 }
@@ -1028,7 +1023,7 @@ function installPackage()
 	local -r key="$2"
 	shift 2
 	
-	LFS_DISTRIBUTION_VERSION="$distributionVersion"
+	LFS_DISTRIBUTION_VERSION="$distribution"
 	LFS_PHASE="$phase"
 	LFS_KEY="$key"
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
@@ -1057,7 +1052,7 @@ function installPackage()
 	local -r extractStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
 	local -r extractStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
 	
-	pushd "$sourcesPath" >/dev/null
+	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
@@ -1118,19 +1113,56 @@ function installPackages()
 	done
 }
 
-function stripToolchainSymbols()
+function stripToolchainSymbolsAfterToolchain2()
 {
 	if [ "$stripToolchainSymbols" = "yes" ]; then
-		strip --strip-debug /"$LFS_TOOLS"/lib/*
-		strip --strip-unneeded /"$LFS_TOOLS"/{,s}bin/*
+		set +e
+		# Fails for /tools/lib/thread2.7.0/libthread2.7.0.so
+		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug 1>"$logsPath"/toolchain2.strip.stdout.log 2>"$logsPath"/toolchain2.strip.stderr.log
+		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded 1>>"$logsPath"/toolchain2.strip.stdout.log 2>>"$logsPath"/toolchain2.strip.stderr.log
+		set -e
 	fi
 }
 
-function stripToolchainDocs
+function stripToolchainDocsAfterToolchain2
 {
 	if [ "$stripToolchainDocs" = "yes" ]; then
-		rm -rf /"$LFS_TOOLS"/{,share}/{info,man,doc}
+		rm -rf -- /"$LFS_TOOLS"/{,share}/{info,man,doc}
 	fi
+}
+
+function changeOwnerOfToolchain()
+{
+	sudo chown -R root:root "$LFS_TOOLS_PATH"
+}
+
+function backUpToolchain()
+{
+	if which rsync 1>/dev/null 2>/dev/null; then
+		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
+		mkdir -m 0755 -p "$toolsBackUpPath"
+		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$logsPath"/toolchain.backup.stdout.log 2>"$logsPath"/toolchain.backup.stderr.log; then
+			progressMessageSucceeded
+		else
+			progressMessageFailed "check logs in $logsPath/toolchain.backup.*.log"
+		fi
+	fi
+	
+	progressMessage "Tarballing up toolchain using tar/xz to $toolsBackUpPath.tar.xz"
+	tar --create --owner=root --group=root --sparse --posix --directory "$LFS" "$LFS_TOOLS" | gzip -9 >"$toolsBackUpPath".tar.gz
+	progressMessageSucceeded
+}
+
+function createToolchain()
+{
+	sudo rm -rf -- "$LFS_TOOLS_PATH"/*
+	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
+	installPackages toolchain1
+	installPackages toolchain2
+	stripToolchainSymbolsAfterToolchain2
+	stripToolchainDocsAfterToolchain2
+	changeOwnerOfToolchain
+	backUpToolchain
 }
 
 function main()
@@ -1159,15 +1191,32 @@ function main()
 	downloadKeys
 	downloadSources
 	
-	if [ "$skipToolchain1" = "no" ]; then
-		rm -rf /tools/*
-		installPackages toolchain1
+	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
+		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
+			progressMessage "Restoring toolchain using rsync"
+				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
+				if ! sudo rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-suprt --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
+					progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+				fi
+				changeOwnerOfToolchain
+			progressMessageSucceeded
+		elif [ -f "$toolsBackUpPath".tar.gz ]; then
+			progressMessage "Restoring toolchain using tarball"
+				sudo rm -rf -- "$LFS_TOOLS_PATH"
+				pushd "$LFS"/.. >/dev/null
+					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
+						progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+					fi
+				popd >/dev/null
+				changeOwnerOfToolchain
+			progressMessageSucceeded
+		else
+			createToolchain
+		fi
+	else
+		createToolchain
 	fi
-	if [ "$skipToolchain2" = "no" ]; then
-		installPackages toolchain2
-		stripToolchainSymbols
-		stripToolchainDocs
-	fi
+	
 }
 
 main "$@"
