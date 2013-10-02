@@ -13,5 +13,5 @@ function installPackage_toolchain2_bash_4.2()
 	
 	installPackagePrototype --without-bash-malloc
 	
-	ln -sv bash /tools/bin/sh
+	ln -sv bash /"$LFS_TOOLS"/bin/sh
 }

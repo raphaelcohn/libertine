@@ -6,7 +6,6 @@
 * Better use of unxz, etc, so we optimise the linux sign check
 * linking of certificate-authorities to particular packages
 * SUDO profile so can automate build (ie template for sudoers)
-* Multiple symlinks for /tools so we can distinguish by distribution and profile hashes
 
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
