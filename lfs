@@ -402,6 +402,8 @@ function parseCommandLine()
 
 function setPathsAndExports()
 {
+	export PATH=/bin:/usr/bin
+	
 	essentialProgramCheck mkdir uname awk sort md5sum
 	
 	if [ ! -d "$lfsConfigPath" ]; then
