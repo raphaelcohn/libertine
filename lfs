@@ -470,7 +470,8 @@ function setPathsAndExports()
 	export LFS="$lfsPath"/"$distribution"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
-	export LFS_TOOLS=tools-"$distribution"-"$(md5sum config/7.4/profiles/toolchain1.profile config/7.4/profiles/toolchain2.profile | awk -v ORS='-' '{print $1}')"
+	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
+	export LFS_TOOLS=tools-"$distribution"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
 	
 	readonly LFS_SOURCES_PATH="$LFS"/sources
 	readonly LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
@@ -1157,7 +1158,8 @@ function backUpToolchain()
 
 function createToolchain()
 {
-	sudo rm -rf -- "$LFS_TOOLS_PATH"/*
+	sudo rm -rf -- "$LFS_TOOLS_PATH"
+	mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	installPackages toolchain1
 	installPackages toolchain2
