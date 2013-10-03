@@ -484,7 +484,7 @@ function shared_pre_dependency()
 			return 0
 		fi
 	done
-	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$LFS_SHARED_PRE_DEPENDENCY_NAME".shared-pre-dependency "$localSharedPreDependencyName"
+	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$localSharedPreDependencyName".shared-pre-dependency "$localSharedPreDependencyName"
 }
 
 previousRecipes=""
