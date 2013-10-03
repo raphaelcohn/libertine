@@ -1,4 +1,6 @@
 set -o errexit +o hashall
 
+set -x
 gccMpfrVersion=3.1.2
 addSourcePackageDownload $gccMpfrVersion "$LFS_MIRROR_MPFR" "$LFS_SHARED_PRE_DEPENDENCY_NAME"-$gccMpfrVersion/"$LFS_SHARED_PRE_DEPENDENCY_NAME"-$gccMpfrVersion.tar.xz MD5:e3d203d188b8fe60bb6578dd3152e05c
+set +x
