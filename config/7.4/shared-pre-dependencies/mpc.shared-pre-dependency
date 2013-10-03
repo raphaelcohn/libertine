@@ -1,4 +1,4 @@
 set -o errexit +o hashall
 
 gccMpcVersion=1.0.1
-addSourcePackageDownload "$gccMpcVersion" "$LFS_MIRROR_MPC" "$LFS_SHARED_PRE_DEPENDENCY_NAME"-"$gccMpcVersion".tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679
+LFS_SOURCE_PACKAGE_NAME="$LFS_SHARED_PRE_DEPENDENCY_NAME" addSourcePackageDownload "$gccMpcVersion" "$LFS_MIRROR_MPC" "$LFS_SHARED_PRE_DEPENDENCY_NAME"-"$gccMpcVersion".tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679
