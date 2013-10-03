@@ -471,6 +471,7 @@ function include_profile()
 previousSharedPreDependencies=""
 function shared_pre_dependency()
 {
+	set -x
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
@@ -481,10 +482,12 @@ function shared_pre_dependency()
 	for previousSharedPreDependency in $previousSharedPreDependencies
 	do
 		if [ "$previousSharedPreDependency" = "$localSharedPreDependencyName" ]; then
+			set +x
 			return 0
 		fi
 	done
 	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$localSharedPreDependencyName".shared-pre-dependency "$localSharedPreDependencyName"
+	set +x
 }
 
 previousRecipes=""
