@@ -40,6 +40,6 @@ function processLanguageMirrors()
 		mirrorsFromLanguage=global
 	fi
 	
-	sourceMirror "$mirrorsFromLanguage"
+	include_mirror "$mirrorsFromLanguage"
 }
 processLanguageMirrors

@@ -453,6 +453,11 @@ function setPathsAndExports()
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
+	readonly sharedPreDependenciesPath="$distributionConfigPath"/shared-pre-dependencies
+	if [ ! -d "$sharedPreDependenciesPath" ]; then
+		exitError "shared-pre-dependencies path $sharedPreDependenciesPath does not exist or is not a directory"
+	fi
+	
 	readonly exportedFunctions="$distributionConfigPath"/exported-functions
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
@@ -535,35 +540,35 @@ function verifyHostSystemRequirements()
 	fi
 }
 
-function sourceMirrors()
+function include_mirrors()
 {
 	progressMessage "Sourcing mirror $mirrors"
 	
 	pushd "$mirrorsPath" >/dev/null
 		
-		sourceMirror "$mirrors"
+		include_mirror "$mirrors"
 		
 	popd >/dev/null
 	
 	progressMessageSucceeded
 }
 
-function sourceProfiles()
+function include_profiles()
 {
 	pushd "$profilesPath" >/dev/null
 		
 		progressMessage "Sourcing toolchain1 profile $toolchain1Profile"
-		LFS_PHASE="toolchain1" sourceProfile "$toolchain1Profile"
+		LFS_PHASE="toolchain1" include_profile "$toolchain1Profile"
 		progressMessageSucceeded
 		
 		progressMessage "Sourcing toolchain2 profile $toolchain1Profile"
-		LFS_PHASE="toolchain2" sourceProfile "$toolchain2Profile"
+		LFS_PHASE="toolchain2" include_profile "$toolchain2Profile"
 		progressMessageSucceeded
 		
 		for profile in $profiles
 		do
 			progressMessage "Sourcing system profile $profile"
-			LFS_PHASE="system" sourceProfile "$profile"
+			LFS_PHASE="system" include_profile "$profile"
 			progressMessageSucceeded
 		done
 		
@@ -1115,7 +1120,7 @@ function installPackages()
 {
 	local -r phase="$1"
 	local key
-	for key in ${phase_SourcesPackagesToInstall["${phase}"]}
+	for key in ${phase_InstallationOrder["${phase}"]}
 	do
 		installPackage "$phase" "$key"
 	done
@@ -1215,8 +1220,8 @@ function main()
 	
 	verifyHostSystemRequirements
 	source "$exportedFunctions"
-	sourceMirrors
-	sourceProfiles
+	include_mirrors
+	include_profiles
 	
 	createSkeletonFolderStructure
 	

@@ -1,0 +1,8 @@
+set -o errexit +o hashall
+
+shared_pre_dependency mpfr
+shared_pre_dependency gmp
+shared_pre_dependency mpc
+
+gccGccVersion=4.8.1
+addSourcePackageDownload "$gccGccVersion" "$LFS_MIRROR_GNU" "$LFS_SHARED_PRE_DEPENDENCY_NAME"/"$LFS_SHARED_PRE_DEPENDENCY_NAME"-"$gccGccVersion"/"$LFS_SHARED_PRE_DEPENDENCY_NAME"-"$gccGccVersion".tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304,KEYRING:gnu-keyring.gpg

@@ -29,10 +29,10 @@ function installPackage_toolchain1_glibc()
 		
 	popdBuildFolder
 	
-	verifyGlibc
+	localPackage_toolchain1_glibc_verifyGlibc
 }
 
-function verifyGlibc()
+function localPackage_toolchain1_glibc_verifyGlibc()
 {
 	echo 'main(){}' >dummy.c
 	"$LFS_TGT"-gcc dummy.c

@@ -24,6 +24,6 @@ function processTimezoneMirrors()
 		mirrorsFromTimezone=language
 	fi
 	
-	sourceMirror "$mirrorsFromTimezone"
+	include_mirror "$mirrorsFromTimezone"
 }
 processTimezoneMirrors

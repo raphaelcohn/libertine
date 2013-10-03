@@ -1,6 +1,4 @@
-set -o errexit +o hashall
-
-sourceMirror global
+include_mirror global
 
 LFS_MIRROR_GNU=https://mirrors.kernel.org/gnu/
 LFS_MIRROR_PERL=http://www.perl.com/CPAN/

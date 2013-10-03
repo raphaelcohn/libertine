@@ -1,13 +1,15 @@
 set -o errexit +o hashall
 
-# Bit of an oddity, as this depends on gcc.recipe already having run
-# Unlike all other installers, this one uses someone else's tar ball (in this case, gcc)
-function addMe()
+shared_pre_dependency gcc
+
+# Bit of an oddity, as this depends on gcc.recipe already having run; requires the gcc source tarball to have been extracted
+# Unlike most other installers, this one uses someone else's tar ball (in this case, gcc)
+function localPackage_toolchain1_libstdc_useGccTarball()
 {
 	local -r key="$(printKey gcc "$LFS_SOURCE_PACKAGE_VERSION")"
 	addSourcePackageWithoutDownload "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION" ${sourcePackages_Compression["${key}"]} ${sourcePackages_FileName["${key}"]} ${sourcePackages_ExtractedTarballFolder["${key}"]}
 }
-addMe
+localPackage_toolchain1_libstdc_useGccTarball
 
 function installPackage_toolchain1_libstdc++()
 {

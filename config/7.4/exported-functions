@@ -81,7 +81,7 @@ declare -a signatures_Url=()
 declare -a signatures_FileName=()
 declare -a signatures_Compression=()
 
-function addSignature()
+function signature()
 {
 	local -r ourUnsignedUrl="$1"
 	local -r ourHashesSpaceSeparated="$2"
@@ -111,12 +111,110 @@ function addSignature()
 				
 				case "$hashName" in
 					HKP|HKP_UNCOMPRESSED)
-						sourceHkp "$hashValue"
+						hkp "$hashValue"
 					;;
 				esac
 			;;
 		esac
 	done
+}
+
+declare -a keyrings_Url=()
+declare -a keyrings_FileName=()
+declare -a keyrings_Hashes=()
+declare -a keyrings_Compression=()
+function keyring()
+{
+	if [ $# -ne 3 ]; then
+		exitError "Not exactly 3 arguments"
+	fi
+	
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
+	local -r ourHashes="$3"
+	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	
+	if [ "${ourFileName##*.}" != "gpg" ]; then
+		exitError "Only gpg keyrings are supported - which is not so for this url: $ourUrl"
+	fi
+	
+	local -i existingKeyringNumber
+	for existingKeyringNumber in ${!keyrings_FileName[@]}
+	do
+		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
+			if [ ${keyrings_FileName[$existingPatchNumber]} != "$ourUrl" ]; then
+				warning "Attempt to override URL IGNORED for keyring $ourFileName to $ourUrl"
+			fi
+			return 0
+		fi
+	done
+	
+	local -ir keyringNumber=${#patches_Url[@]}
+	keyrings_Url[$keyringNumber]="$ourUrl"
+	keyrings_FileName[$keyringNumber]="$ourFileName"
+	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
+	keyrings_Compression[$keyringNumber]=""
+	
+	signature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
+}
+
+declare -a keys_Url=()
+declare -a keys_FileName=()
+declare -a keys_Hashes=()
+declare -a keys_Compression=()
+function key()
+{
+	if [ $# -lt 3 ]; then
+		exitError "Not 3 or 4 arguments"
+	fi
+	if [ $# -gt 4 ]; then
+		exitError "Not 3 or 4 arguments"
+	fi
+	
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourUrl="${ourMirror}${ourRelativePath}"
+	
+	local -r ourHashes="$3"
+	if [ $# -eq 3 ]; then
+		local -r ourFileName="$(purebash_basename "$ourUrl")"
+	else
+		local -r ourFileName="$4"
+	fi
+	
+	local -i existingKeyNumber
+	for existingKeyNumber in ${!keys_FileName[@]}
+	do
+		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
+			if [ ${keys[$existingPatchNumber]} != "$ourUrl" ]; then
+				warning "Attempt to override URL IGNORED for key $ourFileName to $ourUrl"
+			fi
+			return 0
+		fi
+	done
+	
+	local -ir keyNumber=${#keys_Url[@]}
+	keys_Url[$keyNumber]="$ourUrl"
+	keys_FileName[$keyNumber]="$ourFileName"
+	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
+	keys_Compression[$keyNumber]=""
+	
+	signature "$ourUrl" "${keys_Hashes[$keyNumber]}"
+}
+
+function hkp()
+{
+	local -r keyId="$1"
+	if [ $# -eq 1 ]; then
+		local -r hkpUrlTemplate="$LFS_MIRROR_HKP"
+	elif [ $# -eq 2 ]; then
+		local -r hkpUrlTemplate="$2"
+	else
+		exitError "Not 1 or 2 arguments"
+	fi
+	
+	key "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
 }
 
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
@@ -270,7 +368,7 @@ function addSourcePackageDownload()
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
 	sourcePackages_Patches["${key}"]=""
 	
-	addSignature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
+	signature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
 }
 
 declare -a patches_Url=()
@@ -317,11 +415,11 @@ function addPatchDownload()
 	patches_Compression[$patchNumber]=""
 	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
 	
-	addSignature "$ourUrl" "${patches_Hashes[$patchNumber]}"
+	signature "$ourUrl" "${patches_Hashes[$patchNumber]}"
 }
 
 previousMirrors=""
-function sourceMirror()
+function include_mirror()
 {
 	if [ $# -ne 1 ]; then
 		exitError "Not exactly 1 argument"
@@ -345,13 +443,23 @@ function sourceMirror()
 	fi
 }
 
-function sourceProfile()
+previousProfiles=""
+function include_profile()
 {
 	if [ $# -ne 1 ]; then
 		exitError "Not exactly 1 argument"
 	fi
 	
 	local -r localProfile="$1"
+	local previousProfile
+	for previousProfile in $previousProfiles
+	do
+		if [ "$previousProfile" = "$localProfile" ]; then
+			# Allowed (but ignored)
+			return 0
+		fi
+	done
+	previousProfiles="$previousProfiles $localProfile"
 	
 	if [ -f "$profilesPath"/"$localProfile".profile ]; then
 		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$distribution" source "$profilesPath"/"$localProfile".profile "$LFS_PHASE" "$distribution" "$localProfile"
@@ -360,153 +468,93 @@ function sourceProfile()
 	fi
 }
 
-declare -a keyrings_Url=()
-declare -a keyrings_FileName=()
-declare -a keyrings_Hashes=()
-declare -a keyrings_Compression=()
-function sourceKeyring()
+previousSharedPreDependencies=""
+function shared_pre_dependency()
 {
-	if [ $# -ne 3 ]; then
-		exitError "Not exactly 3 arguments"
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
 	fi
 	
-	local -r ourMirror="$1"
-	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	local -r ourHashes="$3"
-	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	local -r localSharedPreDependencyName="$1"
 	
-	if [ "${ourFileName##*.}" != "gpg" ]; then
-		exitError "Only gpg keyrings are supported - which is not so for this url: $ourUrl"
-	fi
-	
-	local -i existingKeyringNumber
-	for existingKeyringNumber in ${!keyrings_FileName[@]}
+	local previousSharedPreDependency
+	for previousSharedPreDependency in $previousSharedPreDependencies
 	do
-		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
-			if [ ${keyrings_FileName[$existingPatchNumber]} != "$ourUrl" ]; then
-				warning "Attempt to override URL IGNORED for keyring $ourFileName to $ourUrl"
-			fi
+		if [ "$previousSharedPreDependency" = "$localSharedPreDependencyName" ]; then
 			return 0
 		fi
 	done
-	
-	local -ir keyringNumber=${#patches_Url[@]}
-	keyrings_Url[$keyringNumber]="$ourUrl"
-	keyrings_FileName[$keyringNumber]="$ourFileName"
-	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
-	keyrings_Compression[$keyringNumber]=""
-	
-	addSignature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
+	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$LFS_SHARED_PRE_DEPENDENCY_NAME".shared-pre-dependency "$localSharedPreDependencyName"
 }
 
-declare -a keys_Url=()
-declare -a keys_FileName=()
-declare -a keys_Hashes=()
-declare -a keys_Compression=()
-function sourceKey()
+previousRecipes=""
+declare -A phase_InstallationOrder=()
+function recipe()
 {
-	if [ $# -lt 3 ]; then
-		exitError "Not 3 or 4 arguments"
-	fi
-	if [ $# -gt 4 ]; then
-		exitError "Not 3 or 4 arguments"
-	fi
-	
-	local -r ourMirror="$1"
-	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	
-	local -r ourHashes="$3"
-	if [ $# -eq 3 ]; then
-		local -r ourFileName="$(purebash_basename "$ourUrl")"
-	else
-		local -r ourFileName="$4"
-	fi
-	
-	local -i existingKeyNumber
-	for existingKeyNumber in ${!keys_FileName[@]}
-	do
-		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
-			if [ ${keys[$existingPatchNumber]} != "$ourUrl" ]; then
-				warning "Attempt to override URL IGNORED for key $ourFileName to $ourUrl"
-			fi
-			return 0
-		fi
-	done
-	
-	local -ir keyNumber=${#keys_Url[@]}
-	keys_Url[$keyNumber]="$ourUrl"
-	keys_FileName[$keyNumber]="$ourFileName"
-	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
-	keys_Compression[$keyNumber]=""
-	
-	addSignature "$ourUrl" "${keys_Hashes[$keyNumber]}"
-}
-
-function sourceHkp()
-{
-	local -r keyId="$1"
-	if [ $# -eq 1 ]; then
-		local -r hkpUrlTemplate="$LFS_MIRROR_HKP"
-	elif [ $# -eq 2 ]; then
-		local -r hkpUrlTemplate="$2"
-	else
-		exitError "Not 1 or 2 arguments"
-	fi
-	
-	sourceKey "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
-}
-
-function sourceRecipe()
-{
-	if [ $# -lt 2 ]; then
-		exitError "Too few arguments"
-	elif [ $# -gt 3 ]; then
-		exitError "Too many arguments"
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
 	fi
 	
 	local -r localSourcePackageName="$1"
 	local -r ourVersion="$2"
-	if [ $# -eq 3 ]; then
-		local -r reasonNotToAddToInstall="$3"
-	else
-		local -r reasonNotToAddToInstall=""
-	fi
 	
-	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
+	local previousRecipe
+	local -i alreadySourced=1
+	for previousRecipe in $previousRecipes
+	do
+		if [ "$previousRecipe" = "$localSourcePackageName" ]; then
+			alreadySourced=0
+			break
+		fi
+	done
 	
-	if [ -z "$reasonNotToAddToInstall" ]; then
-		addToInstall "$localSourcePackageName" "$ourVersion" "$LFS_PHASE"
+	if [ $alreadySourced -eq 1 ]; then
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	fi
-}
-
-declare -A phase_SourcesPackagesToInstall=()
-function addToInstall()
-{
-	if [ $# -ne 3 ]; then
-		exitError "Needs 3 arguments"
-	fi
-	
-	local -r ourSourcePackageName="$1"
-	local -r ourVersion="$2"
-	local -r phase="$3"
 	
 	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${phase}_${ourSourcePackageName}_${ourVersion}
-	local -r installer_unversioned=installPackage_${phase}_${ourSourcePackageName}
+	local -r installer_versioned=installPackage_${LFS_PHASE}_${localSourcePackageName}_${ourVersion}
+	local -r installer_unversioned=installPackage_${LFS_PHASE}_${localSourcePackageName}
 	if type "$installer_versioned" &>/dev/null; then
 		local -r installer="$installer_versioned"
 	elif type "$installer_unversioned" &>/dev/null; then
 		local -r installer="$installer_unversioned"
 	else
-		exitError "No installer $installer_versioned or $installer_unversioned defined for $ourSourcePackageName version $ourVersion"
+		exitError "No installer $installer_versioned or $installer_unversioned defined for $localSourcePackageName version $ourVersion"
 	fi
 	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	# Add to installation for phase if not previously added to this phase
+	local -r key="$(printKey "$localSourcePackageName" "$ourVersion")"
+	local previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
+	local previousDependency
+	for previousDependency in $previousDependenciesInstall
+	do
+		if [ "$previousDependency" = "$key" ]; then
+			return 0
+		fi
+	done
+	phase_InstallationOrder["${LFS_PHASE}"]="$previousDependenciesInstall $key"
+}
+
+function conflicts()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
 	
-	local previousDependenciesInstall="${phase_SourcesPackagesToInstall["${phase}"]}"
-	phase_SourcesPackagesToInstall["${phase}"]="$previousDependenciesInstall $key"
+	local -r localConflictsWithSourcePackageName="$1"
+	local -r localConflictsWithVersion="$2"
+	local -r key="$(printKey "$localConflictsWithSourcePackageName" "$localConflictsWithVersion")"
+	
+	local previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
+	local previousDependency
+	local -i alreadyInstalled=1
+	for previousDependency in $previousDependenciesInstall
+	do
+		if [ "$previousDependency" = "$key" ]; then
+			exitError "Package $LFS_SOURCE_PACKAGE_NAME conflicts with $localConflictsWithSourcePackageName"
+		fi
+	done
 }
 
 # Also https://www.scaprepo.com/ is a good place to query
@@ -535,7 +583,7 @@ function addCPE()
 	fi
 }
 
-# Called inside sourceRecipe
+# Called inside recipe
 function addCVE()
 {
 	if [ $# -ne 2 ]; then

@@ -1,13 +1,6 @@
 set -o errexit +o hashall
 
-gccMpfrVersion=3.1.2
-gccGmpVersion=5.1.2
-gccMpcVersion=1.0.1
-sourceRecipe mpfr $gccMpfrVersion gcc-pre-dependency
-sourceRecipe gmp $gccGmpVersion gcc-pre-dependency
-sourceRecipe mpc $gccMpcVersion gcc-pre-dependency
-
-addSourcePackageDownload 4.8.1 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1/"$LFS_SOURCE_PACKAGE_NAME"-4.8.1.tar.bz2 MD5:3b2386c114cd74185aa3754b58a79304,KEYRING:gnu-keyring.gpg
+shared_pre_dependency gcc
 
 function installPackage_toolchain1_gcc()
 {
@@ -129,11 +122,11 @@ function installPackage_toolchain2_gcc()
 		
 	popdBuildFolder
 	
-	verifyGcc
+	localPackage_toolchain2_gcc_verifyGcc
 }
 
-# similar to verifyGlibc except we use 'cc' rather than "$LFS_TGT"-gcc
-function verifyGcc()
+# similar to localPackage_toolchain2_glibc_verifyGlibc except we use 'cc' rather than "$LFS_TGT"-gcc
+function localPackage_toolchain2_gcc_verifyGcc()
 {
 	echo 'main(){}' >dummy.c
 	cc dummy.c
