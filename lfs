@@ -1098,7 +1098,8 @@ function installPackage()
 					done
 					
 					set -x
-					$installer
+					# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
+					FORCE_UNSAFE_CONFIGURE=1 $installer
 					set +x
 					
 				exec 1>&6 6>&-
