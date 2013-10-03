@@ -471,7 +471,6 @@ function include_profile()
 previousSharedPreDependencies=""
 function shared_pre_dependency()
 {
-	set -x
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
@@ -482,12 +481,10 @@ function shared_pre_dependency()
 	for previousSharedPreDependency in $previousSharedPreDependencies
 	do
 		if [ "$previousSharedPreDependency" = "$localSharedPreDependencyName" ]; then
-			set +x
 			return 0
 		fi
 	done
 	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$localSharedPreDependencyName".shared-pre-dependency "$localSharedPreDependencyName"
-	set +x
 }
 
 previousRecipes=""
@@ -659,7 +656,7 @@ function extractDependencyIntoBuildFolder()
 	local -r localExtractedTarballFolder=${sourcePackages_ExtractedTarballFolder["${key}"]}
 	local -r localCompression=${sourcePackages_Compression["${key}"]}
 	
-	if [ -z "$localSourcePackageName" ]; then
+	if [ -z "$localFileName" ]; then
 		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
 	fi
 	

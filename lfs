@@ -542,7 +542,7 @@ function verifyHostSystemRequirements()
 
 function include_mirrors()
 {
-	progressMessage "Sourcing mirror $mirrors"
+	progressMessage "Including mirror $mirrors"
 	
 	pushd "$mirrorsPath" >/dev/null
 		
@@ -557,17 +557,17 @@ function include_profiles()
 {
 	pushd "$profilesPath" >/dev/null
 		
-		progressMessage "Sourcing toolchain1 profile $toolchain1Profile"
+		progressMessage "Including toolchain1 profile $toolchain1Profile"
 		LFS_PHASE="toolchain1" include_profile "$toolchain1Profile"
 		progressMessageSucceeded
 		
-		progressMessage "Sourcing toolchain2 profile $toolchain1Profile"
+		progressMessage "Including toolchain2 profile $toolchain1Profile"
 		LFS_PHASE="toolchain2" include_profile "$toolchain2Profile"
 		progressMessageSucceeded
 		
 		for profile in $profiles
 		do
-			progressMessage "Sourcing system profile $profile"
+			progressMessage "Including system profile $profile"
 			LFS_PHASE="system" include_profile "$profile"
 			progressMessageSucceeded
 		done
