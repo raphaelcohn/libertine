@@ -4,8 +4,8 @@ addSourcePackageDownload 2.18 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS
 function installPackage_toolchain1_glibc()
 {
 	if [ ! -r /usr/include/rpc/types.h ]; then
-		sudo mkdir -p /usr/include/rpc
-		sudo cp -v sunrpc/rpc/*.h /usr/include/rpc
+		mkdir -p /usr/include/rpc
+		cp -v sunrpc/rpc/*.h /usr/include/rpc
 	fi
 	
 	sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c

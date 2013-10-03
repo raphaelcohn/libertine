@@ -1,4 +1,4 @@
-#!/bin/bash -
+#!/bin/bash --noprofile --norc --
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
 
 function ensureWhichInstalled()
@@ -207,8 +207,8 @@ function findOurNameAndPath()
 
 function executeWithCleanEnvironment()
 {
-	essentialProgramCheck env
-	exec env -i HOME="$HOME" TERM="$TERM" PS1='\u:\w\$ ' LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' bash --noprofile --norc -- "$crudeOurPath"/"$ourName" $@
+	essentialProgramCheck env sudo
+	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -p "Password required to run as root: " "$crudeOurPath"/"$ourName" $@
 }
 
 function exitHelp()
@@ -465,7 +465,7 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly logsPath="$lfsPath"/logs
+	readonly logsPath=/var/logs/lfs/"$distribution"
 	
 	export LFS="$lfsPath"/"$distribution"
 	
@@ -529,8 +529,8 @@ function verifyHostSystemRequirements()
 
 	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
 		if which apt-get 1>/dev/null 2>/dev/null; then
-			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes update
-			sudo -p "Password needed to attempt to install dependencies ($debianPackagesToInstallForDependencies): " apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
+			apt-get --quiet --quiet --yes update
+			apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
 		fi
 	fi
 }
@@ -574,13 +574,18 @@ function createSkeletonFolderStructure()
 {
 	mkdir -m 0755 -p "$LFS"
 	
+	readonly downloadsLogsPath="$logsPath"/downloads
+	readonly toolchain1LogsPath="$logsPath"/toolchain1
+	readonly toolchain2LogsPath="$logsPath"/toolchain2
+	readonly systemLogsPath="$logsPath"/system
+	
 	# Logs
 	mkdir -m 0755 -p "$logsPath"
 	rm -rf "$logsPath"/*
-	mkdir -m 0755 -p "$logsPath"/downloads
-	mkdir -m 0755 -p "$logsPath"/toolchain1
-	mkdir -m 0755 -p "$logsPath"/toolchain2
-	mkdir -m 0755 -p "$logsPath"/system
+	mkdir -m 0755 -p "$downloadsLogsPath"
+	mkdir -m 0755 -p "$toolchain1LogsPath"
+	mkdir -m 0755 -p "$toolchain2LogsPath"
+	mkdir -m 0755 -p "$systemLogsPath"
 	chmod a+wt "$logsPath"
 	
 	# Sources
@@ -590,8 +595,8 @@ function createSkeletonFolderStructure()
 	# Tools Symlink
 	if [ ! -L /"$LFS_TOOLS" ]; then
 		# symlink, say, /mnt/lfs/tools as /tools
-		sudo rm -rf -- /"$LFS_TOOLS"
-		sudo ln --symbolic "$LFS_TOOLS_PATH" /
+		rm -rf -- /"$LFS_TOOLS"
+		ln --symbolic "$LFS_TOOLS_PATH" /
 	fi
 }
 
@@ -651,7 +656,7 @@ function verifyHash()
 	local -r hashProgram="$3"
 	local -r hashValue="$4"
 	
-	local -r logFile="$logsPath"/downloads/"$fileName".$hashProgram.log
+	local -r logFile="$downloadsLogsPath"/"$fileName".$hashProgram.log
 	pushd "$toPath">/dev/null
 		$hashProgram --check --strict <<<"${hashValue}  ${fileName}" 1>"$logFile" 2>&1
 		local -ir exitCode=$?
@@ -669,9 +674,9 @@ function verifyKeyringSignature()
 	local -r isCompressed="$5"
 	
 	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile.log
 	else
-		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile_uncompressed.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile_uncompressed.log
 	fi
 	
 	case "$keyring" in
@@ -712,9 +717,9 @@ function verifyKeyFileSignature()
 	fi
 	
 	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile.log
 	else
-		local -r logFileName="$logsPath"/downloads/"$fileName".keyfile_uncompressed.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile_uncompressed.log
 	fi
 	
 	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
@@ -753,9 +758,9 @@ function verifyHkpSignature()
 	fi
 	
 	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$logsPath"/downloads/"$fileName".hkp.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".hkp.log
 	else
-		local -r logFileName="$logsPath"/downloads/"$fileName".hkp_uncompressed.log
+		local -r logFileName="$downloadsLogsPath"/"$fileName".hkp_uncompressed.log
 	fi
 	
 	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
@@ -836,7 +841,7 @@ function downloadFileAndCheckHash()
 	local -r hashes="$7"
 	local -i exitCode
 	
-	mkdir -m 0755 -p "$logsPath"/downloads
+	mkdir -m 0755 -p "$downloadsLogsPath"
 	
 	if [ -f "$toPath"/"$fileName" ]; then
 		progressMessage "Using downloaded $downloadName $url at $toPath/$fileName"
@@ -864,13 +869,13 @@ function downloadFileAndCheckHash()
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
 		${curlCompressionOption}--remote-time \
-		--dump-header "$logsPath"/downloads/"$fileName".headers.log \
-		--trace-time --trace-ascii "$logsPath"/downloads/"$fileName".trace-ascii.log \
-		--stderr "$logsPath"/downloads/"$fileName".stderr.log \
+		--dump-header "$downloadsLogsPath"/"$fileName".headers.log \
+		--trace-time --trace-ascii "$downloadsLogsPath"/"$fileName".trace-ascii.log \
+		--stderr "$downloadsLogsPath"/"$fileName".stderr.log \
 		--write-out '%{url_effective}\t%{http_code}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n' \
 		--config "$HOME"/.curlrc \
 		--url "$url" --output "$toPath"/"$fileName" \
-		1>"$logsPath"/downloads/"$fileName".stdout.log
+		1>"$downloadsLogsPath"/"$fileName".stdout.log
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
@@ -1121,8 +1126,8 @@ function stripToolchainSymbolsAfterToolchain2()
 	if [ "$stripToolchainSymbols" = "yes" ]; then
 		set +e
 		# Fails for /tools/lib/thread2.7.0/libthread2.7.0.so
-		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug 1>"$logsPath"/toolchain2.strip.stdout.log 2>"$logsPath"/toolchain2.strip.stderr.log
-		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded 1>>"$logsPath"/toolchain2.strip.stdout.log 2>>"$logsPath"/toolchain2.strip.stderr.log
+		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug 1>"$toolchain2LogsPath".strip.stdout.log 2>"$toolchain2LogsPath".strip.stderr.log
+		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded 1>>"$toolchain2LogsPath".strip.stdout.log 2>>"$toolchain2LogsPath".strip.stderr.log
 		set -e
 	fi
 }
@@ -1136,7 +1141,7 @@ function stripToolchainDocsAfterToolchain2
 
 function changeOwnerOfToolchain()
 {
-	sudo chown -R root:root "$LFS_TOOLS_PATH"
+	chown -R root:root "$LFS_TOOLS_PATH"
 }
 
 function backUpToolchain()
@@ -1158,7 +1163,7 @@ function backUpToolchain()
 
 function createToolchain()
 {
-	sudo rm -rf -- "$LFS_TOOLS_PATH"
+	rm -rf -- "$LFS_TOOLS_PATH"
 	mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	installPackages toolchain1
@@ -1175,14 +1180,14 @@ function createOrUseBackUpToolchain()
 		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
 			progressMessage "Restoring toolchain using rsync"
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-				if ! sudo rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-suprt --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
+				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
 					progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
 		elif [ -f "$toolsBackUpPath".tar.gz ]; then
 			progressMessage "Restoring toolchain using tarball"
-				sudo rm -rf -- "$LFS_TOOLS_PATH"
+				rm -rf -- "$LFS_TOOLS_PATH"
 				pushd "$LFS"/.. >/dev/null
 					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
 						progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
