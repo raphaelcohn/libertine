@@ -1151,7 +1151,7 @@ function backUpToolchain()
 		fi
 	fi
 	
-	progressMessage "Tarballing up toolchain using tar/xz to $toolsBackUpPath.tar.xz"
+	progressMessage "Tarballing up toolchain using tar/gz to $toolsBackUpPath.tar.gz"
 	tar --create --owner=root --group=root --sparse --posix --directory "$LFS" "$LFS_TOOLS" | gzip -9 >"$toolsBackUpPath".tar.gz
 	progressMessageSucceeded
 }
@@ -1167,6 +1167,35 @@ function createToolchain()
 	stripToolchainDocsAfterToolchain2
 	changeOwnerOfToolchain
 	backUpToolchain
+}
+
+function createOrUseBackUpToolchain()
+{
+	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
+		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
+			progressMessage "Restoring toolchain using rsync"
+				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
+				if ! sudo rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-suprt --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
+					progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+				fi
+				changeOwnerOfToolchain
+			progressMessageSucceeded
+		elif [ -f "$toolsBackUpPath".tar.gz ]; then
+			progressMessage "Restoring toolchain using tarball"
+				sudo rm -rf -- "$LFS_TOOLS_PATH"
+				pushd "$LFS"/.. >/dev/null
+					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
+						progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+					fi
+				popd >/dev/null
+				changeOwnerOfToolchain
+			progressMessageSucceeded
+		else
+			createToolchain
+		fi
+	else
+		createToolchain
+	fi
 }
 
 function main()
@@ -1195,32 +1224,9 @@ function main()
 	downloadKeys
 	downloadSources
 	
-	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
-		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
-			progressMessage "Restoring toolchain using rsync"
-				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-				if ! sudo rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-suprt --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
-					progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
-				fi
-				changeOwnerOfToolchain
-			progressMessageSucceeded
-		elif [ -f "$toolsBackUpPath".tar.gz ]; then
-			progressMessage "Restoring toolchain using tarball"
-				sudo rm -rf -- "$LFS_TOOLS_PATH"
-				pushd "$LFS"/.. >/dev/null
-					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
-						progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
-					fi
-				popd >/dev/null
-				changeOwnerOfToolchain
-			progressMessageSucceeded
-		else
-			createToolchain
-		fi
-	else
-		createToolchain
-	fi
+	createOrUseBackUpToolchain
 	
+	echo "Hello"
 }
 
 main "$@"
