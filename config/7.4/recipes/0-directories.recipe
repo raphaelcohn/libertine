@@ -212,7 +212,7 @@ touch_file /var/log/btmp 600 root utmp jS ''
 touch_file /var/log/utmp 600 root utmp jS ''
 touch_file /var/log/lastlog 664 root utmp jS ''
 
-function installPackage_system_0directories()
+function installPackage_system_0-directories_0()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >/usr/lib/libstdc++.la

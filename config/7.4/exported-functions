@@ -470,7 +470,7 @@ function touch_file()
 	if [ $uid -eq -1 ]; then
 		exitError "User $userName not defined for target $target"
 	fi
-	set -x
+	
 	local -i gid=-1
 	for index in ${!groups_Name[@]}
 	do
