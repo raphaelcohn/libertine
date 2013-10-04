@@ -275,10 +275,10 @@ function verifyGroupExists()
 {
 	local -ir groupName=$1
 	local -r userName="$2"
-	local -i index
-	for index in ${!groups_Gid[@]}
+	local group
+	for group in ${groups_Name[@]}
 	do
-		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+		if [ "$group" = "$groupName" ]; then
 			return 0
 		fi
 	done
