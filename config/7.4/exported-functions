@@ -273,7 +273,8 @@ declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
 
 function verifyGroupExists()
 {
-	local -ir groupName=$1
+	 set -x
+	local -r groupName="$1"
 	local -r userName="$2"
 	local group
 	for group in ${groups_Name[@]}
