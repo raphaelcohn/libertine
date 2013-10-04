@@ -470,7 +470,7 @@ function touch_file()
 	if [ $uid -eq -1 ]; then
 		exitError "User $userName not defined for target $target"
 	fi
-	
+	set -x
 	local -i gid=-1
 	for index in ${!groups_Name[@]}
 	do
@@ -482,6 +482,7 @@ function touch_file()
 	if [ $gid -eq -1 ]; then
 		exitError "Group $groupName not defined for target $target"
 	fi
+	
 	earlyPathCommands[${#earlyPathCommands}]="touch "\'"${LFS}${target}"\'
 	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
 	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
