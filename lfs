@@ -1233,6 +1233,7 @@ function runSystemInstallationLogic()
 
 function mountVirtualFilesystems()
 {
+	set -x
 	local -i index
 	local -i ttyGid=-1
 	for index in ${#groups_Name[@]}
