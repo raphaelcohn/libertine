@@ -273,7 +273,6 @@ declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
 
 function verifyGroupExists()
 {
-	 set -x
 	local -r groupName="$1"
 	local -r userName="$2"
 	local group
@@ -322,11 +321,6 @@ function user()
 					exitError "uid redefined for user $userName"
 				fi
 			fi
-			if [ $# -eq 6 ]; then
-				if [ "${users_Gid[$index]}" != "$6" ]; then
-					exitError "group redefined for user $userName"
-				fi
-			fi
 		fi
 	done
 	
@@ -350,7 +344,18 @@ function user()
 	done
 	
 	if [ $# -eq 6 ]; then
-		local -ir gid=$6
+		local -r groupName="$6"
+		local -i gid=-1
+		for index in ${!groups_Name[@]}
+		do
+			if [ "${groups_Name[$index]}" = "$groupName" ]; then
+				gid=${groups_Gid[$index]}
+				break
+			fi
+		done
+		if [ $gid -eq -1 ]; then
+			exitError "Group $groupName not defined for user $userName"
+		fi
 	else
 		if [ "$shell" = "/bin/false" ]; then
 			local -ir gid=$((nextSystemGid++))
