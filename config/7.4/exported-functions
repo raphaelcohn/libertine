@@ -497,11 +497,11 @@ function touch_file()
 function make_character_device()
 {
 	local -r target="$1"
-	local -r mode="$2"
-	local -r userName="$3"
-	local -r groupName="$4"
-	local -r deviceMajor="$5"
-	local -r deviceMinor="$6"
+	local -r deviceMajor="$2"
+	local -r deviceMinor="$3"
+	local -r mode="$4"
+	local -r userName="$5"
+	local -r groupName="$6"
 	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
@@ -535,11 +535,11 @@ function make_character_device()
 function make_block_device()
 {
 	local -r target="$1"
-	local -r mode="$2"
-	local -r userName="$3"
-	local -r groupName="$4"
-	local -r deviceMajor="$5"
-	local -r deviceMinor="$6"
+	local -r deviceMajor="$2"
+	local -r deviceMinor="$3"
+	local -r mode="$4"
+	local -r userName="$5"
+	local -r groupName="$6"
 	
 	local -i uid=-1
 	for index in ${!users_Name[@]}

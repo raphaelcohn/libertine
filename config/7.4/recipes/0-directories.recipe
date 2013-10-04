@@ -48,14 +48,6 @@ system_group mail 34
 
 directory / 0755 root root D ai
 
-		local -r stdoutLog="$systemLogsPath"/minimal-filesystem.stdout.log
-		local -r stderrLog="$systemLogsPath"/minimal-filesystem.stderr.log
-		mkdir -v -m 0755 -p "$LFS"/{dev,proc,sys} 1>"$stdoutLog" 2>"$stderrLog"
-	
-		# Required by the kernel to boot before udevd is started
-		mknod -m 600 "$LFS"/dev/console c 5 1 1>>"$stdoutLog" 2>>"$stderrLog"
-		mknod -m 666 "$LFS"/dev/null c 1 3 1>>"$stdoutLog" 2>>"$stderrLog"
-		
 directory /dev 0755 root root DT ''
 directory /proc 0755 root root DT ''
 directory /sys 0755 root root DT ''
