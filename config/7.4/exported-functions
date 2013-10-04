@@ -80,7 +80,6 @@ function sourcePackagesKeyExists()
 declare -a signatures_Url=()
 declare -a signatures_FileName=()
 declare -a signatures_Compression=()
-
 function signature()
 {
 	local -r ourUnsignedUrl="$1"
@@ -215,6 +214,389 @@ function hkp()
 	fi
 	
 	key "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
+}
+
+declare -i nextSystemGid=$LFS_INCLUSIVE_SYSTEM_GID
+declare -i nextUserGid=$LFS_INCLUSIVE_USER_GID
+
+declare -a groups_Name=()
+declare -a groups_Gid=()
+declare -a groups_Members=()
+function system_group()
+{
+	local -r groupName="$1"
+	if [ $# -eq 2 ]; then
+		local -ir proposedGid=$2
+	fi
+	
+	local -i index
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			if [ $# -eq 2 && ${groups_Gid[$index]} -ne $proposedGid ]; then
+				exitError "mismatch in group gids for $groupName, $gid (is previously defined as ${groups_Gid[$index]})"
+			else
+				return 0
+			fi
+		fi
+	done
+	
+	if [ $# -eq 2 ]; then
+		local -ir gid=$2
+	else
+		local -ir gid=$((nextSystemGid++))
+	fi
+	
+	index=${#groups_Name}
+	groups_Name[$index]="$groupName"
+	groups_Gid[$index]=$gid
+	groups_Members[$index]=""
+}
+
+function renderGroups()
+{
+	local -i index
+	local groupName
+	local -i gid
+	local groupMembers
+	for index in ${!groups_Name[@]}
+	do
+		groupName=${groups_Name[$index]}
+		gid=${groups_Gid[$index]}
+		groupMembers=${groups_Members[$index]}
+		printf "%s:x:%s:%s\n" "$groupName" "$gid" "$groupMembers"
+	done | sort --numeric-sort --field-separator=':' --key=3
+}
+
+declare -i nextSystemUid=$LFS_INCLUSIVE_SYSTEM_UID
+declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
+
+function verifyGroupExists()
+{
+	local -ir groupName=$1
+	local -i index
+	for index in ${!groups_Gid[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			return 0
+		fi
+	done
+	exitError "Group with name $groupName does exist"
+}
+
+declare -a users_Name=()
+declare -a users_Gecos=()
+declare -a users_Home=()
+declare -a users_Shell=()
+declare -a users_Uid=()
+declare -a users_Gid=()
+function user()
+{
+	local -r userName="$1"
+	local -r gecos="$2"
+	local -r home="$3"
+	local -r shell="$4"
+	
+	if [ $# -eq 6 ]; then
+		verifyGroupExists $6
+	fi
+	
+	local existingUserName
+	local -i index
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$existingUserName" ]; then
+			if [ "${users_Gecos[$index]}" != "$gecos" ]; then
+				exitError "gecos redefined for user $userName"
+			fi
+			if [ "${users_Home[$index]}" != "$home" ]; then
+				exitError "home redefined for user $userName"
+			fi
+			if [ "${users_Shell[$index]}" != "$shell" ]; then
+				exitError "shell redefined for user $userName"
+			fi
+			if [ $# -ge 5 ]; then
+				if [ ${users_Uid[$index]} -ne $5 ]; then
+					exitError "uid redefined for user $userName"
+				fi
+			fi
+			if [ $# -eq 6 ]; then
+				if [ "${users_Gid[$index]}" != "$6" ]; then
+					exitError "group redefined for user $userName"
+				fi
+			fi
+		fi
+	done
+	
+	if [ $# -ge 5 ]; then
+		local -ir uid=$5
+	else
+		if [ "$shell" = "/bin/false" ]; then
+			local -ir uid=$((nextSystemUid++))
+		else
+			local -ir uid=$((nextUserUid++))
+		fi
+	fi
+	
+	# check uid not already in use
+	local -i existingUid
+	for existingUid in ${users_Uid[@]}
+	do
+		if [ $existingUid -eq $uid ]; then
+			exitError "uid $uid already exists for user $userName"
+		fi
+	done
+	
+	if [ $# -eq 6 ]; then
+		local -ir gid=$6
+	else
+		if [ "$shell" = "/bin/false" ]; then
+			local -ir gid=$((nextSystemGid++))
+		else
+			local -ir gid=$((nextUserGid++))
+		fi
+	fi
+	
+	# check gid not already in use
+	local -i existingGid
+	for existingGid in ${users_Gid[@]}
+	do
+		if [ $existingGid -eq $gid ]; then
+			exitError "gid $gid already exists for user $userName"
+		fi
+	done
+		
+	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	
+	index=${#users_Name}
+	users_Name[$index]="$userName"
+	users_Gecos[$index]="$gecos"
+	users_Home[$index]="$home"
+	users_Shell[$index]="$shell"
+	users_Uid[$index]=$uid
+	users_Gid[$index]=$gid
+	
+	#printf "$userName:x:$uid:$gid:$gecos:$home:$shell"
+}
+
+function renderUsers()
+{
+	local -i index
+	for index in ${#users_Name}
+	do
+		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
+	done | sort --numeric-sort --field-separator=':' --key=3
+}
+
+declare -a earlyPathCommands=()
+declare -a latePathCommands=()
+
+function directory()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r extendedAttributesToApplyFirst="$5"
+	local -r extendedAttributesToApplyLast="$6"
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined"
+	fi
+	
+	earlyPathCommands[${#earlyPathCommands}]="mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
+		earlyPathCommands[${#earlyPathCommands}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
+	fi
+	# Order needs to be reversed...
+	if [ ! -z "$extendedAttributesToApplyLast" ]; then
+		latePathCommands[${#latePathCommands}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
+	fi
+}
+
+function symlink()
+{
+	local -r target="$1"
+	local -r contents="$2"
+	earlyPathCommands[${#earlyPathCommands}]="ln -s "\'"$contents"\'" "\'"${LFS}${target}"\'
+}
+
+function touch_file()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r extendedAttributesToApplyFirst="$5"
+	local -r extendedAttributesToApplyLast="$6"
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined"
+	fi
+	earlyPathCommands[${#earlyPathCommands}]="touch "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
+		earlyPathCommands[${#earlyPathCommands}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
+	fi
+	# Order needs to be reversed...
+	if [ ! -z "$extendedAttributesToApplyLast" ]; then
+		latePathCommands[${#latePathCommands}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
+	fi
+}
+
+function make_character_device()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r deviceMajor="$5"
+	local -r deviceMinor="$6"
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined"
+	fi
+	
+	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
+	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+}
+
+function make_block_device()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r deviceMajor="$5"
+	local -r deviceMinor="$6"
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined"
+	fi
+	
+	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
+	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+}
+
+function make_fifo()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined"
+	fi
+	
+	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p"
+	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 }
 
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays

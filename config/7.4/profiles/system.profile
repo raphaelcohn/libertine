@@ -1,5 +1,8 @@
 set -o errexit +o hashall
 
+recipe 0-directories 0
+recipe linux 3.10.10
+
 function downloadsList()
 {
 	cat <<-EOF

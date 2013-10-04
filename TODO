@@ -14,6 +14,22 @@
 	* Not everything is listed, of course
 
 
+* Security
+	* PaX / grsecurity
+	* SMACK linux module
+	* AppArmor config
+	* TOMOYO
+	* SELinux attributes + config
+	* SUID, GUID removal
+	* Consider sandboxing by reducing linux perms
+		/sbin, /usr/sbin and /usr/local/sbin by removing group execute rights, remove all other permissions
+		- using an explicit group for sets of binaries (eg instead of root:root:other, move to root:<package>-group-<N>:other with perms rwxr-x---), ie not even root-read perms
+		- unfortunately not possible for symlinks where symlink name controls behaviour (eg vggroup => lvm or slapd)
+		- chattr +i on all binaries and libraries
+		
+	* Go over all files and folders and make the time stamp consistent
+	
+	* Go over all files and folders and record hashes (md5,sha1,sha224-512)
 
 
 
@@ -22,10 +38,7 @@
 
 
 
-
-
-
-* A problem with using ACLs is the toolchain's coreutils might be / will be built w/o libacl, so the coreutils don't know about it
+* A problem with using ACLs (and SELinux and Smack) is the toolchain's coreutils might be / will be built w/o libacl, so the coreutils don't know about it
 
 
 

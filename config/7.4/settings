@@ -1,0 +1,9 @@
+
+declare -ir LFS_INCLUSIVE_SYSTEM_UID=100
+declare -ir LFS_INCLUSIVE_SYSTEM_GID=100
+declare -ir LFS_INCLUSIVE_USER_UID=1000
+declare -ir LFS_INCLUSIVE_USER_GID=1000
+
+declare -ir LFS_DISTRIBUTION_ID="Linux From Scratch"
+declare -ir LFS_DISTRIBUTION_CODENAME="stormmq"
+declare -ir LFS_DISTRIBUTION_DESCRIPTION="Linux From Scratch"

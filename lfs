@@ -458,6 +458,11 @@ function setPathsAndExports()
 		exitError "shared-pre-dependencies path $sharedPreDependenciesPath does not exist or is not a directory"
 	fi
 	
+	readonly settings="$distributionConfigPath"/settings
+	if [ ! -f "$settings" ]; then
+		exitError "settings $settings does not exist or is not a file"
+	fi
+	
 	readonly exportedFunctions="$distributionConfigPath"/exported-functions
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
@@ -470,7 +475,7 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly logsPath=/var/logs/lfs/"$distribution"
+	LFS_LOGS_PATH=/var/log/lfs/"$distribution"
 	
 	export LFS="$lfsPath"/"$distribution"
 	
@@ -478,8 +483,8 @@ function setPathsAndExports()
 	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
 	export LFS_TOOLS=tools-"$distribution"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
 	
-	readonly LFS_SOURCES_PATH="$LFS"/sources
-	readonly LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
+	LFS_SOURCES_PATH="$LFS"/sources
+	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
 	
 	readonly toolsBackUpPath="$LFS"/"$LFS_TOOLS".backup
 	
@@ -579,19 +584,19 @@ function createSkeletonFolderStructure()
 {
 	mkdir -m 0755 -p "$LFS"
 	
-	readonly downloadsLogsPath="$logsPath"/downloads
-	readonly toolchain1LogsPath="$logsPath"/toolchain1
-	readonly toolchain2LogsPath="$logsPath"/toolchain2
-	readonly systemLogsPath="$logsPath"/system
+	readonly downloadsLogsPath="$LFS_LOGS_PATH"/downloads
+	readonly toolchain1LogsPath="$LFS_LOGS_PATH"/toolchain1
+	readonly toolchain2LogsPath="$LFS_LOGS_PATH"/toolchain2
+	readonly systemLogsPath="$LFS_LOGS_PATH"/system
 	
 	# Logs
-	mkdir -m 0755 -p "$logsPath"
-	rm -rf "$logsPath"/*
+	mkdir -m 0755 -p "$LFS_LOGS_PATH"
+	rm -rf "$LFS_LOGS_PATH"/*
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	mkdir -m 0755 -p "$toolchain1LogsPath"
 	mkdir -m 0755 -p "$toolchain2LogsPath"
 	mkdir -m 0755 -p "$systemLogsPath"
-	chmod a+wt "$logsPath"
+	chmod a+wt "$LFS_LOGS_PATH"
 	
 	# Sources
 	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
@@ -884,7 +889,7 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download $downloadName failed, check logs $logsPath/downloads/$fileName.*.log"
+			progressMessageFailed "download $downloadName failed, check logs $LFS_LOGS_PATH/downloads/$fileName.*.log"
 		else
 			progressMessageSucceeded
 		fi
@@ -916,13 +921,13 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
-					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $logsPath/downloads/$fileName.$hashProgram.log"
+					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOGS_PATH/downloads/$fileName.$hashProgram.log"
 				fi
 			;;
 			
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				hasHash=0
-				progressMessage="$hashName signature does not match, check logs $logsPath/downloads/$fileName.${hashName,,}.log"
+				progressMessage="$hashName signature does not match, check logs $LFS_LOGS_PATH/downloads/$fileName.${hashName,,}.log"
 				if [ -z "$hashSignatureFileName" ]; then
 					signatureFileName="$fileName".sig
 				else
@@ -1062,8 +1067,8 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r extractStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
-	local -r extractStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
+	local -r extractStdOutLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
+	local -r extractStdErrLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
 	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
@@ -1075,8 +1080,8 @@ function installPackage()
 			fi
 		fi
 	
-		local -r installStdOutLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$logsPath"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+		local -r installStdOutLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
@@ -1155,10 +1160,10 @@ function backUpToolchain()
 	if which rsync 1>/dev/null 2>/dev/null; then
 		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
 		mkdir -m 0755 -p "$toolsBackUpPath"
-		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$logsPath"/toolchain.backup.stdout.log 2>"$logsPath"/toolchain.backup.stderr.log; then
+		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$LFS_LOGS_PATH"/toolchain.backup.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.backup.stderr.log; then
 			progressMessageSucceeded
 		else
-			progressMessageFailed "check logs in $logsPath/toolchain.backup.*.log"
+			progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.backup.*.log"
 		fi
 	fi
 	
@@ -1186,8 +1191,8 @@ function createOrUseBackUpToolchain()
 		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
 			progressMessage "Restoring toolchain using rsync"
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
-					progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
+					progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
@@ -1195,8 +1200,8 @@ function createOrUseBackUpToolchain()
 			progressMessage "Restoring toolchain using tarball"
 				rm -rf -- "$LFS_TOOLS_PATH"
 				pushd "$LFS"/.. >/dev/null
-					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$logsPath"/toolchain.restore.stdout.log 2>"$logsPath"/toolchain.restore.stderr.log; then
-						progressMessageFailed "check logs in $logsPath/toolchain.restore.*.log"
+					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
+						progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
 					fi
 				popd >/dev/null
 				changeOwnerOfToolchain
@@ -1209,6 +1214,139 @@ function createOrUseBackUpToolchain()
 	fi
 }
 
+function runSystemInstallationLogic()
+{
+	local -r callback="$1"
+	
+	progressMessage "Phase system, executing $callback on target"
+	local -r stdoutLog="$systemLogsPath"/"$callback".stdout.log
+	local -r stderrLog="$systemLogsPath"/"$callback".stderr.log
+	INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
+	addNextTrapHandler installationFailedTrapHandler
+	
+		$callback 1>"$stdoutLog" 2>"$stderrLog"
+	
+	removeLastTrapHandler
+	
+	progressMessageSucceeded
+}
+
+function mountVirtualFilesystems()
+{
+	local -i index
+	local -i ttyGid=-1
+	for index in ${#groups_Name}
+	do
+		if [ "${groups_Name[$index]}" = "tty" ]; then
+			ttyGid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $ttyGid -eq -1 ]; then
+		exitError "Please ensure the tty group is defined on the target system"
+	fi
+	
+	mount --bind /dev "$LFS"/dev
+	mount -t devpts devpts "$LFS"/dev/pts -o gid=$ttyGid,mode=620
+	mount -t proc proc "$LFS"/proc
+	mount -t sysfs sysfs "$LFS"/sys
+	
+	# On Debian/Ubuntu and others, /dev/shm is a symlink to a file that would be outside of the LFS chroot due to the mount of /dev above
+	if [ -h "$LFS"/dev/shm ]; then
+		local -r link="$(readlink "$LFS"/dev/shm)"
+		mkdir -m 0755 -p "$LFS"/"$link"
+		mount -v tmpfs shm "$LFS"/"$link"
+	else
+		mount -v tmpfs shm "$LFS"/dev/shm
+	fi
+}
+
+function unmountVirtualFilesystems()
+{
+	umount -v "$LFS"/dev/pts
+
+	if [ -h "$LFS"/dev/shm ]; then
+		local -r link=$(readlink "$LFS"/dev/shm)
+		umount -v "$LFS"/"$link"
+	else
+		umount -v "$LFS"/dev/shm
+	fi
+
+	umount -v "$LFS"/dev
+	umount -v "$LFS"/proc
+	umount -v "$LFS"/sys
+}
+
+function generateConciseBashScript()
+{
+	# compgen will include local variables, so we use a subshell...
+	echo "#!/bin/bash -"
+	echo "set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022"
+	
+	compgen -v | while IFS='' read -r -d $'\n' variableName
+	do
+		if [ -z "$found" ]; then
+			if [ "$variableName" = "_" ]; then
+				found="yes"
+			fi
+			continue
+		fi
+		
+		declare -p "$variableName"
+	done
+	
+	declare -f
+}
+
+function chrootToEnvironment()
+{
+	mountVirtualFilesystems
+	
+	# run commands in a chroot, but not us
+	set +e
+	chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h <<-EOF
+		$(generateConciseBashScript)
+		
+		# Fix up paths and variables
+		LC_ALL=POSIX
+		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
+		LFS=
+		LFS_SOURCES_PATH="$LFS"/sources
+		LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
+		LFS_LOGS_PATH="$LFS"/var/log/lfs
+		mkdir -m 0755 -p "$LFS_LOGS_PATH"
+		
+		installPackages system
+	EOF
+	local -ir exitCode=$?
+	set -e
+	
+	unmountVirtualFilesystems
+	
+	if [ $exitCode -ne 0 ]; then
+		exitError "chroot script failed in someway"
+	fi
+}
+
+function renderEarlyPathCommands()
+{
+	local -i index
+	for index in ${#earlyPathCommands[@]}
+	do
+		eval ${earlyPathCommands[$index]}
+	done
+}
+
+function renderLatePathCommands()
+{
+	# reverse order because of the append and immutable commands
+	local -i index
+	for (( index=${#latePathCommands[@]}-1; index != -1; index++ ))
+	do
+		eval ${latePathCommands[$index]}
+	done
+}
+
 function main()
 {
 	setDebugging
@@ -1218,18 +1356,15 @@ function main()
 	parseCommandLine "$@"
 	
 	setPathsAndExports
-	
 	verifyHostSystemRequirements
+	
+	source "$settings"
 	source "$exportedFunctions"
 	include_mirrors
 	include_profiles
-	
-	createSkeletonFolderStructure
-	
 	rehashCertificateAuthorities
 	
-	# Must have been processed using c_rehash
-	
+	createSkeletonFolderStructure
 	downloadSignatures
 	downloadKeyrings
 	downloadKeys
@@ -1237,7 +1372,9 @@ function main()
 	
 	createOrUseBackUpToolchain
 	
-	echo "Hello"
+	runSystemInstallationLogic renderEarlyPathCommands
+	chrootToEnvironment
+	#runSystemInstallationLogic renderLatePathCommands
 }
 
 main "$@"
