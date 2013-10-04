@@ -274,6 +274,7 @@ declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
 function verifyGroupExists()
 {
 	local -ir groupName=$1
+	local -r userName="$2"
 	local -i index
 	for index in ${!groups_Gid[@]}
 	do
@@ -281,7 +282,7 @@ function verifyGroupExists()
 			return 0
 		fi
 	done
-	exitError "Group with name $groupName does exist"
+	exitError "Group with name $groupName does exist for user $userName"
 }
 
 declare -a users_Name=()
@@ -298,7 +299,7 @@ function user()
 	local -r shell="$4"
 	
 	if [ $# -eq 6 ]; then
-		verifyGroupExists $6
+		verifyGroupExists $6 "$userName"
 	fi
 	
 	local existingUserName
