@@ -242,12 +242,12 @@ function system_group()
 	done
 	
 	if [ $# -eq 2 ]; then
-		local -ir gid=$2
+		local -ir gid=$proposedGid
 	else
 		local -ir gid=$((nextSystemGid++))
 	fi
 	
-	index=${#groups_Name}
+	index=${#groups_Name[@]}
 	groups_Name[$index]="$groupName"
 	groups_Gid[$index]=$gid
 	groups_Members[$index]=""
@@ -375,7 +375,7 @@ function user()
 		
 	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
 	
-	index=${#users_Name}
+	index=${#users_Name[@]}
 	users_Name[$index]="$userName"
 	users_Gecos[$index]="$gecos"
 	users_Home[$index]="$home"
