@@ -1381,6 +1381,8 @@ function replicateBashFunctionsAndGlobalVariables()
 
 function chrootToEnvironment()
 {
+	replicateBashFunctionsAndGlobalVariables >/tmp/ZZ
+	
 	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
 		#!/bin/bash -
