@@ -1406,11 +1406,11 @@ function chrootToEnvironment()
 		
 		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
-		LFS_SOURCES_PATH="$LFS"/sources
-		LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
-		LFS_LOGS_PATH="$LFS"/var/log/lfs
+		LFS_SOURCES_PATH=/sources
+		LFS_TOOLS_PATH=/"$LFS_TOOLS"
+		LFS_LOGS_PATH=/var/log/lfs
 		
-		mkdir -m 0755 -p "$LFS_LOGS_PATH"
+		mkdir -m 0755 -p '$LFS_LOGS_PATH'
 		
 		installPackages system
 	EOF
@@ -1429,7 +1429,7 @@ function chrootToEnvironment()
 	rm -rf "$continutationBinaryForChroot"
 	
 	if [ $exitCode -ne 0 ]; then
-		exitError "chroot script failed in someway"
+		exitError "chroot script failed with exit code $exitCode"
 	fi
 	
 	# DESTDIR
