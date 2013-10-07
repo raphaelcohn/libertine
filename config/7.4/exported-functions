@@ -941,7 +941,7 @@ function recipe()
 	done
 	
 	if [ $alreadySourced -eq 1 ]; then
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_NAME_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_NAME_VERSION="$ourVersion" source "$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	fi
 	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
 	
