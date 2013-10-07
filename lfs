@@ -1174,9 +1174,12 @@ function backUpToolchain()
 
 function createToolchain()
 {
-	rm -rf -- "$LFS_TOOLS_PATH"
-	mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-	export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
+	progressMessage "Initiating creation of toolchain ($LFS_TOOLS)"
+		rm -rf -- "$LFS_TOOLS_PATH"
+		mkdir -m 0755 -p "$LFS_TOOLS_PATH"
+		export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
+	progressMessageSucceeded
+	
 	installPackages toolchain1
 	installPackages toolchain2
 	stripToolchainSymbolsAfterToolchain2
@@ -1189,7 +1192,7 @@ function createOrUseBackUpToolchain()
 {
 	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
 		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
-			progressMessage "Restoring toolchain using rsync"
+			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
 					progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
@@ -1197,7 +1200,7 @@ function createOrUseBackUpToolchain()
 				changeOwnerOfToolchain
 			progressMessageSucceeded
 		elif [ -f "$toolsBackUpPath".tar.gz ]; then
-			progressMessage "Restoring toolchain using tarball"
+			progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
 				rm -rf -- "$LFS_TOOLS_PATH"
 				pushd "$LFS"/.. >/dev/null
 					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
@@ -1233,7 +1236,6 @@ function runSystemInstallationLogic()
 
 function mountVirtualFilesystems()
 {
-	set -x
 	local -i index
 	local -i ttyGid=-1
 	for index in ${!groups_Name[@]}
