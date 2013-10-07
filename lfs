@@ -1353,18 +1353,18 @@ function mountVirtualFilesystems()
 
 function unmountVirtualFilesystems()
 {
-	umount -v "$LFS"/dev/pts
+	umount "$LFS"/dev/pts
 
 	if [ -h "$LFS"/dev/shm ]; then
 		local -r link=$(readlink "$LFS"/dev/shm)
-		umount -v "$LFS"/"$link"
+		umount "$LFS"/"$link"
 	else
-		umount -v "$LFS"/dev/shm
+		umount "$LFS"/dev/shm
 	fi
 
-	umount -v "$LFS"/dev
-	umount -v "$LFS"/proc
-	umount -v "$LFS"/sys
+	umount "$LFS"/dev
+	umount "$LFS"/proc
+	umount "$LFS"/sys
 }
 
 function generateConciseBashScript()
