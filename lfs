@@ -1256,9 +1256,9 @@ function mountVirtualFilesystems()
 	if [ -h "$LFS"/dev/shm ]; then
 		local -r link="$(readlink "$LFS"/dev/shm)"
 		mkdir -m 0755 -p "$LFS"/"$link"
-		mount -v tmpfs shm "$LFS"/"$link"
+		mount -t tmpfs shm "$LFS"/"$link"
 	else
-		mount -v tmpfs shm "$LFS"/dev/shm
+		mount -t tmpfs shm "$LFS"/dev/shm
 	fi
 }
 
