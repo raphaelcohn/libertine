@@ -1409,6 +1409,7 @@ function chrootToEnvironment()
 
 function renderEarlyPathCommands()
 {
+	set -x
 	local -i index
 	for index in ${#earlyPathCommands[@]}
 	do
