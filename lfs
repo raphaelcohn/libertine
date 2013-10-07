@@ -1390,19 +1390,26 @@ function generateConciseBashScript()
 
 function chrootToEnvironment()
 {
-	mountVirtualFilesystems
-	
 	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
 		$(generateConciseBashScript)
 		
 		# Fix up paths and variables
+		
 		LC_ALL=POSIX
+		
+		unset trapHandlers
+		declare -a trapHandlers=()
+		
+		unset filesToRemoveOnExit
+		declare -a filesToRemoveOnExit=()
+		
 		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
 		LFS_SOURCES_PATH="$LFS"/sources
 		LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
 		LFS_LOGS_PATH="$LFS"/var/log/lfs
+		
 		mkdir -m 0755 -p "$LFS_LOGS_PATH"
 		
 		installPackages system
@@ -1410,18 +1417,22 @@ function chrootToEnvironment()
 	
 	cp "$continutationBinaryForChroot" /tmp/XXXX
 	
+	mountVirtualFilesystems
+	
 	set +e
 	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h /"$LFS_TOOLS"/sbin/lfs-chroot-install
 	local -ir exitCode=$?
 	set -e
 	
-	rm -rf "$continutationBinaryForChroot"
-	
 	unmountVirtualFilesystems
+	
+	rm -rf "$continutationBinaryForChroot"
 	
 	if [ $exitCode -ne 0 ]; then
 		exitError "chroot script failed in someway"
 	fi
+	
+	# DESTDIR
 }
 
 function renderEarlyPathCommands()
