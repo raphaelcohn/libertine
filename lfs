@@ -1372,11 +1372,61 @@ function replicateBashFunctionsAndGlobalVariables()
 	# compgen will include local variables, so we use a subshell...
 	compgen -v | while IFS='' read -r -d $'\n' variableName
 	do
-		declare -p "$variableName"
+		case "$variableName" in)
+			
+			BASH|BASHOPTS|BASHPID)
+				:
+			;;
+			
+			BASH_*)
+				:
+			;;
+			
+			TERM|PATH)
+				:
+			;;
+			
+			DIRSTACK|EUID|FUNCNAME|GROUPS|HISTCMD|HOSTNAME|HOSTTYPE)
+				:
+			;;
+			
+			LINENO|LOGNAME|MACHTYPE)
+				:
+			;;
+			
+			OLDPWD|OPTERR|OPTIND|OPTARG|OSTYPE)
+				:
+			;;
+			
+			PIPESTATUS|PPID|PS1|PS2|PS3|PS4|PWD)
+				:
+			;;
+			
+			RANDOM|SECONDS|SHELL|SHELLOPTS|SHLVL)
+				:
+			;;
+			
+			SUDO_*)
+				:
+			;;
+			
+			UID|USER|USERNAME)
+				:
+			;;
+			
+			_)
+				:
+			;;
+			
+			# Allowed: COMP_WORDBREAKS, IFS, LC_*, LANG, LANGUAGE, anything else
+			*)
+				declare -p "$variableName"
+			;;
+			
+		esac
 	done
 	
 	declare -f
-	exit 50
 }
 
 function chrootToEnvironment()
