@@ -305,7 +305,7 @@ function parseCommandLine()
 				;;
 				
 				d)
-					distribution="$OPTARG"
+					LFS_DISTRIBUTION_VERSION="$OPTARG"
 				;;
 				
 				l)
