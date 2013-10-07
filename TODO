@@ -17,6 +17,12 @@
 	* Not everything is listed, of course
 
 
+* Redeployment because of patching
+	* Keep a local cache of sources
+	* Keep the toolchain back up outside of the root
+	* Apply rsync diffs / generate a diff to push to a remote machine
+		* The problem with this is sending the diffs to change root, etc, over the network
+
 * Security
 	* PaX / grsecurity
 	* SMACK linux module

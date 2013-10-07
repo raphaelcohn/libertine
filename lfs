@@ -1214,9 +1214,9 @@ function cleanUpTarget()
 							
 							*)
 								if [ -d "$file" ]; then
-									chattr -R "$file" -ai
+									chattr -R -ai "$file"
 								elif [ -f "$file" ]; then
-									chattr "$file" -ai
+									chattr -ai "$file"
 								fi
 							;;
 							
