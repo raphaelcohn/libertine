@@ -1188,6 +1188,7 @@ function createToolchain()
 	backUpToolchain
 }
 
+# Won't work if we've used chattr at all...
 function cleanUpTarget()
 {
 	progressMessage "Cleaning up target $LFS"
@@ -1198,12 +1199,29 @@ function cleanUpTarget()
 			for file in *
 			do
 				case "$file" in
-				
+					
 					sources|$LFS_TOOLS|$LFS_TOOLS.backup|$LFS_TOOLS.backup.*)
 						:
 					;;
 				
 					*)
+						# Recursively remove ai xattrs - append-only and immutable - so we can delete files!
+						case "$file" in
+							
+							dev|proc|sys)
+								:
+							;;
+							
+							*)
+								if [ -d "$file" ]; then
+									chattr -R "$file" -ai
+								elif [ -f "$file" ]; then
+									chattr "$file" -ai
+								fi
+							;;
+							
+						esac
+						
 						if ! rm -rf "$file"; then
 							progressMessageFailed "could not remove $file"
 						fi

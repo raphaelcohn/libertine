@@ -9,7 +9,7 @@
 * SUDO profile so can automate build (ie template for sudoers)
 * MUST ADD TO TOOLCHAIN: e2fsprogs for chattr
 * CONSIDER ADDING Linux ACL (setfacl) and SELinux support to toolchain
-
+* User xattrs, using setfattr in the attr package
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
