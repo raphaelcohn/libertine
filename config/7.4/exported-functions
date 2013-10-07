@@ -431,15 +431,15 @@ function directory()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands}]="mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
-		earlyPathCommands[${#earlyPathCommands}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
+		earlyPathCommands[${#earlyPathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
 	fi
 	# Order needs to be reversed...
 	if [ ! -z "$extendedAttributesToApplyLast" ]; then
-		latePathCommands[${#latePathCommands}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
+		latePathCommands[${#latePathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
 	fi
 }
 
@@ -447,7 +447,7 @@ function symlink()
 {
 	local -r target="$1"
 	local -r contents="$2"
-	earlyPathCommands[${#earlyPathCommands}]="ln -s "\'"$contents"\'" "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="ln -s "\'"$contents"\'" "\'"${LFS}${target}"\'
 }
 
 function touch_file()
@@ -483,15 +483,15 @@ function touch_file()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands}]="touch "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="touch "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
-		earlyPathCommands[${#earlyPathCommands}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
+		earlyPathCommands[${#earlyPathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
 	fi
 	# Order needs to be reversed...
 	if [ ! -z "$extendedAttributesToApplyLast" ]; then
-		latePathCommands[${#latePathCommands}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
+		latePathCommands[${#latePathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
 	fi
 }
 
@@ -528,9 +528,9 @@ function make_character_device()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
-	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 }
 
 function make_block_device()
@@ -566,9 +566,9 @@ function make_block_device()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
-	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 }
 
 function make_fifo()
@@ -602,9 +602,9 @@ function make_fifo()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p"
-	earlyPathCommands[${#earlyPathCommands}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p"
+	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
+	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 }
 
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
