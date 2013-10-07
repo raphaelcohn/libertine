@@ -1280,18 +1280,27 @@ function runSystemInstallationLogic()
 {
 	local -r callback="$1"
 	
-	progressMessage "Phase system, executing $callback on target"
 	local -r stdoutLog="$systemLogsPath"/"$callback".stdout.log
 	local -r stderrLog="$systemLogsPath"/"$callback".stderr.log
-	INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
-	addNextTrapHandler installationFailedTrapHandler
+	
+	progressMessage "Phase system, executing $callback on target"
 		
-		set -x
-		$callback 1>"$stdoutLog" 2>"$stderrLog"
-		set +x 2>>"$stderrLog"
-	
-	removeLastTrapHandler
-	
+		INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
+		addNextTrapHandler installationFailedTrapHandler
+			
+			exec 6>&1 1>"$stdoutLog"
+			exec 7>&2 2>"$stderrLog"
+				
+				set -x
+				# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
+				FORCE_UNSAFE_CONFIGURE=1 $callback
+				set +x
+				
+			exec 1>&6 6>&-
+			exec 2>&7 7>&-
+			
+		removeLastTrapHandler
+		
 	progressMessageSucceeded
 }
 
