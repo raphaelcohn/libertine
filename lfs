@@ -1411,7 +1411,7 @@ function renderEarlyPathCommands()
 {
 	set -x
 	local -i index
-	for index in ${#earlyPathCommands[@]}
+	for (( index=0; index != ${#earlyPathCommands[@]}; index++ ))
 	do
 		eval ${earlyPathCommands[$index]}
 	done
@@ -1421,7 +1421,7 @@ function renderLatePathCommands()
 {
 	# reverse order because of the append and immutable commands
 	local -i index
-	for (( index=${#latePathCommands[@]}-1; index != -1; index++ ))
+	for (( index=${#latePathCommands[@]}-1; index != -1; index-- ))
 	do
 		eval ${latePathCommands[$index]}
 	done
