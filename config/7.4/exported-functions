@@ -407,6 +407,10 @@ function directory()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "directory target must be absolute, not $target"
+	fi
+	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
 	do
@@ -463,6 +467,10 @@ function touch_file()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "touch_file target must be absolute, not $target"
+	fi
+	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
 	do
@@ -508,6 +516,10 @@ function make_character_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "make_character_device target must be absolute, not $target"
+	fi
+	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
 	do
@@ -546,6 +558,10 @@ function make_block_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "make_block_device target must be absolute, not $target"
+	fi
+	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
 	do
@@ -581,6 +597,10 @@ function make_fifo()
 	local -r mode="$2"
 	local -r userName="$3"
 	local -r groupName="$4"
+	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "make_fifo target must be absolute, not $target"
+	fi
 	
 	local -i uid=-1
 	for index in ${!users_Name[@]}
