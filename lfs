@@ -1188,11 +1188,16 @@ function createToolchain()
 	backUpToolchain
 }
 
-# Won't work if we've used chattr at all...
 function cleanUpTarget()
 {
+	if [ ! -d "$LFS" ]; then
+		return 0
+	fi
+	
 	progressMessage "Cleaning up target $LFS"
 	
+		chattr -R -f -ai "$LFS" 1>"$systemLogsPath"/chattr-cleanup.stdout.log 2>"$systemLogsPath"/chattr-cleanup.stderr.log || true
+		
 		pushd "$LFS" >/dev/null
 		
 			local file
@@ -1205,23 +1210,6 @@ function cleanUpTarget()
 					;;
 				
 					*)
-						# Recursively remove ai xattrs - append-only and immutable - so we can delete files!
-						case "$file" in
-							
-							dev|proc|sys)
-								:
-							;;
-							
-							*)
-								if [ -d "$file" ]; then
-									chattr -R -ai "$file"
-								elif [ -f "$file" ]; then
-									chattr -ai "$file"
-								fi
-							;;
-							
-						esac
-						
 						if ! rm -rf "$file"; then
 							progressMessageFailed "could not remove $file"
 						fi
@@ -1454,7 +1442,7 @@ function main()
 	set -x
 	runSystemInstallationLogic renderEarlyPathCommands
 	chrootToEnvironment
-	#runSystemInstallationLogic renderLatePathCommands
+	runSystemInstallationLogic renderLatePathCommands
 }
 
 main "$@"
