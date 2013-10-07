@@ -475,7 +475,7 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	LFS_LOGS_PATH=/var/log/lfs/"$distribution"
+	LFS_LOG_PATH=/var/log/lfs/"$distribution"
 	
 	export LFS="$lfsPath"/"$distribution"
 	
@@ -584,19 +584,19 @@ function createSkeletonFolderStructure()
 {
 	mkdir -m 0755 -p "$LFS"
 	
-	readonly downloadsLogsPath="$LFS_LOGS_PATH"/downloads
-	readonly toolchain1LogsPath="$LFS_LOGS_PATH"/toolchain1
-	readonly toolchain2LogsPath="$LFS_LOGS_PATH"/toolchain2
-	readonly systemLogsPath="$LFS_LOGS_PATH"/system
+	readonly downloadsLogsPath="$LFS_LOG_PATH"/downloads
+	readonly toolchain1LogsPath="$LFS_LOG_PATH"/toolchain1
+	readonly toolchain2LogsPath="$LFS_LOG_PATH"/toolchain2
+	readonly systemLogsPath="$LFS_LOG_PATH"/system
 	
 	# Logs
-	mkdir -m 0755 -p "$LFS_LOGS_PATH"
-	rm -rf "$LFS_LOGS_PATH"/*
+	mkdir -m 0755 -p "$LFS_LOG_PATH"
+	rm -rf "$LFS_LOG_PATH"/*
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	mkdir -m 0755 -p "$toolchain1LogsPath"
 	mkdir -m 0755 -p "$toolchain2LogsPath"
 	mkdir -m 0755 -p "$systemLogsPath"
-	chmod a+wt "$LFS_LOGS_PATH"
+	chmod a+wt "$LFS_LOG_PATH"
 	
 	# Sources
 	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
@@ -889,7 +889,7 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download $downloadName failed, check logs $LFS_LOGS_PATH/downloads/$fileName.*.log"
+			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
 		else
 			progressMessageSucceeded
 		fi
@@ -921,13 +921,13 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
-					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOGS_PATH/downloads/$fileName.$hashProgram.log"
+					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
 				fi
 			;;
 			
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				hasHash=0
-				progressMessage="$hashName signature does not match, check logs $LFS_LOGS_PATH/downloads/$fileName.${hashName,,}.log"
+				progressMessage="$hashName signature does not match, check logs $LFS_LOG_PATH/downloads/$fileName.${hashName,,}.log"
 				if [ -z "$hashSignatureFileName" ]; then
 					signatureFileName="$fileName".sig
 				else
@@ -1067,8 +1067,8 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r extractStdOutLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
-	local -r extractStdErrLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
+	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
+	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
 	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
@@ -1080,8 +1080,8 @@ function installPackage()
 			fi
 		fi
 	
-		local -r installStdOutLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$LFS_LOGS_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
@@ -1160,10 +1160,10 @@ function backUpToolchain()
 	if which rsync 1>/dev/null 2>/dev/null; then
 		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
 		mkdir -m 0755 -p "$toolsBackUpPath"
-		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$LFS_LOGS_PATH"/toolchain.backup.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.backup.stderr.log; then
+		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$LFS_LOG_PATH"/toolchain.backup.stdout.log 2>"$LFS_LOG_PATH"/toolchain.backup.stderr.log; then
 			progressMessageSucceeded
 		else
-			progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.backup.*.log"
+			progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.backup.*.log"
 		fi
 	fi
 	
@@ -1266,8 +1266,8 @@ function createOrUseBackUpToolchain()
 			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 				
-				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
-					progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
+				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOG_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOG_PATH"/toolchain.restore.stderr.log; then
+					progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.restore.*.log"
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
@@ -1279,8 +1279,8 @@ function createOrUseBackUpToolchain()
 				rm -rf -- "$LFS_TOOLS_PATH"
 				
 				pushd "$LFS"/.. >/dev/null
-					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
-						progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
+					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOG_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOG_PATH"/toolchain.restore.stderr.log; then
+						progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.restore.*.log"
 					fi
 				popd >/dev/null
 				changeOwnerOfToolchain
@@ -1393,6 +1393,9 @@ function chrootToEnvironment()
 	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
 		$(generateConciseBashScript)
+	EOF
+	cat >"$continutationBinaryForChroot" <<-'EOF'
+		$(generateConciseBashScript)
 		
 		# Fix up paths and variables
 		
@@ -1408,9 +1411,9 @@ function chrootToEnvironment()
 		LFS=
 		LFS_SOURCES_PATH=/sources
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
-		LFS_LOGS_PATH=/var/log/lfs
+		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
-		mkdir -m 0755 -p '$LFS_LOGS_PATH'
+		mkdir -m 0755 -p "$LFS_LOG_PATH"
 		
 		installPackages system
 	EOF
