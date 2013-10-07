@@ -276,7 +276,7 @@ Options are as follows:-     Default
 function parseCommandLine()
 {
 	# Defaults
-	LFS_DISTRIBUTION_VERSION=""
+	LFS_DISTRIBUTION_VERSION="7.4"
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	mirrors="timezone"

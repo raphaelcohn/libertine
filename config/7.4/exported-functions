@@ -856,7 +856,7 @@ function include_mirror()
 	previousMirrors="$previousMirrors $localMirror"
 	
 	if [ -f "$mirrorsPath"/"$localMirror".mirrors ]; then
-		LFS_DISTRIBUTION_VERSION="$distribution" source "$mirrorsPath"/"$localMirror".mirrors "$distribution" "$localMirror"
+		LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION" source "$mirrorsPath"/"$localMirror".mirrors "$LFS_DISTRIBUTION_VERSION" "$localMirror"
 	else
 		exitError "mirrors $localMirror.mirrors does not exist in mirrors path $mirrorsPath or is not a file"
 	fi
@@ -881,7 +881,7 @@ function include_profile()
 	previousProfiles="$previousProfiles $localProfile"
 	
 	if [ -f "$profilesPath"/"$localProfile".profile ]; then
-		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$distribution" source "$profilesPath"/"$localProfile".profile "$LFS_PHASE" "$distribution" "$localProfile"
+		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION" source "$profilesPath"/"$localProfile".profile "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION" "$localProfile"
 	else
 		exitError "profile $localProfile.profile does not exist in profile path $profilesPath or is not a file"
 	fi
