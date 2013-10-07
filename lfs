@@ -1397,6 +1397,7 @@ function chrootToEnvironment()
 		
 		$(generateConciseBashScript)
 	EOF
+	echo "$LFS_TOOLS"
 	cat >>"$continutationBinaryForChroot" <<-'EOF'
 		# Fix up paths and variables
 		set -x
