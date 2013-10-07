@@ -54,14 +54,14 @@ function addFileToRemoveOnExit()
 
 function temporaryFileToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp)"
+	local -r fileToRemove="$(mktemp "$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --directory)"
+	local -r fileToRemove="$(mktemp --directory "$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
@@ -1206,7 +1206,7 @@ function cleanUpTarget()
 			do
 				case "$file" in
 					
-					sources|$LFS_TOOLS|$LFS_TOOLS.backup|$LFS_TOOLS.backup.*)
+					dev|proc|sys|sources|$LFS_TOOLS|$LFS_TOOLS.backup|$LFS_TOOLS.backup.*)
 						:
 					;;
 				
