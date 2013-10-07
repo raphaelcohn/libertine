@@ -1,0 +1,91 @@
+set -o errexit +o hashall
+
+depends binutils 2.23.2
+
+include_once
+
+function installPackage_toolchain2_gcc()
+{
+	cat gcc/limitx.h gcc/glimits.h gcc/limity.h >"$(purebash_dirname $("$LFS_TGT"-gcc -print-libgcc-file-name))"/include-fixed/limits.h
+	
+	cp -v gcc/Makefile.in{,.tmp}
+	sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp >gcc/Makefile.in
+
+	# Adjust paths to use /tools and remove /usr/include
+	local file
+	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+	do
+		cp -uv "$file"{,.orig}
+		sed -e "s@/lib\(64\)\?\(32\)\?/ld@/${LFS_TOOLS}&@g" -e "s@/usr@/${LFS_TOOLS}@g" "$file".orig >"$file"
+		cat >>"$file" <<-EOF
+			
+			#undef STANDARD_STARTFILE_PREFIX_1
+			#undef STANDARD_STARTFILE_PREFIX_2
+			#define STANDARD_STARTFILE_PREFIX_1 "/${LFS_TOOLS}/lib/"
+			#define STANDARD_STARTFILE_PREFIX_2 ""
+		EOF
+		touch "$file".orig
+	done
+	
+	extractDependencyIntoBuildFolder mpfr $LFS_SOURCE_PACKAGE_VERSION_mpfr
+	extractDependencyIntoBuildFolder gmp $LFS_SOURCE_PACKAGE_VERSION_gmp
+	extractDependencyIntoBuildFolder mpc $LFS_SOURCE_PACKAGE_VERSION_mpc
+	
+	createBuildFolderAndPushd
+		
+		local -r currentDir="$(pwd)"
+		CC="$LFS_TGT"-gcc                                                          \
+		CXX="$LFS_TGT"-g++                                                         \
+		AR="$LFS_TGT"-ar                                                           \
+		RANLIB="$LFS_TGT"-ranlib                                                   \
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure                                  \
+		--prefix=/"$LFS_TOOLS"                                                            \
+		--with-local-prefix=/"$LFS_TOOLS"                                                 \
+		--with-native-system-header-dir=/"$LFS_TOOLS"/include                             \
+		--enable-clocale=gnu                                                       \
+		--enable-shared                                                            \
+		--enable-threads=posix                                                     \
+		--enable-__cxa_atexit                                                      \
+		--enable-languages=c,c++                                                   \
+		--disable-libstdcxx-pch                                                    \
+		--disable-multilib                                                         \
+		--disable-bootstrap                                                        \
+		--disable-libgomp                                                          \
+		--with-mpfr-include="$currentDir"/../"$LFS_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
+		
+		make
+		
+		make install
+		
+		ln -sv gcc /"$LFS_TOOLS"/bin/cc
+		
+	popdBuildFolder
+	
+	localPackage_toolchain2_gcc_verifyGcc
+}
+
+# similar to localPackage_toolchain2_glibc_verifyGlibc except we use 'cc' rather than "$LFS_TGT"-gcc
+function localPackage_toolchain2_gcc_verifyGcc()
+{
+	echo 'main(){}' >dummy.c
+	cc dummy.c
+	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
+	
+	case "$(uname -m)" in
+		x86_64)
+			local -r libraryFolderName=lib64
+		;;
+		
+		*)
+			local -r libraryFolderName=lib
+		;;
+	esac
+	
+	if [ "$(purebash_dirname "$interpreter")" != /"$LFS_TOOLS"/"$libraryFolderName" ]; then
+		echo "$interpreter is incorrect"
+		exit 3
+	fi
+	
+	rm -f -v dummy.c a.out
+}

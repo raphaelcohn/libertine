@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends coreutils 8.21
+
+include_once
+
+function installPackage_toolchain2_diffutils()
+{
+	installPackagePrototype
+}

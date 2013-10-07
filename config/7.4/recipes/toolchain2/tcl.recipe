@@ -1,0 +1,24 @@
+set -o errexit +o hashall
+
+depends gcc 4.8.1
+
+include_once
+
+function installPackage_toolchain2_tcl_8.6.0()
+{
+	local -r majorVersion=8.6
+	
+	sed -i s/500/5000/ generic/regc_nfa.c
+	
+	pushd unix >/dev/null
+		
+		installPackagePrototype
+		
+		chmod -v u+w /"$LFS_TOOLS"/lib/libtcl${majorVersion}.so
+		
+		make install-private-headers
+		
+		ln -sv tclsh${majorVersion} /"$LFS_TOOLS"/bin/tclsh
+		
+	popd >/dev/null
+}

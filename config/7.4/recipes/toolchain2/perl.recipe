@@ -1,0 +1,18 @@
+set -o errexit +o hashall
+
+depends patch 2.7.1
+
+include_once
+
+function installPackage_toolchain2_perl_5.18.1()
+{
+	#patch -Np1 -i ../"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_NAME_VERSION"-libc-1.patch
+	
+	sh Configure -des -Dprefix=/"$LFS_TOOLS"
+	
+	make
+	
+	cp -v perl cpan/podlators/pod2man /"$LFS_TOOLS"/bin
+	mkdir -pv /"$LFS_TOOLS"/lib/perl5/"$LFS_SOURCE_PACKAGE_NAME_VERSION"
+	cp -Rv lib/* /"$LFS_TOOLS"/lib/perl5/"$LFS_SOURCE_PACKAGE_NAME_VERSION"
+}

@@ -10,7 +10,6 @@ function downloadsList()
 		tar	automake	1.14	"$LFS_MIRROR_GNU"/automake/automake-1.14.tar.xz	cb3fba6d631cddf12e230fd0cc1890df	xz	automake-1.14.tar.xz	automake-1.14
 		tar	bc	1.06.95	http://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2	5126a721b73f97d715bb72c13c889035	bzip2	bc-1.06.95.tar.bz2	bc-1.06.95
 		tar	bison	3.0	"$LFS_MIRROR_GNU"/bison/bison-3.0.tar.xz	a2624994561aa69f056c904c1ccb2880	xz	bison-3.0.tar.xz	bison-3.0
-		tar	e2fsprogs	1.42.8	"$LFS_MIRROR_SOURCEFORGE"/"$ourSourcePackageName"/e2fsprogs-1.42.8.tar.gz	8ef664b6eb698aa6b733df59b17b9ed4	gzip	e2fsprogs-1.42.8.tar.gz	e2fsprogs-1.42.8
 		tar	flex	2.5.37	"$LFS_MIRROR_SOURCEFORGE"/"$ourSourcePackageName"/flex-2.5.37.tar.bz2	c75940e1fc25108f2a7b3ef42abdae06	bzip2	flex-2.5.37.tar.bz2	flex-2.5.37
 		tar	gdbm	1.10	"$LFS_MIRROR_GNU"/gdbm/gdbm-1.10.tar.gz	88770493c2559dc80b561293e39d3570	gzip	gdbm-1.10.tar.gz	gdbm-1.10
 		tar	groff	1.22.2	"$LFS_MIRROR_GNU"/groff/groff-1.22.2.tar.gz	9f4cd592a5efc7e36481d8d8d8af6d16	gzip	groff-1.22.2.tar.gz	groff-1.22.2
@@ -36,7 +35,6 @@ function downloadsList()
 		tar	tzdata	2013d	http://www.iana.org/time-zones/repository/releases/tzdata2013d.tar.gz	65b6818162230fc02f86f293376c73df	gzip	tzdata2013d.tar.gz	tzdata2013d
 		tar	systemd	207	http://www.freedesktop.org/software/systemd/systemd-207.tar.xz	7799f3cc9d289b8db1c1fa56ae7ecd88	xz	systemd-207.tar.xz	systemd-207
 		tar	udev-lfs	207-1	http://anduin.linuxfromscratch.org/sources/other/udev-lfs-207-1.tar.bz2	68ac6572f3363ba067fa67d716a3ec18	bzip2	udev-lfs-207-1.tar.bz2	udev-lfs-207-1
-		tar	util-linux	2.23.2	http://www.kernel.org/pub/linux/utils/util-linux/v2.23/util-linux-2.23.2.tar.xz	b39fde897334a4858bb2098edcce5b3f	xz	util-linux-2.23.2.tar.xz	util-linux-2.23.2
 		tar	vim	7.4	ftp://ftp.vim.org/pub/vim/unix/vim-7.4.tar.bz2	607e135c559be642f210094ad023dc65	bzip2	vim-7.4.tar.bz2	vim-7.4
 		tar	zlib	1.2.8	http://www.zlib.net/zlib-1.2.8.tar.xz	28f1205d8dd2001f26fec1e8c2cebe37	xz	zlib-1.2.8.tar.xz	zlib-1.2.8
 		

@@ -453,9 +453,9 @@ function setPathsAndExports()
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly sharedPreDependenciesPath="$distributionConfigPath"/shared-pre-dependencies
-	if [ ! -d "$sharedPreDependenciesPath" ]; then
-		exitError "shared-pre-dependencies path $sharedPreDependenciesPath does not exist or is not a directory"
+	readonly sharedPath="$distributionConfigPath"/shared
+	if [ ! -d "$sharedPath" ]; then
+		exitError "shared path $sharedPath does not exist or is not a directory"
 	fi
 	
 	readonly settings="$distributionConfigPath"/settings
@@ -1045,9 +1045,9 @@ function installPackage()
 	LFS_PHASE="$phase"
 	LFS_KEY="$key"
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
-	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
+	LFS_SOURCE_PACKAGE_NAME_VERSION="${sourcePackages_Version["${key}"]}"
 	
-	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
+	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_NAME_VERSION ($key)"
 	
 	LFS_OUR_COMPRESSION="${sourcePackages_Compression["${key}"]}"
 	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
@@ -1057,7 +1057,7 @@ function installPackage()
 	local -i exitCode
 	
 	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
+	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_NAME_VERSION}
 	local -r installer_unversioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}
 	if type "$installer_versioned" &>/dev/null; then
 		local -r installer="$installer_versioned"
@@ -1067,27 +1067,27 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
-	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
+	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".extract.stdout.log
+	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".extract.stderr.log
 	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
-				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
+				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.extract.*.log"
 			else
-				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log)"
+				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.extract.*.log)"
 			fi
 		fi
 	
-		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".install.stderr.log
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
 			
-			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
+			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"

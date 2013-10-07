@@ -1,0 +1,13 @@
+set -o errexit +o hashall
+
+depends linux 3.10.10
+
+source_package_with_download 1.2.8 "$LFS_MIRROR_ZLIB" "$LFS_SOURCE_PACKAGE_NAME"-1.2.8.tar.xz MD5:28f1205d8dd2001f26fec1e8c2cebe37
+
+function installPackage_system_zlib()
+{
+	installPackagePrototype --prefix=/usr
+	
+	mv -v /usr/lib/libz.so.* /lib
+	ln -sfv ../../lib/libz.so.1.2.8 /usr/lib/libz.so
+}

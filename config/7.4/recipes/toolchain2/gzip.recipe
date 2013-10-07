@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends grep 2.14
+
+include_once
+
+function installPackage_toolchain2_gzip()
+{
+	installPackagePrototype
+}

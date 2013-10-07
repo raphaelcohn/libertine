@@ -22,7 +22,7 @@ LFS_MIRROR_HKP='https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=m
 LFS_MIRROR_PATCHES=http://www.linuxfromscratch.org/patches/lfs/development/
 LFS_MIRROR_GNU=https://ftp.gnu.org/gnu/
 LFS_MIRROR_SOURCEFORGE=https://prdownloads.sourceforge.net/
-LFS_MIRROR_LINUX_v3=https://www.kernel.org/pub/linux/kernel/v3.x/
+LFS_MIRROR_LINUX=https://www.kernel.org/pub/linux/
 LFS_MIRROR_PERL=http://www.cpan.org/src/
 LFS_MIRROR_BZIP=http://www.bzip.org/
 LFS_MIRROR_XZ=http://tukaani.org/
@@ -30,3 +30,5 @@ LFS_MIRROR_FILE=ftp://ftp.astron.com/pub/
 LFS_MIRROR_MPFR=http://www.mpfr.org/
 LFS_MIRROR_GMP=ftp://ftp.gmplib.org/pub/
 LFS_MIRROR_MPC=http://www.multiprecision.org/mpc/download/
+
+LFS_MIRROR_ZLIB=http://www.zlib.net

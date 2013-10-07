@@ -1,7 +1,0 @@
-set -o errexit +o hashall
-source_package_with_download 4.2.2 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-4.2.2.tar.bz2 MD5:7ffe1c7cdc3233e1e0c4b502df253974,KEYRING:gnu-keyring.gpg
-
-function installPackage_toolchain2_sed()
-{
-	installPackagePrototype
-}

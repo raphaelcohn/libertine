@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends diffutils 3.3
+
+include_once
+
+function installPackage_toolchain2_file()
+{
+	installPackagePrototype
+}

@@ -1,0 +1,13 @@
+set -o errexit +o hashall
+
+depends zlib 1.2.8
+
+source_package_with_download 2.23.2 "$LFS_MIRROR_LINUX" utils/"$LFS_SOURCE_PACKAGE_NAME"/v2.23/"$LFS_SOURCE_PACKAGE_NAME"-2.23.2.tar.xz MD5:b39fde897334a4858bb2098edcce5b3f
+
+function installPackage_system_util-linux()
+{
+	sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' $(grep -rl '/etc/adjtime' .)
+	mkdir -m 0755 -p /var/lib/hwclock
+	
+	installPackagePrototype --disable-su --disable-sulogin --disable-login
+}

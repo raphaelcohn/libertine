@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends make 3.82
+
+include_once
+
+function installPackage_toolchain2_patch()
+{
+	installPackagePrototype
+}

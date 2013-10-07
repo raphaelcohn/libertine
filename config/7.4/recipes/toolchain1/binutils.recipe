@@ -1,0 +1,32 @@
+set -o errexit +o hashall
+
+include_once
+
+function installPackage_toolchain1_binutils()
+{
+	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
+
+	createBuildFolderAndPushd
+
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure \
+		--prefix=/"$LFS_TOOLS" \
+		--with-sysroot="$LFS" \
+		--with-lib-path=/"$LFS_TOOLS"/lib \
+		--target="$LFS_TGT" \
+		--disable-nls \
+		--disable-werror
+
+		make
+
+		# Ensure toolchain sanity on 64-bit x864
+		case "$(uname -m)" in
+			x86_64)
+				mkdir -m 0755 -p /"$LFS_TOOLS"/lib
+				ln --symbolic lib /"$LFS_TOOLS"/lib64
+			;;
+		esac
+
+		make install
+
+	popdBuildFolder
+}

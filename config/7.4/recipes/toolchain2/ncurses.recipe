@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends check 0.9.10
+
+include_once
+
+function installPackage_toolchain2_ncurses()
+{
+	installPackagePrototype --with-shared --without-debug --without-ada --enable-overwrite
+}

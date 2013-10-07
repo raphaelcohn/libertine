@@ -888,25 +888,38 @@ function include_profile()
 }
 
 previousSharedPreDependencies=""
-function shared_pre_dependency()
+function include_once()
 {
-	if [ $# -ne 1 ]; then
-		exitError "Needs 1 argument"
-	fi
+	case $# in)
+		
+		0)
+			local -r localSharedName="$LFS_SOURCE_PACKAGE_NAME"
+		;;
+		
+		1)
+			local -r localSharedName="$1"
+		;;
+		
+		*)
+			exitError "Needs 0 or 1 arguments"
+		;;
+		
+	esac
 	
-	local -r localSharedPreDependencyName="$1"
-	
-	local previousSharedPreDependency
-	for previousSharedPreDependency in $previousSharedPreDependencies
+	local previousShared
+	for previousShared in $previousSharedPreDependencies
 	do
-		if [ "$previousSharedPreDependency" = "$localSharedPreDependencyName" ]; then
+		if [ "$previousShared" = "$localSharedName" ]; then
 			return 0
 		fi
 	done
-	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedPreDependencyName" source "$sharedPreDependenciesPath"/"$localSharedPreDependencyName".shared-pre-dependency "$localSharedPreDependencyName"
+	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared "$localSharedName"
 }
 
-previousRecipes=""
+declare -A phase_PreviousRecipes=()
+phase_PreviousRecipes['toolchain1']=""
+phase_PreviousRecipes['toolchain2']=""
+phase_PreviousRecipes['system']=""
 declare -A phase_InstallationOrder=()
 function recipe()
 {
@@ -919,7 +932,7 @@ function recipe()
 	
 	local previousRecipe
 	local -i alreadySourced=1
-	for previousRecipe in $previousRecipes
+	for previousRecipe in ${phase_PreviousRecipes["${LFS_PHASE}"]}
 	do
 		if [ "$previousRecipe" = "$localSourcePackageName" ]; then
 			alreadySourced=0
@@ -928,8 +941,9 @@ function recipe()
 	done
 	
 	if [ $alreadySourced -eq 1 ]; then
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_NAME_VERSION="$ourVersion" source "$recipesPath"/"$localSourcePackageName".recipe "$localSourcePackageName"
 	fi
+	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${localSourcePackageName}_${ourVersion}
@@ -974,6 +988,19 @@ function conflicts()
 			exitError "Package $LFS_SOURCE_PACKAGE_NAME conflicts with $localConflictsWithSourcePackageName"
 		fi
 	done
+}
+
+# not 100% sure how we'll handle virtual dependencies at this time - probably as a special file ('.virtual')
+# TODO: circular dependencies need to be identified
+function depends()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	local -r localDependsSourcePackageName="$1"
+	local -r localDependsVersion="$2"
+	recipe "$localDependsSourcePackageName" "$localDependsVersion"
 }
 
 # Also https://www.scaprepo.com/ is a good place to query

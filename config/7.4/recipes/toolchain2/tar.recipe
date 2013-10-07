@@ -1,0 +1,12 @@
+set -o errexit +o hashall
+
+depends sed 4.2.2
+
+include_once
+
+function installPackage_toolchain2_tar()
+{
+	sed -i -e '/gets is a/d' gnu/stdio.in.h
+	
+	installPackagePrototype
+}

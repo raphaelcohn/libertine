@@ -1,0 +1,12 @@
+set -o errexit +o hashall
+
+depends gzip 1.6
+
+include_once
+
+function installPackage_toolchain2_m4()
+{
+	sed -i -e '/gets is a/d' lib/stdio.in.h
+	
+	installPackagePrototype
+}

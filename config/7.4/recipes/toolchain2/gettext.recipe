@@ -1,0 +1,20 @@
+set -o errexit +o hashall
+
+depends gawk 4.1.0
+
+include_once
+
+function installPackage_toolchain2_gettext()
+{
+	pushd gettext-tools >/dev/null
+		
+		EMACS="no" ./configure --prefix=/"$LFS_TOOLS" --disable-shared
+		
+		make -C gnulib-lib
+		
+		make -C src msgfmt
+		
+		cp -v src/msgfmt /"$LFS_TOOLS"/bin
+		
+	popd >/dev/null
+}

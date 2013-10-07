@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends file 5.14
+
+include_once
+
+function installPackage_toolchain2_findutils()
+{
+	installPackagePrototype
+}

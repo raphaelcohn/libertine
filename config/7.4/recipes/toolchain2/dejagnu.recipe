@@ -1,0 +1,14 @@
+set -o errexit +o hashall
+
+depends expect 5.45
+
+include_once
+
+function installPackage_toolchain2_dejagnu()
+{
+	./configure --prefix=/"$LFS_TOOLS"
+
+	make install
+
+	#make check
+}

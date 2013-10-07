@@ -1,0 +1,16 @@
+set -o errexit +o hashall
+
+depends gcc 4.8.1
+
+include_once
+
+function installPackage_toolchain1_linux()
+{
+	make mrproper
+	
+	make headers_check || echo "Warning: non-fatal but ignored as exit code !=0"
+	
+	make INSTALL_HDR_PATH=dest headers_install
+	
+	cp -rv dest/include/* /"$LFS_TOOLS"/include
+}

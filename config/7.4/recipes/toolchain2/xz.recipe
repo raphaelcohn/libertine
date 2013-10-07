@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends texinfo 5.1
+
+include_once
+
+function installPackage_toolchain2_xz()
+{
+	installPackagePrototype
+}

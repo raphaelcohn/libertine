@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends gettext 0.18.3
+
+include_once
+
+function installPackage_toolchain2_grep()
+{
+	installPackagePrototype
+}

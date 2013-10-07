@@ -1,0 +1,19 @@
+set -o errexit +o hashall
+
+depends tcl 8.6.0
+
+include_once
+
+function installPackage_toolchain2_expect()
+{
+	cp -v configure{,.orig}
+	sed 's:/usr/local/bin:/bin:' configure.orig >configure
+	
+	./configure --prefix=/"$LFS_TOOLS" --with-tcl=/"$LFS_TOOLS"/lib --with-tclinclude=/"$LFS_TOOLS"/include
+	
+	make
+	
+	#make test
+	
+	make SCRIPTS="" install
+}

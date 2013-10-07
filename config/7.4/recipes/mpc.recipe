@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-shared_pre_dependency mpc

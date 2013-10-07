@@ -1,0 +1,10 @@
+set -o errexit +o hashall
+
+depends util-linux 2.23.2
+
+source_package_with_download 1.42.8 "$LFS_MIRROR_SOURCEFORGE" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-1.42.8.tar.gz MD5:8ef664b6eb698aa6b733df59b17b9ed4
+
+function installPackage_system_e2fsprogs()
+{
+	installPackagePrototype
+}
