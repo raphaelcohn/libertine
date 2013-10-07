@@ -1392,11 +1392,12 @@ function chrootToEnvironment()
 {
 	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
+		#!/bin/bash -
+		set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+		
 		$(generateConciseBashScript)
 	EOF
-	cat >"$continutationBinaryForChroot" <<-'EOF'
-		$(generateConciseBashScript)
-		
+	cat >>"$continutationBinaryForChroot" <<-'EOF'
 		# Fix up paths and variables
 		
 		LC_ALL=POSIX
@@ -1407,7 +1408,7 @@ function chrootToEnvironment()
 		unset filesToRemoveOnExit
 		declare -a filesToRemoveOnExit=()
 		
-		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
+		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
 		LFS_SOURCES_PATH=/sources
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
@@ -1415,6 +1416,7 @@ function chrootToEnvironment()
 		
 		mkdir -m 0755 -p "$LFS_LOG_PATH"
 		
+		setDebugging
 		installPackages system
 	EOF
 	
