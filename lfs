@@ -1372,7 +1372,7 @@ function replicateBashFunctionsAndGlobalVariables()
 	# compgen will include local variables, so we use a subshell...
 	compgen -v | while IFS='' read -r -d $'\n' variableName
 	do
-		case "$variableName" in)
+		case "$variableName" in
 			
 			BASH|BASHOPTS|BASHPID)
 				:
