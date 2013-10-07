@@ -235,7 +235,7 @@ A profile does not have to just install packages.
 Profiles may be suffixed with [distribution] to target a particular distribution.
 
 Defaults
-    distribution       ${distribution}
+    distribution       ${LFS_DISTRIBUTION_VERSION}
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
     mirrors            ${mirrors}
@@ -276,7 +276,7 @@ Options are as follows:-     Default
 function parseCommandLine()
 {
 	# Defaults
-	distribution=""
+	LFS_DISTRIBUTION_VERSION=""
 	lfsPath="/var/tmp/lfs"
 	lfsConfigPath="${crudeOurPath}/config"
 	mirrors="timezone"
@@ -394,7 +394,7 @@ function parseCommandLine()
 			profiles="$@"
 		fi
 		
-		if [ -z "$distribution" ]; then
+		if [ -z "$LFS_DISTRIBUTION_VERSION" ]; then
 			exitError "Please specify a distribution using -d"
 		fi
 	fi
@@ -413,57 +413,57 @@ function setPathsAndExports()
 	lfsConfigPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly distributionConfigPath="$lfsConfigPath"/"$distribution"
-	if [ ! -d "$distributionConfigPath" ]; then
-		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
+	readonly distributionConfigPath="$lfsConfigPath"/"$LFS_DISTRIBUTION_VERSION"
+	if [ ! -d "$LFS_DISTRIBUTION_VERSIONConfigPath" ]; then
+		exitError "distribution config path $LFS_DISTRIBUTION_VERSIONConfigPath does not exist or is not a directory"
 	fi
 	
-	readonly certificateAuthoritiesPath="$distributionConfigPath"/certificate-authorities
+	readonly certificateAuthoritiesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	readonly mirrorsPath="$distributionConfigPath"/mirrors
+	readonly mirrorsPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/mirrors
 	if [ ! -d "$mirrorsPath" ]; then
 		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
 	fi
 	
-	readonly profilesPath="$distributionConfigPath"/profiles
+	readonly profilesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/profiles
 	if [ ! -d "$profilesPath" ]; then
 		exitError "Profiles path $profilesPath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$distributionConfigPath"/keyrings
+	readonly keyringsPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$distributionConfigPath"/keys
+	readonly keysPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/keys
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$distributionConfigPath"/signatures
+	readonly signaturesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
 	
-	readonly recipesPath="$distributionConfigPath"/recipes
+	readonly recipesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/recipes
 	if [ ! -d "$recipesPath" ]; then
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly sharedPreDependenciesPath="$distributionConfigPath"/shared-pre-dependencies
+	readonly sharedPreDependenciesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/shared-pre-dependencies
 	if [ ! -d "$sharedPreDependenciesPath" ]; then
 		exitError "shared-pre-dependencies path $sharedPreDependenciesPath does not exist or is not a directory"
 	fi
 	
-	readonly settings="$distributionConfigPath"/settings
+	readonly settings="$LFS_DISTRIBUTION_VERSIONConfigPath"/settings
 	if [ ! -f "$settings" ]; then
 		exitError "settings $settings does not exist or is not a file"
 	fi
 	
-	readonly exportedFunctions="$distributionConfigPath"/exported-functions
+	readonly exportedFunctions="$LFS_DISTRIBUTION_VERSIONConfigPath"/exported-functions
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
@@ -475,13 +475,13 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	LFS_LOG_PATH=/var/log/lfs/"$distribution"
+	LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 	
-	export LFS="$lfsPath"/"$distribution"
+	export LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
 	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
-	export LFS_TOOLS=tools-"$distribution"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
+	export LFS_TOOLS=tools-"$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
 	
 	LFS_SOURCES_PATH="$LFS"/sources
 	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
@@ -512,7 +512,7 @@ function verifyHostSystemRequirements()
 {
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	
-	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
+	readonly dependencyChecks="$LFS_DISTRIBUTION_VERSIONConfigPath"/dependency-checks
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
@@ -875,7 +875,7 @@ function downloadFileAndCheckHash()
 		
 		set +e
 		curl --fail --silent --show-error \
-		--user-agent "lfs/${distribution}" --referer "${referer};auto" \
+		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
 		${curlCompressionOption}--remote-time \
@@ -1041,7 +1041,7 @@ function installPackage()
 	local -r key="$2"
 	shift 2
 	
-	LFS_DISTRIBUTION_VERSION="$distribution"
+	LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION"
 	LFS_PHASE="$phase"
 	LFS_KEY="$key"
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
@@ -1431,8 +1431,6 @@ function replicateBashFunctionsAndGlobalVariables()
 
 function chrootToEnvironment()
 {
-	replicateBashFunctionsAndGlobalVariables >/tmp/ZZ
-	
 	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
 		#!/bin/bash -
@@ -1442,8 +1440,8 @@ function chrootToEnvironment()
 	EOF
 	echo "$LFS_TOOLS"
 	cat >>"$continutationBinaryForChroot" <<-'EOF'
+		
 		# Fix up paths and variables
-		set -x
 		LC_ALL=POSIX
 		
 		unset trapHandlers
@@ -1458,7 +1456,7 @@ function chrootToEnvironment()
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		echo $PATH
-		mkdir -m 0755 -p "$LFS_LOG_PATH"
+		mkdir -m 0755 -p "$LFS_LOG_PATH"/system
 		
 		setDebugging
 		installPackages system
