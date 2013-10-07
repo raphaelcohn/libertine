@@ -1409,7 +1409,6 @@ function chrootToEnvironment()
 
 function renderEarlyPathCommands()
 {
-	set -x
 	local -i index
 	for (( index=0; index != ${#earlyPathCommands[@]}; index++ ))
 	do
@@ -1452,6 +1451,7 @@ function main()
 	
 	createOrUseBackUpToolchain
 	
+	set -x
 	runSystemInstallationLogic renderEarlyPathCommands
 	chrootToEnvironment
 	#runSystemInstallationLogic renderLatePathCommands

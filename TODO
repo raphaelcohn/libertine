@@ -11,6 +11,8 @@
 * CONSIDER ADDING Linux ACL (setfacl) and SELinux support to toolchain
 * User xattrs, using setfattr in the attr package
 
+
+
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72
 	* Example: GNU Bash is http://www.cvedetails.com/product/21050/GNU-Bash.html
@@ -18,10 +20,12 @@
 
 
 * Redeployment because of patching
-	* Keep a local cache of sources
-	* Keep the toolchain back up outside of the root
+	* Keep diffs after every package installed, so we can re-install from a snapshot point if dependencies unchanged
+		* Would require us to run earlyPathCommands before each package
 	* Apply rsync diffs / generate a diff to push to a remote machine
 		* The problem with this is sending the diffs to change root, etc, over the network
+	* Keep a local cache of sources
+	* Keep the toolchain back up outside of the root
 
 * Security
 	* PaX / grsecurity
