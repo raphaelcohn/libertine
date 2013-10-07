@@ -1399,7 +1399,7 @@ function chrootToEnvironment()
 	EOF
 	cat >>"$continutationBinaryForChroot" <<-'EOF'
 		# Fix up paths and variables
-		
+		set -x
 		LC_ALL=POSIX
 		
 		unset trapHandlers
@@ -1413,7 +1413,7 @@ function chrootToEnvironment()
 		LFS_SOURCES_PATH=/sources
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-		
+		echo $PATH
 		mkdir -m 0755 -p "$LFS_LOG_PATH"
 		
 		setDebugging
