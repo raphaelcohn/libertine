@@ -1188,20 +1188,72 @@ function createToolchain()
 	backUpToolchain
 }
 
+function cleanUpTarget()
+{
+	progressMessage "Cleaning up target $LFS"
+	
+		pushd "$LFS" >/dev/null
+		
+			local file
+			for file in *
+			do
+				case "$file" in
+				
+					sources|$LFS_TOOLS|$LFS_TOOLS.backup|$LFS_TOOLS.backup.*)
+						:
+					;;
+				
+					*)
+						if ! rm -rf "$file"; then
+							progressMessageFailed "could not remove $file"
+						fi
+					;;
+				
+				esac
+			done
+			
+			if [ -d sources ]; then
+				
+				pushd sources >/dev/null
+				
+					for file in *
+					do
+						if [ ! -f "$file" ]; then
+							if ! rm -rf "$file"; then
+								progressMessageFailed "could not remove sources/$file"
+							fi
+						fi
+					done
+					
+				popd >/dev/null
+				
+			fi
+			
+		popd >/dev/null
+		
+	progressMessageSucceeded
+}
+
 function createOrUseBackUpToolchain()
 {
 	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
 		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
 			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
+				cleanUpTarget
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
+				
 				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
 					progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
+			
+			
 		elif [ -f "$toolsBackUpPath".tar.gz ]; then
 			progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
+				cleanUpTarget
 				rm -rf -- "$LFS_TOOLS_PATH"
+				
 				pushd "$LFS"/.. >/dev/null
 					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
 						progressMessageFailed "check logs in $LFS_LOGS_PATH/toolchain.restore.*.log"
