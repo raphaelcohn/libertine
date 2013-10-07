@@ -1211,13 +1211,30 @@ function cleanUpTarget()
 					;;
 				
 					*)
-						if ! rm -rf "$file"; then
+						if ! rm -rf -- "$file"; then
 							progressMessageFailed "could not remove $file"
 						fi
 					;;
 				
 				esac
 			done
+			
+			if [ -d dev ]; then
+				
+				pushd dev >/dev/null
+				
+					for file in *
+					do
+						if [ ! -f "$file" ]; then
+							if ! rm -rf -- "$file"; then
+								progressMessageFailed "could not remove dev/$file"
+							fi
+						fi
+					done
+					
+				popd >/dev/null
+				
+			fi
 			
 			if [ -d sources ]; then
 				
@@ -1226,7 +1243,7 @@ function cleanUpTarget()
 					for file in *
 					do
 						if [ ! -f "$file" ]; then
-							if ! rm -rf "$file"; then
+							if ! rm -rf -- "$file"; then
 								progressMessageFailed "could not remove sources/$file"
 							fi
 						fi
