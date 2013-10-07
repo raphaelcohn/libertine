@@ -414,56 +414,56 @@ function setPathsAndExports()
 	popd >/dev/null
 	
 	readonly distributionConfigPath="$lfsConfigPath"/"$LFS_DISTRIBUTION_VERSION"
-	if [ ! -d "$LFS_DISTRIBUTION_VERSIONConfigPath" ]; then
-		exitError "distribution config path $LFS_DISTRIBUTION_VERSIONConfigPath does not exist or is not a directory"
+	if [ ! -d "$distributionConfigPath" ]; then
+		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
 	fi
 	
-	readonly certificateAuthoritiesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/certificate-authorities
+	readonly certificateAuthoritiesPath="$distributionConfigPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	readonly mirrorsPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/mirrors
+	readonly mirrorsPath="$distributionConfigPath"/mirrors
 	if [ ! -d "$mirrorsPath" ]; then
 		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
 	fi
 	
-	readonly profilesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/profiles
+	readonly profilesPath="$distributionConfigPath"/profiles
 	if [ ! -d "$profilesPath" ]; then
 		exitError "Profiles path $profilesPath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/keyrings
+	readonly keyringsPath="$distributionConfigPath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/keys
+	readonly keysPath="$distributionConfigPath"/keys
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/signatures
+	readonly signaturesPath="$distributionConfigPath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
 	
-	readonly recipesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/recipes
+	readonly recipesPath="$distributionConfigPath"/recipes
 	if [ ! -d "$recipesPath" ]; then
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly sharedPreDependenciesPath="$LFS_DISTRIBUTION_VERSIONConfigPath"/shared-pre-dependencies
+	readonly sharedPreDependenciesPath="$distributionConfigPath"/shared-pre-dependencies
 	if [ ! -d "$sharedPreDependenciesPath" ]; then
 		exitError "shared-pre-dependencies path $sharedPreDependenciesPath does not exist or is not a directory"
 	fi
 	
-	readonly settings="$LFS_DISTRIBUTION_VERSIONConfigPath"/settings
+	readonly settings="$distributionConfigPath"/settings
 	if [ ! -f "$settings" ]; then
 		exitError "settings $settings does not exist or is not a file"
 	fi
 	
-	readonly exportedFunctions="$LFS_DISTRIBUTION_VERSIONConfigPath"/exported-functions
+	readonly exportedFunctions="$distributionConfigPath"/exported-functions
 	if [ ! -f "$exportedFunctions" ]; then
 		exitError "exported-functions $exportedFunctions does not exist or is not a file"
 	fi
@@ -512,7 +512,7 @@ function verifyHostSystemRequirements()
 {
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	
-	readonly dependencyChecks="$LFS_DISTRIBUTION_VERSIONConfigPath"/dependency-checks
+	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi
