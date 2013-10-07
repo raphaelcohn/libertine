@@ -1408,7 +1408,7 @@ function chrootToEnvironment()
 		installPackages system
 	EOF
 	
-	cp "$continutationBinaryForChroot" >/tmp/XXXX
+	cp "$continutationBinaryForChroot" /tmp/XXXX
 	
 	set +e
 	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h /"$LFS_TOOLS"/sbin/lfs-chroot-install
