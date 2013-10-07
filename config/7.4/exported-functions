@@ -636,25 +636,30 @@ declare -a sourcePackages_IndicesToKeys=()
 declare -A sourcePackages_SourcePackageName=()
 declare -A sourcePackages_Version=()
 declare -A sourcePackages_Url=()
-declare -A sourcePackages_Compression=()
+declare -A sourcePackages_Compression=()libexecdir
 declare -A sourcePackages_FileName=()
 declare -A sourcePackages_ExtractedTarballFolder=()
 declare -A sourcePackages_Hashes=()
 declare -A sourcePackages_Patches=()
-function addSourcePackageWithoutDownload()
+function source_package_without_download()
 {
 	case $# in
-		2|5)
+		1|5)
 			:
 		;;
 		
 		*)
-			exitError "Needs 2 or 5 arguments"
+			exitError "Needs 1 or 5 arguments"
 		;;
 	esac
 	
-	local -r ourSourcePackageName="$1"
-	local -r ourVersion="$2"
+	if [ $# -eq 1 ]; then
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r ourVersion="$1"
+	else
+		local -r ourSourcePackageName="$1"
+		local -r ourVersion="$2"
+	fi
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
 	
@@ -673,7 +678,7 @@ function addSourcePackageWithoutDownload()
 	fi
 }
 
-function addSourcePackageDownload()
+function source_package_with_download()
 {
 	if [ $# -lt 4 ]; then
 		exitError "Not enough arguments"
@@ -776,7 +781,7 @@ function addSourcePackageDownload()
 		return 0
 	fi
 	
-	addSourcePackageWithoutDownload "$ourSourcePackageName" "$ourVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
+	source_package_without_download "$ourSourcePackageName" "$ourVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
 	
 	sourcePackages_Url["${key}"]="$ourUrl"
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"

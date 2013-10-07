@@ -1,4 +1,6 @@
 
+source_package_without_download 0
+
 # LSB only requires 0 and 1
 # Debian usses 65534 for nobody
 # debian uses 65534 for nogroup

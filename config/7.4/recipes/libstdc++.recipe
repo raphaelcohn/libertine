@@ -7,7 +7,7 @@ shared_pre_dependency gcc
 function localPackage_toolchain1_libstdc_useGccTarball()
 {
 	local -r key="$(printKey gcc "$LFS_SOURCE_PACKAGE_VERSION")"
-	addSourcePackageWithoutDownload "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION" ${sourcePackages_Compression["${key}"]} ${sourcePackages_FileName["${key}"]} ${sourcePackages_ExtractedTarballFolder["${key}"]}
+	source_package_without_download "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION" ${sourcePackages_Compression["${key}"]} ${sourcePackages_FileName["${key}"]} ${sourcePackages_ExtractedTarballFolder["${key}"]}
 }
 localPackage_toolchain1_libstdc_useGccTarball
 
