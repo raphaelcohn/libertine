@@ -1175,6 +1175,7 @@ function backUpToolchain()
 function createToolchain()
 {
 	progressMessage "Initiating creation of toolchain ($LFS_TOOLS)"
+		chattr -R -f -ai "$LFS" 1>/dev/null 2>/dev/null || true
 		rm -rf -- "$LFS_TOOLS_PATH"
 		mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 		export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
@@ -1365,7 +1366,7 @@ function chrootToEnvironment()
 {
 	mountVirtualFilesystems
 	
-	local -r continutationBinaryForChroot="$LFS_TOOLS"/sbin/lfs-chroot-install
+	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
 	cat >"$continutationBinaryForChroot" <<-EOF
 		$(generateConciseBashScript)
 		
@@ -1381,10 +1382,10 @@ function chrootToEnvironment()
 		installPackages system
 	EOF
 	
-	cp /"$LFS_TOOLS"/sbin/lfs-chroot-install >/tmp/XXXX
+	cp "$continutationBinaryForChroot" >/tmp/XXXX
 	
 	set +e
-	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h "$LFS_TOOLS"/sbin/lfs-chroot-install
+	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h /"$LFS_TOOLS"/sbin/lfs-chroot-install
 	local -ir exitCode=$?
 	set -e
 	
@@ -1441,7 +1442,6 @@ function main()
 	
 	createOrUseBackUpToolchain
 	
-	set -x
 	runSystemInstallationLogic renderEarlyPathCommands
 	chrootToEnvironment
 	runSystemInstallationLogic renderLatePathCommands
