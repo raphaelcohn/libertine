@@ -1244,8 +1244,8 @@ function createOrUseBackUpToolchain()
 {
 	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
 		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
+			cleanUpTarget
 			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
-				cleanUpTarget
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 				
 				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOGS_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOGS_PATH"/toolchain.restore.stderr.log; then
@@ -1256,8 +1256,8 @@ function createOrUseBackUpToolchain()
 			
 			
 		elif [ -f "$toolsBackUpPath".tar.gz ]; then
+			cleanUpTarget
 			progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
-				cleanUpTarget
 				rm -rf -- "$LFS_TOOLS_PATH"
 				
 				pushd "$LFS"/.. >/dev/null
@@ -1284,8 +1284,10 @@ function runSystemInstallationLogic()
 	local -r stderrLog="$systemLogsPath"/"$callback".stderr.log
 	INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
 	addNextTrapHandler installationFailedTrapHandler
-	
+		
+		set -x
 		$callback 1>"$stdoutLog" 2>"$stderrLog"
+		set +x 2>>"$stderrLog"
 	
 	removeLastTrapHandler
 	

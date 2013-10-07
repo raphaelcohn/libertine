@@ -447,6 +447,10 @@ function symlink()
 {
 	local -r target="$1"
 	local -r contents="$2"
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "symlink target must be absolute, not $target"
+	fi
+	
 	earlyPathCommands[${#earlyPathCommands[@]}]="ln -s "\'"$contents"\'" "\'"${LFS}${target}"\'
 }
 

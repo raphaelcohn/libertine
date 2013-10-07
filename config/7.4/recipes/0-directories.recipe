@@ -202,7 +202,7 @@ symlink /usr/lib/libgcc_s.so.1 /"$LFS_TOOLS"/lib/libgcc_s.so.1
 symlink /usr/lib/libstdc++.so /"$LFS_TOOLS"/lib/libstdc++.so
 symlink /usr/lib/libstdc++.so.6 /"$LFS_TOOLS"/lib/libstdc++.so.6
 #See below: sed "s/"$LFS_TOOLS"/usr/" /"$LFS_TOOLS"/lib/libstdc++.la >/usr/lib/libstdc++.la
-symlink bash /bin/sh
+symlink /bin/sh bash
 
 # historic mtab
 #ln -sv /proc/self/mounts /etc/mtab
