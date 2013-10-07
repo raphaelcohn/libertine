@@ -1305,9 +1305,8 @@ function chrootToEnvironment()
 {
 	mountVirtualFilesystems
 	
-	# run commands in a chroot, but not us
-	set +e
-	chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h <<-EOF
+	local -r continutationBinaryForChroot="$LFS_TOOLS"/sbin/lfs-chroot-install
+	cat >"$continutationBinaryForChroot" <<-EOF
 		$(generateConciseBashScript)
 		
 		# Fix up paths and variables
@@ -1320,6 +1319,10 @@ function chrootToEnvironment()
 		mkdir -m 0755 -p "$LFS_LOGS_PATH"
 		
 		installPackages system
+	EOF
+	
+	set +e
+	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h <<-EOF
 	EOF
 	local -ir exitCode=$?
 	set -e

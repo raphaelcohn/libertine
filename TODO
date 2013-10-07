@@ -3,9 +3,12 @@
 * better download location (outside of the chroot) with support for mirrors, ie so we can ship a files-only, CD-like set
 	* No need to go mental
 	* But allows us to offer our own host quite simply
-* Better use of unxz, etc, so we optimise the linux sign check
+	* repurporse /usr/src?
+* Better use of unxz, etc, so we optimise the linux sign check - affects our integrity checks?
 * linking of certificate-authorities to particular packages
 * SUDO profile so can automate build (ie template for sudoers)
+* MUST ADD TO TOOLCHAIN: e2fsprogs for chattr
+* CONSIDER ADDING Linux ACL (setfacl) and SELinux support to toolchain
 
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
