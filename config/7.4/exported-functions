@@ -890,7 +890,7 @@ function include_profile()
 previousSharedPreDependencies=""
 function include_once()
 {
-	case $# in)
+	case $# in
 		
 		0)
 			local -r localSharedName="$LFS_SOURCE_PACKAGE_NAME"
