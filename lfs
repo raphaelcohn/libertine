@@ -63,14 +63,14 @@ function addFileToRemoveOnExit()
 
 function temporaryFileToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir /tmp/"$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir "$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir --directory /tmp/"$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
