@@ -214,19 +214,29 @@ touch_file /var/log/btmp 600 root utmp jS ''
 touch_file /var/log/utmp 600 root utmp jS ''
 touch_file /var/log/lastlog 664 root utmp jS ''
 
+touch_file /etc/passwd 644 root root js ai
+touch_file /etc/group 644 root root js ai
+touch_file /etc/lsb-release 644 root root js ai
+
 function installPackage_system_0-directories_0()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >/usr/lib/libstdc++.la
 	
-	renderUsers >/etc/passwd
-	chattr /etc/passwd aijS
+	# /etc/users
+	local -i index
+	for index in ${!users_Name[@]}
+	do
+		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
+	done | sort --numeric-sort --field-separator=':' --key=3 >/etc/passwd
 	
-	renderGroups >/etc/groups
-	chattr /etc/groups aijS
+	# /etc/group
+	for index in ${!groups_Name[@]}
+	do
+		printf "%s:x:%s:%s\n" "$${groups_Name[$index]}" "${groups_Gid[$index]}" "${groups_Members[$index]}"
+	done | sort --numeric-sort --field-separator=':' --key=3 >/etc/group
 	
 	# Section 9.1
-	echo "$LFS_DISTRIBUTION_VERSION" >/etc/lfs-release
 	cat >/etc/lsb-release <<-EOF
 		DISTRIB_ID="$LFS_DISTRIBUTION_ID"
 		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION"

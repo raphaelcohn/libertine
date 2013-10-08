@@ -454,15 +454,6 @@ function user()
 	#printf "$userName:x:$uid:$gid:$gecos:$home:$shell"
 }
 
-function renderUsers()
-{
-	local -i index
-	for index in ${#users_Name}
-	do
-		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
-	done | sort --numeric-sort --field-separator=':' --key=3
-}
-
 function directory()
 {
 	local -r target="$1"
