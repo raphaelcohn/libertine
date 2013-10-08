@@ -58,8 +58,11 @@ function removeFilesOnExit()
 
 function addFileToRemoveOnExit()
 {
+	set -x
 	local -r fileToRemove="$1"
 	filesToRemoveOnExit+=("$fileToRemove")
+	echo "$fileToRemove" "${filesToRemoveOnExit[@]}"
+	set +x
 }
 
 function temporaryFileToRemoveOnExit()
