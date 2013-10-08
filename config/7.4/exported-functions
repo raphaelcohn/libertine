@@ -81,11 +81,16 @@ declare -a patches_Compression=()
 LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Compression')
 
 declare -a previousMirrors=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousMirrors')
 declare -a previousProfiles=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousProfiles')
 declare -a previousSharedNames=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousSharedNames')
 
 declare -A phase_PreviousRecipes=(['toolchain1']="" ['toolchain2']="" ['system']="")
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('phase_PreviousRecipes')
 declare -A phase_InstallationOrder=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('phase_InstallationOrder')
 
 function progressMessage()
 {

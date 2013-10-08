@@ -1456,6 +1456,7 @@ function chrootToEnvironment()
 		setDebugging
 		addNextTrapHandler removeFilesOnExit
 		installPackages system
+		set +x
 	EOF
 	
 	cp "$continutationBinaryForChroot" /tmp/XXXX
