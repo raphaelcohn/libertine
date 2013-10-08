@@ -634,7 +634,7 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$toolchain1LogsPath"
 	mkdir -m 0755 -p "$toolchain2LogsPath"
 	mkdir -m 0755 -p "$systemLogsPath"
-	chmod a+wt "$LFS_LOG_PATH"
+	#chmod a+wt "$LFS_LOG_PATH"
 	
 	# Sources
 	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
@@ -1471,6 +1471,9 @@ function chrootToEnvironment()
 	unmountVirtualFilesystems
 	
 	rm -rf "$continutationBinaryForChroot"
+	
+	cp --archive "$LFS"/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"/* "$LFS_LOG_PATH"/
+	rm -rf -- "$LFS"/var/log/lfs
 	
 	if [ $exitCode -ne 0 ]; then
 		exitError "chroot script failed with exit code $exitCode"
