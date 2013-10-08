@@ -1,6 +1,18 @@
 #!/bin/bash -
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
 
+declare -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT=('LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT')
+declare -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT=()
+
+declare -a trapHandlers=()
+LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}='trapHandlers'
+
+declare -a filesToRemoveOnExit=()
+LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}='filesToRemoveOnExit'
+
+INSTALLATION_FAILED_MESSAGE=""
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='INSTALLATION_FAILED_MESSAGE'
+
 function ensureWhichInstalled()
 {
 	set +e
@@ -12,12 +24,10 @@ function ensureWhichInstalled()
 	fi
 }
 
-declare -a trapHandlers=()
-
 function runOnTrap()
 {
 	local trapHandler
-	for trapHandler in ${trapHandlers[@]}
+	for trapHandler in "${trapHandlers[@]}"
 	do
 		$trapHandler
 	done
@@ -27,7 +37,7 @@ function addNextTrapHandler()
 {
 	local trapHandler="$1"
 	trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
-	trapHandlers[${#trapHandlers[*]}]="$trapHandler"
+	trapHandlers[${#trapHandlers[@]}]="$trapHandler"
 }
 
 function removeLastTrapHandler()
@@ -35,33 +45,31 @@ function removeLastTrapHandler()
 	unset trapHandlers[$((${#trapHandlers[*]}-1))]
 }
 
-declare -a filesToRemoveOnExit=()
-
 function removeFilesOnExit()
 {
-	local -i fileIndex
-	for fileIndex in  in ${!filesToRemoveOnExit[@]}
+	local file
+	for file in "${filesToRemoveOnExit[@]}"
 	do
-		rm -rf -- "${filesToRemoveOnExit[$fileIndex]}"
+		rm -rf -- "$file"
 	done
 }
 
 function addFileToRemoveOnExit()
 {
 	local -r fileToRemove="$1"
-	filesToRemoveOnExit[${#filesToRemoveOnExit[*]}]="$fileToRemove"
+	filesToRemoveOnExit[${#filesToRemoveOnExit[@]}]="$fileToRemove"
 }
 
 function temporaryFileToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp /tmp/"$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir /tmp/"$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --directory /tmp/"$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir --directory /tmp/"$ourName".XXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
@@ -72,7 +80,7 @@ function essentialProgramCheck()
 	set -e
 	
 	local program
-	for program in $@
+	for program in "$@"
 	do
 		if ! which "$program" 1>/dev/null 2>/dev/null; then
 			warning "Program $program does not exist on path $PATH"
@@ -126,7 +134,7 @@ function verifyDependency()
 # Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
 function compareVersions()
 {
-	if [[ $1 == $2 ]]; then
+	if [[ "$1" == "$2" ]]; then
 		return 0
 	fi
 	
@@ -188,6 +196,8 @@ function warning()
 
 function setDebugging()
 {
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_BASH_DEBUGGING'
+	
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
 		export LFS_BASH_DEBUGGING="yes"
@@ -200,6 +210,7 @@ function setDebugging()
 function findOurNameAndPath()
 {
 	readonly ourName="$(purebash_basename "$0")"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='ourName'
 	pushd "$(purebash_dirname "$0")" >/dev/null
 	readonly crudeOurPath="$(pwd)"
 	popd >/dev/null
@@ -277,17 +288,38 @@ function parseCommandLine()
 {
 	# Defaults
 	LFS_DISTRIBUTION_VERSION="7.4"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_DISTRIBUTION_VERSION'
+	
 	lfsPath="/var/tmp/lfs"
+	
 	lfsConfigPath="${crudeOurPath}/config"
+	
 	mirrors="timezone"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='mirrors'
+	
 	toolchain1Profile=toolchain1
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='toolchain1Profile'
+	
 	toolchain2Profile=toolchain2
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='toolchain2Profile'
+	
 	skipToolchainIfBackupExists="yes"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='skipToolchainIfBackupExists'
+	
 	stripToolchainSymbols="yes"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripToolchainSymbols'
+	
 	stripToolchainDocs="yes"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripToolchainDocs'
+	
 	stripSystemSymbols="yes"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripSystemSymbols'
+	
 	stripSystemDocs="no"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripSystemDocs'
+	
 	profiles="system"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='profiles'
 	
 	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
 		executeWithCleanEnvironment "$@"
@@ -476,12 +508,14 @@ function setPathsAndExports()
 	popd >/dev/null
 	
 	LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_LOG_PATH'
 	
-	export LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
+	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
 	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
-	export LFS_TOOLS=tools-"$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
+	LFS_TOOLS=tools-"$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_TOOLS'
 	
 	LFS_SOURCES_PATH="$LFS"/sources
 	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
@@ -489,17 +523,19 @@ function setPathsAndExports()
 	readonly toolsBackUpPath="$LFS"/"$LFS_TOOLS".backup
 	
 	export LC_ALL=POSIX
-	export LFS_TGT="$(uname -m)"-lfs-linux-gnu
+	LFS_TGT="$(uname -m)"-lfs-linux-gnu
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_TGT'
 	
 	if [ -f /proc/cpuinfo ]; then
-		local highestCpu
+		local -i highestCpu
 		read -r -d $'\n' highestCpu < <(awk '$1 ~ /processor/ { print $3 }' /proc/cpuinfo | sort --unique --reverse --numeric-sort)
-		local -ir highestCpuZeroBased=$highestCpu
+		local -ir highestCpuZeroBased=$((highestCpu + 1))
 	else
-		local -ir highestCpuZeroBased=0
+		local -ir highestCpuZeroBased=1
 	fi
-	if [ $highestCpuZeroBased -ne 0 ]; then
-		export MAKEFLAGS="-j $((highestCpuZeroBased+1))"
+	if [ $highestCpuZeroBased -ne 1 ]; then
+		export MAKEFLAGS="-j $((highestCpuZeroBased*2))"
+		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='MAKEFLAGS'
 	fi
 }
 
@@ -588,6 +624,7 @@ function createSkeletonFolderStructure()
 	readonly toolchain1LogsPath="$LFS_LOG_PATH"/toolchain1
 	readonly toolchain2LogsPath="$LFS_LOG_PATH"/toolchain2
 	readonly systemLogsPath="$LFS_LOG_PATH"/system
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='systemLogsPath'
 	
 	# Logs
 	mkdir -m 0755 -p "$LFS_LOG_PATH"
@@ -1028,7 +1065,6 @@ function downloadSources()
 	done
 }
 
-INSTALLATION_FAILED_MESSAGE=""
 function installationFailedTrapHandler()
 {
 	set +x
@@ -1041,13 +1077,12 @@ function installPackage()
 	local -r key="$2"
 	shift 2
 	
-	LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION"
 	LFS_PHASE="$phase"
 	LFS_KEY="$key"
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
-	LFS_SOURCE_PACKAGE_NAME_VERSION="${sourcePackages_Version["${key}"]}"
+	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
 	
-	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_NAME_VERSION ($key)"
+	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
 	LFS_OUR_COMPRESSION="${sourcePackages_Compression["${key}"]}"
 	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
@@ -1057,7 +1092,7 @@ function installPackage()
 	local -i exitCode
 	
 	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_NAME_VERSION}
+	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
 	local -r installer_unversioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}
 	if type "$installer_versioned" &>/dev/null; then
 		local -r installer="$installer_versioned"
@@ -1067,27 +1102,27 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".extract.stdout.log
-	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".extract.stderr.log
+	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
+	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
 	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
-				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.extract.*.log"
+				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
 			else
-				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.extract.*.log)"
+				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log)"
 			fi
 		fi
 	
-		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_NAME_VERSION}".install.stderr.log
+		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
+		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
 			
-			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_NAME_VERSION}.install.*.log"
+			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"
@@ -1372,58 +1407,19 @@ function replicateBashFunctionsAndGlobalVariables()
 	# compgen will include local variables, so we use a subshell...
 	compgen -v | while IFS='' read -r -d $'\n' variableName
 	do
-		case "$variableName" in
-			
-			BASH|BASHOPTS|BASHPID)
-				:
-			;;
-			
-			BASH_*)
-				:
-			;;
-			
-			TERM|PATH)
-				:
-			;;
-			
-			DIRSTACK|EUID|FUNCNAME|GROUPS|HISTCMD|HOSTNAME|HOSTTYPE)
-				:
-			;;
-			
-			LINENO|LOGNAME|MACHTYPE)
-				:
-			;;
-			
-			OLDPWD|OPTERR|OPTIND|OPTARG|OSTYPE)
-				:
-			;;
-			
-			PIPESTATUS|PPID|PS1|PS2|PS3|PS4|PWD)
-				:
-			;;
-			
-			RANDOM|SECONDS|SHELL|SHELLOPTS|SHLVL)
-				:
-			;;
-			
-			SUDO_*)
-				:
-			;;
-			
-			UID|USER|USERNAME)
-				:
-			;;
-			
-			_)
-				:
-			;;
-			
-			# Allowed: COMP_WORDBREAKS, IFS, LC_*, LANG, LANGUAGE, anything else
-			*)
+		for LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT in "${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}"
+		do
+			if [ "$LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT" = "$variableName" ]; then
 				declare -p "$variableName"
-			;;
-			
-		esac
+				break
+			fi
+		done
+	done
+	
+	local LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT
+	for LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT in "${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}"
+	do
+		declare -a "$LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT"
 	done
 	
 	declare -f

@@ -1,3 +1,62 @@
+declare -a signatures_Url=()
+declare -a signatures_FileName=()
+declare -a signatures_Compression=()
+
+declare -a keyrings_Url=()
+declare -a keyrings_FileName=()
+declare -a keyrings_Hashes=()
+declare -a keyrings_Compression=()
+
+declare -a keys_Url=()
+declare -a keys_FileName=()
+declare -a keys_Hashes=()
+declare -a keys_Compression=()
+
+declare -i nextSystemUid=$LFS_INCLUSIVE_SYSTEM_UID
+declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
+declare -i nextSystemGid=$LFS_INCLUSIVE_SYSTEM_GID
+declare -i nextUserGid=$LFS_INCLUSIVE_USER_GID
+
+declare -a groups_Name=()
+declare -a groups_Gid=()
+declare -a groups_Members=()
+
+declare -a users_Name=()
+declare -a users_Gecos=()
+declare -a users_Home=()
+declare -a users_Shell=()
+declare -a users_Uid=()
+declare -a users_Gid=()
+
+declare -a earlyPathCommands=()
+declare -a latePathCommands=()
+
+# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
+declare -a sourcePackages_IndicesToKeys=()
+declare -A sourcePackages_SourcePackageName=()
+declare -A sourcePackages_Version=()
+declare -A sourcePackages_Url=()
+declare -A sourcePackages_Compression=()libexecdir
+declare -A sourcePackages_FileName=()
+declare -A sourcePackages_ExtractedTarballFolder=()
+declare -A sourcePackages_Hashes=()
+declare -A sourcePackages_Patches=()
+
+declare -a patches_Url=()
+declare -a patches_FileName=()
+declare -a patches_Hashes=()
+declare -a patches_Compression=()
+
+previousMirrors=""
+previousProfiles=""
+previousSharedPreDependencies=""
+
+declare -A phase_PreviousRecipes=()
+phase_PreviousRecipes['toolchain1']=""
+phase_PreviousRecipes['toolchain2']=""
+phase_PreviousRecipes['system']=""
+declare -A phase_InstallationOrder=()
+
 function progressMessage()
 {
 	if [ $# -ne 1 ]; then
@@ -77,9 +136,6 @@ function sourcePackagesKeyExists()
 	return 1
 }
 
-declare -a signatures_Url=()
-declare -a signatures_FileName=()
-declare -a signatures_Compression=()
 function signature()
 {
 	local -r ourUnsignedUrl="$1"
@@ -118,10 +174,6 @@ function signature()
 	done
 }
 
-declare -a keyrings_Url=()
-declare -a keyrings_FileName=()
-declare -a keyrings_Hashes=()
-declare -a keyrings_Compression=()
 function keyring()
 {
 	if [ $# -ne 3 ]; then
@@ -158,10 +210,6 @@ function keyring()
 	signature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
 }
 
-declare -a keys_Url=()
-declare -a keys_FileName=()
-declare -a keys_Hashes=()
-declare -a keys_Compression=()
 function key()
 {
 	if [ $# -lt 3 ]; then
@@ -216,12 +264,6 @@ function hkp()
 	key "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
 }
 
-declare -i nextSystemGid=$LFS_INCLUSIVE_SYSTEM_GID
-declare -i nextUserGid=$LFS_INCLUSIVE_USER_GID
-
-declare -a groups_Name=()
-declare -a groups_Gid=()
-declare -a groups_Members=()
 function system_group()
 {
 	local -r groupName="$1"
@@ -268,9 +310,6 @@ function renderGroups()
 	done | sort --numeric-sort --field-separator=':' --key=3
 }
 
-declare -i nextSystemUid=$LFS_INCLUSIVE_SYSTEM_UID
-declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
-
 function verifyGroupExists()
 {
 	local -r groupName="$1"
@@ -285,12 +324,6 @@ function verifyGroupExists()
 	exitError "Group with name $groupName does exist for user $userName"
 }
 
-declare -a users_Name=()
-declare -a users_Gecos=()
-declare -a users_Home=()
-declare -a users_Shell=()
-declare -a users_Uid=()
-declare -a users_Gid=()
 function user()
 {
 	local -r userName="$1"
@@ -394,9 +427,6 @@ function renderUsers()
 		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
 	done | sort --numeric-sort --field-separator=':' --key=3
 }
-
-declare -a earlyPathCommands=()
-declare -a latePathCommands=()
 
 function directory()
 {
@@ -631,16 +661,6 @@ function make_fifo()
 	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
 }
 
-# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
-declare -a sourcePackages_IndicesToKeys=()
-declare -A sourcePackages_SourcePackageName=()
-declare -A sourcePackages_Version=()
-declare -A sourcePackages_Url=()
-declare -A sourcePackages_Compression=()libexecdir
-declare -A sourcePackages_FileName=()
-declare -A sourcePackages_ExtractedTarballFolder=()
-declare -A sourcePackages_Hashes=()
-declare -A sourcePackages_Patches=()
 function source_package_without_download()
 {
 	case $# in
@@ -790,10 +810,6 @@ function source_package_with_download()
 	signature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
 }
 
-declare -a patches_Url=()
-declare -a patches_FileName=()
-declare -a patches_Hashes=()
-declare -a patches_Compression=()
 function addPatchDownload()
 {
 	if [ $# -ne 4 ]; then
@@ -837,7 +853,6 @@ function addPatchDownload()
 	signature "$ourUrl" "${patches_Hashes[$patchNumber]}"
 }
 
-previousMirrors=""
 function include_mirror()
 {
 	if [ $# -ne 1 ]; then
@@ -856,13 +871,12 @@ function include_mirror()
 	previousMirrors="$previousMirrors $localMirror"
 	
 	if [ -f "$mirrorsPath"/"$localMirror".mirrors ]; then
-		LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION" source "$mirrorsPath"/"$localMirror".mirrors "$LFS_DISTRIBUTION_VERSION" "$localMirror"
+		source "$mirrorsPath"/"$localMirror".mirrors
 	else
 		exitError "mirrors $localMirror.mirrors does not exist in mirrors path $mirrorsPath or is not a file"
 	fi
 }
 
-previousProfiles=""
 function include_profile()
 {
 	if [ $# -ne 1 ]; then
@@ -881,13 +895,12 @@ function include_profile()
 	previousProfiles="$previousProfiles $localProfile"
 	
 	if [ -f "$profilesPath"/"$localProfile".profile ]; then
-		LFS_PHASE="$LFS_PHASE" LFS_DISTRIBUTION_VERSION="$LFS_DISTRIBUTION_VERSION" source "$profilesPath"/"$localProfile".profile "$LFS_PHASE" "$LFS_DISTRIBUTION_VERSION" "$localProfile"
+		source "$profilesPath"/"$localProfile".profile
 	else
 		exitError "profile $localProfile.profile does not exist in profile path $profilesPath or is not a file"
 	fi
 }
 
-previousSharedPreDependencies=""
 function include_once()
 {
 	case $# in
@@ -913,14 +926,9 @@ function include_once()
 			return 0
 		fi
 	done
-	LFS_SHARED_PRE_DEPENDENCY_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared "$localSharedName"
+	LFS_SHARED_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared
 }
 
-declare -A phase_PreviousRecipes=()
-phase_PreviousRecipes['toolchain1']=""
-phase_PreviousRecipes['toolchain2']=""
-phase_PreviousRecipes['system']=""
-declare -A phase_InstallationOrder=()
 function recipe()
 {
 	if [ $# -ne 2 ]; then
@@ -941,7 +949,7 @@ function recipe()
 	done
 	
 	if [ $alreadySourced -eq 1 ]; then
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_NAME_VERSION="$ourVersion" source "$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe "$localSourcePackageName"
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
 	fi
 	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
 	
