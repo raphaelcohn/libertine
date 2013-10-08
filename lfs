@@ -1523,6 +1523,8 @@ function main()
 	runSystemInstallationLogic renderEarlyPathCommands
 	chrootToEnvironment
 	runSystemInstallationLogic renderLatePathCommands
+	
+	removeFilesOnExit
 }
 
 main "$@"
