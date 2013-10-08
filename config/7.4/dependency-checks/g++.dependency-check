@@ -6,7 +6,8 @@ g++ --version | awk 'NR==1 { print $(NF) }' | verifyDependency gcc 4.1.2 4.8.1
 
 function test_C_Plus_Plus_Compiler()
 {
-	local -r tempFolder="$(temporaryFolderToRemoveOnExit)"
+	temporaryFolderToRemoveOnExit
+	local -r tempFolder="$TMP_FILE"
 	
 	pushd "$tempFolder" >/dev/null
 		

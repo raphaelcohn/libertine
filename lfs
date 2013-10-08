@@ -58,25 +58,20 @@ function removeFilesOnExit()
 
 function addFileToRemoveOnExit()
 {
-	set -x
 	local -r fileToRemove="$1"
 	filesToRemoveOnExit+=("$fileToRemove")
-	echo "$fileToRemove" "${filesToRemoveOnExit[@]}"
-	set +x
 }
 
 function temporaryFileToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
-	addFileToRemoveOnExit "$fileToRemove"
-	echo "$fileToRemove"
+	TMP_FILE="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
+	filesToRemoveOnExit+=("$TMP_FILE")
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
-	addFileToRemoveOnExit "$fileToRemove"
-	echo "$fileToRemove"
+	TMP_FILE="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
+	filesToRemoveOnExit+=("$TMP_FILE")
 }
 
 function essentialProgramCheck()
@@ -567,7 +562,8 @@ function verifyHostSystemRequirements()
 		for dependencyCheck in *.dependency-check
 		do
 			# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
-			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$(temporaryFileToRemoveOnExit)"
+			temporaryFileToRemoveOnExit
+			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$TMP_FILE"
 			# done as subshell to overcome the fact that commands are executing outside of a function
 			if ! (source "$dependencyCheck"); then
 				if [ -z "$debianPackagesToInstallForDependencies" ]; then
@@ -775,7 +771,8 @@ function verifyKeyFileSignature()
 		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile_uncompressed.log
 	fi
 	
-	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
+	temporaryFolderToRemoveOnExit
+	local -r gpgHome="$TMP_FILE"
 	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
 	
 	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
@@ -816,7 +813,8 @@ function verifyHkpSignature()
 		local -r logFileName="$downloadsLogsPath"/"$fileName".hkp_uncompressed.log
 	fi
 	
-	local -r gpgHome="$(temporaryFolderToRemoveOnExit)"
+	temporaryFolderToRemoveOnExit
+	local -r gpgHome="$TMP_FILE"
 	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
 	
 	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
@@ -997,7 +995,8 @@ function downloadFileAndCheckHash()
 					;;
 			
 					HKP_UNCOMPRESSED)
-						temporaryFolder="$(temporaryFolderToRemoveOnExit)"
+						temporaryFolderToRemoveOnExit
+						temporaryFolder="$TMP_FILE"
 						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
 						
 						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
