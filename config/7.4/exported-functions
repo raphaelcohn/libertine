@@ -1,16 +1,27 @@
 declare -a signatures_Url=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_Url')
 declare -a signatures_FileName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_FileName')
 declare -a signatures_Compression=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_Compression')
 
 declare -a keyrings_Url=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Url')
 declare -a keyrings_FileName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_FileName')
 declare -a keyrings_Hashes=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Hashes')
 declare -a keyrings_Compression=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Compression')
 
 declare -a keys_Url=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Url')
 declare -a keys_FileName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_FileName')
 declare -a keys_Hashes=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Hashes')
 declare -a keys_Compression=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Compression')
 
 declare -i nextSystemUid=$LFS_INCLUSIVE_SYSTEM_UID
 declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
@@ -18,43 +29,62 @@ declare -i nextSystemGid=$LFS_INCLUSIVE_SYSTEM_GID
 declare -i nextUserGid=$LFS_INCLUSIVE_USER_GID
 
 declare -a groups_Name=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Name')
 declare -a groups_Gid=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Gid')
 declare -a groups_Members=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Members')
 
 declare -a users_Name=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Name')
 declare -a users_Gecos=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Gecos')
 declare -a users_Home=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Home')
 declare -a users_Shell=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Shell')
 declare -a users_Uid=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Uid')
 declare -a users_Gid=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Gid')
 
 declare -a earlyPathCommands=()
 declare -a latePathCommands=()
 
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
 declare -a sourcePackages_IndicesToKeys=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_IndicesToKeys')
 declare -A sourcePackages_SourcePackageName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_SourcePackageName')
 declare -A sourcePackages_Version=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Version')
 declare -A sourcePackages_Url=()
-declare -A sourcePackages_Compression=()libexecdir
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Url')
+declare -A sourcePackages_Compression=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Compression')
 declare -A sourcePackages_FileName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_FileName')
 declare -A sourcePackages_ExtractedTarballFolder=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_ExtractedTarballFolder')
 declare -A sourcePackages_Hashes=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Hashes')
 declare -A sourcePackages_Patches=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Patches')
 
 declare -a patches_Url=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Url')
 declare -a patches_FileName=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_FileName')
 declare -a patches_Hashes=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Hashes')
 declare -a patches_Compression=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Compression')
 
-previousMirrors=""
-previousProfiles=""
-previousSharedPreDependencies=""
+declare -a previousMirrors=()
+declare -a previousProfiles=()
+declare -a previousSharedNames=()
 
-declare -A phase_PreviousRecipes=()
-phase_PreviousRecipes['toolchain1']=""
-phase_PreviousRecipes['toolchain2']=""
-phase_PreviousRecipes['system']=""
+declare -A phase_PreviousRecipes=(['toolchain1']="" ['toolchain2']="" ['system']="")
 declare -A phase_InstallationOrder=()
 
 function progressMessage()
@@ -862,13 +892,13 @@ function include_mirror()
 	local -r localMirror="$1"
 	
 	local previousMirror
-	for previousMirror in $previousMirrors
+	for previousMirror in "${previousMirrors[@]}"
 	do
 		if [ "$previousMirror" = "$localMirror" ]; then
 			exitError "Recursion of mirrors - trying to use $localMirror after mirror stack of $previousMirrors"
 		fi
 	done
-	previousMirrors="$previousMirrors $localMirror"
+	previousMirrors+=("$localMirror")
 	
 	if [ -f "$mirrorsPath"/"$localMirror".mirrors ]; then
 		source "$mirrorsPath"/"$localMirror".mirrors
@@ -885,14 +915,14 @@ function include_profile()
 	
 	local -r localProfile="$1"
 	local previousProfile
-	for previousProfile in $previousProfiles
+	for previousProfile in "${previousProfiles[@]}"
 	do
 		if [ "$previousProfile" = "$localProfile" ]; then
 			# Allowed (but ignored)
 			return 0
 		fi
 	done
-	previousProfiles="$previousProfiles $localProfile"
+	previousProfiles+=("$localProfile")
 	
 	if [ -f "$profilesPath"/"$localProfile".profile ]; then
 		source "$profilesPath"/"$localProfile".profile
@@ -919,14 +949,20 @@ function include_once()
 		
 	esac
 	
-	local previousShared
-	for previousShared in $previousSharedPreDependencies
+	local previousSharedName
+	for previousSharedName in "${previousSharedNames[@]}"
 	do
-		if [ "$previousShared" = "$localSharedName" ]; then
+		if [ "$previousSharedName" = "$localSharedName" ]; then
 			return 0
 		fi
 	done
-	LFS_SHARED_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared
+	previousSharedNames+=("$localSharedName")
+	
+	if [ -f "$sharedPath"/"$localSharedName".shared ]; then
+		LFS_SHARED_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared
+	else
+		exitError "include $localSharedName.shared does not exist in share path $sharedPath or is not a file"
+	fi
 }
 
 function recipe()

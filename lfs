@@ -3,15 +3,16 @@ set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o 
 
 declare -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT=('LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT')
 declare -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT')
 
 declare -a trapHandlers=()
-LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}='trapHandlers'
+LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=('trapHandlers')
 
 declare -a filesToRemoveOnExit=()
-LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}='filesToRemoveOnExit'
+LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=('filesToRemoveOnExit')
 
 INSTALLATION_FAILED_MESSAGE=""
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='INSTALLATION_FAILED_MESSAGE'
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('INSTALLATION_FAILED_MESSAGE')
 
 function ensureWhichInstalled()
 {
@@ -37,7 +38,7 @@ function addNextTrapHandler()
 {
 	local trapHandler="$1"
 	trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
-	trapHandlers[${#trapHandlers[@]}]="$trapHandler"
+	trapHandlers+=("$trapHandler")
 }
 
 function removeLastTrapHandler()
@@ -57,7 +58,7 @@ function removeFilesOnExit()
 function addFileToRemoveOnExit()
 {
 	local -r fileToRemove="$1"
-	filesToRemoveOnExit[${#filesToRemoveOnExit[@]}]="$fileToRemove"
+	filesToRemoveOnExit+=("$fileToRemove")
 }
 
 function temporaryFileToRemoveOnExit()
@@ -196,21 +197,22 @@ function warning()
 
 function setDebugging()
 {
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_BASH_DEBUGGING'
-	
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
 		export LFS_BASH_DEBUGGING="yes"
-	fi
-	if [ "$LFS_BASH_DEBUGGING" = "yes" ];then
-		set -x
+		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_BASH_DEBUGGING')
+	elif [ ! -z "$LFS_BASH_DEBUGGING" ]; then
+		if [ "$LFS_BASH_DEBUGGING" = "yes" ]; then
+			set -x
+		fi
+		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_BASH_DEBUGGING')
 	fi
 }
 
 function findOurNameAndPath()
 {
 	readonly ourName="$(purebash_basename "$0")"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='ourName'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('ourName')
 	pushd "$(purebash_dirname "$0")" >/dev/null
 	readonly crudeOurPath="$(pwd)"
 	popd >/dev/null
@@ -288,38 +290,38 @@ function parseCommandLine()
 {
 	# Defaults
 	LFS_DISTRIBUTION_VERSION="7.4"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_DISTRIBUTION_VERSION'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_DISTRIBUTION_VERSION')
 	
 	lfsPath="/var/tmp/lfs"
 	
 	lfsConfigPath="${crudeOurPath}/config"
 	
 	mirrors="timezone"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='mirrors'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('mirrors')
 	
 	toolchain1Profile=toolchain1
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='toolchain1Profile'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain1Profile')
 	
 	toolchain2Profile=toolchain2
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='toolchain2Profile'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain2Profile')
 	
 	skipToolchainIfBackupExists="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='skipToolchainIfBackupExists'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipToolchainIfBackupExists')
 	
 	stripToolchainSymbols="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripToolchainSymbols'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripToolchainSymbols')
 	
 	stripToolchainDocs="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripToolchainDocs'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripToolchainDocs')
 	
 	stripSystemSymbols="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripSystemSymbols'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripSystemSymbols')
 	
 	stripSystemDocs="no"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='stripSystemDocs'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripSystemDocs')
 	
 	profiles="system"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='profiles'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('profiles')
 	
 	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
 		executeWithCleanEnvironment "$@"
@@ -508,14 +510,14 @@ function setPathsAndExports()
 	popd >/dev/null
 	
 	LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_LOG_PATH'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_LOG_PATH')
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
 	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
 	LFS_TOOLS=tools-"$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_TOOLS'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TOOLS')
 	
 	LFS_SOURCES_PATH="$LFS"/sources
 	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
@@ -524,7 +526,7 @@ function setPathsAndExports()
 	
 	export LC_ALL=POSIX
 	LFS_TGT="$(uname -m)"-lfs-linux-gnu
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='LFS_TGT'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TGT')
 	
 	if [ -f /proc/cpuinfo ]; then
 		local -i highestCpu
@@ -535,7 +537,7 @@ function setPathsAndExports()
 	fi
 	if [ $highestCpuZeroBased -ne 1 ]; then
 		export MAKEFLAGS="-j $((highestCpuZeroBased*2))"
-		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='MAKEFLAGS'
+		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('MAKEFLAGS')
 	fi
 }
 
@@ -624,7 +626,7 @@ function createSkeletonFolderStructure()
 	readonly toolchain1LogsPath="$LFS_LOG_PATH"/toolchain1
 	readonly toolchain2LogsPath="$LFS_LOG_PATH"/toolchain2
 	readonly systemLogsPath="$LFS_LOG_PATH"/system
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}]='systemLogsPath'
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('systemLogsPath')
 	
 	# Logs
 	mkdir -m 0755 -p "$LFS_LOG_PATH"
@@ -1455,6 +1457,7 @@ function chrootToEnvironment()
 		mkdir -m 0755 -p "$LFS_LOG_PATH"/system
 		
 		setDebugging
+		addNextTrapHandler removeFilesOnExit
 		installPackages system
 	EOF
 	
