@@ -638,14 +638,14 @@ function createSkeletonFolderStructure()
 	
 	# Sources
 	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
-	chmod a+wt "$LFS_SOURCES_PATH"
+	#chmod a+wt "$LFS_SOURCES_PATH"
 	
 	# Tools Symlink
-	if [ ! -L /"$LFS_TOOLS" ]; then
-		# symlink, say, /mnt/lfs/tools as /tools
+	if [ -L /"$LFS_TOOLS" ]; then
 		rm -rf -- /"$LFS_TOOLS"
-		ln --symbolic "$LFS_TOOLS_PATH" /
 	fi
+	# symlink, say, /mnt/lfs/tools as /tools
+	ln --symbolic "$LFS_TOOLS_PATH" /
 }
 
 function rehashCertificateAuthorities()
