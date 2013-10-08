@@ -1452,11 +1452,9 @@ function chrootToEnvironment()
 		
 		mkdir -m 0755 -p "$LFS_LOG_PATH"/system
 		
-		set -x
 		setDebugging
 		addNextTrapHandler removeFilesOnExit
 		installPackages system
-		set +x
 	EOF
 	
 	cp "$continutationBinaryForChroot" /tmp/XXXX
