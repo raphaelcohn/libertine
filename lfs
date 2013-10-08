@@ -49,6 +49,7 @@ function removeLastTrapHandler()
 function removeFilesOnExit()
 {
 	local file
+	echo X "${filesToRemoveOnExit[@]}" X
 	for file in "${filesToRemoveOnExit[@]}"
 	do
 		rm -rf -- "$file"
