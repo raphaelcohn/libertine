@@ -49,7 +49,6 @@ function removeLastTrapHandler()
 function removeFilesOnExit()
 {
 	local file
-	echo X "${filesToRemoveOnExit[@]}" X
 	for file in "${filesToRemoveOnExit[@]}"
 	do
 		rm -rf -- "$file"
@@ -1527,7 +1526,6 @@ function main()
 	chrootToEnvironment
 	runSystemInstallationLogic renderLatePathCommands
 	
-	set -x
 	removeFilesOnExit
 }
 

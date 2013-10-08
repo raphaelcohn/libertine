@@ -6,19 +6,25 @@ g++ --version | awk 'NR==1 { print $(NF) }' | verifyDependency gcc 4.1.2 4.8.1
 
 function test_C_Plus_Plus_Compiler()
 {
-	temporaryFolderToRemoveOnExit
-	local -r tempFolder="$TMP_FILE"
+	# can't use temporaryFolderToRemoveOnExit as we're running in a subshell
+	local -r tempFolder="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
 	
 	pushd "$tempFolder" >/dev/null
 		
 		echo 'main(){}' >dummy.c
 		
-		g++ -o dummy dummy.c 1>/dev/null 2>/dev/null || exitError "g++ compiler failed"
+		if ! g++ -o dummy dummy.c 1>/dev/null 2>/dev/null; then
+			rm -rf -- "$tempFolder"
+			exitError "g++ compiler failed"
+		fi
 		
 		if [ ! -x dummy ]; then
+			rm -rf -- "$tempFolder"
 			exitError "g++ compiler dependency broken"
 		fi
 		
 	popd >/dev/null
+	
+	rm -rf -- "$tempFolder"
 }
 test_C_Plus_Plus_Compiler
