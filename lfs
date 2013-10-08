@@ -63,14 +63,14 @@ function addFileToRemoveOnExit()
 
 function temporaryFileToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir "$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	local -r fileToRemove="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXX)"
+	local -r fileToRemove="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
 	addFileToRemoveOnExit "$fileToRemove"
 	echo "$fileToRemove"
 }
@@ -1436,26 +1436,21 @@ function chrootToEnvironment()
 		
 		$(replicateBashFunctionsAndGlobalVariables)
 	EOF
-	echo "$LFS_TOOLS"
+	
 	cat >>"$continutationBinaryForChroot" <<-'EOF'
 		
 		# Fix up paths and variables
 		LC_ALL=POSIX
-		
-		unset trapHandlers
-		declare -a trapHandlers=()
-		
-		unset filesToRemoveOnExit
-		declare -a filesToRemoveOnExit=()
 		
 		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
 		LFS_SOURCES_PATH=/sources
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-		echo $PATH
+		
 		mkdir -m 0755 -p "$LFS_LOG_PATH"/system
 		
+		set -x
 		setDebugging
 		addNextTrapHandler removeFilesOnExit
 		installPackages system
