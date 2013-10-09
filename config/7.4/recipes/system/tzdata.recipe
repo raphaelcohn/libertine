@@ -3,7 +3,7 @@ set -o errexit +o hashall
 depends glibc 2.18
 
 # TODO: Releases may be made as little as 5 days apart!
-source_package_with_download 2013d "$LFS_MIRROR_IANA" time-zones/repository/releases/"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:3A35CE5E:"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz.asc
+source_package_with_download 2013d "$LFS_MIRROR_IANA" time-zones/repository/releases/"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz.asc
 
 directory /usr/share/zoneinfo 755 root root D ai
 directory /usr/share/zoneinfo/posix 755 root root D ai
