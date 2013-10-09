@@ -34,4 +34,4 @@ declare -r LFS_TIMEZONE_POSIXRULES=America/New_York
 declare -r LFS_TIMEZONE_TARGET=Etc/UTC
 
 # Also available: factory (pointless) leapseconds (used in a different form)
-timzeone_region africa antarctica asia australasia backward etcetera europe northamerica pacificnew solar87 solar88 solar89 southamerica systemv
+timezone_region africa antarctica asia australasia backward etcetera europe northamerica pacificnew solar87 solar88 solar89 southamerica systemv

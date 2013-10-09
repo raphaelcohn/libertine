@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-recipe man-pages 3.53
+recipe tzdata 2013d
 
 function downloadsList()
 {
