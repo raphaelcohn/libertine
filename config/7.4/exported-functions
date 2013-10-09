@@ -496,7 +496,7 @@ function recurse()
 	local -r callback="$5"
 	shift 5
 	
-	find -P "${LFS}${target}" -depth -mindepth $mindepth -maxdepth $maxdepth -type "$fileTypeCode" -print0 | IFS= read -r -d $'\0' file
+	find -P "${LFS}${target}" -depth -mindepth $mindepth -maxdepth $maxdepth -type "$fileTypeCode" -print0 | while IFS= read -r -d $'\0' file
 	do
 		$callback "$file" "$@"
 	done
