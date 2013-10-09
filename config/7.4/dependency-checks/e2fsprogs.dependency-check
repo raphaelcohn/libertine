@@ -1,0 +1,4 @@
+set -o errexit +o hashall
+registerDebianPackage e2fsprogs
+essentialProgramCheck awk chattr lsattr
+lsattr -V 2>&1 1>/dev/null | awk 'NR==1 {print $(NF-1) }' | verifyDependency e2fsprogs 1.42

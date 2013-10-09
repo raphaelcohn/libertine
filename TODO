@@ -44,7 +44,7 @@
 	
 	* Go over all files and folders and record hashes (md5,sha1,sha224-512)
 
-
+* Check the signatures of CA certs, eg sks-keyservers.netCA.pem.asc (requires a degree of recursion)!
 
 
 

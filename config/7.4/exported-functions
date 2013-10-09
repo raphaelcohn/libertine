@@ -573,6 +573,34 @@ function pre_permissions()
 	local -r groupName="$4"
 	local -r extendedAttributesToApplyFirst="$5"
 	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "directory target must be absolute, not $target"
+	fi
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined for target $target"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined for target $target"
+	fi
+	
 	earlyPathCommands+=("chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\')
 	earlyPathCommands+=("chown $uid:$gid -- "\'"${LFS}${target}"\')
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
