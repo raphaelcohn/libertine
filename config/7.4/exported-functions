@@ -269,7 +269,7 @@ function key()
 	for existingKeyNumber in ${!keys_FileName[@]}
 	do
 		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
-			if [ ${keys[$existingPatchNumber]} != "$ourUrl" ]; then
+			if [ ${keys_Url[$existingKeyNumber]} != "$ourUrl" ]; then
 				warning "Attempt to override URL IGNORED for key $ourFileName to $ourUrl"
 			fi
 			return 0
