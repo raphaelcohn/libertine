@@ -1,0 +1,7 @@
+Certificate                           Global Mirror
+sks-keyservers.netCA.pem              LFS_MIRROR_HKPS
+AddTrust_External_Root.pem            XXXXXX
+GeoTrust_Global_CA.pem                LFS_MIRROR_SOURCEFORGE
+StartCom_Certification_Authority.pem  LFS_MIRROR_LINUX
+UTN_USERFirst_Hardware_Root_CA.pem    LFS_MIRROR_GNU
+ValiCert_Class_2_VA.pem               LFS_MIRROR_IANA

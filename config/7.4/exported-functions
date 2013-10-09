@@ -289,7 +289,7 @@ function hkp()
 {
 	local -r keyId="$1"
 	if [ $# -eq 1 ]; then
-		local -r hkpUrlTemplate="$LFS_MIRROR_HKP"
+		local -r hkpUrlTemplate="$LFS_MIRROR_HKPS"
 	elif [ $# -eq 2 ]; then
 		local -r hkpUrlTemplate="$2"
 	else
