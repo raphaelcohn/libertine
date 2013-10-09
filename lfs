@@ -14,6 +14,12 @@ LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=('filesToRemoveOnExit')
 INSTALLATION_FAILED_MESSAGE=""
 LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('INSTALLATION_FAILED_MESSAGE')
 
+declare -a timezone_Regions=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('timezone_Regions')
+
+declare -a locale_Commands=()
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('locale_Commands')
+
 function ensureWhichInstalled()
 {
 	set +e
@@ -1426,6 +1432,8 @@ function replicateBashFunctionsAndGlobalVariables()
 		declare -a "$LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT"
 	done
 	
+	cat "$settings"
+	
 	declare -f
 }
 
@@ -1498,6 +1506,29 @@ function renderLatePathCommands()
 		eval ${latePathCommands[$index]}
 	done
 }
+
+
+# settings functions
+function include_locale()
+{
+	if [ $# -ne 3 ]; then
+		exitError "Needs 3 arguments"
+	fi
+	
+	#localedef -i "$1" -f "$2" "$3"
+	locale_Commands+=("localedef -i "\'"$1"\'" -f "\'"$2"\'" "\'"$3"\')
+}
+
+function timezone_region()
+{
+	if [ $# -eq 0 ]; then
+		exitError "Provide 1 or more timezone regions"
+	fi
+	
+	timezone_Regions+=("$@")
+}
+
+
 
 function main()
 {

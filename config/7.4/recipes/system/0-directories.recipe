@@ -204,6 +204,7 @@ symlink /usr/lib/libgcc_s.so.1 /"$LFS_TOOLS"/lib/libgcc_s.so.1
 symlink /usr/lib/libstdc++.so /"$LFS_TOOLS"/lib/libstdc++.so
 symlink /usr/lib/libstdc++.so.6 /"$LFS_TOOLS"/lib/libstdc++.so.6
 #See below: sed "s/"$LFS_TOOLS"/usr/" /"$LFS_TOOLS"/lib/libstdc++.la >/usr/lib/libstdc++.la
+touch_file /usr/lib/libstdc++.la 644 jS ai
 symlink /bin/sh bash
 
 # historic mtab
@@ -214,30 +215,30 @@ touch_file /var/log/btmp 600 root utmp jS ''
 touch_file /var/log/utmp 600 root utmp jS ''
 touch_file /var/log/lastlog 664 root utmp jS ''
 
-touch_file /etc/passwd 644 root root js ai
-touch_file /etc/group 644 root root js ai
-touch_file /etc/lsb-release 644 root root js ai
+touch_file /etc/passwd 644 root root jS ai
+touch_file /etc/group 644 root root jS ai
+touch_file /etc/lsb-release 644 root root jS ai
 
 function installPackage_system_0-directories_0()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
-	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >/usr/lib/libstdc++.la
+	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >>/usr/lib/libstdc++.la
 	
 	# /etc/users
 	local -i index
 	for index in ${!users_Name[@]}
 	do
 		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
-	done | sort --numeric-sort --field-separator=':' --key=3 >/etc/passwd
+	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/passwd
 	
 	# /etc/group
 	for index in ${!groups_Name[@]}
 	do
 		printf "%s:x:%s:%s\n" "$${groups_Name[$index]}" "${groups_Gid[$index]}" "${groups_Members[$index]}"
-	done | sort --numeric-sort --field-separator=':' --key=3 >/etc/group
+	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/group
 	
 	# Section 9.1
-	cat >/etc/lsb-release <<-EOF
+	cat >>/etc/lsb-release <<-EOF
 		DISTRIB_ID="$LFS_DISTRIBUTION_ID"
 		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION"
 		DISTRIB_CODENAME="$LFS_DISTRIBUTION_CODENAME"

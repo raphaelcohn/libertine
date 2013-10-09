@@ -1,0 +1,45 @@
+set -o errexit +o hashall
+
+depends glibc 2.18
+
+# TODO: Releases may be made as little as 5 days apart!
+source_package_with_download 2013d "$LFS_MIRROR_IANA" time-zones/repository/releases/"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:1111:"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz.asc
+
+directory /usr/share/zoneinfo 755 root root D ai
+directory /usr/share/zoneinfo/posix 755 root root D ai
+directory /usr/share/zoneinfo/right 755 root root D ai
+
+permissions /usr/share/zoneinfo/zone.tab 644 root root jS ai
+permissions /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
+
+permissions_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
+permissions_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
+
+permissions_file_recursive /usr/share/zoneinfo 644 root root D ai
+
+function installPackage_system_glibc()
+{
+	local -r zoneinfoPath=/usr/share/zoneinfo
+	
+	local timezoneRegion
+	for timezoneRegion in "${timezone_Regions[@]}"
+	do
+		zic -L /dev/null   -d "$zoneinfoPath"       -y "sh yearistype.sh" "$timezoneRegion"
+		zic -L /dev/null   -d "$zoneinfoPath"/posix -y "sh yearistype.sh" "$timezoneRegion"
+		zic -L leapseconds -d "$zoneinfoPath"/right -y "sh yearistype.sh" "$timezoneRegion"
+	done
+	
+	# TODO: Zic creates directories - set perms on these
+	# TODO: Zic creates files - set perms on these
+	
+	cp -v zone.tab iso3166.tab "$zoneinfoPath"
+	
+	# Creates 'posixrules' that matches US daylight saving (a requirement)
+	zic -d "$zoneinfoPath" -p "$LFS_TIMEZONE_POSIXRULES"
+	
+	# We hardlink, which will break any separate /usr mount
+	rm -rf -- /etc/localtime
+	ln /usr/share/zoneinfo/"$LFS_TIMEZONE_TARGET" /etc/localtime
+}
+
+#TODO: Post-install file clean-up.

@@ -330,21 +330,6 @@ function system_group()
 	groups_Members[$index]=""
 }
 
-function renderGroups()
-{
-	local -i index
-	local groupName
-	local -i gid
-	local groupMembers
-	for index in ${!groups_Name[@]}
-	do
-		groupName=${groups_Name[$index]}
-		gid=${groups_Gid[$index]}
-		groupMembers=${groups_Members[$index]}
-		printf "%s:x:%s:%s\n" "$groupName" "$gid" "$groupMembers"
-	done | sort --numeric-sort --field-separator=':' --key=3
-}
-
 function verifyGroupExists()
 {
 	local -r groupName="$1"
@@ -454,7 +439,7 @@ function user()
 	#printf "$userName:x:$uid:$gid:$gecos:$home:$shell"
 }
 
-function directory()
+function permissions()
 {
 	local -r target="$1"
 	local -r mode="$2"
@@ -491,16 +476,124 @@ function directory()
 		exitError "Group $groupName not defined for target $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands[@]}]="mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
-	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
-		earlyPathCommands[${#earlyPathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
-	fi
-	# Order needs to be reversed...
+	# Listed in reverse-order!
 	if [ ! -z "$extendedAttributesToApplyLast" ]; then
-		latePathCommands[${#latePathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
+		latePathCommands+=("chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\')
 	fi
+	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
+		earlyPathCommands+=("chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\')
+	fi
+	latePathCommands+=("chown $uid:$gid -- "\'"${LFS}${target}"\')
+	latePathCommands+=("chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\')
+}
+
+function recurse()
+{
+	local -r target="$1"
+	local -ir mindepth=$2
+	local -ir maxdepth=$3
+	local -r fileTypeCode="$4"
+	local -r callback="$5"
+	shift 5
+	
+	find -P "${LFS}${target}" -depth -mindepth $mindepth -maxdepth $maxdepth -type "$fileTypeCode" -print0 | IFS= read -r -d $'\0' file
+	do
+		$callback "$file" "$@"
+	done
+}
+
+function recurse_callback_permissions()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r uid=$3
+	local -r gid=$4
+	local -r extendedAttributesToApplyFirst="$5"
+	local -r extendedAttributesToApplyLast="$6"
+	
+	chmod "$target" "$mode" -- "$target"
+	chown $uid:$gid -- "$target"
+	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
+		chattr +"$extendedAttributesToApplyFirst" "$target"
+	fi
+	if [ ! -z "$extendedAttributesToApplyLast" ]; then
+		chattr +"$extendedAttributesToApplyLast" "$target"
+	fi
+}
+
+function permissions_recursive()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r extendedAttributesToApplyFirst="$5"
+	local -r extendedAttributesToApplyLast="$6"
+	local -ir mindepth=$7
+	local -ir maxdepth=$8
+	# eg directory => d, file => f
+	local -r fileTypeCode="${9:0:1}"
+	
+	if [ "${target:0:1}" != "/" ]; then
+		exitError "directory target must be absolute, not $target"
+	fi
+	
+	local -i uid=-1
+	for index in ${!users_Name[@]}
+	do
+		if [ "${users_Name[$index]}" = "$userName" ]; then
+			uid=${users_Uid[$index]}
+			break
+		fi
+	done
+	if [ $uid -eq -1 ]; then
+		exitError "User $userName not defined for target $target"
+	fi
+	
+	local -i gid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "$groupName" ]; then
+			gid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $gid -eq -1 ]; then
+		exitError "Group $groupName not defined for target $target"
+	fi
+	
+	latePathCommands+=("recurse "\'"$target"\'" $mindepth $maxdepth "\'"$fileTypeCode"\'" recurse_callback_permissions "\'"$mode"\'" $uid $gid "\'"$extendedAttributesToApplyFirst"\'" "\'"$extendedAttributesToApplyLast"\')
+}
+
+function pre_permissions()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r extendedAttributesToApplyFirst="$5"
+	
+	earlyPathCommands+=("chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\')
+	earlyPathCommands+=("chown $uid:$gid -- "\'"${LFS}${target}"\')
+	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
+		earlyPathCommands+=("chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\')
+	fi
+}
+
+function directory()
+{
+	local -r target="$1"
+	local -r mode="$2"
+	local -r userName="$3"
+	local -r groupName="$4"
+	local -r extendedAttributesToApplyFirst="$5"
+	local -r extendedAttributesToApplyLast="$6"
+	
+	permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
+	
+	earlyPathCommands+=("mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\')
+	
+	pre_permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 }
 
 function symlink()
@@ -511,7 +604,7 @@ function symlink()
 		exitError "symlink target must be absolute, not $target"
 	fi
 	
-	earlyPathCommands[${#earlyPathCommands[@]}]="ln -s "\'"$contents"\'" "\'"${LFS}${target}"\'
+	earlyPathCommands+=("ln -s "\'"$contents"\'" "\'"${LFS}${target}"\')
 }
 
 function touch_file()
@@ -523,44 +616,11 @@ function touch_file()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
-	if [ "${target:0:1}" != "/" ]; then
-		exitError "touch_file target must be absolute, not $target"
-	fi
+	permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
 	
-	local -i uid=-1
-	for index in ${!users_Name[@]}
-	do
-		if [ "${users_Name[$index]}" = "$userName" ]; then
-			uid=${users_Uid[$index]}
-			break
-		fi
-	done
-	if [ $uid -eq -1 ]; then
-		exitError "User $userName not defined for target $target"
-	fi
+	earlyPathCommands+=("touch "\'"${LFS}${target}"\')
 	
-	local -i gid=-1
-	for index in ${!groups_Name[@]}
-	do
-		if [ "${groups_Name[$index]}" = "$groupName" ]; then
-			gid=${groups_Gid[$index]}
-			break
-		fi
-	done
-	if [ $gid -eq -1 ]; then
-		exitError "Group $groupName not defined for target $target"
-	fi
-	
-	earlyPathCommands[${#earlyPathCommands[@]}]="touch "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
-	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
-		earlyPathCommands[${#earlyPathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\'
-	fi
-	# Order needs to be reversed...
-	if [ ! -z "$extendedAttributesToApplyLast" ]; then
-		latePathCommands[${#latePathCommands[@]}]="chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\'
-	fi
+	pre_permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 }
 
 function make_character_device()
@@ -572,37 +632,11 @@ function make_character_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
-	if [ "${target:0:1}" != "/" ]; then
-		exitError "make_character_device target must be absolute, not $target"
-	fi
+	permissions "$target" "$mode" "$userName" "$groupName" "" ""
 	
-	local -i uid=-1
-	for index in ${!users_Name[@]}
-	do
-		if [ "${users_Name[$index]}" = "$userName" ]; then
-			uid=${users_Uid[$index]}
-			break
-		fi
-	done
-	if [ $uid -eq -1 ]; then
-		exitError "User $userName not defined for target $target"
-	fi
+	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	local -i gid=-1
-	for index in ${!groups_Name[@]}
-	do
-		if [ "${groups_Name[$index]}" = "$groupName" ]; then
-			gid=${groups_Gid[$index]}
-			break
-		fi
-	done
-	if [ $gid -eq -1 ]; then
-		exitError "Group $groupName not defined for target $target"
-	fi
-	
-	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_block_device()
@@ -614,37 +648,11 @@ function make_block_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
-	if [ "${target:0:1}" != "/" ]; then
-		exitError "make_block_device target must be absolute, not $target"
-	fi
+	permissions "$target" "$mode" "$userName" "$groupName" "" ""
 	
-	local -i uid=-1
-	for index in ${!users_Name[@]}
-	do
-		if [ "${users_Name[$index]}" = "$userName" ]; then
-			uid=${users_Uid[$index]}
-			break
-		fi
-	done
-	if [ $uid -eq -1 ]; then
-		exitError "User $userName not defined for target $target"
-	fi
+	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	local -i gid=-1
-	for index in ${!groups_Name[@]}
-	do
-		if [ "${groups_Name[$index]}" = "$groupName" ]; then
-			gid=${groups_Gid[$index]}
-			break
-		fi
-	done
-	if [ $gid -eq -1 ]; then
-		exitError "Group $groupName not defined for target $target"
-	fi
-	
-	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_fifo()
@@ -654,37 +662,11 @@ function make_fifo()
 	local -r userName="$3"
 	local -r groupName="$4"
 	
-	if [ "${target:0:1}" != "/" ]; then
-		exitError "make_fifo target must be absolute, not $target"
-	fi
+	permissions "$target" "$mode" "$userName" "$groupName" "" ""
 	
-	local -i uid=-1
-	for index in ${!users_Name[@]}
-	do
-		if [ "${users_Name[$index]}" = "$userName" ]; then
-			uid=${users_Uid[$index]}
-			break
-		fi
-	done
-	if [ $uid -eq -1 ]; then
-		exitError "User $userName not defined"
-	fi
+	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p")
 	
-	local -i gid=-1
-	for index in ${!groups_Name[@]}
-	do
-		if [ "${groups_Name[$index]}" = "$groupName" ]; then
-			gid=${groups_Gid[$index]}
-			break
-		fi
-	done
-	if [ $gid -eq -1 ]; then
-		exitError "Group $groupName not defined for target $target"
-	fi
-	
-	earlyPathCommands[${#earlyPathCommands[@]}]="mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p"
-	earlyPathCommands[${#earlyPathCommands[@]}]="chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\'
-	earlyPathCommands[${#earlyPathCommands[@]}]="chown $uid:$gid -- "\'"${LFS}${target}"\'
+	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function source_package_without_download()

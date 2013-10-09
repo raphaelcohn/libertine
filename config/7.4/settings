@@ -7,3 +7,31 @@ declare -ir LFS_INCLUSIVE_USER_GID=1000
 declare -r LFS_DISTRIBUTION_ID="Linux From Scratch"
 declare -r LFS_DISTRIBUTION_CODENAME="stormmq"
 declare -r LFS_DISTRIBUTION_DESCRIPTION="Linux From Scratch"
+
+include_locale cs_CZ UTF-8 cs_CZ.UTF-8
+include_locale de_DE ISO-8859-1 de_DE
+include_locale de_DE@euro ISO-8859-15 de_DE@euro
+include_locale de_DE UTF-8 de_DE.UTF-8
+include_locale en_GB UTF-8 en_GB.UTF-8
+include_locale en_HK ISO-8859-1 en_HK
+include_locale en_PH ISO-8859-1 en_PH
+include_locale en_US ISO-8859-1 en_US
+include_locale en_US UTF-8 en_US.UTF-8
+include_locale es_MX ISO-8859-1 es_MX
+include_locale fa_IR UTF-8 fa_IR
+include_locale fr_FR ISO-8859-1 fr_FR
+include_locale fr_FR@euro ISO-8859-15 fr_FR@euro
+include_locale fr_FR UTF-8 fr_FR.UTF-8
+include_locale it_IT ISO-8859-1 it_IT
+include_locale it_IT UTF-8 it_IT.UTF-8
+include_locale ja_JP EUC-JP ja_JP
+include_locale ru_RU KOI8-R ru_RU.KOI8-R
+include_locale ru_RU UTF-8 ru_RU.UTF-8
+include_locale tr_TR UTF-8 tr_TR.UTF-8
+include_locale zh_CN GB18030 zh_CN.GB18030
+
+declare -r LFS_TIMEZONE_POSIXRULES=America/New_York
+declare -r LFS_TIMEZONE_TARGET=Etc/UTC
+
+# Also available: factory (pointless) leapseconds (used in a different form)
+timzeone_region africa antarctica asia australasia backward etcetera europe northamerica pacificnew solar87 solar88 solar89 southamerica systemv

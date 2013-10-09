@@ -31,4 +31,5 @@ LFS_MIRROR_MPFR=http://www.mpfr.org/
 LFS_MIRROR_GMP=ftp://ftp.gmplib.org/pub/
 LFS_MIRROR_MPC=http://www.multiprecision.org/mpc/download/
 
-LFS_MIRROR_ZLIB=http://www.zlib.net
+LFS_MIRROR_ZLIB=http://www.zlib.net/
+LFS_MIRROR_IANA=https://www.iana.org/

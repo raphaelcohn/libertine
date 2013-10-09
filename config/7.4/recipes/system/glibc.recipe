@@ -1,0 +1,84 @@
+set -o errexit +o hashall
+
+depends man-pages 3.53
+
+include_once
+
+touch_file /etc/ld.so.conf 644 root root js ai
+directory /etc/ld.so.conf.d 755 root root js ai
+directory /etc/ld.so.conf.d/libc.conf 644 root root js ai
+
+directory /usr/lib/locale 755 root root '' ai
+
+touch_file /etc/nsswitch.conf 644 root root js ai
+
+# Installation of minimum set of locales for test coverage
+touch_file /usr/lib/locale/locale-archive 644 root root js ai
+
+function installPackage_system_glibc()
+{
+	sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
+	
+	createBuildFolderAndPushd
+		
+		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure    \
+		--prefix=/usr          \
+		--disable-profile      \
+		--enable-kernel=2.6.32 \
+		--libexecdir=/usr/lib/glibc
+		
+		make
+		
+		TIMEOUTFACTOR=16 make -k check || true
+		
+		make install
+		
+		# Install of NIS and RPC headers not installed by default
+		cp -v ../"$LFS_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpc/*.h /usr/include/rpc
+		cp -v ../"$LFS_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
+		cp -v ../"$LFS_EXTRACTED_TARBALL_FOLDER"/nis/rpcsvc/*.h /usr/include/rpcsvc
+		
+		# Or use glibc-2.18/localedata/SUPPORTED
+		# make localedata/install-locales
+		local localeCommand
+		for localeCommand in "${locale_Commands[@]}"
+		do
+			eval $localeCommand
+		done
+		
+		cat >>/etc/nsswitch.conf <<-EOF
+			# /etc/nsswitch.conf
+			#
+			# Example configuration of GNU Name Service Switch functionality.
+			# If you have the `glibc-doc-reference' and `info' packages installed, try:
+			# `info libc "Name Service Switch"' for information about this file.
+			
+			# on ubuntu, these are set to 'compat'
+			passwd: files
+			group: files
+			shadow: files
+
+			hosts: files dns
+			networks: files
+
+			# on ubuntu, these are set to 'db files'
+			protocols: files
+			services: files
+			ethers: files
+			rpc: files
+			
+			# on ubuntu only
+			#netgroup: nis
+		EOF
+		
+		cat >>/etc/ld.so.conf <<-EOF
+			include /etc/ld.so.conf.d/*.conf
+			
+		EOF
+		
+		cat >>/etc/ld.so.conf.d/libc.conf <<-EOF
+			/usr/local/lib
+		EOF
+		
+	popdBuildFolder
+}
