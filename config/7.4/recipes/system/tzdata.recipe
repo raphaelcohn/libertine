@@ -15,7 +15,7 @@ permissions /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
 permissions_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
 permissions_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
 
-function installPackage_system_glibc()
+function installPackage_system_tzdata()
 {
 	local -r zoneinfoPath=/usr/share/zoneinfo
 	
