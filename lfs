@@ -1478,9 +1478,9 @@ function chrootToEnvironment()
 	
 	unmountVirtualFilesystems
 	
-	rm -rf "$continutationBinaryForChroot"
+	rm -rf -- "$continutationBinaryForChroot"
 	
-	cp --archive "$LFS"/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"/* "$LFS_LOG_PATH"/
+	cp --archive "$LFS"/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"/* "$LFS_LOG_PATH"/ || true
 	rm -rf -- "$LFS"/var/log/lfs
 	
 	if [ $exitCode -ne 0 ]; then
