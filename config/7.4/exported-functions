@@ -439,7 +439,7 @@ function user()
 	#printf "$userName:x:$uid:$gid:$gecos:$home:$shell"
 }
 
-function permissions()
+function permissions_after()
 {
 	local -r target="$1"
 	local -r mode="$2"
@@ -481,7 +481,7 @@ function permissions()
 		latePathCommands+=("chattr +"\'"$extendedAttributesToApplyLast"\'" -- "\'"${LFS}${target}"\')
 	fi
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
-		earlyPathCommands+=("chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\')
+		latePathCommands+=("chattr +"\'"$extendedAttributesToApplyFirst"\'" -- "\'"${LFS}${target}"\')
 	fi
 	latePathCommands+=("chown $uid:$gid -- "\'"${LFS}${target}"\')
 	latePathCommands+=("chmod "\'"$mode"\'" -- "\'"${LFS}${target}"\')
@@ -521,7 +521,7 @@ function recurse_callback_permissions()
 	fi
 }
 
-function permissions_recursive()
+function permissions_after_recursive()
 {
 	local -r target="$1"
 	local -r mode="$2"
@@ -565,7 +565,7 @@ function permissions_recursive()
 	latePathCommands+=("recurse "\'"$target"\'" $mindepth $maxdepth "\'"$fileTypeCode"\'" recurse_callback_permissions "\'"$mode"\'" $uid $gid "\'"$extendedAttributesToApplyFirst"\'" "\'"$extendedAttributesToApplyLast"\')
 }
 
-function pre_permissions()
+function permission_before()
 {
 	local -r target="$1"
 	local -r mode="$2"
@@ -618,11 +618,11 @@ function directory()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
-	permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
+	permissions_after "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
 	
 	earlyPathCommands+=("mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\')
 	
-	pre_permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
+	permission_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 	
 	echo ${earlyPathCommands[@]}
 	
@@ -649,11 +649,11 @@ function touch_file()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
-	permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
+	permissions_after "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst" "$extendedAttributesToApplyLast"
 	
 	earlyPathCommands+=("touch "\'"${LFS}${target}"\')
 	
-	pre_permissions "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
+	permission_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 }
 
 function make_character_device()
@@ -665,11 +665,11 @@ function make_character_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
-	permissions "$target" "$mode" "$userName" "$groupName" "" ""
+	permissions_after "$target" "$mode" "$userName" "$groupName" "" ""
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
+	permission_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_block_device()
@@ -681,11 +681,11 @@ function make_block_device()
 	local -r userName="$5"
 	local -r groupName="$6"
 	
-	permissions "$target" "$mode" "$userName" "$groupName" "" ""
+	permissions_after "$target" "$mode" "$userName" "$groupName" "" ""
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
+	permission_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_fifo()
@@ -695,11 +695,11 @@ function make_fifo()
 	local -r userName="$3"
 	local -r groupName="$4"
 	
-	permissions "$target" "$mode" "$userName" "$groupName" "" ""
+	permissions_after "$target" "$mode" "$userName" "$groupName" "" ""
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p")
 	
-	pre_permissions "$target" "$mode" "$userName" "$groupName" ""
+	permission_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function source_package_without_download()

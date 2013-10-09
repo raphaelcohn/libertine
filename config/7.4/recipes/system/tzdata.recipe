@@ -9,11 +9,11 @@ directory /usr/share/zoneinfo 755 root root D ai
 directory /usr/share/zoneinfo/posix 755 root root D ai
 directory /usr/share/zoneinfo/right 755 root root D ai
 
-permissions /usr/share/zoneinfo/zone.tab 644 root root jS ai
-permissions /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
+permissions_after /usr/share/zoneinfo/zone.tab 644 root root jS ai
+permissions_after /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
 
-permissions_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
-permissions_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
+permissions_after_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
+permissions_after_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
 
 function installPackage_system_tzdata()
 {
