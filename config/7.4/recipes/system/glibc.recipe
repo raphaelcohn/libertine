@@ -29,7 +29,7 @@ function installPackage_system_glibc()
 		
 		make
 		
-		TIMEOUTFACTOR=16 make -k check || true
+		#TIMEOUTFACTOR=16 make -k check || true
 		
 		make install
 		
