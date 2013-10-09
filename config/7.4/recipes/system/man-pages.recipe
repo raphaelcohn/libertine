@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 depends linux 3.10.10
 
-source_package_with_download 3.53 "$LFS_MIRROR_LINUX" docs/"$LFS_SOURCE_PACKAGE_NAME"/Archive/"$LFS_SOURCE_PACKAGE_NAME"-3.53.tar.xz MD5:c3ab5df043bc95de69f73cb71a3c7bb6,HKP_UNCOMPRESSED:6092693E:"$LFS_SOURCE_PACKAGE_NAME"-3.53.tar.sign
+source_package_with_download 3.53 "$LFS_MIRROR_LINUX" docs/"$LFS_SOURCE_PACKAGE_NAME"/Archive/"$LFS_SOURCE_PACKAGE_NAME"-3.53.tar.xz MD5:c3ab5df043bc95de69f73cb71a3c7bb6,HKP_UNCOMPRESSED:3A35CE5E:"$LFS_SOURCE_PACKAGE_NAME"-3.53.tar.sign
 
 function installPackage_system_man-pages()
 {
