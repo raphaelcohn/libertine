@@ -1417,6 +1417,10 @@ function replicateBashFunctionsAndGlobalVariables()
 	# compgen will include local variables, so we use a subshell...
 	compgen -v | while IFS='' read -r -d $'\n' variableName
 	do
+		if [ "${variableName:0:4}" = "LFS_" ]; then
+			declare -p "$variableName"
+			continue
+		fi
 		for LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT in "${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}"
 		do
 			if [ "$LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT" = "$variableName" ]; then
@@ -1431,8 +1435,6 @@ function replicateBashFunctionsAndGlobalVariables()
 	do
 		declare -a "$LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT"
 	done
-	
-	cat "$settings"
 	
 	declare -f
 }
