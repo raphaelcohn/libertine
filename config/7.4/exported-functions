@@ -610,7 +610,6 @@ function permission_before()
 
 function directory()
 {
-	set -x
 	local -r target="$1"
 	local -r mode="$2"
 	local -r userName="$3"
@@ -623,10 +622,6 @@ function directory()
 	earlyPathCommands+=("mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\')
 	
 	permission_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
-	
-	echo ${earlyPathCommands[@]}
-	
-	exit 50
 }
 
 function symlink()
