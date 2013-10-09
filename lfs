@@ -802,6 +802,7 @@ function verifyKeyFileSignature()
 
 function verifyHkpSignature()
 {
+	set -x
 	local -r toPath="$1"
 	local -r fileName="$2"
 	local -r keyId="$3"
