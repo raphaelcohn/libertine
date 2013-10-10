@@ -994,6 +994,7 @@ function recipe()
 	done
 	
 	if [ $alreadySourced -eq 1 ]; then
+		set -x
 		local recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
 		local hashValue
 		IFS=' ' read -r -d '$\n' hashValue <<<"$(sha224sum "$recipeFile")"
