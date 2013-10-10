@@ -6,7 +6,7 @@ include_once
 
 touch_file /etc/ld.so.conf 644 root root js ai
 directory /etc/ld.so.conf.d 755 root root js ai
-directory /etc/ld.so.conf.d/libc.conf 644 root root js ai
+touch_file /etc/ld.so.conf.d/libc.conf 644 root root js ai
 
 directory /usr/lib/locale 755 root root '' ai
 
@@ -17,6 +17,8 @@ permissions_after /usr/lib/locale/locale-archive 644 root root js ai
 
 function installPackage_system_glibc()
 {
+	# -nostdinc and -iquote and --with-headers=/"$LFS_TOOLS"/include 
+	
 	sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
 	
 	createBuildFolderAndPushd

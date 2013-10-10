@@ -519,8 +519,10 @@ function setPathsAndExports()
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
-	local -r hashesWithTrailingHyphen="$(md5sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
-	LFS_TOOLS=tools-"$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
+	local -r hashesWithTrailingHyphen="$(sha224sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
+	LFS_VERSION="$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_VERSION')
+	LFS_TOOLS=tools-"$LFS_VERSION"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TOOLS')
 	
 	LFS_SOURCES_PATH="$LFS"/sources
@@ -1091,6 +1093,9 @@ function installPackage()
 	LFS_KEY="$key"
 	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
 	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
+	LFS_RECIPE_HASH_VALUE="${sourcePackages_RecipeHash["${key}"]}"
+	
+	LFS_INSTALL_LOCATION=/opt/lfs/"$LFS_VERSION"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_VERSION"/"$LFS_RECIPE_HASH_VALUE"
 	
 	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
@@ -1508,7 +1513,6 @@ function renderLatePathCommands()
 		eval ${latePathCommands[$index]}
 	done
 }
-
 
 # settings functions
 function include_locale()

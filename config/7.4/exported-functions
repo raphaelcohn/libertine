@@ -70,6 +70,8 @@ declare -A sourcePackages_Hashes=()
 LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Hashes')
 declare -A sourcePackages_Patches=()
 LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Patches')
+declare -A sourcePackages_RecipeHash
+LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_RecipeHash')
 
 declare -a patches_Url=()
 LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Url')
@@ -726,6 +728,7 @@ function source_package_without_download()
 	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
 	sourcePackages_Version["${key}"]="$ourVersion"
+	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
 	
 	if [ $# -eq 5 ]; then
 		sourcePackages_Compression["${key}"]="$3"
@@ -991,7 +994,10 @@ function recipe()
 	done
 	
 	if [ $alreadySourced -eq 1 ]; then
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" source "$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
+		local recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
+		local hashValue
+		IFS= read -r -d '$\n' hashValue "$(sha224sum "$recipeFile")"
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
 	fi
 	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
 	

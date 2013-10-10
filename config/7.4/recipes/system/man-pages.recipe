@@ -7,4 +7,7 @@ source_package_with_download 3.53 "$LFS_MIRROR_LINUX" docs/"$LFS_SOURCE_PACKAGE_
 function installPackage_system_man-pages()
 {
 	make install
+	
+	#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"
+	#make DESTDIR="$LFS_INSTALL_LOCATION" install
 }
