@@ -46,7 +46,7 @@ function installPackage_system_glibc()
 			eval $localeCommand
 		done
 		
-		cat >>/etc/nsswitch.conf <<-EOF
+		cat >>/etc/nsswitch.conf <<-'EOF'
 			# /etc/nsswitch.conf
 			#
 			# Example configuration of GNU Name Service Switch functionality.
