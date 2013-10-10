@@ -565,7 +565,7 @@ function permissions_after_recursive()
 	latePathCommands+=("recurse "\'"$target"\'" $mindepth $maxdepth "\'"$fileTypeCode"\'" recurse_callback_permissions "\'"$mode"\'" $uid $gid "\'"$extendedAttributesToApplyFirst"\'" "\'"$extendedAttributesToApplyLast"\')
 }
 
-function permission_before()
+function permissions_before()
 {
 	local -r target="$1"
 	local -r mode="$2"
@@ -621,7 +621,7 @@ function directory()
 	
 	earlyPathCommands+=("mkdir -p -m "\'"$mode"\'" -- "\'"${LFS}${target}"\')
 	
-	permission_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
+	permissions_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 }
 
 function symlink()
@@ -648,7 +648,7 @@ function touch_file()
 	
 	earlyPathCommands+=("touch "\'"${LFS}${target}"\')
 	
-	permission_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
+	permissions_before "$target" "$mode" "$userName" "$groupName" "$extendedAttributesToApplyFirst"
 }
 
 function make_character_device()
@@ -664,7 +664,7 @@ function make_character_device()
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" c "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	permission_before "$target" "$mode" "$userName" "$groupName" ""
+	permissions_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_block_device()
@@ -680,7 +680,7 @@ function make_block_device()
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" b "\'"$deviceMajor"\'" "\'"$deviceMinor"\')
 	
-	permission_before "$target" "$mode" "$userName" "$groupName" ""
+	permissions_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function make_fifo()
@@ -694,7 +694,7 @@ function make_fifo()
 	
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p")
 	
-	permission_before "$target" "$mode" "$userName" "$groupName" ""
+	permissions_before "$target" "$mode" "$userName" "$groupName" ""
 }
 
 function source_package_without_download()

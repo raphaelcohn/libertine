@@ -13,7 +13,7 @@ directory /usr/lib/locale 755 root root '' ai
 touch_file /etc/nsswitch.conf 644 root root js ai
 
 # Installation of minimum set of locales for test coverage
-touch_file /usr/lib/locale/locale-archive 644 root root js ai
+permissions_after /usr/lib/locale/locale-archive 644 root root js ai
 
 function installPackage_system_glibc()
 {
