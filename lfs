@@ -1083,6 +1083,12 @@ function installationFailedTrapHandler()
 	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
 }
 
+function installLocation()
+{
+	local -r key="$1"
+	echo /opt/lfs/"$LFS_VERSION"/"${sourcePackages_SourcePackageName["${key}"]}"/"${sourcePackages_Version["${key}"]}"/"${sourcePackages_RecipeHash["${key}"]}"
+}
+
 function installPackage()
 {
 	local -r phase="$1"
@@ -1095,7 +1101,7 @@ function installPackage()
 	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
 	LFS_RECIPE_HASH_VALUE="${sourcePackages_RecipeHash["${key}"]}"
 	
-	LFS_INSTALL_LOCATION=/opt/lfs/"$LFS_VERSION"/"$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_VERSION"/"$LFS_RECIPE_HASH_VALUE"
+	LFS_INSTALL_LOCATION="$(installLocation "$key")"
 	
 	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
