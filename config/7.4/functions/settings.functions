@@ -1,0 +1,94 @@
+set -o errexit +o hashall
+
+declare_for_chroot -a settings_string
+function setting_string
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	settings_string["${1}"]="$2"
+}
+
+declare_for_chroot -ai settings_integer
+function setting_integer
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	settings_integer["${1}"]=$2
+}
+
+declare_for_chroot -ai settings_binary
+function setting_binary
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	if [ $2 -gt 1 ]; then
+		exitError "binary value for $1 must be 0 (false) or 1 (true), not $2"
+	elif [ $2 -lt 0 ]; then
+		exitError "binary value for $1 must be 0 (false) or 1 (true), not $2"
+	fi
+	
+	settings_binary["${1}"]=$2
+}
+
+# Use I18NPATH for -i and --prefix
+declare_for_chroot -A settings_locale_Commands
+function include_locale()
+{
+	local -r inputFileName="$1"
+	local -r charmapFileName="$2"
+	if [ $# -eq 2 ]; then
+		localeName="${inputFileName}.${charmapFileName}"
+	elif [ $# -eq 3 ]; then
+		localeName="$3"
+	else
+		exitError "Needs 2 or 3 arguments"
+	fi
+	
+	# TODO - last entry wins without warning!
+	settings_locale_Commands["${localeName}"]="localedef -i "\'"$inputFileName"\'" -f "\'"$charmapFileName"\'" "\'"$localeName"\'
+}
+
+declare_for_chroot -a settings_timezone_Regions
+function timezone_region()
+{
+	if [ $# -eq 0 ]; then
+		exitError "Provide 1 or more timezone regions"
+	fi
+	
+	local -r timezoneRegion="$1"
+	
+	local existingTimezoneRegion
+	for existingTimezoneRegion in "${settings_timezone_Regions[@]}"
+	do
+		if [ "$existingTimezoneRegion" = "$timezoneRegion" ]; then
+			return 0
+		fi
+	done
+	
+	settings_timezone_Regions+=("$timezoneRegion")
+}
+
+function setting_defaults()
+{
+	setting_string LFS_DISTRIBUTION_ID="Linux From Scratch"
+	setting_string LFS_DISTRIBUTION_CODENAME="stormmq"
+	setting_string LFS_DISTRIBUTION_DESCRIPTION="Linux From Scratch"
+	
+	setting_integer LFS_INCLUSIVE_SYSTEM_UID=100
+	setting_integer LFS_INCLUSIVE_SYSTEM_GID=100
+	setting_integer LFS_INCLUSIVE_USER_UID=1000
+	setting_integer LFS_INCLUSIVE_USER_GID=1000
+	
+	setting_binary LFS_LOCALE_INSTALL_ALL 0
+	
+	setting_string LFS_TIMEZONE_POSIXRULES=America/New_York
+	setting_string LFS_TIMEZONE_TARGET=Etc/UTC
+}
+
+setting_defaults

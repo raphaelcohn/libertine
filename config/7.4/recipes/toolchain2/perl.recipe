@@ -4,7 +4,7 @@ depends patch 2.7.1
 
 include_once
 
-function installPackage_toolchain2_perl_5.18.1()
+function installPackage_toolchain2_perl()
 {
 	#patch -Np1 -i ../"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"-libc-1.patch
 	

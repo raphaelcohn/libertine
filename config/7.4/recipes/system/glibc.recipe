@@ -29,10 +29,21 @@ function installPackage_system_glibc()
 		--enable-kernel=2.6.32 \
 		--libexecdir=/usr/lib/glibc
 		
+		#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"
+		#CC=XXXXX CFLAGS="gcc -Wl,-dynamic-linker,/my/lib/ld-linux.so.2" ../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure    \
+		#--prefix="$LFS_INSTALL_LOCATION"        \
+		#--with-headers="$LFS_INSTALL_LOCATION_LINUX"        \
+		#--disable-profile      \
+		#--enable-kernel=3.10.10
+		#--enable-lock-elision=yes
+		#--with-binutils=/"$LFS_TOOLS"/bin
+		# Location of binutils not needed if we use the PATH, but I'd rather not do that
+		
 		make
 		
 		#TIMEOUTFACTOR=16 make -k check || true
 		
+		# Use install_root=/path/to/install rather than DESTDIR
 		make install
 		
 		# Install of NIS and RPC headers not installed by default
@@ -40,13 +51,16 @@ function installPackage_system_glibc()
 		cp -v ../"$LFS_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
 		cp -v ../"$LFS_EXTRACTED_TARBALL_FOLDER"/nis/rpcsvc/*.h /usr/include/rpcsvc
 		
-		# Or use glibc-2.18/localedata/SUPPORTED
-		# make localedata/install-locales
-		local localeCommand
-		for localeCommand in "${locale_Commands[@]}"
-		do
-			eval $localeCommand
-		done
+		# Or use glibc-2.18/localedata/SUPPORTED with  make localedata/install-locales
+		if [ ${settings_binary[LFS_LOCALE_INSTALL_ALL]} -eq 1 ]; then
+			make localedata/install-locales
+		else
+			local localeCommand
+			for localeCommand in "${settings_locale_Commands[@]}"
+			do
+				eval $localeCommand
+			done
+		fi
 		
 		cat >>/etc/nsswitch.conf <<-'EOF'
 			# /etc/nsswitch.conf

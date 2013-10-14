@@ -4,7 +4,7 @@ depends gcc 4.8.1
 
 include_once
 
-function installPackage_toolchain2_tcl_8.6.0()
+function installPackage_toolchain2_tcl()
 {
 	local -r majorVersion=8.6
 	

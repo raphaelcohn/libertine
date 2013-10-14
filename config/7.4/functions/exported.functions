@@ -1,98 +1,62 @@
-declare -a signatures_Url=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_Url')
-declare -a signatures_FileName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_FileName')
-declare -a signatures_Compression=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('signatures_Compression')
+set -o errexit +o hashall
 
-declare -a keyrings_Url=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Url')
-declare -a keyrings_FileName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_FileName')
-declare -a keyrings_Hashes=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Hashes')
-declare -a keyrings_Compression=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keyrings_Compression')
+declare_for_chroot -a signatures_Url
+declare_for_chroot -a signatures_FileName
+declare_for_chroot -a signatures_Compression
 
-declare -a keys_Url=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Url')
-declare -a keys_FileName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_FileName')
-declare -a keys_Hashes=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Hashes')
-declare -a keys_Compression=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('keys_Compression')
+declare_for_chroot -a keyrings_Url
+declare_for_chroot -a keyrings_FileName
+declare_for_chroot -a keyrings_Hashes
+declare_for_chroot -a keyrings_Compression
 
-declare -i nextSystemUid=$LFS_INCLUSIVE_SYSTEM_UID
-declare -i nextUserUid=$LFS_INCLUSIVE_USER_UID
-declare -i nextSystemGid=$LFS_INCLUSIVE_SYSTEM_GID
-declare -i nextUserGid=$LFS_INCLUSIVE_USER_GID
+declare_for_chroot -a keys_Url
+declare_for_chroot -a keys_FileName
+declare_for_chroot -a keys_Hashes
+declare_for_chroot -a keys_Compression
 
-declare -a groups_Name=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Name')
-declare -a groups_Gid=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Gid')
-declare -a groups_Members=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('groups_Members')
+declare -i nextSystemUid=-1
+declare -i nextSystemGid=-1
+declare -i nextUserUid=-1
+declare -i nextUserGid=-1
 
-declare -a users_Name=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Name')
-declare -a users_Gecos=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Gecos')
-declare -a users_Home=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Home')
-declare -a users_Shell=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Shell')
-declare -a users_Uid=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Uid')
-declare -a users_Gid=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('users_Gid')
+declare_for_chroot -a groups_Name
+declare_for_chroot -a groups_Gid
+declare_for_chroot -a groups_Members
 
-declare -a earlyPathCommands=()
-declare -a latePathCommands=()
+declare_for_chroot -a users_Name
+declare_for_chroot -a users_Gecos
+declare_for_chroot -a users_Home
+declare_for_chroot -a users_Shell
+declare_for_chroot -a users_Uid
+declare_for_chroot -a users_Gid
+
+declare -a earlyPathCommands
+declare -a latePathCommands
 
 # Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
-declare -a sourcePackages_IndicesToKeys=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_IndicesToKeys')
-declare -A sourcePackages_SourcePackageName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_SourcePackageName')
-declare -A sourcePackages_Version=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Version')
-declare -A sourcePackages_Url=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Url')
-declare -A sourcePackages_Compression=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Compression')
-declare -A sourcePackages_FileName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_FileName')
-declare -A sourcePackages_ExtractedTarballFolder=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_ExtractedTarballFolder')
-declare -A sourcePackages_Hashes=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Hashes')
-declare -A sourcePackages_Patches=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_Patches')
-declare -A sourcePackages_RecipeHash
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('sourcePackages_RecipeHash')
+declare_for_chroot -a sourcePackages_IndicesToKeys
+declare_for_chroot -A sourcePackages_SourcePackageName
+declare_for_chroot -A sourcePackages_Version
+declare_for_chroot -A sourcePackages_Url
+declare_for_chroot -A sourcePackages_Compression
+declare_for_chroot -A sourcePackages_FileName
+declare_for_chroot -A sourcePackages_ExtractedTarballFolder
+declare_for_chroot -A sourcePackages_Hashes
+declare_for_chroot -A sourcePackages_Patches
+declare_for_chroot -A sourcePackages_RecipeHash
 
-declare -a patches_Url=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Url')
-declare -a patches_FileName=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_FileName')
-declare -a patches_Hashes=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Hashes')
-declare -a patches_Compression=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('patches_Compression')
+declare_for_chroot -a patches_Url
+declare_for_chroot -a patches_FileName
+declare_for_chroot -a patches_Hashes
+declare_for_chroot -a patches_Compression
 
-declare -a previousMirrors=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousMirrors')
-declare -a previousProfiles=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousProfiles')
-declare -a previousSharedNames=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('previousSharedNames')
+declare_for_chroot -a previousMirrors
+declare_for_chroot -a previousProfiles
+declare_for_chroot -a previousSharedNames
 
-declare -A phase_PreviousRecipes=(['toolchain1']="" ['toolchain2']="" ['system']="")
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('phase_PreviousRecipes')
-declare -A phase_InstallationOrder=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('phase_InstallationOrder')
+declare_for_chroot -A phase_PreviousRecipes
+phase_PreviousRecipes+=(['toolchain1']="" ['toolchain2']="" ['system']="")
+declare_for_chroot -A phase_InstallationOrder
 
 function progressMessage()
 {
@@ -323,6 +287,9 @@ function system_group()
 	if [ $# -eq 2 ]; then
 		local -ir gid=$proposedGid
 	else
+		if [ $nextSystemGid -eq -1 ]; then
+			nextSystemGid=${settings_integer[LFS_INCLUSIVE_SYSTEM_GID]}
+		fi
 		local -ir gid=$((nextSystemGid++))
 	fi
 	
@@ -357,11 +324,10 @@ function user()
 		verifyGroupExists $6 "$userName"
 	fi
 	
-	local existingUserName
 	local -i index
 	for index in ${!users_Name[@]}
 	do
-		if [ "${users_Name[$index]}" = "$existingUserName" ]; then
+		if [ "${users_Name[$index]}" = "$userName" ]; then
 			if [ "${users_Gecos[$index]}" != "$gecos" ]; then
 				exitError "gecos redefined for user $userName"
 			fi
@@ -383,8 +349,14 @@ function user()
 		local -ir uid=$5
 	else
 		if [ "$shell" = "/bin/false" ]; then
+			if [ $nextSystemUid -eq -1 ]; then
+				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
+			fi
 			local -ir uid=$((nextSystemUid++))
 		else
+			if [ $nextUserId -eq -1 ]; then
+				nextUserUid=${settings_integer[LFS_INCLUSIVE_USER_UID]}
+			fi
 			local -ir uid=$((nextUserUid++))
 		fi
 	fi
@@ -415,6 +387,9 @@ function user()
 		if [ "$shell" = "/bin/false" ]; then
 			local -ir gid=$((nextSystemGid++))
 		else
+			if [ $nextUserGid -eq -1 ]; then
+				nextUserGid=${settings_integer[LFS_INCLUSIVE_USER_GID]}
+			fi
 			local -ir gid=$((nextUserGid++))
 		fi
 	fi
@@ -940,6 +915,30 @@ function include_profile()
 	fi
 }
 
+declare -a versionStack=()
+
+function version()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
+	fi
+	
+	local -r localSourcePackageVersion="$1"
+	versionStack+=("$localSourcePackageVersion")
+	
+	# problem is depends/recipe then 'overwrites' this value
+	LFS_SOURCE_PACKAGE_VERSION="$1"
+	
+	
+	
+	# in depends / recipe, we 'pop-off' the version stack
+	adasdasd
+	
+	
+	
+	LFS_RECIPE_VERSION_PREVIOUS=LFS_SOURCE_PACKAGE_VERSION
+}
+
 function include_once()
 {
 	case $# in
@@ -976,8 +975,8 @@ function include_once()
 
 function recipe()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
 	fi
 	
 	local -r localSourcePackageName="$1"
@@ -996,6 +995,23 @@ function recipe()
 	if [ $alreadySourced -eq 1 ]; then
 		local recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
 		local -r hashValue="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')"
+		
+		# The reason for doing this over a regular source is that it allows us to define local variables and so have a stack of aliased names, eg for recipe versions
+		#local -r functionWrappingRecipeFile="$(temporaryFileToRemoveOnExit)"
+		#cat >"$functionWrappingRecipeFile" <<-EOF
+		#	function recipe_${localSourcePackageName}()
+		#	{
+		#		local -r LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName"
+		#		local -r LFS_RECIPE_HASH_VALUE="$hashValue"
+		#		
+		#EOF
+		#cat "$recipeFile" >>"$functionWrappingRecipeFile"
+		#cat >>"$functionWrappingRecipeFile" <<-EOF
+		#	}
+		#EOF
+		#source "$functionWrappingRecipeFile"
+		#recipe_${localSourcePackageName}
+		
 		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
 	fi
 	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
@@ -1049,13 +1065,12 @@ function conflicts()
 # TODO: circular dependencies need to be identified
 function depends()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
 	fi
 	
 	local -r localDependsSourcePackageName="$1"
-	local -r localDependsVersion="$2"
-	recipe "$localDependsSourcePackageName" "$localDependsVersion"
+	recipe "$localDependsSourcePackageName"
 }
 
 # Also https://www.scaprepo.com/ is a good place to query

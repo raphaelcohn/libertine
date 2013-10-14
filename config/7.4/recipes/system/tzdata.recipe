@@ -20,7 +20,7 @@ function installPackage_system_tzdata()
 	local -r zoneinfoPath=/usr/share/zoneinfo
 	
 	local timezoneRegion
-	for timezoneRegion in "${timezone_Regions[@]}"
+	for timezoneRegion in "${settings_timezone_Regions[@]}"
 	do
 		zic -L /dev/null   -d "$zoneinfoPath"       -y "sh yearistype.sh" "$timezoneRegion"
 		zic -L /dev/null   -d "$zoneinfoPath"/posix -y "sh yearistype.sh" "$timezoneRegion"
@@ -33,11 +33,11 @@ function installPackage_system_tzdata()
 	cp -v zone.tab iso3166.tab "$zoneinfoPath"
 	
 	# Creates 'posixrules' that matches US daylight saving (a requirement)
-	zic -d "$zoneinfoPath" -p "$LFS_TIMEZONE_POSIXRULES"
+	zic -d "$zoneinfoPath" -p "${settings_string[LFS_TIMEZONE_POSIXRULES]}"
 	
 	# We hardlink, which will break any separate /usr mount
 	rm -rf -- /etc/localtime
-	ln /usr/share/zoneinfo/"$LFS_TIMEZONE_TARGET" /etc/localtime
+	ln /usr/share/zoneinfo/"${settings_string[LFS_TIMEZONE_TARGET]}" /etc/localtime
 }
 
 #TODO: Post-install file clean-up.

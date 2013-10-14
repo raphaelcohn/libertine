@@ -15,7 +15,10 @@ user bin "bin" /dev/null /bin/false 1 bin
 system_group nogroup 99
 user nobody "Unpriveleged User" /dev/null /bin/false 99 nogroup
 
+# ??
 system_group sys 2
+
+# Used for /dev/mem
 system_group kmem 3
 system_group tape 4
 system_group tty 5
@@ -219,7 +222,7 @@ touch_file /etc/passwd 644 root root jS ai
 touch_file /etc/group 644 root root jS ai
 touch_file /etc/lsb-release 644 root root jS ai
 
-function installPackage_system_0-directories_0()
+function installPackage_system_0-directories()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >>/usr/lib/libstdc++.la
@@ -239,9 +242,9 @@ function installPackage_system_0-directories_0()
 	
 	# Section 9.1
 	cat >>/etc/lsb-release <<-EOF
-		DISTRIB_ID="$LFS_DISTRIBUTION_ID"
-		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION"
-		DISTRIB_CODENAME="$LFS_DISTRIBUTION_CODENAME"
-		DISTRIB_DESCRIPTION="$LFS_DISTRIBUTION_DESCRIPTION"
+		DISTRIB_ID="${settings_string[LFS_DISTRIBUTION_ID]}"
+		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION]}"
+		DISTRIB_CODENAME="${settings_string[LFS_DISTRIBUTION_CODENAME]}"
+		DISTRIB_DESCRIPTION="${settings_string[LFS_DISTRIBUTION_DESCRIPTION]}"
 	EOF
 }

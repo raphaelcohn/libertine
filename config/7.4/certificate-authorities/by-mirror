@@ -1,7 +1,6 @@
-Certificate                           Global Mirror
-sks-keyservers.netCA.pem              LFS_MIRROR_HKPS
-AddTrust_External_Root.pem            XXXXXX
-GeoTrust_Global_CA.pem                LFS_MIRROR_SOURCEFORGE
-StartCom_Certification_Authority.pem  LFS_MIRROR_LINUX
-UTN_USERFirst_Hardware_Root_CA.pem    LFS_MIRROR_GNU
-ValiCert_Class_2_VA.pem               LFS_MIRROR_IANA
+Certificate                           Download Location                                                                         Global Mirror           Comments
+sks-keyservers.netCA.pem              https://sks-keyservers.net/sks-keyservers.netCA.pem                                       LFS_MIRROR_HKPS         -
+GeoTrust_Global_CA.pem                https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.pem  LFS_MIRROR_SOURCEFORGE  -
+StartCom_Certification_Authority.pem  https://www.startssl.com/certs/ca.pem                                                     LFS_MIRROR_LINUX        -
+UTN_USERFirst_Hardware_Root_CA.pem    https://support.comodo.com/index.php?_m=downloads&_a=viewdownload&downloaditemid=7&nav=0,1,5  LFS_MIRROR_GNU      Revolting URL - CAs should be straightforward to be trustworthy
+ValiCert_Class_2_VA.pem               https://certs.godaddy.com/anonymous/repository.pki?streamfilename=valicert_class2_root.crt&actionMethod=anonymous%2Frepository.xhtml%3Arepository.streamFile%28%27%27%29&cid=597348  LFS_MIRROR_IANA  Ditto

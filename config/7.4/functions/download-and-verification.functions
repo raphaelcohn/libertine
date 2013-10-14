@@ -1,0 +1,320 @@
+set -o errexit +o hashall
+
+# metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
+function downloadFileAndCheckHash()
+{
+	if [ $# -ne 7 ]; then
+		exitError "Needs 7 arguments"
+	fi
+	
+	local -r downloadName="$1"
+	local -r url="$2"
+	local -r toPath="$3"
+	local -r fileName="$4"
+	local -r decompressionOption="$5"
+	local -r hashesMayBeEmpty="$6"
+	local -r hashes="$7"
+	local -i exitCode
+	
+	mkdir -m 0755 -p "$downloadsLogsPath"
+	
+	if [ -f "$toPath"/"$fileName" ]; then
+		progressMessage "Using downloaded $downloadName $url at $toPath/$fileName"
+		progressMessageSucceeded
+	else
+		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
+		
+		rm -rf "$toPath"/"$fileName"
+		
+		# We re-load the config after specifying our options
+		touch "$HOME"/.curlrc
+		
+		# Only enabled compression for uncompressed files, because a few badly configured servers (eg http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz) then stream the non-gz tarball
+		if [ -z "$decompressionOption" ]; then
+			local -r curlCompressionOption="--compressed "
+		else
+			local -r curlCompressionOption=""
+		fi
+		
+		local -r referer="$(dirname "$url")/"
+		
+		set +e
+		curl --fail --silent --show-error \
+		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
+		--location --max-redirs 5 --retry 20 \
+		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
+		${curlCompressionOption}--remote-time \
+		--dump-header "$downloadsLogsPath"/"$fileName".headers.log \
+		--trace-time --trace-ascii "$downloadsLogsPath"/"$fileName".trace-ascii.log \
+		--stderr "$downloadsLogsPath"/"$fileName".stderr.log \
+		--write-out '%{url_effective}\t%{http_code}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n' \
+		--config "$HOME"/.curlrc \
+		--url "$url" --output "$toPath"/"$fileName" \
+		1>"$downloadsLogsPath"/"$fileName".stdout.log
+		exitCode=$?
+		set -e
+		if [ $exitCode -ne 0 ]; then
+			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
+		else
+			progressMessageSucceeded
+		fi
+	fi
+	
+	if [ "$hashesMayBeEmpty" = "yes" ]; then
+		if [ ${#hashes} -eq 0 ]; then
+			return 0
+		fi
+	fi
+	
+	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
+	
+	local hashNameAndValue
+	local hashName
+	local hashValue
+	local hashSignatureFileName
+	local hashProgram
+	local -i hasHash=1
+	local progressMessage
+	local signatureFileName
+	local temporaryFolder
+	for hashNameAndValue in ${hashes}
+	do
+		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
+		case "$hashName" in
+			
+			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
+				hashProgram=${hashName,,}sum
+				hasHash=0
+				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
+					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
+				fi
+			;;
+			
+			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
+				hasHash=0
+				progressMessage="$hashName signature does not match, check logs $LFS_LOG_PATH/downloads/$fileName.${hashName,,}.log"
+				if [ -z "$hashSignatureFileName" ]; then
+					signatureFileName="$fileName".sig
+				else
+					signatureFileName="$hashSignatureFileName"
+				fi
+				
+				case "$hashName" in
+					KEYRING)
+						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					KEYFILE)
+						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					HKP)
+						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+			
+					HKP_UNCOMPRESSED)
+						temporaryFolderToRemoveOnExit
+						temporaryFolder="$TMP_FILE"
+						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
+						
+						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
+							progressMessageFailed "$progressMessage"
+						fi
+					;;
+				esac
+				
+			;;
+			
+			
+			*)
+				exitError "Unsupported hash algorithm $hashName for $toPath/$fileName"
+			;;
+			
+		esac
+	done
+	
+	if [ $hasHash -ne 0 ]; then
+		progressMessageFailed "no hash algorithms specified"
+	fi
+	
+	progressMessageSucceeded
+}
+
+function makeGpgHome()
+{
+	temporaryFolderToRemoveOnExit
+	gpgHome="$TMP_FILE"
+	cp --archive "$keyringsPath"/pubring.gpg "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
+	
+	cat >"$gpgHome"/gpg.conf <<-EOF
+		#auto-key-locate cert pka ldap hkps://hkps.pool.sks-keyservers.net
+		#keyserver hkps://hkps.pool.sks-keyservers.net
+		#keyserver-options ca-cert-file=/etc/ssl/certs/sks-keyservers.netCA.pem
+		#keyserver-options no-honor-keyserver-url
+		#keyserver-options auto-key-retrieve
+		
+		display-charset utf-8
+		no-emit-version
+		#no-comments
+		#no-greeting
+		#require-cross-certification
+		#throw-keyids
+		
+		#personal-digest-preferences SHA512
+		#cert-digest-algo SHA512
+		#default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+		#personal-compress-preferences BZIP2 ZLIB ZIP
+		
+		# https://github.com/Whonix/Whonix/blob/master/whonix_workstation/usr/share/whonix/home/.gnupg/gpg.conf
+		# https://we.riseup.net/riseuplabs+paow/openpgp-best-practices
+	EOF
+}
+
+function gpgVerifyWrapper()
+{
+	local -r gpgHome="$gpgHome"
+	shift 1
+	
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg \
+	 --primary-keyring pubring.gpg \
+	"$@"
+}
+
+function gpgVerifySignatureUsingKey()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r keyFileOrKeyringFilePath="$3"
+	local -r signatureFileName="$4"
+	local -r isCompressed="$5"
+	local -r method="$6"
+	
+	if [ ! -f "$keyFileOrKeyringFilePath" ]; then
+		exitError "$keyFileOrKeyringFilePath does not exist"
+	fi
+	
+	if [ "$isCompressed" = "no" ]; then
+		local -r logFileName="$downloadsLogsPath"/"$fileName"."$method".log
+	else
+		local -r logFileName="$downloadsLogsPath"/"$fileName"."$method"_uncompressed.log
+	fi
+	
+	makeGpgHome
+	
+	local -i exitCode=0
+	
+	if [ "$method" != "keyfile" ]; then
+		local -r publicKeyring=pubring.gpg
+		
+		gpgVerifyWrapper "$gpgHome" --keyring "$publicKeyring" --import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
+		exitCode=$?
+		if [ $exitCode -ne 0 ]; then
+			return $exitCode
+		fi
+		
+	else
+		local -r publicKeyring="$keyFileOrKeyringFilePath"
+	fi
+	
+	gpgVerifyWrapper "$gpgHome" --keyring "$publicKeyring" --verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
+	exitCode=$?
+	
+	return $exitCode
+}
+
+function verifyHash()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r hashProgram="$3"
+	local -r hashValue="$4"
+	
+	local -r logFile="$downloadsLogsPath"/"$fileName".$hashProgram.log
+	pushd "$toPath">/dev/null
+		$hashProgram --check --strict <<<"${hashValue}  ${fileName}" 1>"$logFile" 2>&1
+		local -ir exitCode=$?
+	popd >/dev/null
+	
+	return $exitCode
+}
+
+function verifyKeyringSignature()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -r keyring="$3"
+	local -r signatureFileName="$4"
+	local -r isCompressed="$5"
+	
+	case "$keyring" in
+		
+		secring.gpg|trustdb.gpg)
+			exitError "The keyring $keyring is not a public keyring"
+		;;
+		
+	esac
+	
+	if [ "${keyring##*.}" != "gpg" ]; then
+		exitError "Keyrings must be gpg - $keyring is not"
+	fi
+	
+	gpgVerifySignatureUsingKey "$1" "$2" "$keyringsPath"/"$keyring" "$4" "$5" "keyring"
+}
+
+function verifyKeyFileSignature()
+{
+	gpgVerifySignatureUsingKey "$1" "$2" "$keysPath"/"$3" "$4" "$5" "key"
+}
+
+function verifyHkpSignature()
+{
+	gpgVerifySignatureUsingKey "$1" "$2" "$keysPath"/"$3" "$4" "$5" "hkp"
+}
+
+function decompressFileToStdout()
+{
+	local -r decompressionOption="$1"
+	local -r fileToDecompress="$2"
+	if [ "$decompressionOption" = "" ]; then
+		cat $fileToDecompress
+	fi
+	
+	case "$decompressionOption" in
+		gzip|compress)
+			gzip --decompress --stdout --no-name --quiet -- "$fileToDecompress"
+		;;
+		
+		bzip2)
+			bzip2 --decompress --stdout --quiet -- "$fileToDecompress"
+		;;
+		
+		lzop)
+			lzop --decompress --stdout --no-name --quiet -- "$fileToDecompress"
+		;;
+		
+		lzip)
+			lzip --decompress --quiet --stdout -- "$fileToDecompress"
+		;;
+		
+		lzma)
+			xz --format=lzma --decompress --stdout -- "$fileToDecompress"
+		;;
+		
+		xz)
+			xz --decompress --stdout --quiet --quiet -- "$fileToDecompress"
+		;;
+		
+		*)
+			exitError "Unknown compression option $decompressionOption"
+		;;
+	esac
+}

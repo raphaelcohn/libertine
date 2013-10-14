@@ -1,24 +1,33 @@
 #!/bin/bash -
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
 
-declare -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT=('LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT')
-declare -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT')
+function declare_for_chroot()
+{
+	if [ $# -eq 1 ]; then
+		local -r flags=""
+		local -r variable="$1"
+	else
+		local -r flags="$1"
+		local -r variable="$2"
+	fi
+	
+	declare $flags $variable
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=($variable)
+}
 
-declare -a trapHandlers=()
-LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=('trapHandlers')
+function redeclare_array_for_chroot()
+{
+	local -r variable="$1"
+	declare -a $variable
+	LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=($variable)
+}
 
-declare -a filesToRemoveOnExit=()
-LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=('filesToRemoveOnExit')
+declare_for_chroot -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT
+declare_for_chroot INSTALLATION_FAILED_MESSAGE
 
-INSTALLATION_FAILED_MESSAGE=""
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('INSTALLATION_FAILED_MESSAGE')
-
-declare -a timezone_Regions=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('timezone_Regions')
-
-declare -a locale_Commands=()
-LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('locale_Commands')
+declare_for_chroot -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT
+redeclare_array_for_chroot trapHandlers
+redeclare_array_for_chroot filesToRemoveOnExit
 
 function ensureWhichInstalled()
 {
@@ -29,54 +38,6 @@ function ensureWhichInstalled()
 	if [ $exitCode = 127 ]; then
 		exitError "Program which does not exist on path $PATH"
 	fi
-}
-
-function runOnTrap()
-{
-	local trapHandler
-	for trapHandler in "${trapHandlers[@]}"
-	do
-		$trapHandler
-	done
-}
-
-function addNextTrapHandler()
-{
-	local trapHandler="$1"
-	trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
-	trapHandlers+=("$trapHandler")
-}
-
-function removeLastTrapHandler()
-{
-	unset trapHandlers[$((${#trapHandlers[*]}-1))]
-}
-
-function removeFilesOnExit()
-{
-	local file
-	for file in "${filesToRemoveOnExit[@]}"
-	do
-		rm -rf -- "$file"
-	done
-}
-
-function addFileToRemoveOnExit()
-{
-	local -r fileToRemove="$1"
-	filesToRemoveOnExit+=("$fileToRemove")
-}
-
-function temporaryFileToRemoveOnExit()
-{
-	TMP_FILE="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
-	filesToRemoveOnExit+=("$TMP_FILE")
-}
-
-function temporaryFolderToRemoveOnExit()
-{
-	TMP_FILE="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
-	filesToRemoveOnExit+=("$TMP_FILE")
 }
 
 function essentialProgramCheck()
@@ -496,14 +457,14 @@ function setPathsAndExports()
 		exitError "shared path $sharedPath does not exist or is not a directory"
 	fi
 	
-	readonly settings="$distributionConfigPath"/settings
-	if [ ! -f "$settings" ]; then
-		exitError "settings $settings does not exist or is not a file"
+	readonly functionsPath="$distributionConfigPath"/functions
+	if [ ! -d "$sharedPath" ]; then
+		exitError "functions path $functionsPath does not exist or is not a directory"
 	fi
 	
-	readonly exportedFunctions="$distributionConfigPath"/exported-functions
-	if [ ! -f "$exportedFunctions" ]; then
-		exitError "exported-functions $exportedFunctions does not exist or is not a file"
+	readonly settingsPath="$distributionConfigPath"/settings
+	if [ ! -f "$settingsPath" ]; then
+		exitError "settings file $settingsPath does not exist or is not a file"
 	fi
 	
 	if [ ! -d "$lfsPath" ]; then
@@ -658,8 +619,7 @@ function createSkeletonFolderStructure()
 
 function rehashCertificateAuthorities()
 {
-	# Bottom of http://www.sks-keyservers.net/overview-of-pools.php :  https://sks-keyservers.net/sks-keyservers.netCA.pem
-	# http://people.spodhuis.org/phil.pennock/pgp-keyservers  is also a reference
+	# See https://docs.google.com/a/stormmq.com/spreadsheet/pub?key=0Ah-tHXMAwqU3dGx0cGFObG9QM192NFM4UWNBMlBaekE&single=true&gid=1&output=html for CAs
 	
 	if ! which openssl 1>/dev/null 2>/dev/null; then
 		warning "openssl isn't present, so we can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificate authorities)"
@@ -705,330 +665,6 @@ function rehashCertificateAuthorities()
 	popd >/dev/null
 }
 
-function verifyHash()
-{
-	local -r toPath="$1"
-	local -r fileName="$2"
-	local -r hashProgram="$3"
-	local -r hashValue="$4"
-	
-	local -r logFile="$downloadsLogsPath"/"$fileName".$hashProgram.log
-	pushd "$toPath">/dev/null
-		$hashProgram --check --strict <<<"${hashValue}  ${fileName}" 1>"$logFile" 2>&1
-		local -ir exitCode=$?
-	popd >/dev/null
-	
-	return $exitCode
-}
-
-function verifyKeyringSignature()
-{
-	local -r toPath="$1"
-	local -r fileName="$2"
-	local -r keyring="$3"
-	local -r signatureFileName="$4"
-	local -r isCompressed="$5"
-	
-	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile.log
-	else
-		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile_uncompressed.log
-	fi
-	
-	case "$keyring" in
-		
-		secring.gpg|trustdb.gpg)
-			exitError "The keyring $keyring is not a public keyring"
-		;;
-		
-	esac
-	
-	if [ "${keyring##*.}" != "gpg" ]; then
-		exitError "Keyrings must be gpg - $keyring is not"
-	fi
-	
-	if [ ! -f "$keyringsPath"/"$keyring" ]; then
-		exitError "$keyringsPath"/"$keyring does not exist"
-	fi
-	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$keyringsPath" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring "$keyring" \
-	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>"$logFileName" 2>&1
-	local -ir exitCode=$?
-	return $exitCode
-}
-
-function verifyKeyFileSignature()
-{
-	local -r toPath="$1"
-	local -r fileName="$2"
-	local -r keyFile="$3"
-	local -r signatureFileName="$4"
-	local -r isCompressed="$5"
-	
-	if [ ! -f "$keysPath"/"$keyFile" ]; then
-		exitError "$keysPath"/"$keyFile does not exist"
-	fi
-	
-	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile.log
-	else
-		local -r logFileName="$downloadsLogsPath"/"$fileName".keyfile_uncompressed.log
-	fi
-	
-	temporaryFolderToRemoveOnExit
-	local -r gpgHome="$TMP_FILE"
-	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
-	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--import "$keysPath"/"$keyFile" </dev/null 1>"$logFileName" 2>&1
-	local -i exitCode=$?
-	if [ $exitCode -ne 0 ]; then
-		return $exitCode
-	fi
-	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
-	exitCode=$?
-	
-	return $exitCode
-}
-
-function verifyHkpSignature()
-{
-	local -r toPath="$1"
-	local -r fileName="$2"
-	local -r keyId="$3"
-	local -r signatureFileName="$4"
-	local -r isCompressed="$5"
-	
-	if [ ! -f "$keysPath"/"$keyId" ]; then
-		exitError "$keysPath"/"$keyId does not exist"
-	fi
-	
-	if [ "$isCompressed" = "no" ]; then
-		local -r logFileName="$downloadsLogsPath"/"$fileName".hkp.log
-	else
-		local -r logFileName="$downloadsLogsPath"/"$fileName".hkp_uncompressed.log
-	fi
-	
-	temporaryFolderToRemoveOnExit
-	local -r gpgHome="$TMP_FILE"
-	cp --archive "$keyringsPath"/pubring.gpg  "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
-	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--import "$keysPath"/"$keyId" </dev/null 1>"$logFileName" 2>&1
-	local -i exitCode=$?
-	if [ $exitCode -ne 0 ]; then
-		return $exitCode
-	fi
-	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg --primary-keyring pubring.gpg --keyring pubring.gpg \
-	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
-	exitCode=$?
-	
-	return $exitCode
-}
-
-function decompressFileToStdout()
-{
-	local -r decompressionOption="$1"
-	local -r fileToDecompress="$2"
-	if [ "$decompressionOption" = "" ]; then
-		cat $fileToDecompress
-	fi
-	
-	case "$decompressionOption" in
-		gzip|compress)
-			gzip --decompress --stdout --no-name --quiet -- "$fileToDecompress"
-		;;
-		
-		bzip2)
-			bzip2 --decompress --stdout --quiet -- "$fileToDecompress"
-		;;
-		
-		lzop)
-			lzop --decompress --stdout --no-name --quiet -- "$fileToDecompress"
-		;;
-		
-		lzip)
-			lzip --decompress --quiet --stdout -- "$fileToDecompress"
-		;;
-		
-		lzma)
-			xz --format=lzma --decompress --stdout -- "$fileToDecompress"
-		;;
-		
-		xz)
-			xz --decompress --stdout --quiet --quiet -- "$fileToDecompress"
-		;;
-		
-		*)
-			exitError "Unknown compression option $decompressionOption"
-		;;
-	esac
-}
-
-# metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
-function downloadFileAndCheckHash()
-{
-	if [ $# -ne 7 ]; then
-		exitError "Needs 7 arguments"
-	fi
-	
-	local -r downloadName="$1"
-	local -r url="$2"
-	local -r toPath="$3"
-	local -r fileName="$4"
-	local -r decompressionOption="$5"
-	local -r hashesMayBeEmpty="$6"
-	local -r hashes="$7"
-	local -i exitCode
-	
-	mkdir -m 0755 -p "$downloadsLogsPath"
-	
-	if [ -f "$toPath"/"$fileName" ]; then
-		progressMessage "Using downloaded $downloadName $url at $toPath/$fileName"
-		progressMessageSucceeded
-	else
-		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
-		
-		rm -rf "$toPath"/"$fileName"
-		
-		# We re-load the config after specifying our options
-		touch "$HOME"/.curlrc
-		
-		# Only enabled compression for uncompressed files, because a few badly configured servers (eg http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz) then stream the non-gz tarball
-		if [ -z "$decompressionOption" ]; then
-			local -r curlCompressionOption="--compressed "
-		else
-			local -r curlCompressionOption=""
-		fi
-		
-		local -r referer="$(dirname "$url")/"
-		
-		set +e
-		curl --fail --silent --show-error \
-		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
-		--location --max-redirs 5 --retry 20 \
-		--anyauth --netrc-optional --tlsv1 --capath "$certificateAuthoritiesPath" \
-		${curlCompressionOption}--remote-time \
-		--dump-header "$downloadsLogsPath"/"$fileName".headers.log \
-		--trace-time --trace-ascii "$downloadsLogsPath"/"$fileName".trace-ascii.log \
-		--stderr "$downloadsLogsPath"/"$fileName".stderr.log \
-		--write-out '%{url_effective}\t%{http_code}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n' \
-		--config "$HOME"/.curlrc \
-		--url "$url" --output "$toPath"/"$fileName" \
-		1>"$downloadsLogsPath"/"$fileName".stdout.log
-		exitCode=$?
-		set -e
-		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
-		else
-			progressMessageSucceeded
-		fi
-	fi
-	
-	if [ "$hashesMayBeEmpty" = "yes" ]; then
-		if [ ${#hashes} -eq 0 ]; then
-			return 0
-		fi
-	fi
-	
-	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
-	
-	local hashNameAndValue
-	local hashName
-	local hashValue
-	local hashSignatureFileName
-	local hashProgram
-	local -i hasHash=1
-	local progressMessage
-	local signatureFileName
-	local temporaryFolder
-	for hashNameAndValue in ${hashes}
-	do
-		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
-		case "$hashName" in
-			
-			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
-				hashProgram=${hashName,,}sum
-				hasHash=0
-				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
-					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
-				fi
-			;;
-			
-			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
-				hasHash=0
-				progressMessage="$hashName signature does not match, check logs $LFS_LOG_PATH/downloads/$fileName.${hashName,,}.log"
-				if [ -z "$hashSignatureFileName" ]; then
-					signatureFileName="$fileName".sig
-				else
-					signatureFileName="$hashSignatureFileName"
-				fi
-				
-				case "$hashName" in
-					KEYRING)
-						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
-						fi
-					;;
-			
-					KEYFILE)
-						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
-						fi
-					;;
-			
-					HKP)
-						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
-						fi
-					;;
-			
-					HKP_UNCOMPRESSED)
-						temporaryFolderToRemoveOnExit
-						temporaryFolder="$TMP_FILE"
-						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
-						
-						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
-							progressMessageFailed "$progressMessage"
-						fi
-					;;
-				esac
-				
-			;;
-			
-			
-			*)
-				exitError "Unsupported hash algorithm $hashName for $toPath/$fileName"
-			;;
-			
-		esac
-	done
-	
-	if [ $hasHash -ne 0 ]; then
-		progressMessageFailed "no hash algorithms specified"
-	fi
-	
-	progressMessageSucceeded
-}
-
 function downloadSignatures()
 {
 	local -i signatureNumber
@@ -1041,9 +677,18 @@ function downloadSignatures()
 function downloadKeyrings()
 {
 	local -i keyringNumber
+	local keyringFileName
 	for keyringNumber in ${!keyrings_Url[@]}
 	do
-		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "${keyrings_FileName[$keyringNumber]}" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
+		keyringFileName="${keyrings_FileName[$keyringNumber]}"
+		case "$keyringFileName" in
+			
+			pubring.gpg|secring.gpg|trustdb.gpg)
+				exitError "Can not download a keyring called '$keyringFileName' as it conflicts with a GPG file"
+			;;
+			
+		esac
+		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
 	done
 }
 
@@ -1275,6 +920,7 @@ function cleanUpTarget()
 				esac
 			done
 			
+			set -x
 			if [ -d dev ]; then
 				
 				pushd dev >/dev/null
@@ -1291,6 +937,8 @@ function cleanUpTarget()
 				popd >/dev/null
 				
 			fi
+			
+			exit 50
 			
 			if [ -d sources ]; then
 				
@@ -1520,27 +1168,20 @@ function renderLatePathCommands()
 	done
 }
 
-# settings functions
-function include_locale()
+function sourceFunctionsAndSettings()
 {
-	if [ $# -ne 3 ]; then
-		exitError "Needs 3 arguments"
-	fi
+	local fileToSource
+	pushd "$functionsPath" >/dev/null
+		
+		for fileToSource in *.functions
+		do
+			source "$fileToSource"
+		done
+		
+	popd >/dev/null
 	
-	#localedef -i "$1" -f "$2" "$3"
-	locale_Commands+=("localedef -i "\'"$1"\'" -f "\'"$2"\'" "\'"$3"\')
+	source "$settingsPath"
 }
-
-function timezone_region()
-{
-	if [ $# -eq 0 ]; then
-		exitError "Provide 1 or more timezone regions"
-	fi
-	
-	timezone_Regions+=("$@")
-}
-
-
 
 function main()
 {
@@ -1551,10 +1192,10 @@ function main()
 	parseCommandLine "$@"
 	
 	setPathsAndExports
+	sourceFunctionsAndSettings
+	
 	verifyHostSystemRequirements
 	
-	source "$settings"
-	source "$exportedFunctions"
 	include_mirrors
 	include_profiles
 	rehashCertificateAuthorities

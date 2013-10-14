@@ -1,0 +1,49 @@
+set -o errexit +o hashall
+
+function runOnTrap()
+{
+	local trapHandler
+	for trapHandler in "${trapHandlers[@]}"
+	do
+		$trapHandler
+	done
+}
+
+function addNextTrapHandler()
+{
+	local trapHandler="$1"
+	trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
+	trapHandlers+=("$trapHandler")
+}
+
+function removeLastTrapHandler()
+{
+	unset trapHandlers[$((${#trapHandlers[*]}-1))]
+}
+
+function removeFilesOnExit()
+{
+	local file
+	for file in "${filesToRemoveOnExit[@]}"
+	do
+		rm -rf -- "$file"
+	done
+}
+
+function addFileToRemoveOnExit()
+{
+	local -r fileToRemove="$1"
+	filesToRemoveOnExit+=("$fileToRemove")
+}
+
+function temporaryFileToRemoveOnExit()
+{
+	TMP_FILE="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
+	filesToRemoveOnExit+=("$TMP_FILE")
+}
+
+function temporaryFolderToRemoveOnExit()
+{
+	TMP_FILE="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
+	filesToRemoveOnExit+=("$TMP_FILE")
+}
