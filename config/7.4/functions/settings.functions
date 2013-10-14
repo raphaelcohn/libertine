@@ -51,7 +51,8 @@ function include_locale()
 	fi
 	
 	# TODO - last entry wins without warning!
-	settings_locale_Commands["${localeName}"]="localedef -i "\'"$inputFileName"\'" -f "\'"$charmapFileName"\'" "\'"$localeName"\'
+	local -r key="$(printf '%s' "${localeName}" | tr --complement '[:alpha:][:digit:]' '_')"
+	settings_locale_Commands["${key}"]="localedef -i "\'"$inputFileName"\'" -f "\'"$charmapFileName"\'" "\'"$localeName"\'
 }
 
 declare_for_chroot -a settings_timezone_Regions
