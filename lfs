@@ -1187,12 +1187,12 @@ function main()
 {
 	setDebugging
 	findOurNameAndPath
-	addNextTrapHandler removeFilesOnExit
 	ensureWhichInstalled
 	parseCommandLine "$@"
 	
 	setPathsAndExports
 	sourceFunctionsAndSettings
+	addNextTrapHandler removeFilesOnExit
 	
 	verifyHostSystemRequirements
 	
