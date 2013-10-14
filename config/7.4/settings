@@ -1,13 +1,13 @@
 set -o errexit +o hashall
 
-setting_string LFS_DISTRIBUTION_ID="Linux From Scratch"
-setting_string LFS_DISTRIBUTION_CODENAME="stormmq"
-setting_string LFS_DISTRIBUTION_DESCRIPTION="Linux From Scratch"
+setting_string LFS_DISTRIBUTION_ID "Linux From Scratch"
+setting_string LFS_DISTRIBUTION_CODENAME "stormmq"
+setting_string LFS_DISTRIBUTION_DESCRIPTION "Linux From Scratch"
 
-setting_integer LFS_INCLUSIVE_SYSTEM_UID=100
-setting_integer LFS_INCLUSIVE_SYSTEM_GID=100
-setting_integer LFS_INCLUSIVE_USER_UID=1000
-setting_integer LFS_INCLUSIVE_USER_GID=1000
+setting_integer LFS_INCLUSIVE_SYSTEM_UID 100
+setting_integer LFS_INCLUSIVE_SYSTEM_GID 100
+setting_integer LFS_INCLUSIVE_USER_UID 1000
+setting_integer LFS_INCLUSIVE_USER_GID 1000
 
 # 0 is false, 1 is true
 setting_binary LFS_LOCALE_INSTALL_ALL 0
@@ -34,8 +34,8 @@ include_locale tr_TR UTF-8
 include_locale zh_CN GB18030
 
 # Make sure the northamerica and etcetcera regions are defined below
-setting_string LFS_TIMEZONE_POSIXRULES=America/New_York
-setting_string LFS_TIMEZONE_TARGET=Etc/UTC
+setting_string LFS_TIMEZONE_POSIXRULES America/New_York
+setting_string LFS_TIMEZONE_TARGET Etc/UTC
 
 # Also available: factory (pointless) leapseconds (used in a different form)
 timezone_region africa
