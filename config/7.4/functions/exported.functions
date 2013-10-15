@@ -1030,11 +1030,6 @@ function depends()
 	local previousDependenciesInstall
 	local previousDependency
 	
-	echo $localSourcePackageName
-	echo ${LFS_SOURCE_PACKAGE_VERSIONS[@]}
-	echo ${LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]}
-	echo ${LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]}
-	exit 78
 	for localSourcePackageVersion in ${LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]}
 	do
 		# Add to installation for phase if not previously added to this phase
