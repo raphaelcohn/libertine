@@ -69,7 +69,7 @@ function progressMessage()
 	fi
 	
 	SECONDS=0
-	printf "$ourName: $1"
+	printf '%s' "$ourName: $1"
 }
 
 function progressMessageUpdate()
@@ -78,7 +78,7 @@ function progressMessageUpdate()
 		exitError "Incorrect arguments"
 	fi
 	
-	printf " $1"
+	printf '%s' " $1"
 }
 
 function progressMessageFailed()
