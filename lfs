@@ -486,6 +486,8 @@ function setPathsAndExports()
 	LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_LOG_PATH')
 	
+	LFS_DOWNLOADS_PATH="$lfsPath"/downloads
+	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
 	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
@@ -749,7 +751,7 @@ function downloadSources()
 		local -i patchNumber
 		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do
-			downloadFileAndCheckHash "patch" "${patches_Mirror[$patchNumber]}" "${patches_RelativePath[$patchNumber]}""$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
+			downloadFileAndCheckHash "patch" "${patches_Mirror[$patchNumber]}" "${patches_RelativePath[$patchNumber]}" "$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
 		done
 	done
 }

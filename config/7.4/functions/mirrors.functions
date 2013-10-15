@@ -8,23 +8,28 @@ declare_for_chroot -A certificateAuthorities_Hashes
 declare_for_chroot -A certificateAuthorities_Compression
 function certificate_authority()
 {
-	if [ $# -lt 3 ]; then
-		exitError "Needs 3 or 4 arguments"
-	elif [ $# -gt 4 ]; then
-		exitError "Needs 3 or 4 arguments"
+	if [ $# -lt 4 ]; then
+		exitError "Needs 4 or 5 arguments"
+	elif [ $# -gt 5 ]; then
+		exitError "Needs 4 or 5 arguments"
 	fi
 	
 	local -r certificateAuthorityName="$1"
-	local -r url="$2"
-	local -r ourHashes="$3"
+	local -r mirrorName="$2"
+	local -r url="$3"
+	local -r ourHashes="$4"
 	
-	if [ $# -eq 4 ]; then
-		local -r fileName="$4"
+	if [ $# -eq 5 ]; then
+		local -r fileName="$5"
 	else
 		local -r fileName="$(purebash_basename "$url")"
 	fi
 	
-	certificateAuthorities_Mirror["${certificateAuthorityName}"]=DUMMY
+	if ! mirrorExists "$mirrorName"; then
+		exitError "Mirror $mirrorName does not exist for certificate authority $certificateAuthorityName"
+	fi
+	
+	certificateAuthorities_Mirror["${certificateAuthorityName}"]="$mirrorName"
 	certificateAuthorities_RelativePath["${certificateAuthorityName}"]="$url"
 	certificateAuthorities_FileName["${certificateAuthorityName}"]="$fileName"
 	certificateAuthorities_Hashes["${certificateAuthorityName}"]="${ourHashes//,/ }"
@@ -73,9 +78,6 @@ function mirror
 	fi
 	mirrors_CertificateAuthority["${mirrorName}"]="$certificateAuthorityName"
 }
-
-# Special mirror to use with Certificate Authorities
-mirror DUMMY ''
 
 function mirrorExists()
 {

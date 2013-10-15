@@ -1,46 +1,41 @@
 set -o errexit +o hashall
 
-certificate_authority  SKS                   https://sks-keyservers.net/sks-keyservers.netCA.pem                                                                                                                                  MD5:3cfc5d2867a6672f4f629220632948f4,SHA1:ce86fdbc099e5607ea8a149d760b30c725e299e6,SHA224:66a983c2eca1df05c827de30c7d430696091acb047ab8130019af2b3,SHA256:0666ee848e03a48f3ea7bb008dbe9d63dfde280af82fb4412a04bf4e24cab36b,SHA384:73a6cf25dc9ccd7a83690f0e1bf542b47ae7f383a241c4dd4d69037c97fb8b5bb093154b48b96d8419e6f3dcab4377fb,SHA512:d0a056251372367230782e050612834a2efa2fdd80eeba08e490a770691e4ddd52a744fd3f3882ca4188f625c3554633381ac90de8ea142519166277cadaf7b0
-certificate_authority  UtnUserFirstHardware  https://support.comodo.com/index.php?_m=downloads&_a=viewdownload&downloaditemid=7&nav=0,1,5                                                                                         MD5:2fda7e44620cefba61549028d5243aaa,SHA1:b90532984059d385c1bed7ce35073b38e443a8b0,SHA224:f6db2a20d49d2878267cee74def47621d8b84b006c5699cf39758ac5,SHA256:d401999429f7b89e725d59e57a6fd44c51b82a7e74678a32f16a4cfacaa9fe92,SHA384:7417a89528bb0b0e32cb0f5c4b5abdca5c24bb5aae5131f987463e1217324b4daaa8783f91c7177f47dacbab12cc7677,SHA512:4e006db2b4012b5cca9042c22556c36ff168062090ce88050a73793a6922a81d3a119b3930c21b4193e69fadfcc24f19daa626038727a268f4484f1ed0d82046  UTN_USERFirst_Hardware_Root_CA.pem
-certificate_authority  GeoTrustGlobal        https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.pem                                                                                             MD5:a59fa24705ed0be7ff6b00d5f3aefd5c,SHA1:03e0b79c05a92a953e17fa223e79959424780168,SHA224:76737f866df9c581723c7b0ced6dc3c284e782842f389f0634e648ec,SHA256:cf48eaa6c6ca132d51f94363aed0fd1e96ca47f7211d5fcadd1d8e086e28f18c,SHA384:22e9e796f84dca1498c0d3d326b75d1210581be9ca920cf6d4ff5156466b13dc53b639b757d569711842a335a35f2104,SHA512:bd5041200fb99b8bba96ca23091c4c14ccd89e42a27b85543eab193736674ff75d7a922a2eccb7a93ac4907658b25eee26f32d95eca18103bf65b57c0c5f6911
-certificate_authority  StartCom              https://www.startssl.com/certs/ca.pem  StartCom_Certification_Authority.pem                                                                                                          MD5:d067bb319513fa1f4aa3003e54440063,SHA1:97f3eb01de81905500c7e59ae8fb6f9cbd1d2e40,SHA224:8673e445144ef8d38f9d97b91b5d3cf87bb55c4b2ef2d254837a8a24,SHA256:916a8f9232328192968c81c8edb672fa539f726861dfe379ca722050e19962cd,SHA384:42e3abb43605cd089aef7c5e1b2d854ed0c8e5c9e885866e3e3e8582ac2aff9cb2452e7296b3e3b43c467d3316a58109,SHA512:e0afa607ec8264ab8134043672aa7c2bb617d4160cec998cbf9597ce759b1f9b4fe84c811ac6f2b5fc9590142ee6fe8812a936ce506d5d305d979ec275f15295
-certificate_authority  ValiCertClass2        https://certs.godaddy.com/anonymous/repository.pki?streamfilename=valicert_class2_root.crt&actionMethod=anonymous%2Frepository.xhtml%3Arepository.streamFile%28%27%27%29&cid=597348  MD5:fdf03feab80e9a109adb8f9912b36f5d,SHA1:7e33d5e1aef5b3469f8af109accdd3ef87019eb0,SHA224:c85f43b055fedda2d9ca2cdaa346fd0ed323cdb8272cd3fc6eb60dfb,SHA256:e063e8034f47e09a66a4a15bfa481be7e40c2240497ed0213ce092f49b60b7eb,SHA384:26eaf6c71e7e94c8a04fd942fc6c27285d3e3f883f0c3d6d2f3c7693556bbb47957b1d98478c0c15e4880596ec41c811,SHA512:7b5d8fa40112a536b74a5831bd3ba874d9fdfac4a45155acf74f1c8920a064ca655ff08425cb08a319b5f40c8e254fd896f641422f53ba6756d07ee2101641d3  ValiCert_Class_2_VA.pem
-
 # Trailing / is SIGNIFICANT
 
+# These are mirrors for Certificate Authorities - we can't specify CAs for them so downloads use HTTPS but insecurely
+# Some URLs are trully hideous (unnecessarily so; these are just file locations which should NEVER change), and do nothing to encourage the sense that CAs act with transparency
+# Comodo web pages for CAs: https://support.comodo.com/index.php?_m=downloads&_a=view&parentcategoryid=1&pcid=30&nav=0,30
+mirror  SKS       https://sks-keyservers.net/
+mirror  COMODO    'https://support.comodo.com/index.php?_m=downloads&_a=downloadfile&downloaditemid='
+mirror  GEOTRUST  https://www.geotrust.com/resources/root_certificates/certificates/
+mirror  STARTSSL  https://www.startssl.com/certs/
+mirror  GODADDY   'https://certs.godaddy.com/anonymous/repository.pki?actionMethod=anonymous%2Frepository.xhtml%3Arepository.streamFile%28%27%27%29&cid=597348&streamfilename='
 
-# NOTE: Must be reliable and support options=mr (ie binary keys), or, simply a static URL based web-server
-# Not:-
-# - eu.pool.sks-keyservers.net  is out - unreliable
-# - pgpkeys.mit.edu is out - does not support options=mr
-# - pgp.mit.edu is out - does not support options=mr
-# Possible:-
-# keyserver.kjsl.org
-# pool.sks-keyservers.net
-# keyserver.ubuntu.com
-# The key id is post-pended after 0x, eg http://keyserver.kjsl.org:11371/pks/lookup?op=get&options=mr&search=0xAFE7BCBD for dejagnu 1.5.1
-# Notes:  http://www.sks-keyservers.net/overview-of-pools.php  lists HKPS servers
-# http://people.spodhuis.org/phil.pennock/pgp-keyservers  is also a reference
-#HKPS='http://keyserver.kjsl.org:11371/pks/lookup?op=get&options=mr&search=0x'
-mirror HKPS 'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x' SKS
+certificate_authority  SKS                   SKS       sks-keyservers.netCA.pem  MD5:3cfc5d2867a6672f4f629220632948f4,SHA1:ce86fdbc099e5607ea8a149d760b30c725e299e6,SHA224:66a983c2eca1df05c827de30c7d430696091acb047ab8130019af2b3,SHA256:0666ee848e03a48f3ea7bb008dbe9d63dfde280af82fb4412a04bf4e24cab36b,SHA384:73a6cf25dc9ccd7a83690f0e1bf542b47ae7f383a241c4dd4d69037c97fb8b5bb093154b48b96d8419e6f3dcab4377fb,SHA512:d0a056251372367230782e050612834a2efa2fdd80eeba08e490a770691e4ddd52a744fd3f3882ca4188f625c3554633381ac90de8ea142519166277cadaf7b0
+certificate_authority  UtnUserFirstHardware  COMODO    7                         MD5:2fda7e44620cefba61549028d5243aaa,SHA1:b90532984059d385c1bed7ce35073b38e443a8b0,SHA224:f6db2a20d49d2878267cee74def47621d8b84b006c5699cf39758ac5,SHA256:d401999429f7b89e725d59e57a6fd44c51b82a7e74678a32f16a4cfacaa9fe92,SHA384:7417a89528bb0b0e32cb0f5c4b5abdca5c24bb5aae5131f987463e1217324b4daaa8783f91c7177f47dacbab12cc7677,SHA512:4e006db2b4012b5cca9042c22556c36ff168062090ce88050a73793a6922a81d3a119b3930c21b4193e69fadfcc24f19daa626038727a268f4484f1ed0d82046  UTN_USERFirst_Hardware_Root_CA.pem
+certificate_authority  GeoTrustGlobal        GEOTRUST  GeoTrust_Global_CA.pem    MD5:a59fa24705ed0be7ff6b00d5f3aefd5c,SHA1:03e0b79c05a92a953e17fa223e79959424780168,SHA224:76737f866df9c581723c7b0ced6dc3c284e782842f389f0634e648ec,SHA256:cf48eaa6c6ca132d51f94363aed0fd1e96ca47f7211d5fcadd1d8e086e28f18c,SHA384:22e9e796f84dca1498c0d3d326b75d1210581be9ca920cf6d4ff5156466b13dc53b639b757d569711842a335a35f2104,SHA512:bd5041200fb99b8bba96ca23091c4c14ccd89e42a27b85543eab193736674ff75d7a922a2eccb7a93ac4907658b25eee26f32d95eca18103bf65b57c0c5f6911
+certificate_authority  StartCom              STARTSSL  ca.pem                    MD5:d067bb319513fa1f4aa3003e54440063,SHA1:97f3eb01de81905500c7e59ae8fb6f9cbd1d2e40,SHA224:8673e445144ef8d38f9d97b91b5d3cf87bb55c4b2ef2d254837a8a24,SHA256:916a8f9232328192968c81c8edb672fa539f726861dfe379ca722050e19962cd,SHA384:42e3abb43605cd089aef7c5e1b2d854ed0c8e5c9e885866e3e3e8582ac2aff9cb2452e7296b3e3b43c467d3316a58109,SHA512:e0afa607ec8264ab8134043672aa7c2bb617d4160cec998cbf9597ce759b1f9b4fe84c811ac6f2b5fc9590142ee6fe8812a936ce506d5d305d979ec275f15295  StartCom_Certification_Authority.pem
+certificate_authority  ValiCertClass2        GODADDY   valicert_class2_root.crt  MD5:fdf03feab80e9a109adb8f9912b36f5d,SHA1:7e33d5e1aef5b3469f8af109accdd3ef87019eb0,SHA224:c85f43b055fedda2d9ca2cdaa346fd0ed323cdb8272cd3fc6eb60dfb,SHA256:e063e8034f47e09a66a4a15bfa481be7e40c2240497ed0213ce092f49b60b7eb,SHA384:26eaf6c71e7e94c8a04fd942fc6c27285d3e3f883f0c3d6d2f3c7693556bbb47957b1d98478c0c15e4880596ec41c811,SHA512:7b5d8fa40112a536b74a5831bd3ba874d9fdfac4a45155acf74f1c8920a064ca655ff08425cb08a319b5f40c8e254fd896f641422f53ba6756d07ee2101641d3  ValiCert_Class_2_VA.pem
 
-
-# Secure
-mirror GNU https://ftp.gnu.org/gnu/ UtnUserFirstHardware
-mirror SOURCEFORGE https://prdownloads.sourceforge.net/ GeoTrustGlobal
-mirror LINUX https://www.kernel.org/pub/linux/ StartCom
-mirror IANA https://www.iana.org/ ValiCertClass2
+# NOTE: Must be reliable and support options=mr or simple file-based URLs
+# Keyserver
+mirror  HKPS         'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x' SKS
+mirror  GNU          https://ftp.gnu.org/gnu/ UtnUserFirstHardware
+mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/ GeoTrustGlobal
+mirror  LINUX        https://www.kernel.org/pub/linux/ StartCom
+mirror  IANA         https://www.iana.org/ ValiCertClass2
 
 # Insecure
+mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
+mirror  PERL     http://www.cpan.org/src/
+mirror  BZIP     http://www.bzip.org/
+mirror  XZ       http://tukaani.org/
+mirror  FILE     ftp://ftp.astron.com/pub/
+mirror  MPFR     http://www.mpfr.org/
+mirror  GMP      ftp://ftp.gmplib.org/pub/
+mirror  MPC      http://www.multiprecision.org/mpc/download/
+mirror  ZLIB     http://www.zlib.net/
+
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
-mirror CVE http://www.cvedetails.com/product
-mirror PATCHES http://www.linuxfromscratch.org/patches/lfs/development/
-mirror PERL http://www.cpan.org/src/
-mirror BZIP http://www.bzip.org/
-mirror XZ http://tukaani.org/
-mirror FILE ftp://ftp.astron.com/pub/
-mirror MPFR http://www.mpfr.org/
-mirror GMP ftp://ftp.gmplib.org/pub/
-mirror MPC http://www.multiprecision.org/mpc/download/
-mirror ZLIB http://www.zlib.net/
+mirror  CVE      http://www.cvedetails.com/product

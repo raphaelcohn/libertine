@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-# metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
+# metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrorNames logic
 function downloadFileAndCheckHash()
 {
 	if [ $# -ne 8 ]; then
@@ -8,7 +8,7 @@ function downloadFileAndCheckHash()
 	fi
 	
 	local -r downloadName="$1"
-	local -r mirror="$2"
+	local -r mirrorName="$2"
 	local -r relativePath="$3"
 	local -r toPath="$4"
 	local -r fileName="$5"
@@ -16,18 +16,35 @@ function downloadFileAndCheckHash()
 	local -r hashesMayBeEmpty="$7"
 	local -r hashes="$8"
 	
-	local -r url="${mirrors_Url["${mirror}"]}${relativePath}"
+	local -r url="${mirrorNames_Url["${mirrorName}"]}${relativePath}"
 	local -i exitCode
 	
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
-	if [ -f "$toPath"/"$fileName" ]; then
-		progressMessage "Using downloaded $downloadName $url at $toPath/$fileName"
+	xxxxxx
+	
+	
+	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
+	local -r downloadFolderPath="$(purebash_dirname "$downloadFilePath")"
+	if [ ! -d "$downloadFolderPath" ]; then
+		rm -rf -- "$downloadFolderPath"
+	fi
+	mkdir -m 0755 -p "$downloadFolderPath"
+	
+	local -r linkTo="$toPath"/"$fileName"
+	
+	if [ -f "$downloadFilePath" ]; then
+		if [ ! -f "$linkTo" ]; then
+			rm -rf -- "$linkTo"
+			# Try to hard link, then copy
+			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+		fi
+		progressMessage "Using downloaded $downloadName $url at $downloadFilePath, linked to $linkTo"
 		progressMessageSucceeded
 	else
 		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
 		
-		rm -rf "$toPath"/"$fileName"
+		rm -rf -- "$downloadFilePath"
 		
 		# We re-load the config after specifying our options
 		touch "$HOME"/.curlrc
@@ -41,7 +58,7 @@ function downloadFileAndCheckHash()
 		
 		local -r referer="$(dirname "$url")/"
 		
-		local -r certificateAuthorityName="${mirrors_CertificateAuthority["${mirror}"]}"
+		local -r certificateAuthorityName="${mirrorNames_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
 			local -r certificateAuthorityOption="--insecure --capath "\'"$certificateAuthoritiesPath"\'
@@ -68,9 +85,16 @@ function downloadFileAndCheckHash()
 		if [ $exitCode -ne 0 ]; then
 			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
 		else
+			
+			rm -rf -- "$linkTo"
+			# Try to hard link, then copy
+			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
 			progressMessageSucceeded
 		fi
 	fi
+	
+	
+	
 	
 	if [ "$hashesMayBeEmpty" = "yes" ]; then
 		if [ ${#hashes} -eq 0 ]; then
