@@ -32,7 +32,7 @@ redeclare_array_for_chroot filesToRemoveOnExit
 
 # Defensive
 declare_for_chroot FUNCNEST
-FUNCNEST=20
+FUNCNEST=40
 
 function ensureWhichInstalled()
 {
