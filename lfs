@@ -693,8 +693,8 @@ function rehashCertificateAuthorities()
 
 function downloadCertificateAuthorities()
 {
-	local mirrorName
-	for certificateAuthorityName in "${!certificateAuthorities_Url[@]}"
+	local certificateAuthorityName
+	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
 		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${key}"]}" "${certificateAuthorities_Compression["${key}"]}" "no" "${certificateAuthorities_Hashes["${key}"]}"
 	done
