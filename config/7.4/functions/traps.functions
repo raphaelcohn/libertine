@@ -23,11 +23,7 @@ function removeLastTrapHandler()
 
 function removeFilesOnExit()
 {
-	local file
-	for file in "${filesToRemoveOnExit[@]}"
-	do
-		rm -rf -- "$file"
-	done
+	rm -rf -- "${filesToRemoveOnExit[@]}"
 }
 
 function addFileToRemoveOnExit()
