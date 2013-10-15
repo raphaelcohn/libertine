@@ -187,53 +187,6 @@ function downloadFileAndCheckHash()
 	progressMessageSucceeded
 }
 
-function makeGpgHome()
-{
-	temporaryFolderToRemoveOnExit
-	gpgHome="$TMP_FILE"
-	cp --archive "$keyringsPath"/pubring.gpg "$keyringsPath"/secring.gpg "$keyringsPath"/trustdb.gpg "$gpgHome"
-	
-	cat >"$gpgHome"/gpg.conf <<-EOF
-		#auto-key-locate cert pka ldap hkps://hkps.pool.sks-keyservers.net
-		#keyserver hkps://hkps.pool.sks-keyservers.net
-		#keyserver-options ca-cert-file=/etc/ssl/certs/sks-keyservers.netCA.pem
-		#keyserver-options no-honor-keyserver-url
-		#keyserver-options auto-key-retrieve
-		
-		display-charset utf-8
-		no-emit-version
-		#no-comments
-		#no-greeting
-		#require-cross-certification
-		#throw-keyids
-		
-		#personal-digest-preferences SHA512
-		#cert-digest-algo SHA512
-		#default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
-		#personal-compress-preferences BZIP2 ZLIB ZIP
-		
-		# https://github.com/Whonix/Whonix/blob/master/whonix_workstation/usr/share/whonix/home/.gnupg/gpg.conf
-		# https://we.riseup.net/riseuplabs+paow/openpgp-best-practices
-	EOF
-}
-
-function gpgVerifyWrapper()
-{
-	set -x
-	local -r gpgHome="$1"
-	local -r publicKeyring="$2"
-	shift 2
-	
-	gpg --keyring "$publicKeyring" --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
-	--no-random-seed-file --ignore-time-conflict \
-	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg \
-	 --primary-keyring pubring.gpg \
-	"$@"
-	
-	set +x
-}
-
 function gpgVerifySignatureUsingKey()
 {
 	local -r toPath="$1"
@@ -253,22 +206,36 @@ function gpgVerifySignatureUsingKey()
 		local -r logFileName="$downloadsLogsPath"/"$fileName"."$method"_uncompressed.log
 	fi
 	
-	makeGpgHome
-	
-	if [ "$method" != "keyfile" ]; then
-		local -r publicKeyring=pubring.gpg
+	if [ "$method" = "key" ]; then
 		
-		gpgVerifyWrapper "$gpgHome" "$publicKeyring" --import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
+		temporaryFileToRemoveOnExit
+		local -r publicKeyring="$TMP_FILE"
+		
+		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+		--no-random-seed-file --ignore-time-conflict \
+		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+		--homedir "$keyringsPath" --trustdb-name trustdb.gpg \
+		--no-default-keyring --secret-keyring secring.gpg \
+		--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
+		--import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
+		
 		local -ir exitCode=$?
 		if [ $exitCode -ne 0 ]; then
 			return $exitCode
 		fi
 		
 	else
-		local -r publicKeyring="$keyFileOrKeyringFilePath"
+		local -r publicKeyring="$keyringsPath"/"$keyFileOrKeyringFilePath"
 	fi
 	
-	gpgVerifyWrapper "$gpgHome" "$publicKeyring" --verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
+	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	--homedir "$keyringsPath" --trustdb-name trustdb.gpg \
+	--no-default-keyring --secret-keyring secring.gpg \
+	--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
+	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
+	
 	return $?
 }
 
@@ -308,9 +275,7 @@ function verifyKeyringSignature()
 		exitError "Keyrings must be gpg - $keyring is not"
 	fi
 	
-	set -x
 	gpgVerifySignatureUsingKey "$1" "$2" "$keyringsPath"/"$keyring" "$4" "$5" "keyring"
-	set +x
 }
 
 function verifyKeyFileSignature()
