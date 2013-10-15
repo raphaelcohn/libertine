@@ -36,8 +36,10 @@ function certificate_authority()
 		exitError "Mirror $mirrorName does not exist for certificate authority $certificateAuthorityName"
 	fi
 	
-	if ! certificateAuthorityExists "$parentCertificateAuthorityName"; then
-		exitError "Parent certificate authority $parentCertificateAuthorityName does not exist for certificate authority $certificateAuthorityName"
+	if [ "$parentCertificateAuthorityName" != "root" ]; then
+		if ! certificateAuthorityExists "$parentCertificateAuthorityName"; then
+			exitError "Parent certificate authority $parentCertificateAuthorityName does not exist for certificate authority $certificateAuthorityName"
+		fi
 	fi
 	
 	certificateAuthorities_Parent["${certificateAuthorityName}"]="$parentCertificateAuthorityName"
