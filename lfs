@@ -696,7 +696,7 @@ function downloadCertificateAuthorities()
 	local certificateAuthorityName
 	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
-		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${key}"]}" "${certificateAuthorities_Compression["${key}"]}" "no" "${certificateAuthorities_Hashes["${key}"]}"
+		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}"
 	done
 }
 
