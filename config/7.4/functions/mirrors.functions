@@ -16,13 +16,13 @@ function certificate_authority()
 	
 	local -r certificateAuthorityName="$1"
 	local -r mirrorName="$2"
-	local -r url="$3"
+	local -r relativePath="$3"
 	local -r ourHashes="$4"
 	
 	if [ $# -eq 5 ]; then
 		local -r fileName="$5"
 	else
-		local -r fileName="$(purebash_basename "$url")"
+		local -r fileName="$(purebash_basename "$relativePath")"
 	fi
 	
 	if ! mirrorExists "$mirrorName"; then
@@ -30,7 +30,7 @@ function certificate_authority()
 	fi
 	
 	certificateAuthorities_Mirror["${certificateAuthorityName}"]="$mirrorName"
-	certificateAuthorities_RelativePath["${certificateAuthorityName}"]="$url"
+	certificateAuthorities_RelativePath["${certificateAuthorityName}"]="$relativePath"
 	certificateAuthorities_FileName["${certificateAuthorityName}"]="$fileName"
 	certificateAuthorities_Hashes["${certificateAuthorityName}"]="${ourHashes//,/ }"
 	certificateAuthorities_Compression["${certificateAuthorityName}"]=""
@@ -81,6 +81,8 @@ function mirror
 
 function mirrorExists()
 {
+	echo "${!mirrors_Url[@]}"
+	
 	local -r requiredMirrorName="$1"
 	local mirrorName
 	for mirrorName in "${!mirrors_Url[@]}"
