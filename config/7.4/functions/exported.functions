@@ -1035,7 +1035,6 @@ function depends()
 		# Add to installation for phase if not previously added to this phase
 		key="$(printKey "$localSourcePackageName" "$localSourcePackageVersion")"
 		previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
-		previousDependency
 		for previousDependency in $previousDependenciesInstall
 		do
 			if [ "$previousDependency" = "$key" ]; then
