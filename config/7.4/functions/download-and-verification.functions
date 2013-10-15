@@ -206,7 +206,7 @@ function gpgVerifySignatureUsingKey()
 		local -r logFileName="$downloadsLogsPath"/"$fileName"."$method"_uncompressed.log
 	fi
 	
-	if [ "$method" = "key" ]; then
+	if [ "$method" != "keyring" ]; then
 		
 		temporaryFileToRemoveOnExit
 		local -r publicKeyring="$TMP_FILE"
