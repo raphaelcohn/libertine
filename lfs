@@ -864,13 +864,6 @@ function installPackages()
 {
 	local -r phase="$1"
 	local key
-	echo ${phase_InstallationOrder["${phase}"]}
-	exit 5
-	
-	
-	
-	
-	
 	
 	for key in ${phase_InstallationOrder["${phase}"]}
 	do
