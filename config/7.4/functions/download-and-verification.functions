@@ -34,7 +34,7 @@ function downloadFileAndCheckHash()
 		if [ ! -f "$linkTo" ]; then
 			rm -rf -- "$linkTo"
 			# Try to hard link, then copy
-			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+			ln --force "$linkTo" "$downloadFilePath" || cp --force "$downloadFilePath" "$linkTo"
 		fi
 		progressMessage "Using downloaded $downloadName $url at $downloadFilePath, linked to $linkTo"
 		progressMessageSucceeded
@@ -85,7 +85,7 @@ function downloadFileAndCheckHash()
 			
 			rm -rf -- "$linkTo"
 			# Try to hard link, then copy
-			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+			ln --force "$linkTo" "$downloadFilePath" || cp --force "$downloadFilePath" "$linkTo"
 			progressMessageSucceeded
 		fi
 	fi
