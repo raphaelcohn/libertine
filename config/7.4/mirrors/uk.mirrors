@@ -2,5 +2,5 @@ set -o errexit +o hashall
 
 include_mirror global
 
-LFS_MIRROR_GNU=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/
-LFS_MIRROR_PERL=http://mirror.bytemark.co.uk/CPAN/src/
+mirror GNU http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/
+mirror PERL http://mirror.bytemark.co.uk/CPAN/src/

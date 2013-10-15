@@ -3,17 +3,20 @@ set -o errexit +o hashall
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrors logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -ne 7 ]; then
-		exitError "Needs 7 arguments"
+	if [ $# -ne 8 ]; then
+		exitError "Needs 8 arguments"
 	fi
 	
 	local -r downloadName="$1"
-	local -r url="$2"
-	local -r toPath="$3"
-	local -r fileName="$4"
-	local -r decompressionOption="$5"
-	local -r hashesMayBeEmpty="$6"
-	local -r hashes="$7"
+	local -r mirror="$2"
+	local -r relativePath="$3"
+	local -r toPath="$4"
+	local -r fileName="$5"
+	local -r decompressionOption="$6"
+	local -r hashesMayBeEmpty="$7"
+	local -r hashes="$8"
+	
+	local -r url="${mirrors["${mirror}"]}${relativePath}"
 	local -i exitCode
 	
 	mkdir -m 0755 -p "$downloadsLogsPath"

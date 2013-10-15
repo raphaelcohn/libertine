@@ -1,18 +1,40 @@
 set -o errexit +o hashall
 
-declare_for_chroot -a signatures_Url
+declare_for_chroot -a signatures_Mirror
+declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
 declare_for_chroot -a signatures_Compression
 
-declare_for_chroot -a keyrings_Url
+declare_for_chroot -a keyrings_Mirror
+declare_for_chroot -a keyrings_RelativePath
 declare_for_chroot -a keyrings_FileName
 declare_for_chroot -a keyrings_Hashes
 declare_for_chroot -a keyrings_Compression
 
-declare_for_chroot -a keys_Url
+declare_for_chroot -a keys_Mirror
+declare_for_chroot -a keys_RelativePath
 declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
+
+# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
+declare_for_chroot -a sourcePackages_IndicesToKeys
+declare_for_chroot -A sourcePackages_SourcePackageName
+declare_for_chroot -A sourcePackages_Version
+declare_for_chroot -A sourcePackages_Mirror
+declare_for_chroot -A sourcePackages_RelativePath
+declare_for_chroot -A sourcePackages_Compression
+declare_for_chroot -A sourcePackages_FileName
+declare_for_chroot -A sourcePackages_ExtractedTarballFolder
+declare_for_chroot -A sourcePackages_Hashes
+declare_for_chroot -A sourcePackages_Patches
+declare_for_chroot -A sourcePackages_RecipeHash
+
+declare_for_chroot -a patches_Mirror
+declare_for_chroot -a patches_RelativePath
+declare_for_chroot -a patches_FileName
+declare_for_chroot -a patches_Hashes
+declare_for_chroot -a patches_Compression
 
 declare -i nextSystemUid=-1
 declare -i nextSystemGid=-1
@@ -32,23 +54,6 @@ declare_for_chroot -a users_Gid
 
 declare -a earlyPathCommands
 declare -a latePathCommands
-
-# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
-declare_for_chroot -a sourcePackages_IndicesToKeys
-declare_for_chroot -A sourcePackages_SourcePackageName
-declare_for_chroot -A sourcePackages_Version
-declare_for_chroot -A sourcePackages_Url
-declare_for_chroot -A sourcePackages_Compression
-declare_for_chroot -A sourcePackages_FileName
-declare_for_chroot -A sourcePackages_ExtractedTarballFolder
-declare_for_chroot -A sourcePackages_Hashes
-declare_for_chroot -A sourcePackages_Patches
-declare_for_chroot -A sourcePackages_RecipeHash
-
-declare_for_chroot -a patches_Url
-declare_for_chroot -a patches_FileName
-declare_for_chroot -a patches_Hashes
-declare_for_chroot -a patches_Compression
 
 declare_for_chroot -a previousMirrors
 declare_for_chroot -a previousProfiles
@@ -138,14 +143,15 @@ function sourcePackagesKeyExists()
 
 function signature()
 {
-	local -r ourUnsignedUrl="$1"
-	local -r ourHashesSpaceSeparated="$2"
+	local -r ourMirror="$1"
+	local -r originalFileRelativePath="$2"
+	local -r ourHashesSpaceSeparated="$3"
 	
 	local hashNameAndValue
 	local hashName
 	local hashValue
 	local hashSignatureFileName
-	local hashSignatureUrl
+	local hashSignatureRelativePath
 	
 	local -i signatureNumber
 	for hashNameAndValue in $ourHashesSpaceSeparated
@@ -153,14 +159,15 @@ function signature()
 		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
 		case "$hashName" in
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
-				signatureNumber=${#signatures_Url[@]}
+				signatureNumber=${#signatures_Mirror[@]}
 				
 				if [ -z "$hashSignatureFileName" ]; then
-					hashSignatureFileName="$(purebash_basename "$ourUnsignedUrl".sig)"
+					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
-				hashSignatureUrl="$(purebash_dirname "$ourUnsignedUrl")"/"$hashSignatureFileName"
+				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
 				
-				signatures_Url[$signatureNumber]="$hashSignatureUrl"
+				signatures_Mirror[$signatureNumber]="$ourMirror"
+				signatures_RelativePath[$signatureNumber]="$hashSignatureRelativePath"
 				signatures_FileName[$signatureNumber]="$hashSignatureFileName"
 				signatures_Compression[$signatureNumber]=""
 				
@@ -182,32 +189,35 @@ function keyring()
 	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	local -r ourHashes="$3"
-	local -r ourFileName="$(purebash_basename "$ourUrl")"
+	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
 	if [ "${ourFileName##*.}" != "gpg" ]; then
-		exitError "Only gpg keyrings are supported - which is not so for this url: $ourUrl"
+		exitError "Only gpg keyrings are supported - which is not so for this keyring: $ourMirror $ourRelativePath"
 	fi
 	
 	local -i existingKeyringNumber
 	for existingKeyringNumber in ${!keyrings_FileName[@]}
 	do
-		if [ ${keyrings_FileName[$existingKeyringNumber]} = "$ourFileName" ]; then
-			if [ ${keyrings_FileName[$existingPatchNumber]} != "$ourUrl" ]; then
-				warning "Attempt to override URL IGNORED for keyring $ourFileName to $ourUrl"
+		if [ "${keyrings_FileName[$existingKeyringNumber]}" = "$ourFileName" ]; then
+			if [ "${keyrings_Mirror[$existingKeyringNumber]}" != "$ourMirror" ]; then
+				exitError "Attempt to override mirror for keyring $ourFileName to $ourMirror"
+			fi
+			if [ "${keyrings_RelativePath[$existingKeyringNumber]}" != "$ourRelativePath" ]; then
+				exitError "Attempt to override mirror for keyring $ourFileName to $ourRelativePath"
 			fi
 			return 0
 		fi
 	done
 	
-	local -ir keyringNumber=${#patches_Url[@]}
-	keyrings_Url[$keyringNumber]="$ourUrl"
+	local -ir keyringNumber=${#keyrings_Mirror[@]}
+	keyrings_Mirror[$keyringNumber]="$ourMirror"
+	keyrings_RelativePath[$keyringNumber]="$ourRelativePath"
 	keyrings_FileName[$keyringNumber]="$ourFileName"
 	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
 	keyrings_Compression[$keyringNumber]=""
 	
-	signature "$ourUrl" "${keyrings_Hashes[$patchNumber]}"
+	signature "$ourMirror" "$ourRelativePath" "${keyrings_Hashes[$patchNumber]}"
 }
 
 function key()
@@ -221,11 +231,10 @@ function key()
 	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
 	
 	local -r ourHashes="$3"
 	if [ $# -eq 3 ]; then
-		local -r ourFileName="$(purebash_basename "$ourUrl")"
+		local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	else
 		local -r ourFileName="$4"
 	fi
@@ -233,35 +242,234 @@ function key()
 	local -i existingKeyNumber
 	for existingKeyNumber in ${!keys_FileName[@]}
 	do
-		if [ ${keys_FileName[$existingKeyNumber]} = "$ourFileName" ]; then
-			if [ ${keys_Url[$existingKeyNumber]} != "$ourUrl" ]; then
-				warning "Attempt to override URL IGNORED for key $ourFileName to $ourUrl"
+		if [ "${keys_FileName[$existingKeyNumber]}" = "$ourFileName" ]; then
+			if [ "${keys_Mirror[$existingKeyNumber]}" != "$ourMirror" ]; then
+				exitError "Attempt to override mirror for key $ourFileName to $ourMirror"
+			fi
+			if [ "${keys_RelativePath[$existingKeyNumber]}" != "$ourRelativePath" ]; then
+				exitError "Attempt to override mirror for key $ourFileName to $ourRelativePath"
 			fi
 			return 0
 		fi
 	done
 	
-	local -ir keyNumber=${#keys_Url[@]}
-	keys_Url[$keyNumber]="$ourUrl"
+	local -ir keyNumber=${#keys_Mirror[@]}
+	keys_Mirror[$keyNumber]="$ourMirror"
+	keys_RelativePath[$keyNumber]="$ourRelativePath"
 	keys_FileName[$keyNumber]="$ourFileName"
 	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
 	keys_Compression[$keyNumber]=""
 	
-	signature "$ourUrl" "${keys_Hashes[$keyNumber]}"
+	signature "$ourMirror" "$ourRelativePath" "${keys_Hashes[$keyNumber]}"
 }
 
 function hkp()
 {
+	if [ $# -ne 1 ]; then
+		exitError "Not 1 argument"
+	fi
 	local -r keyId="$1"
+	
+	key HKPS "$keyId" "" "$keyId"
+}
+
+function source_package_without_download()
+{
+	case $# in
+		1|5)
+			:
+		;;
+		
+		*)
+			exitError "Needs 1 or 5 arguments"
+		;;
+	esac
+	
 	if [ $# -eq 1 ]; then
-		local -r hkpUrlTemplate="$LFS_MIRROR_HKPS"
-	elif [ $# -eq 2 ]; then
-		local -r hkpUrlTemplate="$2"
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r ourSourcePackageVersion="$1"
 	else
-		exitError "Not 1 or 2 arguments"
+		local -r ourSourcePackageName="$1"
+		local -r ourSourcePackageVersion="$2"
 	fi
 	
-	key "${hkpUrlTemplate}" "${keyId}" "" "$keyId"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
+	
+	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
+	if sourcePackagesKeyExists "$key"; then
+		return 0
+	fi
+	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
+	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
+	sourcePackages_Version["${key}"]="$ourSourcePackageVersion"
+	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
+	
+	if [ $# -eq 5 ]; then
+		sourcePackages_Compression["${key}"]="$3"
+		sourcePackages_FileName["${key}"]="$4"
+		sourcePackages_ExtractedTarballFolder["${key}"]="$5"
+	fi
+}
+
+function source_package_with_download()
+{
+	if [ $# -lt 3 ]; then
+		exitError "Not enough arguments"
+	elif [ $# -gt 5 ]; then
+		exitError "Too many arguments"
+	fi
+	
+	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r ourSourcePackageVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourHashes="$3"
+	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
+	
+	local -r compressionExtension="${ourFileName##*.}"
+	
+	if [ $# -ge 4 ]; then
+		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
+	else
+		local -r withoutCompressionExtension="${ourFileName%.*}"
+		if [ -z "$compressionExtension" ]; then
+			local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
+		else
+			case "$compressionExtension" in
+				
+				# The various abominations are also slackware packages (txz, tgz especially)
+				tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
+					local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
+				;;
+				
+				*)
+					local -r LFS_EXTRACTED_TARBALL_FOLDER="${withoutCompressionExtension%.*}"
+				;;
+				
+			esac
+		fi
+	fi
+	
+	# TODO:  cpio/cpgz  zip/jar/war/ear  ar/deb  shar  rpm (using rpm2cpio, so we can think of rpm as a compressed cpio file)
+	# TODO: support non-tar formats, eg cpio/rpm, zip, ar/deb
+	# TODO: split compression from tar for non-tar formats
+	#
+	
+	if [ $# -eq 5 ]; then
+		local -r ourCompression="$5"
+	else
+		case "$compressionExtension" in
+			tar)
+				local -r ourCompression=''
+			;;
+			
+			gz|tgz)
+				local -r ourCompression=gzip
+			;;
+			
+			bz2|bz|tbz2|tbz)
+				local -r ourCompression=bzip2
+			;;
+			
+			# Not included in dependencies by default
+			# A faster compressor still is lz4
+			lzo)
+				local -r ourCompression=lzop
+			;;
+			
+			lz|tlz)
+				local -r ourCompression=lzip
+			;;
+			
+			lzma|tlzma)
+				local -r ourCompression=lzma
+			;;
+			
+			xz|txz)
+				local -r ourCompression=xz
+			;;
+			
+			Z|tz|taz)
+				# eg gzip downloads
+				local -r ourCompression=compress
+			;;
+			
+			*)
+				if [ ! -z "$compressionExtension" ]; then
+					exitError "Unknown file extension $compressionExtension for $ourSourcePackageName $ourSourcePackageVersion"
+				fi
+			;;
+		esac
+	fi
+	
+	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
+	
+	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
+	if sourcePackagesKeyExists "$key"; then
+		local -r existingMirror="${sourcePackages_Mirror["${key}"]}"
+		if [ "${sourcePackages_Mirror["${key}"]}" != "$ourMirror" ]; then
+			exitError "Attempt to override mirror for source package $ourFileName to $ourMirror"
+		fi
+		if ["${sourcePackages_RelativePath["${key}"]}" != "$ourRelativePath" ]; then
+			exitError "Attempt to override mirror for source package $ourFileName to $ourRelativePath"
+		fi
+		return 0
+	fi
+	
+	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
+	
+	sourcePackages_Mirror["${key}"]="$ourMirror"
+	sourcePackages_RelativePath["${key}"]="$ourRelativePath"
+	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
+	sourcePackages_Patches["${key}"]=""
+	
+	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes["${key}"]}"
+}
+
+function patch_download()
+{
+	if [ $# -ne 3 ]; then
+		exitError "Not enough arguments"
+	fi
+	
+	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r ourVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
+	local -r ourHashes="$3"
+	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
+	
+	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	
+	# Ensure a tar ball download exists
+	if ! sourcePackagesKeyExists "$key"; then
+		exitError "No source package exists for patch $ourFileName to $ourSourcePackageName version $ourVersion"
+	fi
+	
+	# Check for duplicate patches
+	local -i existingPatchNumber
+	for existingPatchNumber in ${sourcePackages_Patches["${key}"]}
+	do
+		if [ "${patches_FileName[$existingPatchNumber]}" = "$ourFileName" ]; then
+			if [ "${patches_Mirror[$existingPatchNumber]}" != "$ourMirror" ]; then
+				exitError "Attempt to override mirror for key $ourFileName to $ourMirror"
+			fi
+			if [ "${patches_RelativePath[$existingPatchNumber]}" != "$ourRelativePath" ]; then
+				exitError "Attempt to override mirror for key $ourFileName to $ourRelativePath"
+			fi
+			return 0
+		fi
+	done
+	
+	local -ir patchNumber=${#patches_Mirror[@]}
+	patches_Mirror[$patchNumber]="$ourMirror"
+	patches_RelativePath[$patchNumber]="$ourRelativePath"
+	patches_FileName[$patchNumber]="$ourFileName"
+	patches_Hashes[$patchNumber]="${ourHashes//,/ }"
+	patches_Compression[$patchNumber]=""
+	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
+	
+	signature "$ourMirror" "$ourRelativePath" "${patches_Hashes[$patchNumber]}"
 }
 
 function system_group()
@@ -671,199 +879,6 @@ function make_fifo()
 	earlyPathCommands+=("mknod -m "\'"$mode"\'" "\'"${LFS}${target}"\'" p")
 	
 	permissions_before "$target" "$mode" "$userName" "$groupName" ""
-}
-
-function source_package_without_download()
-{
-	case $# in
-		1|5)
-			:
-		;;
-		
-		*)
-			exitError "Needs 1 or 5 arguments"
-		;;
-	esac
-	
-	if [ $# -eq 1 ]; then
-		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-		local -r ourSourcePackageVersion="$1"
-	else
-		local -r ourSourcePackageName="$1"
-		local -r ourSourcePackageVersion="$2"
-	fi
-	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
-	
-	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
-	if sourcePackagesKeyExists "$key"; then
-		return 0
-	fi
-	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
-	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
-	sourcePackages_Version["${key}"]="$ourSourcePackageVersion"
-	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
-	
-	if [ $# -eq 5 ]; then
-		sourcePackages_Compression["${key}"]="$3"
-		sourcePackages_FileName["${key}"]="$4"
-		sourcePackages_ExtractedTarballFolder["${key}"]="$5"
-	fi
-}
-
-function source_package_with_download()
-{
-	if [ $# -lt 3 ]; then
-		exitError "Not enough arguments"
-	elif [ $# -gt 5 ]; then
-		exitError "Too many arguments"
-	fi
-	
-	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r ourSourcePackageVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
-	local -r ourMirror="$1"
-	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	local -r ourHashes="$3"
-	local -r ourFileName="$(purebash_basename "$ourUrl")"
-	
-	local -r compressionExtension="${ourFileName##*.}"
-	
-	if [ $# -ge 4 ]; then
-		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
-	else
-		local -r withoutCompressionExtension="${ourFileName%.*}"
-		if [ -z "$compressionExtension" ]; then
-			local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
-		else
-			case "$compressionExtension" in
-				
-				# The various abominations are also slackware packages (txz, tgz especially)
-				tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
-					local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
-				;;
-				
-				*)
-					local -r LFS_EXTRACTED_TARBALL_FOLDER="${withoutCompressionExtension%.*}"
-				;;
-				
-			esac
-		fi
-	fi
-	
-	# TODO:  cpio/cpgz  zip/jar/war/ear  ar/deb  shar  rpm (using rpm2cpio, so we can think of rpm as a compressed cpio file)
-	# TODO: support non-tar formats, eg cpio/rpm, zip, ar/deb
-	# TODO: split compression from tar for non-tar formats
-	#
-	
-	if [ $# -eq 5 ]; then
-		local -r ourCompression="$5"
-	else
-		case "$compressionExtension" in
-			tar)
-				local -r ourCompression=''
-			;;
-			
-			gz|tgz)
-				local -r ourCompression=gzip
-			;;
-			
-			bz2|bz|tbz2|tbz)
-				local -r ourCompression=bzip2
-			;;
-			
-			# Not included in dependencies by default
-			# A faster compressor still is lz4
-			lzo)
-				local -r ourCompression=lzop
-			;;
-			
-			lz|tlz)
-				local -r ourCompression=lzip
-			;;
-			
-			lzma|tlzma)
-				local -r ourCompression=lzma
-			;;
-			
-			xz|txz)
-				local -r ourCompression=xz
-			;;
-			
-			Z|tz|taz)
-				# eg gzip downloads
-				local -r ourCompression=compress
-			;;
-			
-			*)
-				if [ ! -z "$compressionExtension" ]; then
-					exitError "Unknown file extension $compressionExtension for $ourSourcePackageName $ourSourcePackageVersion"
-				fi
-			;;
-		esac
-	fi
-	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
-	
-	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
-	if sourcePackagesKeyExists "$key"; then
-		local -r existingUrl="${sourcePackages_Url["${key}"]}"
-		if [ "$existingUrl" != "$ourUrl" ]; then
-			warning "Attempt to override URL IGNORED for source package $ourSourcePackageName version $ourSourcePackageVersion to $ourUrl from $existingUrl to $ourUrl"
-		fi
-		return 0
-	fi
-	
-	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
-	
-	sourcePackages_Url["${key}"]="$ourUrl"
-	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
-	sourcePackages_Patches["${key}"]=""
-	
-	signature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
-}
-
-function patch_download()
-{
-	if [ $# -ne 3 ]; then
-		exitError "Not enough arguments"
-	fi
-	
-	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r ourVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
-	local -r ourMirror="$1"
-	local -r ourRelativePath="$2"
-	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	local -r ourHashes="$3"
-	local -r ourFileName="$(purebash_basename "$ourUrl")"
-	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
-	
-	# Ensure a tar ball download exists
-	if ! sourcePackagesKeyExists "$key"; then
-		exitError "No source package exists for patch $ourFileName to $ourSourcePackageName version $ourVersion"
-	fi
-	
-	# Check for duplicate patches
-	local -i existingPatchNumber
-	for existingPatchNumber in ${sourcePackages_Patches["${key}"]}
-	do
-		if [ ${patches_FileName[$existingPatchNumber]} = "$ourFileName" ]; then
-			if [ ${patches_Url[$existingPatchNumber]} != "$ourUrl" ]; then
-				warning "Attempt to override URL IGNORED for patch $ourFileName to $ourSourcePackageName version $ourVersion to $ourUrl"
-			fi
-			return 0
-		fi
-	done
-	
-	local -ir patchNumber=${#patches_Url[@]}
-	patches_Url[$patchNumber]="$ourUrl"
-	patches_FileName[$patchNumber]="$ourFileName"
-	patches_Hashes[$patchNumber]="${ourHashes//,/ }"
-	patches_Compression[$patchNumber]=""
-	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
-	
-	signature "$ourUrl" "${patches_Hashes[$patchNumber]}"
 }
 
 function include_mirror()

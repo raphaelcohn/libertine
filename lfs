@@ -570,6 +570,14 @@ function include_mirrors()
 		
 	popd >/dev/null
 	
+	local requiredMirrorName
+	for requiredMirrorName in "${!keyrings_Mirror[@]}" "${!keys_Mirror[@]}" "${!sourcePackages_Mirror[@]}" "${!patches_Mirror[@]}"
+	do
+		if ! mirrorExists "$requiredMirrorName"; then
+			progressMessageFailed "Mirror $requiredMirrorName is not defined in mirrors $mirrors"
+		fi
+	done
+	
 	progressMessageSucceeded
 }
 
@@ -683,9 +691,9 @@ function rehashCertificateAuthorities()
 function downloadSignatures()
 {
 	local -i signatureNumber
-	for signatureNumber in ${!signatures_Url[@]}
+	for signatureNumber in ${!signatures_Mirror[@]}
 	do
-		downloadFileAndCheckHash "signature" "${signatures_Url[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "${signatures_Compression[$signatureNumber]}" "yes" ""
+		downloadFileAndCheckHash "signature" "${signatures_Mirror[$signatureNumber]}" "${signatures_RelativePath[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "${signatures_Compression[$signatureNumber]}" "yes" ""
 	done
 }
 
@@ -693,7 +701,7 @@ function downloadKeyrings()
 {
 	local -i keyringNumber
 	local keyringFileName
-	for keyringNumber in ${!keyrings_Url[@]}
+	for keyringNumber in ${!keyrings_Mirror[@]}
 	do
 		keyringFileName="${keyrings_FileName[$keyringNumber]}"
 		case "$keyringFileName" in
@@ -703,16 +711,16 @@ function downloadKeyrings()
 			;;
 			
 		esac
-		downloadFileAndCheckHash "keyring" "${keyrings_Url[$keyringNumber]}" "$keyringsPath" "keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$keyringNumber]}" "${keyrings_RelativePath[$keyringNumber]}" "$keyringsPath" "keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
 	done
 }
 
 function downloadKeys()
 {
 	local -i keyNumber
-	for keyNumber in ${!keys_Url[@]}
+	for keyNumber in ${!keys_Mirror[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Url[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Compression[$keyNumber]}" "yes" "${keys_Hashes[$keyNumber]}"
+		downloadFileAndCheckHash "key" "${keys_Mirror[$keyNumber]}" "${keys_RelativePath[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Compression[$keyNumber]}" "yes" "${keys_Hashes[$keyNumber]}"
 	done
 }
 
@@ -720,19 +728,19 @@ function downloadSources()
 {
 	local -i index
 	local key
-	local url
+	local mirrorName
 	for index in ${!sourcePackages_IndicesToKeys[@]}
 	do
 		key="${sourcePackages_IndicesToKeys[$index]}"
-		url="${sourcePackages_Url["${key}"]}"
-		if [ ! -z "$url" ]; then
-			downloadFileAndCheckHash "source package" "$url" "$LFS_SOURCES_PATH" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
+		mirrorName="${sourcePackages_Mirror["${key}"]}"
+		if [ ! -z "$mirrorName" ]; then
+			downloadFileAndCheckHash "source package" "$mirrorName" "${sourcePackages_RelativePath["${key}"]}" "$LFS_SOURCES_PATH" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
 		fi
 		
 		local -i patchNumber
 		for patchNumber in ${sourcePackages_Patches["${key}"]}
 		do
-			downloadFileAndCheckHash "patch" "${patches_Url[$patchNumber]}" "$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
+			downloadFileAndCheckHash "patch" "${patches_Mirror[$patchNumber]}" "${patches_RelativePath[$patchNumber]}""$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
 		done
 	done
 }

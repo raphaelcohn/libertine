@@ -1,0 +1,29 @@
+set -o errexit +o hashall
+
+function certificate()
+{
+	
+}
+
+declare_for_chroot -a mirrors
+function mirror
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	mirrors["${1}"]="$2"
+}
+
+function mirrorExists()
+{
+	local -r requiredMirrorName
+	local mirrorName
+	for mirrorName in "${!mirrors[@]}"
+	do
+		if [ "$mirrorName" = "$requiredMirrorName" ]; then
+			return 0
+		fi
+	done
+	return 1
+}

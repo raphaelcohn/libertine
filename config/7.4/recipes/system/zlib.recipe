@@ -4,7 +4,7 @@ version 1.2.8
 {
 	depends linux
 	
-	source_package_with_download "$LFS_MIRROR_ZLIB" "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.xz MD5:28f1205d8dd2001f26fec1e8c2cebe37
+	source_package_with_download ZLIB "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.xz MD5:28f1205d8dd2001f26fec1e8c2cebe37
 }
 
 function installPackage_system_zlib()

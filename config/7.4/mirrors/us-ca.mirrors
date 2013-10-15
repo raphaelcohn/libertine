@@ -1,4 +1,4 @@
 include_mirror global
 
-LFS_MIRROR_GNU=https://mirrors.kernel.org/gnu/
-LFS_MIRROR_PERL=http://www.perl.com/CPAN/
+mirror GNU https://mirrors.kernel.org/gnu/
+mirror PERL http://www.perl.com/CPAN/
