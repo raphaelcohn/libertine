@@ -34,7 +34,7 @@ function downloadFileAndCheckHash()
 		if [ ! -f "$linkTo" ]; then
 			rm -rf -- "$linkTo"
 			# Try to hard link, then copy
-			ln --force "$linkTo" "$downloadFilePath" || cp --force "$downloadFilePath" "$linkTo"
+			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
 		fi
 		progressMessage "Using downloaded $downloadName $url at $downloadFilePath, linked to $linkTo"
 		progressMessageSucceeded
@@ -75,7 +75,7 @@ function downloadFileAndCheckHash()
 		--stderr "$downloadsLogsPath"/"$fileName".stderr.log \
 		--write-out '%{url_effective}\t%{http_code}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n' \
 		--config "$HOME"/.curlrc \
-		--url "$url" --output "$toPath"/"$fileName" \
+		--url "$url" --output "$downloadFilePath" \
 		1>"$downloadsLogsPath"/"$fileName".stdout.log
 		exitCode=$?
 		set -e
@@ -85,7 +85,7 @@ function downloadFileAndCheckHash()
 			
 			rm -rf -- "$linkTo"
 			# Try to hard link, then copy
-			ln --force "$linkTo" "$downloadFilePath" || cp --force "$downloadFilePath" "$linkTo"
+			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
 			progressMessageSucceeded
 		fi
 	fi
