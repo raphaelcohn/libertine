@@ -58,10 +58,10 @@ function downloadFileAndCheckHash()
 		local -r certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
-			local -ar certificateAuthorityOption=("--insecure" "--cert-type" "PEM" "--capath" "$certificateAuthoritiesPath")
+			local -ar certificateAuthorityOption=("--insecure" "--capath" "$certificateAuthoritiesPath")
 		else
 			local -r certificateAuthorityFileName="${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
-			local -ar certificateAuthorityOption=("--cert-type PEM" "--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthoritiesPath/$certificateAuthorityFileName")
+			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthoritiesPath/$certificateAuthorityFileName")
 		fi
 		
 		set +e
