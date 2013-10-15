@@ -1023,7 +1023,6 @@ function depends()
 	# Holds the last set version - useful for scripting
 	LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]=""
 	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
-	unset LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]
 	
 	# this needs to be the LAST call to version BEFORE depends
 	local localSourcePackageVersion
