@@ -596,7 +596,7 @@ function include_phase()
 		for profile in "$@"
 		do
 			progressMessage "Including phase $phase profile $profile"
-			LFS_PHASE="system" include_profile "$profile"
+			LFS_PHASE="$phase" include_profile "$profile"
 			progressMessageSucceeded
 		done
 		declare -A LFS_SOURCE_PACKAGE_VERSION
