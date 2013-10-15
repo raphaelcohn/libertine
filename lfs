@@ -866,6 +866,12 @@ function installPackages()
 	local key
 	echo ${phase_InstallationOrder["${phase}"]}
 	exit 5
+	
+	
+	
+	
+	
+	
 	for key in ${phase_InstallationOrder["${phase}"]}
 	do
 		installPackage "$phase" "$key"
