@@ -220,10 +220,11 @@ function makeGpgHome()
 function gpgVerifyWrapper()
 {
 	set -x
-	local -r gpgHome="$gpgHome"
-	shift 1
+	local -r gpgHome="$1"
+	local -r publicKeyring="$2"
+	shift 2
 	
-	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
+	gpg --keyring "$publicKeyring" --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg \
@@ -254,13 +255,11 @@ function gpgVerifySignatureUsingKey()
 	
 	makeGpgHome
 	
-	local -i exitCode=0
-	
 	if [ "$method" != "keyfile" ]; then
 		local -r publicKeyring=pubring.gpg
 		
-		gpgVerifyWrapper "$gpgHome" --keyring "$publicKeyring" --import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
-		exitCode=$?
+		gpgVerifyWrapper "$gpgHome" "$publicKeyring" --import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
+		local -ir exitCode=$?
 		if [ $exitCode -ne 0 ]; then
 			return $exitCode
 		fi
@@ -269,10 +268,8 @@ function gpgVerifySignatureUsingKey()
 		local -r publicKeyring="$keyFileOrKeyringFilePath"
 	fi
 	
-	gpgVerifyWrapper "$gpgHome" --keyring "$publicKeyring" --verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
-	exitCode=$?
-	
-	return $exitCode
+	gpgVerifyWrapper "$gpgHome" "$publicKeyring" --verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
+	return $?
 }
 
 function verifyHash()
