@@ -21,9 +21,6 @@ function downloadFileAndCheckHash()
 	
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
-	xxxxxx
-	
-	
 	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
 	local -r downloadFolderPath="$(purebash_dirname "$downloadFilePath")"
 	if [ ! -d "$downloadFolderPath" ]; then
