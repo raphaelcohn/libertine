@@ -16,7 +16,7 @@ function downloadFileAndCheckHash()
 	local -r hashesMayBeEmpty="$7"
 	local -r hashes="$8"
 	
-	local -r url="${mirrorNames_Url["${mirrorName}"]}${relativePath}"
+	local -r url="${mirrors_Url["${mirrorName}"]}${relativePath}"
 	local -i exitCode
 	
 	mkdir -m 0755 -p "$downloadsLogsPath"
@@ -55,7 +55,7 @@ function downloadFileAndCheckHash()
 		
 		local -r referer="$(dirname "$url")/"
 		
-		local -r certificateAuthorityName="${mirrorNames_CertificateAuthority["${mirrorName}"]}"
+		local -r certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
 			local -r certificateAuthorityOption="--insecure --capath "\'"$certificateAuthoritiesPath"\'
