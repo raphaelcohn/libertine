@@ -51,6 +51,7 @@ function certificateAuthorityExists()
 
 declare_for_chroot -A mirrors_Url
 declare_for_chroot -A mirrors_CertificateAuthority
+declare
 exit 50
 function mirror
 {
