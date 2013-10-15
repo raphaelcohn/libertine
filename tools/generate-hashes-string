@@ -1,0 +1,41 @@
+#!/bin/bash -
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+
+declare -A hashesStrings
+function generateHashesStrings()
+{
+	local hashAlgorithm
+	local program
+	local hashValue
+	local fileName
+	
+	pushd "$path" >/dev/null
+		for hashAlgorithm in MD5 SHA1 SHA224 SHA256 SHA384 SHA512
+		do
+			program=${prefix}${hashAlgorithm,,}sum
+			while IFS=' ' read -r -d $'\n' hashValue fileName
+			do
+				if [ "$hashAlgorithm" = "MD5" ]; then
+					hashesStrings["${fileName}"]="${hashAlgorithm}:${hashValue}"
+				else
+					hashesStrings["${fileName}"]="${hashesStrings["${fileName}"]},${hashAlgorithm}:${hashValue}"
+				fi
+			done < <(${prefix}${hashAlgorithm,,}sum *)
+		done
+	popd >/dev/null
+	
+	for fileName in "${!hashesStrings[@]}"
+	do
+		echo "$fileName ${hashesStrings["${fileName}"]}"
+	done
+}
+
+function main()
+{
+	# for Brew on Mac OS X; but Mac OS X doesn't use bash 4.0!
+	readonly prefix=""
+	readonly path="$1"
+	generateHashesStrings
+}
+
+main "$@"

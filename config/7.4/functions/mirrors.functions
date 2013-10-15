@@ -1,25 +1,87 @@
 set -o errexit +o hashall
 
-function certificate()
+# NOTE: fileName should match the commonly known name - usually that used by Debian's openssl certs package
+declare_for_chroot -A certificateAuthorities_Mirror
+declare_for_chroot -A certificateAuthorities_RelativePath
+declare_for_chroot -A certificateAuthorities_FileName
+declare_for_chroot -A certificateAuthorities_Hashes
+declare_for_chroot -A certificateAuthorities_Compression
+function certificate_authority()
 {
-	
-}
-
-declare_for_chroot -a mirrors
-function mirror
-{
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
+	if [ $# -lt 3 ]; then
+		exitError "Needs 3 or 4 arguments"
+	elif [ $# -gt 4 ]; then
+		exitError "Needs 3 or 4 arguments"
 	fi
 	
-	mirrors["${1}"]="$2"
+	local -r certificateAuthorityName="$1"
+	local -r url="$2"
+	local -r ourHashes="$3"
+	
+	if [ $# -eq 4 ]; then
+		local -r fileName="$4"
+	else
+		local -r fileName="$(purebash_basename "$url")"
+	fi
+	
+	certificateAuthorities_Mirror["${certificateAuthorityName}"]=DUMMY
+	certificateAuthorities_RelativePath["${certificateAuthorityName}"]="$url"
+	certificateAuthorities_FileName["${certificateAuthorityName}"]="$fileName"
+	certificateAuthorities_Hashes["${certificateAuthorityName}"]="${ourHashes//,/ }"
+	certificateAuthorities_Compression["${certificateAuthorityName}"]=""
 }
+
+function certificateAuthorityExists()
+{
+	local -r requiredCertificateAuthorityName="$1"
+	local certificateAuthorityName
+	for certificateAuthorityName in "${!certificateAuthorities_Url[@]}"
+	do
+		if [ "$certificateAuthorityName" = "$requiredCertificateAuthorityName" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+declare_for_chroot -A mirrors_Url
+declare_for_chroot -A mirrors_CertificateAuthority
+function mirror
+{
+	case $# in
+		
+		2|3)
+			local -r mirrorName="$1"
+			local -r url="$2"
+		;;
+		
+		*)
+			exitError "Needs 2 or 3 arguments"
+		;;
+		
+	esac
+	
+	mirrors_Url["${mirrorName}"]="$url"
+	
+	if [ $# -eq 3 ]; then
+		local -r certificateAuthorityName="$3"
+		if ! certificateAuthorityExists "$certificateAuthorityName"; then
+			exitError "Certificate Authority $certificateAuthorityName does not exist for mirror $mirrorName"
+		fi
+	else
+		local -r certificateAuthorityName=""
+	fi
+	mirrors_CertificateAuthority["${mirrorName}"]="$certificateAuthorityName"
+}
+
+# Special mirror to use with Certificate Authorities
+mirror DUMMY ''
 
 function mirrorExists()
 {
-	local -r requiredMirrorName
+	local -r requiredMirrorName="$1"
 	local mirrorName
-	for mirrorName in "${!mirrors[@]}"
+	for mirrorName in "${!mirrors_Url[@]}"
 	do
 		if [ "$mirrorName" = "$requiredMirrorName" ]; then
 			return 0

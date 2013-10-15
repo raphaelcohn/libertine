@@ -688,6 +688,15 @@ function rehashCertificateAuthorities()
 	popd >/dev/null
 }
 
+function downloadCertificateAuthorities()
+{
+	local mirrorName
+	for certificateAuthorityName in "${!certificateAuthorities_Url[@]}"
+	do
+		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${key}"]}" "${certificateAuthorities_Compression["${key}"]}" "no" "${certificateAuthorities_Hashes["${key}"]}"
+	done
+}
+
 function downloadSignatures()
 {
 	local -i signatureNumber
@@ -1223,9 +1232,12 @@ function main()
 	
 	include_mirrors
 	include_profiles
-	rehashCertificateAuthorities
+	
+	# Suspended for now, as we are using --cacert instead of --capath
+	#rehashCertificateAuthorities
 	
 	createSkeletonFolderStructure
+	downloadCertificateAuthorities
 	downloadSignatures
 	downloadKeyrings
 	downloadKeys
