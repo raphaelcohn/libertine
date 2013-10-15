@@ -15,8 +15,6 @@ do
 		gccPackageVersionKey="$(printKey gcc "$gccVersion")"
 	
 		source_package_without_download "$LFS_SOURCE_PACKAGE_NAME" "$gccVersion" "${sourcePackages_Compression["${gccPackageVersionKey}"]}" "${sourcePackages_FileName["${gccPackageVersionKey}"]}" "${sourcePackages_ExtractedTarballFolder["${gccPackageVersionKey}"]}"
-	
-		localPackage_toolchain1_libstdc++_useGccTarball
 	}
 done
 
