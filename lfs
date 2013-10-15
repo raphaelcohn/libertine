@@ -864,6 +864,8 @@ function installPackages()
 {
 	local -r phase="$1"
 	local key
+	echo ${phase_InstallationOrder["${phase}"]}
+	exit 5
 	for key in ${phase_InstallationOrder["${phase}"]}
 	do
 		installPackage "$phase" "$key"
@@ -1012,7 +1014,6 @@ function createOrUseBackUpToolchain()
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
-			
 			
 		elif [ -f "$toolsBackUpPath".tar.gz ]; then
 			cleanUpTarget
