@@ -58,17 +58,17 @@ function downloadFileAndCheckHash()
 		local -r certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
-			local -r certificateAuthorityOption="--insecure --capath "\'"$certificateAuthoritiesPath"\'
+			local -ar certificateAuthorityOption=("--insecure" "--cert-type" "PEM" "--capath" "$certificateAuthoritiesPath")
 		else
 			local -r certificateAuthorityFileName="${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
-			local -r certificateAuthorityOption="--cert-type PEM --cacert "\'"$certificateAuthoritiesPath/$certificateAuthorityFileName"\'
+			local -ar certificateAuthorityOption=("--cert-type PEM" "--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthoritiesPath/$certificateAuthorityFileName")
 		fi
 		
 		set +e
 		curl --fail --silent --show-error \
 		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
-		--anyauth --netrc-optional --tlsv1 ${certificateAuthorityOption} \
+		--anyauth --netrc-optional --tlsv1 "${certificateAuthorityOption[@]}" \
 		${curlCompressionOption}--remote-time \
 		--dump-header "$downloadsLogsPath"/"$fileName".headers.log \
 		--trace-time --trace-ascii "$downloadsLogsPath"/"$fileName".trace-ascii.log \
