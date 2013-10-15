@@ -1,3 +1,6 @@
 set -o errexit +o hashall
 
-include_once
+version 3.1.2
+{
+	include_once_per_version
+}

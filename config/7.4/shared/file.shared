@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-source_package_with_download 5.14 "$LFS_MIRROR_FILE" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-5.14.tar.gz MD5:c26625f1d6773ad4bc5a87c0e315632c

@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends dejagnu 1.5.1
-
-include_once
+version 0.9.10
+{
+	depends dejagnu
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_check()
 {

@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends tcl 8.6.0
-
-include_once
+version 5.45
+{
+	depends tcl
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_expect()
 {

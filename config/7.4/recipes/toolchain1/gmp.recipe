@@ -1,0 +1,11 @@
+set -o errexit +o hashall
+
+version 5.1.2
+{
+	include_once_per_version
+}
+
+function installPackage_toolchain1_gmp()
+{
+	:
+}

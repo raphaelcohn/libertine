@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends bzip2 1.0.6
-
-include_once
+version 8.21
+{
+	depends bzip2
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_coreutils()
 {

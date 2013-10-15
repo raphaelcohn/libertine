@@ -1,5 +1,8 @@
 set -o errexit +o hashall
 
-depends binutils "$LFS_SOURCE_PACKAGE_VERSION_binutils"
-
-include_once
+version 5.1.2
+{
+	depends binutils
+	
+	include_once_per_version
+}

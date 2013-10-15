@@ -1,23 +1,33 @@
 set -o errexit +o hashall
 
-depends glibc 2.18
+# Ensures gcc versions in LFS_SOURCE_PACKAGE_VERSIONS are defined (gcc is a dependency of glibc)
+depends glibc
 
-include_once gcc
-
-# Bit of an oddity, as this depends on gcc.recipe already having run; requires the gcc source tarball to have been extracted
-# Unlike most other installers, this one uses someone else's tar ball (in this case, gcc)
-function localPackage_toolchain1_libstdc_useGccTarball()
-{
-	local -r key="$(printKey gcc "$LFS_SOURCE_PACKAGE_VERSION")"
-	source_package_without_download "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION" ${sourcePackages_Compression["${key}"]} ${sourcePackages_FileName["${key}"]} ${sourcePackages_ExtractedTarballFolder["${key}"]}
-}
-localPackage_toolchain1_libstdc_useGccTarball
+# version introduces a list - local variables work because we're sourced from inside a function
+local gccVersion
+local gccPackageVersionKey
+for gccVersion in ${LFS_SOURCE_PACKAGE_VERSIONS[gcc]}
+do
+	version "$gccVersion"
+	{
+		depends glibc
+	
+		gccPackageVersionKey="$(printKey gcc "$gccVersion")"
+	
+		source_package_without_download "$LFS_SOURCE_PACKAGE_NAME" "$gccVersion" "${sourcePackages_Compression["${key}"]}" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_ExtractedTarballFolder["${key}"]}"
+	
+		localPackage_toolchain1_libstdc++_useGccTarball
+	}
+done
 
 function installPackage_toolchain1_libstdc++()
 {
-	createBuildFolderAndPushd "gcc"
+	local gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
+	local -r gccPackageVersionKey="$(printKey gcc "$gccVersion")"
 	
-		../gcc-"$LFS_SOURCE_PACKAGE_VERSION"/libstdc++-v3/configure \
+	createBuildFolderAndPushd "gcc" "$gccVersion"
+	
+		../"${sourcePackages_ExtractedTarballFolder["${gccPackageVersionKey}"]}"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
 		--prefix=/"$LFS_TOOLS"                                        \
 		--disable-multilib                                     \
@@ -25,7 +35,7 @@ function installPackage_toolchain1_libstdc++()
 		--disable-nls                                          \
 		--disable-libstdcxx-threads                            \
 		--disable-libstdcxx-pch                                \
-		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$LFS_SOURCE_PACKAGE_VERSION"
+		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$gccVersion"
 	
 		make
 	

@@ -52,7 +52,6 @@ declare_for_chroot -a patches_Compression
 
 declare_for_chroot -a previousMirrors
 declare_for_chroot -a previousProfiles
-declare_for_chroot -a previousSharedNames
 
 declare_for_chroot -A phase_PreviousRecipes
 phase_PreviousRecipes+=(['toolchain1']="" ['toolchain2']="" ['system']="")
@@ -688,13 +687,13 @@ function source_package_without_download()
 	
 	if [ $# -eq 1 ]; then
 		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-		local -r ourVersion="$1"
+		local -r ourSourcePackageVersion="$1"
 	else
 		local -r ourSourcePackageName="$1"
-		local -r ourVersion="$2"
+		local -r ourSourcePackageVersion="$2"
 	fi
 	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
 	
 	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
 	if sourcePackagesKeyExists "$key"; then
@@ -702,7 +701,7 @@ function source_package_without_download()
 	fi
 	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
 	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
-	sourcePackages_Version["${key}"]="$ourVersion"
+	sourcePackages_Version["${key}"]="$ourSourcePackageVersion"
 	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
 	
 	if [ $# -eq 5 ]; then
@@ -714,24 +713,24 @@ function source_package_without_download()
 
 function source_package_with_download()
 {
-	if [ $# -lt 4 ]; then
+	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
-	elif [ $# -gt 6 ]; then
+	elif [ $# -gt 5 ]; then
 		exitError "Too many arguments"
 	fi
 	
 	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r ourVersion="$1"
-	local -r ourMirror="$2"
-	local -r ourRelativePath="$3"
+	local -r ourSourcePackageVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
 	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	local -r ourHashes="$4"
+	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
-	if [ $# -ge 5 ]; then
-		local -r LFS_EXTRACTED_TARBALL_FOLDER="$5"
+	if [ $# -ge 4 ]; then
+		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
 	else
 		local -r withoutCompressionExtension="${ourFileName%.*}"
 		if [ -z "$compressionExtension" ]; then
@@ -757,8 +756,8 @@ function source_package_with_download()
 	# TODO: split compression from tar for non-tar formats
 	#
 	
-	if [ $# -eq 6 ]; then
-		local -r ourCompression="$6"
+	if [ $# -eq 5 ]; then
+		local -r ourCompression="$5"
 	else
 		case "$compressionExtension" in
 			tar)
@@ -798,24 +797,24 @@ function source_package_with_download()
 			
 			*)
 				if [ ! -z "$compressionExtension" ]; then
-					exitError "Unknown file extension $compressionExtension for $ourSourcePackageName $ourVersion"
+					exitError "Unknown file extension $compressionExtension for $ourSourcePackageName $ourSourcePackageVersion"
 				fi
 			;;
 		esac
 	fi
 	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
 	
 	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
 	if sourcePackagesKeyExists "$key"; then
 		local -r existingUrl="${sourcePackages_Url["${key}"]}"
 		if [ "$existingUrl" != "$ourUrl" ]; then
-			warning "Attempt to override URL IGNORED for source package $ourSourcePackageName version $ourVersion to $ourUrl from $existingUrl to $ourUrl"
+			warning "Attempt to override URL IGNORED for source package $ourSourcePackageName version $ourSourcePackageVersion to $ourUrl from $existingUrl to $ourUrl"
 		fi
 		return 0
 	fi
 	
-	source_package_without_download "$ourSourcePackageName" "$ourVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
+	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
 	
 	sourcePackages_Url["${key}"]="$ourUrl"
 	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
@@ -824,18 +823,18 @@ function source_package_with_download()
 	signature "$ourUrl" "${sourcePackages_Hashes["${key}"]}"
 }
 
-function addPatchDownload()
+function patch_download()
 {
-	if [ $# -ne 4 ]; then
+	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
 	
 	local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r ourVersion="$1"
-	local -r ourMirror="$2"
-	local -r ourRelativePath="$3"
+	local -r ourVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	local -r ourMirror="$1"
+	local -r ourRelativePath="$2"
 	local -r ourUrl="${ourMirror}${ourRelativePath}"
-	local -r ourHashes="$4"
+	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourUrl")"
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
@@ -915,129 +914,169 @@ function include_profile()
 	fi
 }
 
-declare -a versionStack=()
-
 function version()
 {
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
-	
 	local -r localSourcePackageVersion="$1"
-	versionStack+=("$localSourcePackageVersion")
 	
-	# problem is depends/recipe then 'overwrites' this value
-	LFS_SOURCE_PACKAGE_VERSION="$1"
-	
-	
-	
-	# in depends / recipe, we 'pop-off' the version stack
-	adasdasd
-	
-	
-	
-	LFS_RECIPE_VERSION_PREVIOUS=LFS_SOURCE_PACKAGE_VERSION
+	local -r previousVersions="${LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	if [ -z "$previousVersions" ]; then
+		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
+	else
+		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$previousVersions $localSourcePackageVersion"
+	fi
+	LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
 }
 
-function include_once()
+declare_for_chroot -a alreadyIncludedOncePerPackages
+function include_once_per_package()
 {
-	case $# in
-		
-		0)
-			local -r localSharedName="$LFS_SOURCE_PACKAGE_NAME"
-		;;
-		
-		1)
-			local -r localSharedName="$1"
-		;;
-		
-		*)
-			exitError "Needs 0 or 1 arguments"
-		;;
-		
-	esac
-	
-	local previousSharedName
-	for previousSharedName in "${previousSharedNames[@]}"
+	local alreadyIncludedOncePerPackage
+	for alreadyIncludedOncePerPackage in "${alreadyIncludedOncePerPackages[@]}"
 	do
-		if [ "$previousSharedName" = "$localSharedName" ]; then
+		if [ "$alreadyIncludedOncePerPackage" = "$LFS_SOURCE_PACKAGE_NAME" ]; then
 			return 0
 		fi
 	done
-	previousSharedNames+=("$localSharedName")
+	alreadyIncludedOncePerPackages+=("$LFS_SOURCE_PACKAGE_NAME")
 	
-	if [ -f "$sharedPath"/"$localSharedName".shared ]; then
-		LFS_SHARED_NAME="$localSharedName" source "$sharedPath"/"$localSharedName".shared
+	if [ -f "$oncePerPackagePath"/"$LFS_SOURCE_PACKAGE_NAME".include ]; then
+		source "$oncePerPackagePath"/"$LFS_SOURCE_PACKAGE_NAME".include
 	else
-		exitError "include $localSharedName.shared does not exist in share path $sharedPath or is not a file"
+		exitError "include once-per-package $ourSourcePackageName.include does not exist in path $oncePerPackagePath or is not a file"
 	fi
 }
 
-function recipe()
+declare_for_chroot -a alreadyIncludedOncePerVersionKeys
+function include_once_per_version()
+{
+	local -r ourSourcePackageVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	
+	local -r key="$(printKey "$LFS_SOURCE_PACKAGE_NAME" "$ourSourcePackageVersion")"
+	
+	local alreadyIncludedOncePerVersionKey
+	for alreadyIncludedOncePerVersionKey in "${alreadyIncludedOncePerVersionKeys[@]}"
+	do
+		if [ "$alreadyIncludedOncePerVersionKey" = "$key" ]; then
+			return 0
+		fi
+	done
+	alreadyIncludedOncePerVersionKeys+=("$key")
+	
+	if [ -f "$oncePerVersionPath"/"$LFS_SOURCE_PACKAGE_NAME".include ]; then
+		source "$oncePerVersionPath"/"$LFS_SOURCE_PACKAGE_NAME".include
+	else
+		exitError "include once-per-version $LFS_SOURCE_PACKAGE_NAME.include does not exist in path $oncePerVersionPath or is not a file"
+	fi
+}
+
+function depends()
 {
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
 	
 	local -r localSourcePackageName="$1"
-	local -r ourVersion="$2"
 	
 	local previousRecipe
-	local -i alreadySourced=1
 	for previousRecipe in ${phase_PreviousRecipes["${LFS_PHASE}"]}
 	do
 		if [ "$previousRecipe" = "$localSourcePackageName" ]; then
-			alreadySourced=0
-			break
-		fi
-	done
-	
-	if [ $alreadySourced -eq 1 ]; then
-		local recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
-		local -r hashValue="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')"
-		
-		# The reason for doing this over a regular source is that it allows us to define local variables and so have a stack of aliased names, eg for recipe versions
-		#local -r functionWrappingRecipeFile="$(temporaryFileToRemoveOnExit)"
-		#cat >"$functionWrappingRecipeFile" <<-EOF
-		#	function recipe_${localSourcePackageName}()
-		#	{
-		#		local -r LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName"
-		#		local -r LFS_RECIPE_HASH_VALUE="$hashValue"
-		#		
-		#EOF
-		#cat "$recipeFile" >>"$functionWrappingRecipeFile"
-		#cat >>"$functionWrappingRecipeFile" <<-EOF
-		#	}
-		#EOF
-		#source "$functionWrappingRecipeFile"
-		#recipe_${localSourcePackageName}
-		
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$ourVersion" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
-	fi
-	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
-	
-	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${LFS_PHASE}_${localSourcePackageName}_${ourVersion}
-	local -r installer_unversioned=installPackage_${LFS_PHASE}_${localSourcePackageName}
-	if type "$installer_versioned" &>/dev/null; then
-		local -r installer="$installer_versioned"
-	elif type "$installer_unversioned" &>/dev/null; then
-		local -r installer="$installer_unversioned"
-	else
-		exitError "No installer $installer_versioned or $installer_unversioned defined for $localSourcePackageName version $ourVersion"
-	fi
-	
-	# Add to installation for phase if not previously added to this phase
-	local -r key="$(printKey "$localSourcePackageName" "$ourVersion")"
-	local previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
-	local previousDependency
-	for previousDependency in $previousDependenciesInstall
-	do
-		if [ "$previousDependency" = "$key" ]; then
 			return 0
 		fi
 	done
-	phase_InstallationOrder["${LFS_PHASE}"]="$previousDependenciesInstall $key"
+	
+	local -r recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
+	
+	if [ ! -f "$recipeFile" ]; then
+		exitError "recipe $localSourcePackageName ($recipeFile) does not exist or is not a file"
+	fi
+	
+	local -r hashValue="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')"
+	
+	# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
+	# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
+	
+	# Prevent recursion
+	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
+	
+	# set / unset inside include_phase
+	# Set to blank to avoid bash's associative array bugs with non-existent members (it aliases the last added member)
+	LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]=""
+	# Holds the last set version - useful for scripting
+	LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]=""
+	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
+	unset LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]
+	
+	# this needs to be the LAST call to version BEFORE depends
+	local localSourcePackageVersion
+	local key
+	local previousDependenciesInstall
+	local previousDependency
+	for localSourcePackageVersion in ${LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]}
+	do
+		# Add to installation for phase if not previously added to this phase
+		key="$(printKey "$localSourcePackageName" "$localSourcePackageVersion")"
+		previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
+		previousDependency
+		for previousDependency in $previousDependenciesInstall
+		do
+			if [ "$previousDependency" = "$key" ]; then
+				break
+			fi
+		done
+		phase_InstallationOrder["${LFS_PHASE}"]="$previousDependenciesInstall $key"
+	done
+}
+
+function resolved_dependency()
+{
+	local -r dependencySourcePackageName="$1"
+	
+	case "$LFS_SOURCE_PACKAGE_NAME" in
+		
+		gcc)
+			
+			case "$LFS_SOURCE_PACKAGE_VERSION" in
+				
+				4.8.1)
+					
+					case "$dependencySourcePackageName" in
+						
+						mpc)
+							echo 1.0.1
+						;;
+						
+						gmp)
+							echo 5.1.2
+						;;
+						
+						mpfr)
+							echo 3.1.2
+						;;
+						
+						*)
+							exitError "Not yet supported"
+						;;
+						
+					esac
+					
+				;;
+				
+				*)
+					exitError "Not yet supported"
+				;;
+				
+			esac
+		;;
+		
+		*)
+			exitError "Not yet supported"
+		;;
+		
+	esac
 }
 
 function conflicts()
@@ -1059,18 +1098,6 @@ function conflicts()
 			exitError "Package $LFS_SOURCE_PACKAGE_NAME conflicts with $localConflictsWithSourcePackageName"
 		fi
 	done
-}
-
-# not 100% sure how we'll handle virtual dependencies at this time - probably as a special file ('.virtual')
-# TODO: circular dependencies need to be identified
-function depends()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Needs 1 argument"
-	fi
-	
-	local -r localDependsSourcePackageName="$1"
-	recipe "$localDependsSourcePackageName"
 }
 
 # Also https://www.scaprepo.com/ is a good place to query
@@ -1193,15 +1220,19 @@ function installPackagePrototype()
 
 function createBuildFolderAndPushd()
 {
-	if [ $# -gt 1 ]; then
+	if [ $# -gt 2 ]; then
 		exitError "Too many arguments"
 	fi
 	
-	if [ $# -eq 1 ]; then
-		local -r buildFolder=../"$1"-build
-	else
-		local -r buildFolder=../"$LFS_SOURCE_PACKAGE_NAME"-build
+	if [ $# -eq 0 ]; then
+		local -r buildFolder=../"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"-build
 		rm -rf -- "$buildFolder"
+	elif [ $# -eq 2 ]; then
+		local -r ourSourcePackageName="$1"
+		local -r ourSourcePackageVersion="$2"
+		local -r buildFolder=../"$ourSourcePackageName"-"$ourSourcePackageVersion"-build
+	else
+		exitError "Needs 0 or 2 arguments"
 	fi
 	
 	mkdir -m 0755 -p "$buildFolder"

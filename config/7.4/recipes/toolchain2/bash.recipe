@@ -1,8 +1,13 @@
 set -o errexit +o hashall
 
-depends ncurses 5.9
-
-include_once
+version 4.2
+{
+	depends ncurses
+	
+	include_once_per_package
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_bash()
 {

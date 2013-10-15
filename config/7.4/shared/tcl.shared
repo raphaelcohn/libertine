@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-source_package_with_download 8.6.0 "$LFS_MIRROR_SOURCEFORGE" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"8.6.0-src.tar.gz MD5:573aa5fe678e9185ef2b3c56b24658d3 "$LFS_SOURCE_PACKAGE_NAME"8.6.0

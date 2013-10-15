@@ -1,8 +1,16 @@
 set -o errexit +o hashall
 
-depends binutils 2.23.2
-
-include_once
+version 4.8.1
+{
+	depends binutils
+	
+	# These are NOT build dependencies but download ones.
+	depends mpfr
+	depends gmp
+	depends mpc
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_gcc()
 {
@@ -27,9 +35,9 @@ function installPackage_toolchain2_gcc()
 		touch "$file".orig
 	done
 	
-	extractDependencyIntoBuildFolder mpfr $LFS_SOURCE_PACKAGE_VERSION_mpfr
-	extractDependencyIntoBuildFolder gmp $LFS_SOURCE_PACKAGE_VERSION_gmp
-	extractDependencyIntoBuildFolder mpc $LFS_SOURCE_PACKAGE_VERSION_mpc
+	extractDependencyIntoBuildFolder mpfr $(resolved_dependency mpfr)
+	extractDependencyIntoBuildFolder gmp $(resolved_dependency gmp)
+	extractDependencyIntoBuildFolder mpc $(resolved_dependency mpc)
 	
 	createBuildFolderAndPushd
 		

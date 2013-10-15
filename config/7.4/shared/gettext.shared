@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-source_package_with_download 0.18.3 "$LFS_MIRROR_GNU" "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-0.18.3.tar.gz MD5:3fa4236c41b7e837355de144210207ec,HKP:A1534B85

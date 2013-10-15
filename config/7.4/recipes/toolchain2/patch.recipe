@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends make 3.82
+version 2.7.1
+{
+	depends make
 
-include_once
+	include_once_per_version
+}
 
 function installPackage_toolchain2_patch()
 {

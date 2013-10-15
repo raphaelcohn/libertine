@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-
-source_package_with_download 5.18.1 "$LFS_MIRROR_PERL" 5.0/"$LFS_SOURCE_PACKAGE_NAME"-5.18.1.tar.bz2 MD5:4ec1a3f3824674552e749ae420c5e68c
-addPatchDownload 5.18.1 "$LFS_MIRROR_PATCHES" "$LFS_SOURCE_PACKAGE_NAME"-5.18.1-libc-1.patch MD5:daf5c64fd7311e924966842680535f8f

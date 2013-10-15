@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends findutils 4.4.2
-
-include_once
+version 4.1.0
+{
+	depends findutils
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_gawk()
 {

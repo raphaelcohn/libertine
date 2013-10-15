@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends m4 1.4.16
-
-include_once
+version 3.82
+{
+	depends m4
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_make()
 {

@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-recipe tzdata 2013d
+depends tzdata
 
 function downloadsList()
 {

@@ -1,6 +1,9 @@
 set -o errexit +o hashall
 
-include_once
+version 2.23.2
+{
+	include_once_per_version
+}
 
 function installPackage_toolchain2_binutils()
 {

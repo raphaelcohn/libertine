@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends gettext 0.18.3
-
-include_once
+version 2.14
+{
+	depends gettext
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_grep()
 {

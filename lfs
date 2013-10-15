@@ -29,6 +29,10 @@ declare_for_chroot -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT
 redeclare_array_for_chroot trapHandlers
 redeclare_array_for_chroot filesToRemoveOnExit
 
+# Defensive
+declare_for_chroot FUNCNEST
+FUNCNEST=20
+
 function ensureWhichInstalled()
 {
 	set +e
@@ -452,13 +456,18 @@ function setPathsAndExports()
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly sharedPath="$distributionConfigPath"/shared
-	if [ ! -d "$sharedPath" ]; then
-		exitError "shared path $sharedPath does not exist or is not a directory"
+	readonly oncePerPackagePath="$distributionConfigPath"/once-per-package
+	if [ ! -d "$oncePerPackagePath" ]; then
+		exitError "once-per-package path $oncePerPackagePath does not exist or is not a directory"
+	fi
+	
+	readonly oncePerVersionPath="$distributionConfigPath"/once-per-version
+	if [ ! -d "$oncePerVersionPath" ]; then
+		exitError "once-per-version path $oncePerVersionPath does not exist or is not a directory"
 	fi
 	
 	readonly functionsPath="$distributionConfigPath"/functions
-	if [ ! -d "$sharedPath" ]; then
+	if [ ! -d "$oncePerVersionPath" ]; then
 		exitError "functions path $functionsPath does not exist or is not a directory"
 	fi
 	
@@ -564,26 +573,32 @@ function include_mirrors()
 	progressMessageSucceeded
 }
 
-function include_profiles()
+function include_phase()
 {
+	local -r phase="$1"
+	shift 1
+	
 	pushd "$profilesPath" >/dev/null
 		
-		progressMessage "Including toolchain1 profile $toolchain1Profile"
-		LFS_PHASE="toolchain1" include_profile "$toolchain1Profile"
-		progressMessageSucceeded
-		
-		progressMessage "Including toolchain2 profile $toolchain1Profile"
-		LFS_PHASE="toolchain2" include_profile "$toolchain2Profile"
-		progressMessageSucceeded
-		
-		for profile in $profiles
+		declare -A LFS_SOURCE_PACKAGE_VERSIONS
+		declare -A LFS_SOURCE_PACKAGE_VERSION
+		for profile in "$@"
 		do
-			progressMessage "Including system profile $profile"
+			progressMessage "Including phase $phase profile $profile"
 			LFS_PHASE="system" include_profile "$profile"
 			progressMessageSucceeded
 		done
+		declare -A LFS_SOURCE_PACKAGE_VERSION
+		unset LFS_SOURCE_PACKAGE_VERSIONS
 		
 	popd >/dev/null
+}
+
+function include_profiles()
+{
+	include_phase toolchain1 "$toolchain1Profile"
+	include_phase toolchain2 "$toolchain2Profile"
+	include_phase system $profiles
 }
 
 function createSkeletonFolderStructure()
@@ -768,27 +783,29 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r extractStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stdout.log
-	local -r extractStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".extract.stderr.log
+	local -r logPathPrefix="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}"
+	
+	local -r extractStdOutLogFile="$logPathPrefix".extract.stdout.log
+	local -r extractStdErrLogFile="$logPathPrefix".extract.stderr.log
 	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
-				progressMessageFailed "extraction failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log"
+				progressMessageFailed "extraction failed, logs in $logPathPrefix.extract.*.log"
 			else
-				progressMessageUpdate "(tar extraction complete, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.extract.*.log)"
+				progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 			fi
 		fi
 	
-		local -r installStdOutLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stdout.log
-		local -r installStdErrLogFile="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}".install.stderr.log
+		local -r installStdOutLogFile="$logPathPrefix".install.stdout.log
+		local -r installStdErrLogFile="$logPathPrefix".install.stderr.log
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
 			
-			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $phase/${LFS_SOURCE_PACKAGE_NAME}-${LFS_SOURCE_PACKAGE_VERSION}.install.*.log"
+			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $logPathPrefix.install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"

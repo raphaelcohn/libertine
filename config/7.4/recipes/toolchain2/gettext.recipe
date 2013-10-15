@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends gawk 4.1.0
-
-include_once
+version 0.18.3
+{
+	depends gawk
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_gettext()
 {

@@ -1,19 +1,22 @@
 set -o errexit +o hashall
 
-depends man-pages 3.53
+version 2.18
+{
+	depends man-pages
 
-include_once
+	include_once_per_version
 
-touch_file /etc/ld.so.conf 644 root root js ai
-directory /etc/ld.so.conf.d 755 root root js ai
-touch_file /etc/ld.so.conf.d/libc.conf 644 root root js ai
+	touch_file /etc/ld.so.conf 644 root root js ai
+	directory /etc/ld.so.conf.d 755 root root js ai
+	touch_file /etc/ld.so.conf.d/libc.conf 644 root root js ai
 
-directory /usr/lib/locale 755 root root '' ai
+	directory /usr/lib/locale 755 root root '' ai
 
-touch_file /etc/nsswitch.conf 644 root root js ai
+	touch_file /etc/nsswitch.conf 644 root root js ai
 
-# Installation of minimum set of locales for test coverage
-permissions_after /usr/lib/locale/locale-archive 644 root root js ai
+	# Installation of minimum set of locales for test coverage
+	permissions_after /usr/lib/locale/locale-archive 644 root root js ai
+}
 
 function installPackage_system_glibc()
 {

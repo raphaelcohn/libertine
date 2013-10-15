@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends tar 1.26
-
-include_once
+version 5.1
+{
+	depends tar
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain2_texinfo()
 {

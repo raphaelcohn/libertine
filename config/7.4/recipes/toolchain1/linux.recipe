@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends gcc 4.8.1
-
-include_once
+version 3.10.10
+{
+	depends gcc
+	
+	include_once_per_version
+}
 
 function installPackage_toolchain1_linux()
 {

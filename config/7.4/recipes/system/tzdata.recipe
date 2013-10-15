@@ -1,19 +1,22 @@
 set -o errexit +o hashall
 
-depends glibc 2.18
+version 2013d
+{
+	depends glibc
 
-# TODO: Releases may be made as little as 5 days apart!
-source_package_with_download 2013d "$LFS_MIRROR_IANA" time-zones/repository/releases/"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"$LFS_SOURCE_PACKAGE_NAME"2013d.tar.gz.asc
+	# TODO: Releases may be made as little as 5 days apart!
+	source_package_with_download "$LFS_MIRROR_IANA" time-zones/repository/releases/"${LFS_SOURCE_PACKAGE_NAME}${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"${LFS_SOURCE_PACKAGE_NAME}${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz.asc
 
-directory /usr/share/zoneinfo 755 root root D ai
-directory /usr/share/zoneinfo/posix 755 root root D ai
-directory /usr/share/zoneinfo/right 755 root root D ai
+	directory /usr/share/zoneinfo 755 root root D ai
+	directory /usr/share/zoneinfo/posix 755 root root D ai
+	directory /usr/share/zoneinfo/right 755 root root D ai
 
-permissions_after /usr/share/zoneinfo/zone.tab 644 root root jS ai
-permissions_after /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
+	permissions_after /usr/share/zoneinfo/zone.tab 644 root root jS ai
+	permissions_after /usr/share/zoneinfo/iso3166.tab 644 root root jS ai
 
-permissions_after_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
-permissions_after_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
+	permissions_after_recursive /usr/share/zoneinfo 755 root root D ai 0 10 directory
+	permissions_after_recursive /usr/share/zoneinfo 644 root root D ai 0 10 file
+}
 
 function installPackage_system_tzdata()
 {

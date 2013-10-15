@@ -1,8 +1,11 @@
 set -o errexit +o hashall
 
-depends 0-directories 0
-
-include_once
+version 3.10.10
+{
+	depends 0-directories
+	
+	include_once_per_version
+}
 
 function installPackage_system_linux()
 {

@@ -1,8 +1,10 @@
 set -o errexit +o hashall
 
-depends texinfo 5.1
-
-include_once
+version 5.0.5
+{
+	depends texinfo
+	include_once_per_version
+}
 
 function installPackage_toolchain2_xz()
 {
