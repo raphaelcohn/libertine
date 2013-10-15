@@ -55,13 +55,24 @@ function downloadFileAndCheckHash()
 		
 		local -r referer="$(dirname "$url")/"
 		
-		local -r certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
+		local certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
 			local -ar certificateAuthorityOption=("--insecure" "--capath" "$certificateAuthoritiesPath")
 		else
-			local -r certificateAuthorityFileName="${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
-			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthoritiesPath/$certificateAuthorityFileName")
+			if [ "${certificateAuthorities_Parent["${certificateAuthorityName}"]}" = "root" ]; then
+				local -r certificateAuthorityBundle="$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
+			else
+				temporaryFileToRemoveOnExit
+				local -r certificateAuthorityBundle="$TMP_FILE"
+				
+				while [ "$certificateAuthorityName" != "root" ]
+				do
+					cat "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" >>"$certificateAuthorityBundle"
+					certificateAuthorityName="${certificateAuthorities_Parent["${certificateAuthorityName}"]}"
+				done
+			fi
+			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthorityBundle")
 		fi
 		
 		set +e

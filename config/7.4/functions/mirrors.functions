@@ -1,6 +1,7 @@
 set -o errexit +o hashall
 
 # NOTE: fileName should match the commonly known name - usually that used by Debian's openssl certs package
+declare_for_chroot -A certificateAuthorities_Parent
 declare_for_chroot -A certificateAuthorities_Mirror
 declare_for_chroot -A certificateAuthorities_RelativePath
 declare_for_chroot -A certificateAuthorities_FileName
@@ -8,27 +9,38 @@ declare_for_chroot -A certificateAuthorities_Hashes
 declare_for_chroot -A certificateAuthorities_Compression
 function certificate_authority()
 {
-	if [ $# -lt 4 ]; then
-		exitError "Needs 4 or 5 arguments"
-	elif [ $# -gt 5 ]; then
-		exitError "Needs 4 or 5 arguments"
+	if [ $# -lt 5 ]; then
+		exitError "Needs 5 or 6 arguments"
+	elif [ $# -gt 6 ]; then
+		exitError "Needs 5 or 6 arguments"
 	fi
 	
-	local -r certificateAuthorityName="$1"
-	local -r mirrorName="$2"
-	local -r relativePath="$3"
-	local -r ourHashes="$4"
+	local -r parentCertificateAuthorityName="$1"
 	
-	if [ $# -eq 5 ]; then
-		local -r fileName="$5"
+	local -r certificateAuthorityName="$2"
+	local -r mirrorName="$3"
+	local -r relativePath="$4"
+	local -r ourHashes="$5"
+	
+	if [ $# -eq 6 ]; then
+		local -r fileName="$6"
 	else
 		local -r fileName="$(purebash_basename "$relativePath")"
+	fi
+	
+	if [ "$certificateAuthorityName" = "root" ]; then
+		exitError "A certificate authority may not be called 'root'"
 	fi
 	
 	if ! mirrorExists "$mirrorName"; then
 		exitError "Mirror $mirrorName does not exist for certificate authority $certificateAuthorityName"
 	fi
 	
+	if ! certificateAuthorityExists "$parentCertificateAuthorityName"; then
+		exitError "Parent certificate authority $parentCertificateAuthorityName does not exist for certificate authority $certificateAuthorityName"
+	fi
+	
+	certificateAuthorities_Parent["${certificateAuthorityName}"]="$parentCertificateAuthorityName"
 	certificateAuthorities_Mirror["${certificateAuthorityName}"]="$mirrorName"
 	certificateAuthorities_RelativePath["${certificateAuthorityName}"]="$relativePath"
 	certificateAuthorities_FileName["${certificateAuthorityName}"]="$fileName"
