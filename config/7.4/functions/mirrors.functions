@@ -67,6 +67,7 @@ function mirror
 	esac
 	
 	mirrors_Url["${mirrorName}"]="$url"
+	echo ${#mirrors_Url[@]}
 	echo "${!mirrors_Url[@]}"
 	echo ${#mirrors_Url[@]}
 	
