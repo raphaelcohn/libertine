@@ -40,7 +40,7 @@ function certificateAuthorityExists()
 {
 	local -r requiredCertificateAuthorityName="$1"
 	local certificateAuthorityName
-	for certificateAuthorityName in "${!certificateAuthorities_Url[@]}"
+	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
 		if [ "$certificateAuthorityName" = "$requiredCertificateAuthorityName" ]; then
 			return 0
