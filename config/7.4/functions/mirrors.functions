@@ -51,8 +51,6 @@ function certificateAuthorityExists()
 
 declare_for_chroot -A mirrors_Url
 declare_for_chroot -A mirrors_CertificateAuthority
-declare
-exit 50
 function mirror
 {
 	case $# in
@@ -68,11 +66,7 @@ function mirror
 		
 	esac
 	
-	type mirrors_Url
 	mirrors_Url["${mirrorName}"]="$url"
-	echo ${#mirrors_Url[@]}
-	echo "${!mirrors_Url[@]}"
-	echo ${#mirrors_Url[@]}
 	
 	if [ $# -eq 3 ]; then
 		local -r certificateAuthorityName="$3"
@@ -87,8 +81,6 @@ function mirror
 
 function mirrorExists()
 {
-	echo "${!mirrors_Url[@]}"
-	
 	local -r requiredMirrorName="$1"
 	local mirrorName
 	for mirrorName in "${!mirrors_Url[@]}"
