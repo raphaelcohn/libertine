@@ -225,7 +225,7 @@ function gpgVerifySignatureUsingKey()
 		fi
 		
 	else
-		local -r publicKeyring="$keyringsPath"/"$keyFileOrKeyringFilePath"
+		local -r publicKeyring="$keyFileOrKeyringFilePath"
 	fi
 	
 	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
