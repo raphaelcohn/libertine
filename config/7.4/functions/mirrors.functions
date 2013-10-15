@@ -68,7 +68,7 @@ function mirror
 	
 	mirrors_Url["${mirrorName}"]="$url"
 	echo "${!mirrors_Url[@]}"
-	echo "${#mirrors_Url[@]}"
+	echo ${#mirrors_Url[@]}
 	
 	if [ $# -eq 3 ]; then
 		local -r certificateAuthorityName="$3"
