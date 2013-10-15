@@ -101,9 +101,6 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
-	
-	
-	
 	if [ "$hashesMayBeEmpty" = "yes" ]; then
 		if [ ${#hashes} -eq 0 ]; then
 			return 0
@@ -111,7 +108,7 @@ function downloadFileAndCheckHash()
 	fi
 	
 	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
-	set -x
+	
 	local hashNameAndValue
 	local hashName
 	local hashValue
@@ -222,6 +219,7 @@ function makeGpgHome()
 
 function gpgVerifyWrapper()
 {
+	set -x
 	local -r gpgHome="$gpgHome"
 	shift 1
 	
@@ -231,6 +229,8 @@ function gpgVerifyWrapper()
 	 --homedir "$gpgHome" --trustdb-name trustdb.gpg --no-default-keyring --secret-keyring secring.gpg \
 	 --primary-keyring pubring.gpg \
 	"$@"
+	
+	set +x
 }
 
 function gpgVerifySignatureUsingKey()
@@ -311,7 +311,9 @@ function verifyKeyringSignature()
 		exitError "Keyrings must be gpg - $keyring is not"
 	fi
 	
+	set -x
 	gpgVerifySignatureUsingKey "$1" "$2" "$keyringsPath"/"$keyring" "$4" "$5" "keyring"
+	set +x
 }
 
 function verifyKeyFileSignature()
