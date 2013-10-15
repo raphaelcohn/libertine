@@ -4,14 +4,15 @@
 function declare_for_chroot()
 {
 	if [ $# -eq 1 ]; then
-		local -r flags=""
+		# Done this way to avoid a Core Dump!
 		local -r variable="$1"
+		declare $variable
 	else
 		local -r flags="$1"
 		local -r variable="$2"
+		declare $flags $variable
 	fi
 	
-	declare $flags $variable
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=($variable)
 }
 
