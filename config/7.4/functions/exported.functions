@@ -703,7 +703,7 @@ function recurse_callback_permissions()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
-	chmod "$target" "$mode" -- "$target"
+	chmod "$mode" "$target" -- "$target"
 	chown $uid:$gid -- "$target"
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
 		chattr +"$extendedAttributesToApplyFirst" "$target"

@@ -1,7 +1,5 @@
 set -o errexit +o hashall
 
-# TODO: remove the need to specify version as such
-
 source_package_with_download GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0,KEYRING:gnu-keyring.gpg
 
 if [ "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}" = "4.2" ]; then
