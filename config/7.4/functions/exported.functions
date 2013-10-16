@@ -1205,6 +1205,7 @@ function tarExtract()
 		
 	popd >/dev/null
 	
+	set -x
 	if [ "$isTarbomb" = "is-tarbomb" ]; then
 		mkdir -m 0755 -p "$tarballFolder"
 		pushd "$tarballFolder" >/dev/null
@@ -1219,6 +1220,7 @@ function tarExtract()
 	if [ "$isTarbomb" = "is-tarbomb" ]; then
 		popd >/dev/null
 	fi
+	set +x
 }
 
 # Assumes it is in the build folder
