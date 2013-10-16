@@ -799,8 +799,7 @@ function installPackage()
 	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
 	LFS_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder["${key}"]}"
 	LFS_PATCHES="${sourcePackages_Patches["${key}"]}"
-	local -r LFS_IS_TARBOMB="${sourcePackages_IsTarbomb["${key}"]}"
-	echo "$key|$LFS_IS_TARBOMB"
+	LFS_IS_TARBOMB="${sourcePackages_IsTarbomb["${key}"]}"
 	
 	local -i exitCode
 	

@@ -406,7 +406,7 @@ function source_package_with_download()
 	if [ $# -ge 6 ]; then
 		local -r isTarbomb="$6"
 	else
-		local -r isTarbomb=""
+		local -r isTarbomb="no"
 	fi
 	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
@@ -1205,7 +1205,7 @@ function tarExtract()
 		
 	popd >/dev/null
 	
-	if [ "$isTarbomb" = "is-tarbomb" ]; then
+	if [ "$isTarbomb" = "tarbomb" ]; then
 		mkdir -m 0755 -p "$tarballFolder"
 		pushd "$tarballFolder" >/dev/null
 	fi
@@ -1216,7 +1216,7 @@ function tarExtract()
 			tar --extract --file "$absoluteTarballPath" --$tarballCompression
 		fi
 	
-	if [ "$isTarbomb" = "is-tarbomb" ]; then
+	if [ "$isTarbomb" = "tarbomb" ]; then
 		popd >/dev/null
 	fi
 }
