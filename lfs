@@ -803,6 +803,9 @@ function installPackage()
 	
 	local -i exitCode
 	
+	echo $LFS_IS_TARBOMB
+	exit 70
+	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
 	local -r installer_unversioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}
