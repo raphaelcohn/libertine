@@ -226,7 +226,7 @@ version 0
 	touch_file /etc/lsb-release 644 root root jS ai
 }
 
-function installPackage_system_0-directories()
+function installPackage_system_lfs-directories()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >>/usr/lib/libstdc++.la

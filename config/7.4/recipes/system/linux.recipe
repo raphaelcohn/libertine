@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.10.10
 {
-	depends 0-directories
+	depends lfs-directories
 	
 	include_once_per_version
 }
