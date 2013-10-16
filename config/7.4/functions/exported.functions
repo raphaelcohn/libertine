@@ -26,6 +26,7 @@ declare_for_chroot -A sourcePackages_RelativePath
 declare_for_chroot -A sourcePackages_Compression
 declare_for_chroot -A sourcePackages_FileName
 declare_for_chroot -A sourcePackages_ExtractedTarballFolder
+declare_for_chroot -A sourcePackages_IsTarbomb
 declare_for_chroot -A sourcePackages_Hashes
 declare_for_chroot -A sourcePackages_Patches
 declare_for_chroot -A sourcePackages_RecipeHash
