@@ -795,17 +795,13 @@ function installPackage()
 	
 	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
 	
-	set -x
 	LFS_OUR_COMPRESSION="${sourcePackages_Compression["${key}"]}"
 	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
 	LFS_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder["${key}"]}"
 	LFS_PATCHES="${sourcePackages_Patches["${key}"]}"
-	LFS_IS_TARBOMB="${sourcePackages_IsTarbomb["${key}"]}"
+	local -r LFS_IS_TARBOMB="${sourcePackages_IsTarbomb["${key}"]}"
 	
 	local -i exitCode
-	echo "HELLO WORLD"
-	
-	echo x"$LFS_IS_TARBOMB"x >/tmp/x
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
