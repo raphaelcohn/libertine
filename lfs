@@ -980,8 +980,6 @@ function cleanUpTarget()
 				
 			fi
 			
-			exit 50
-			
 			if [ -d sources ]; then
 				
 				pushd sources >/dev/null
