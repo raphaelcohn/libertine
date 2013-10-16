@@ -1205,7 +1205,6 @@ function tarExtract()
 		
 	popd >/dev/null
 	
-	set -x
 	if [ "$isTarbomb" = "is-tarbomb" ]; then
 		mkdir -m 0755 -p "$tarballFolder"
 		pushd "$tarballFolder" >/dev/null
@@ -1220,7 +1219,6 @@ function tarExtract()
 	if [ "$isTarbomb" = "is-tarbomb" ]; then
 		popd >/dev/null
 	fi
-	set +x
 }
 
 # Assumes it is in the build folder
@@ -1239,7 +1237,6 @@ function extractDependencyIntoBuildFolder()
 	local -r localExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
 	local -r localCompression="${sourcePackages_Compression["${key}"]}"
 	local -r localIsTarbomb="${sourcePackages_IsTarbomb["${key}"]}"
-	echo $key $localIsTarbomb
 	
 	if [ -z "$localFileName" ]; then
 		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
@@ -1248,9 +1245,7 @@ function extractDependencyIntoBuildFolder()
 	if [ -z "$localExtractedTarballFolder" ]; then
 		progressMessageFailed "No tarball for $localSourcePackageName $localVersion"
 	fi
-	set -x
 	tarExtract ../"$localFileName" "$localExtractedTarballFolder" "$localCompression" "$localIsTarbomb"
-	set +x
 	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
 }
 
