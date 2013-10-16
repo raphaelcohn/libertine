@@ -806,7 +806,6 @@ function installPackage()
 	echo "HELLO WORLD"
 	
 	echo x"$LFS_IS_TARBOMB"x >/tmp/x
-	exit 70
 	
 	# Use an override (versioned) installer, otherwise the default
 	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
