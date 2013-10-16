@@ -210,11 +210,13 @@ function gpgVerifySignatureUsingKey()
 		
 		temporaryFileToRemoveOnExit
 		local -r publicKeyring="$TMP_FILE"
+		# GPG is badly behaved, and creates a back up file we'll need to remove
+		addFileToRemoveOnExit "$publicKeyring"~
 		
 		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
 		--no-random-seed-file --ignore-time-conflict \
 		--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-		--homedir "$keyringsPath" --trustdb-name trustdb.gpg \
+		--homedir "$gpghomePath" --trustdb-name trustdb.gpg \
 		--no-default-keyring --secret-keyring secring.gpg \
 		--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
 		--import "$keyFileOrKeyringFilePath" </dev/null 1>"$logFileName" 2>&1
@@ -231,7 +233,7 @@ function gpgVerifySignatureUsingKey()
 	gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
 	--no-random-seed-file --ignore-time-conflict \
 	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
-	--homedir "$keyringsPath" --trustdb-name trustdb.gpg \
+	--homedir "$gpghomePath" --trustdb-name trustdb.gpg \
 	--no-default-keyring --secret-keyring secring.gpg \
 	--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
 	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1

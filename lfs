@@ -437,6 +437,11 @@ function setPathsAndExports()
 		exitError "Profiles path $profilesPath does not exist or is not a directory"
 	fi
 	
+	readonly gpghomePath="$distributionConfigPath"/gpghome
+	if [ ! -d "$gpghomePath" ]; then
+		exitError "gpghome path $gpghomePath does not exist or is not a directory"
+	fi
+	
 	readonly keyringsPath="$distributionConfigPath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
@@ -723,7 +728,7 @@ function downloadKeyrings()
 			;;
 			
 		esac
-		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$keyringNumber]}" "${keyrings_RelativePath[$keyringNumber]}" "$keyringsPath" "keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$keyringNumber]}" "${keyrings_RelativePath[$keyringNumber]}" "$keyringsPath" "$keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
 	done
 }
 
@@ -958,7 +963,6 @@ function cleanUpTarget()
 				esac
 			done
 			
-			set -x
 			if [ -d dev ]; then
 				
 				pushd dev >/dev/null
