@@ -141,7 +141,12 @@ function compareVersions()
 # They will usually be MUCH slower than their external equivalents
 function purebash_dirname()
 {
-	echo "${1%/*}"
+	local -r converted="${1%/*}"
+	if [ "$converted" = "$1" ]; then
+		echo "."
+	else
+		echo "$converted"
+	fi
 }
 
 function purebash_basename()
@@ -816,7 +821,7 @@ function installPackage()
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
-			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
+			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" "${sourcePackages_IsTarbomb["${key}"]}" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
 				progressMessageFailed "extraction failed, logs in $logPathPrefix.extract.*.log"
 			else
 				progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"

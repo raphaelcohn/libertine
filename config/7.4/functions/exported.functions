@@ -276,12 +276,12 @@ function hkp()
 function source_package_without_download()
 {
 	case $# in
-		1|5)
+		1|6)
 			:
 		;;
 		
 		*)
-			exitError "Needs 1 or 5 arguments"
+			exitError "Needs 1 or 6 arguments"
 		;;
 	esac
 	
@@ -304,10 +304,11 @@ function source_package_without_download()
 	sourcePackages_Version["${key}"]="$ourSourcePackageVersion"
 	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
 	
-	if [ $# -eq 5 ]; then
+	if [ $# -eq 6 ]; then
 		sourcePackages_Compression["${key}"]="$3"
 		sourcePackages_FileName["${key}"]="$4"
 		sourcePackages_ExtractedTarballFolder["${key}"]="$5"
+		sourcePackages_IsTarbomb["${key}"]="$6"
 	fi
 }
 
@@ -315,7 +316,7 @@ function source_package_with_download()
 {
 	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
-	elif [ $# -gt 5 ]; then
+	elif [ $# -gt 6 ]; then
 		exitError "Too many arguments"
 	fi
 	
@@ -355,7 +356,7 @@ function source_package_with_download()
 	# TODO: split compression from tar for non-tar formats
 	#
 	
-	if [ $# -eq 5 ]; then
+	if [ $# -ge 5 ]; then
 		local -r ourCompression="$5"
 	else
 		case "$compressionExtension" in
@@ -402,6 +403,12 @@ function source_package_with_download()
 		esac
 	fi
 	
+	if [ $# -ge 6 ]; then
+		local -r isTarbomb="$6"
+	else
+		local -r isTarbomb=""
+	fi
+	
 	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
 	
 	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
@@ -416,7 +423,7 @@ function source_package_with_download()
 		return 0
 	fi
 	
-	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER"
+	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$isTarbomb"
 	
 	sourcePackages_Mirror["${key}"]="$ourMirror"
 	sourcePackages_RelativePath["${key}"]="$ourRelativePath"
@@ -1181,19 +1188,36 @@ function addCVE()
 
 function tarExtract()
 {
-	if [ $# -ne 3 ]; then
+	if [ $# -ne 4 ]; then
 		exitError "Not enough arguments"
 	fi
 	
 	local -r tarball="$1"
 	local -r tarballFolder="$2"
 	local -r tarballCompression="$3"
+	local -r isTarbomb="$4"
 	
 	rm -rf -- "$tarballFolder"
-	if [ -z "$ourCompression" ]; then
-		tar --extract --file "$tarball"
-	else
-		tar --extract --$tarballCompression --file "$tarball"
+	
+	pushd "$(purebash_dirname "$tarball")" >/dev/null
+		
+		local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
+		
+	popd >/dev/null
+	
+	if [ "$isTarbomb" = "is-tarbomb" ]; then
+		mkdir -m 0755 -p "$tarballFolder"
+		pushd "$tarballFolder" >/dev/null
+	fi
+	
+		if [ -z "$ourCompression" ]; then
+			tar --extract --file "$absoluteTarballPath"
+		else
+			tar --extract --file "$absoluteTarballPath" --$tarballCompression
+		fi
+	
+	if [ "$isTarbomb" = "is-tarbomb" ]; then
+		popd >/dev/null
 	fi
 }
 
@@ -1209,15 +1233,20 @@ function extractDependencyIntoBuildFolder()
 	
 	local -r key="$(printKey "$localSourcePackageName" "$localVersion")"
 	
-	local -r localFileName=${sourcePackages_FileName["${key}"]}
-	local -r localExtractedTarballFolder=${sourcePackages_ExtractedTarballFolder["${key}"]}
-	local -r localCompression=${sourcePackages_Compression["${key}"]}
+	local -r localFileName="${sourcePackages_FileName["${key}"]}"
+	local -r localExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
+	local -r localCompression="${sourcePackages_Compression["${key}"]}"
+	local -r localIsTarbomb="${sourcePackages_IsTarbomb["${key}"]}"
 	
 	if [ -z "$localFileName" ]; then
 		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
 	fi
 	
-	tarExtract ../"$localFileName" "$localExtractedTarballFolder" $localCompression
+	if [ -z "$localExtractedTarballFolder" ]; then
+		progressMessageFailed "No tarball for $localSourcePackageName $localVersion"
+	fi
+	
+	tarExtract ../"$localFileName" "$localExtractedTarballFolder" "$localCompression" "$localIsTarbomb"
 	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
 }
 
