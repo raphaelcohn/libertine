@@ -803,7 +803,7 @@ function installPackage()
 	
 	local -i exitCode
 	
-	echo $LFS_IS_TARBOMB
+	echo $LFS_IS_TARBOMB >/tmp/x
 	exit 70
 	
 	# Use an override (versioned) installer, otherwise the default
