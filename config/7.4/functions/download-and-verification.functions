@@ -215,6 +215,7 @@ function gpgVerifySignatureUsingKey()
 		
 		temporaryFileToRemoveOnExit
 		local -r trustDb="$TMP_FILE"
+		cat "$gpghomePath"/trustdb.gpg >>"$trustDb"
 		
 		# gpg mucks with its trustdb when importing, which is a nuisance
 		gpg --no-options --no-greeting --no-permission-warning --no-auto-check-trustdb --no-secmem-warning \
