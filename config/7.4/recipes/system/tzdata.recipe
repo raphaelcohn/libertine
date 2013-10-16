@@ -3,7 +3,7 @@ set -o errexit +o hashall
 version 2013d
 {
 	#depends glibc
-	depends 0-directory
+	depends 0-directories
 	
 	# TODO: Releases may be made as little as 5 days apart!
 	source_package_with_download IANA time-zones/repository/releases/"${LFS_SOURCE_PACKAGE_NAME}${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"${LFS_SOURCE_PACKAGE_NAME}${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz.asc "${LFS_SOURCE_PACKAGE_NAME}${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}" gzip is-tarbomb
