@@ -467,11 +467,6 @@ function setPathsAndExports()
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
-	readonly oncePerPackagePath="$distributionConfigPath"/once-per-package
-	if [ ! -d "$oncePerPackagePath" ]; then
-		exitError "once-per-package path $oncePerPackagePath does not exist or is not a directory"
-	fi
-	
 	readonly includesPath="$distributionConfigPath"/includes
 	if [ ! -d "$includesPath" ]; then
 		exitError "includes path $includesPath does not exist or is not a directory"
