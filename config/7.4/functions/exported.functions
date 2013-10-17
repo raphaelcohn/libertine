@@ -275,7 +275,7 @@ function source_package_alias()
 	exitError "Unknown aliased source package $aliasSourcePackageName $aliasSourcePackageVersion"
 }
 
-function source_package()
+function clear()
 {
 	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
@@ -292,6 +292,8 @@ function source_package()
 	
 	echo
 	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
+	for XXX in ${FUNCNAME[@]}
+	echo $XXX
 	exit 5
 	
 	local -r compressionExtension="${ourFileName##*.}"
