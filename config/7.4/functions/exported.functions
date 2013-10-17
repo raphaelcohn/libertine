@@ -85,11 +85,9 @@ function dependency_key()
 
 function signature()
 {
-	set -x
 	local -r ourMirror="$1"
 	local -r originalFileRelativePath="$2"
 	local -r ourHashesSpaceSeparated="$3"
-	set +x
 	
 	local hashNameAndValue
 	local hashName
@@ -97,23 +95,23 @@ function signature()
 	local hashSignatureFileName
 	local hashSignatureRelativePath
 	
-	local -i signatureNumber
+	local -i index
 	for hashNameAndValue in $ourHashesSpaceSeparated
 	do
 		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
 		case "$hashName" in
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
-				signatureNumber=${#signatures_Mirror[@]}
+				index=${#signatures_Mirror[@]}
 				
 				if [ -z "$hashSignatureFileName" ]; then
 					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
 				
-				signatures_Mirror[$signatureNumber]="$ourMirror"
-				signatures_RelativePath[$signatureNumber]="$hashSignatureRelativePath"
-				signatures_FileName[$signatureNumber]="$hashSignatureFileName"
-				signatures_Compression[$signatureNumber]=""
+				signatures_Mirror[$index]="$ourMirror"
+				signatures_RelativePath[$index]="$hashSignatureRelativePath"
+				signatures_FileName[$index]="$hashSignatureFileName"
+				signatures_Compression[$index]=""
 				
 				case "$hashName" in
 					HKP|HKP_UNCOMPRESSED)
@@ -395,7 +393,9 @@ function source_package()
 	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
 	sourcePackages_IsTarbomb+=("$isTarbomb")
 	
+	set -x
 	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
+	set +x
 }
 
 function source_patch()
