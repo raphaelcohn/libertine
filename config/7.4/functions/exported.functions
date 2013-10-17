@@ -290,12 +290,7 @@ function source_package()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
-	echo
 	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
-	for XXX in ${FUNCNAME[@]}
-	do
-	echo $XXX
-done
 	exit 5
 	
 	local -r compressionExtension="${ourFileName##*.}"
@@ -456,7 +451,7 @@ function version()
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
-	echo depends $@
+	echo version $@
 	local -r localSourcePackageVersion="$1"
 	
 	local -r previousVersions="${LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]}"
@@ -480,6 +475,7 @@ function version()
 	dependency_SkipInstall["$DependencyKey"]=0
 	
 	if [ -f "$LFS_INCLUDE_FILE" ]; then
+		echo include source "$LFS_INCLUDE_FILE"
 		source "$LFS_INCLUDE_FILE"
 	fi
 }
@@ -533,7 +529,7 @@ function depends()
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
-		echo LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
+		echo source LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
 		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
 	fi
 	
