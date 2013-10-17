@@ -293,7 +293,9 @@ function clear()
 	echo
 	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
 	for XXX in ${FUNCNAME[@]}
+	do
 	echo $XXX
+done
 	exit 5
 	
 	local -r compressionExtension="${ourFileName##*.}"
