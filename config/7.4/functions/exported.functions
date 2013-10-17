@@ -85,6 +85,7 @@ function dependency_key()
 
 function signature()
 {
+	set -x
 	local -r ourMirror="$1"
 	local -r originalFileRelativePath="$2"
 	local -r ourHashesSpaceSeparated="$3"
@@ -121,6 +122,7 @@ function signature()
 			;;
 		esac
 	done
+	set +x
 }
 
 function keyring()
