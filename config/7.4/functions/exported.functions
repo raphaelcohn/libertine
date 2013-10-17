@@ -89,6 +89,7 @@ function signature()
 	local -r ourMirror="$1"
 	local -r originalFileRelativePath="$2"
 	local -r ourHashesSpaceSeparated="$3"
+	set +x
 	
 	local hashNameAndValue
 	local hashName
@@ -122,7 +123,6 @@ function signature()
 			;;
 		esac
 	done
-	set +x
 }
 
 function keyring()
@@ -140,28 +140,28 @@ function keyring()
 		exitError "Only gpg keyrings are supported - which is not so for this keyring: $ourMirror $ourRelativePath"
 	fi
 	
-	local -i existingKeyringNumber
-	for existingKeyringNumber in ${!keyrings_FileName[@]}
+	local -i index
+	for index in ${!keyrings_FileName[@]}
 	do
-		if [ "${keyrings_FileName[$existingKeyringNumber]}" = "$ourFileName" ]; then
-			if [ "${keyrings_Mirror[$existingKeyringNumber]}" != "$ourMirror" ]; then
+		if [ "${keyrings_FileName[$index]}" = "$ourFileName" ]; then
+			if [ "${keyrings_Mirror[$index]}" != "$ourMirror" ]; then
 				exitError "Attempt to override mirror for keyring $ourFileName to $ourMirror"
 			fi
-			if [ "${keyrings_RelativePath[$existingKeyringNumber]}" != "$ourRelativePath" ]; then
+			if [ "${keyrings_RelativePath[$index]}" != "$ourRelativePath" ]; then
 				exitError "Attempt to override mirror for keyring $ourFileName to $ourRelativePath"
 			fi
 			return 0
 		fi
 	done
 	
-	local -ir keyringNumber=${#keyrings_Mirror[@]}
-	keyrings_Mirror[$keyringNumber]="$ourMirror"
-	keyrings_RelativePath[$keyringNumber]="$ourRelativePath"
-	keyrings_FileName[$keyringNumber]="$ourFileName"
-	keyrings_Hashes[$keyringNumber]="${ourHashes//,/ }"
-	keyrings_Compression[$keyringNumber]=""
+	index=${#keyrings_Mirror[@]}
+	keyrings_Mirror+=("$ourMirror")
+	keyrings_RelativePath+=("$ourRelativePath")
+	keyrings_FileName+=("$ourFileName")
+	keyrings_Hashes+=("${ourHashes//,/ }")
+	keyrings_Compression+=("")
 	
-	signature "$ourMirror" "$ourRelativePath" "${keyrings_Hashes[$patchNumber]}"
+	signature "$ourMirror" "$ourRelativePath" "${keyrings_Hashes[$index]}"
 }
 
 function key()
@@ -183,28 +183,28 @@ function key()
 		local -r ourFileName="$4"
 	fi
 	
-	local -i existingKeyNumber
-	for existingKeyNumber in ${!keys_FileName[@]}
+	local -i index
+	for index in ${!keys_FileName[@]}
 	do
-		if [ "${keys_FileName[$existingKeyNumber]}" = "$ourFileName" ]; then
-			if [ "${keys_Mirror[$existingKeyNumber]}" != "$ourMirror" ]; then
+		if [ "${keys_FileName[$index]}" = "$ourFileName" ]; then
+			if [ "${keys_Mirror[$index]}" != "$ourMirror" ]; then
 				exitError "Attempt to override mirror for key $ourFileName to $ourMirror"
 			fi
-			if [ "${keys_RelativePath[$existingKeyNumber]}" != "$ourRelativePath" ]; then
+			if [ "${keys_RelativePath[$index]}" != "$ourRelativePath" ]; then
 				exitError "Attempt to override mirror for key $ourFileName to $ourRelativePath"
 			fi
 			return 0
 		fi
 	done
 	
-	local -ir keyNumber=${#keys_Mirror[@]}
-	keys_Mirror[$keyNumber]="$ourMirror"
-	keys_RelativePath[$keyNumber]="$ourRelativePath"
-	keys_FileName[$keyNumber]="$ourFileName"
-	keys_Hashes[$keyNumber]="${ourHashes//,/ }"
-	keys_Compression[$keyNumber]=""
+	index=${#keys_Mirror[@]}
+	keys_Mirror+=("$ourMirror")
+	keys_RelativePath+=("$ourRelativePath")
+	keys_FileName+=("$ourFileName")
+	keys_Hashes+=("${ourHashes//,/ }")
+	keys_Compression+=("")
 	
-	signature "$ourMirror" "$ourRelativePath" "${keys_Hashes[$keyNumber]}"
+	signature "$ourMirror" "$ourRelativePath" "${keys_Hashes[$index]}"
 }
 
 function hkp()
@@ -386,6 +386,7 @@ function source_package()
 	
 	sourcePackages_Name+=("$LFS_SOURCE_PACKAGE_NAME")
 	sourcePackages_Version+=("$ourSourcePackageVersion")
+	
 	sourcePackages_Mirror+=("$ourMirror")
 	sourcePackages_RelativePath+=("$ourRelativePath")
 	sourcePackages_Hashes+=("${ourHashes//,/ }")
@@ -429,12 +430,12 @@ function source_patch()
 		fi
 	done
 	
-	local -ir index=${#patches_Mirror[@]}
-	patches_Mirror[$index]="$ourMirror"
-	patches_FileName[$index]="$ourFileName"
-	patches_RelativePath[$index]="$ourRelativePath"
-	patches_Hashes[$index]="${ourHashes//,/ }"
-	patches_Compression[$index]=""
+	index=${#patches_Mirror[@]}
+	patches_Mirror+=("$ourMirror")
+	patches_FileName+=("$ourFileName")
+	patches_RelativePath+=("$ourRelativePath")
+	patches_Hashes+=("${ourHashes//,/ }")
+	patches_Compression+=("")
 	
 	if [ -z "$existingPatchIndices" ]; then
 		dependency_PatchIndices["$DependencyKey"]="$index"
