@@ -2,6 +2,7 @@ set -o errexit +o hashall
 
 version 2.23.2
 {
+	:
 }
 
 function installPackage_toolchain1_binutils()
