@@ -275,7 +275,7 @@ function source_package_alias()
 	exitError "Unknown aliased source package $aliasSourcePackageName $aliasSourcePackageVersion"
 }
 
-function clear()
+function source_package()
 {
 	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
