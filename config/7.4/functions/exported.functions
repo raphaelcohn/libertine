@@ -292,7 +292,7 @@ function source_package()
 	
 	echo
 	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
-	echo
+	exit 5
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
