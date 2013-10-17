@@ -393,9 +393,10 @@ function source_package()
 	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
 	sourcePackages_IsTarbomb+=("$isTarbomb")
 	
-	set -x
+	echo
+	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
+	echo
 	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
-	set +x
 }
 
 function source_patch()
