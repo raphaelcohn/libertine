@@ -492,7 +492,7 @@ function depends()
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
-	
+	echo depends $@
 	local -r localSourcePackageName="$1"
 	
 	local -i alreadySourced=0
