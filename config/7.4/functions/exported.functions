@@ -290,6 +290,10 @@ function source_package()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
+	echo
+	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
+	echo
+	
 	local -r compressionExtension="${ourFileName##*.}"
 	
 	if [ $# -ge 4 ]; then
@@ -392,10 +396,6 @@ function source_package()
 	sourcePackages_FileName+=("$ourFileName")
 	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
 	sourcePackages_IsTarbomb+=("$isTarbomb")
-	
-	echo
-	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
-	echo
 	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
 }
 
