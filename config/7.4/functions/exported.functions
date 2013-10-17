@@ -456,6 +456,7 @@ function version()
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
+	echo depends $@
 	local -r localSourcePackageVersion="$1"
 	
 	local -r previousVersions="${LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]}"
@@ -532,6 +533,7 @@ function depends()
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
+		echo LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
 		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
 	fi
 	
