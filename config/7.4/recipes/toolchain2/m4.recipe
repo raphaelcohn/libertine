@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 1.4.16
 {
 	depends gzip
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_m4()

@@ -2,10 +2,4 @@ set -o errexit +o hashall
 
 version 1.0.1
 {
-	include_once_per_version
-}
-
-function installPackage_toolchain2_mpc()
-{
-	:
 }

@@ -3,7 +3,6 @@ set -o errexit +o hashall
 version 5.0.5
 {
 	depends texinfo
-	include_once_per_version
 }
 
 function installPackage_toolchain2_xz()

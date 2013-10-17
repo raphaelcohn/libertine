@@ -1,22 +1,12 @@
 set -o errexit +o hashall
 
-# Ensures gcc versions in LFS_SOURCE_PACKAGE_VERSIONS are defined (gcc is a dependency of glibc)
-depends glibc
-
-# version introduces a list - local variables work because we're sourced from inside a function
-local gccVersion
-local gccPackageVersionKey
-for gccVersion in ${LFS_SOURCE_PACKAGE_VERSIONS[gcc]}
-do
-	version "$gccVersion"
-	{
-		depends glibc
+# Needs to track gcc version numbering
+version 4.8.1
+{
+	depends glibc
 	
-		gccPackageVersionKey="$(printKey gcc "$gccVersion")"
-	
-		source_package_without_download "$LFS_SOURCE_PACKAGE_NAME" "$gccVersion" "${sourcePackages_Compression["${gccPackageVersionKey}"]}" "${sourcePackages_FileName["${gccPackageVersionKey}"]}" "${sourcePackages_ExtractedTarballFolder["${gccPackageVersionKey}"]}" "${sourcePackages_IsTarbomb["${gccPackageVersionKey}"]}"
-	}
-done
+	source_package_alias "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+}
 
 function installPackage_toolchain1_libstdc++()
 {

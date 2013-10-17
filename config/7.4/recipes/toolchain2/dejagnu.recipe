@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 1.5.1
 {
 	depends expect
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_dejagnu()

@@ -105,3 +105,55 @@ function mirrorExists()
 	done
 	return 1
 }
+
+
+
+
+# Defunct
+function rehashCertificateAuthorities()
+{
+	# See https://docs.google.com/a/stormmq.com/spreadsheet/pub?key=0Ah-tHXMAwqU3dGx0cGFObG9QM192NFM4UWNBMlBaekE&single=true&gid=1&output=html for CAs
+	
+	if ! which openssl 1>/dev/null 2>/dev/null; then
+		warning "openssl isn't present, so we can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificate authorities)"
+		return 0
+	fi
+	
+	pushd "$certificateAuthoritiesPath" >/dev/null
+		local values
+		local hashValue
+		local sha1ColonSeparated
+		local hashIndex
+		local hashFile
+		local hashValue2
+		local sha1ColonSeparated2
+		for certificateAuthority in *.pem
+		do
+			values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
+			IFS=$'\t' read -r -d $'\n' hashValue sha1ColonSeparated <<<"$values"
+			hashIndex=0
+			while :
+			do
+				hashFile="$hashValue"."$hashIndex"
+				
+				if [ -L "$hashFile" ]; then
+					# It's possible this is a symlink to the same (or similar) file)
+					values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
+					IFS=$'\t' read -r -d $'\n' hashValue2 sha1ColonSeparated2 <<<"$values"
+					if [ "$sha1ColonSeparated2" = "$sha1ColonSeparated" ]; then
+						break
+					fi
+					hashIndex=$((hashIndex+1))
+					continue
+				fi
+				
+				if [ -e "$hashFile" ]; then
+					rm -rf -- "$hashFile"
+				fi
+				
+				ln --symbolic "$certificateAuthority" "$hashFile"
+				break
+			done
+		done
+	popd >/dev/null
+}

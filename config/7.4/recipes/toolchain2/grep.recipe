@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 2.14
 {
 	depends gettext
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_grep()

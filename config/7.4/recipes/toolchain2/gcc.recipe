@@ -8,8 +8,6 @@ version 4.8.1
 	depends mpfr
 	depends gmp
 	depends mpc
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_gcc()
@@ -35,9 +33,10 @@ function installPackage_toolchain2_gcc()
 		touch "$file".orig
 	done
 	
-	extractDependencyIntoBuildFolder mpfr $(resolved_dependency mpfr)
-	extractDependencyIntoBuildFolder gmp $(resolved_dependency gmp)
-	extractDependencyIntoBuildFolder mpc $(resolved_dependency mpc)
+	broken
+	extractDependencyIntoBuildFolder mpfr
+	extractDependencyIntoBuildFolder gmp
+	extractDependencyIntoBuildFolder mpc
 	
 	createBuildFolderAndPushd
 		
@@ -46,7 +45,7 @@ function installPackage_toolchain2_gcc()
 		CXX="$LFS_TGT"-g++                                                         \
 		AR="$LFS_TGT"-ar                                                           \
 		RANLIB="$LFS_TGT"-ranlib                                                   \
-		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure                                  \
+		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure                                  \
 		--prefix=/"$LFS_TOOLS"                                                            \
 		--with-local-prefix=/"$LFS_TOOLS"                                                 \
 		--with-native-system-header-dir=/"$LFS_TOOLS"/include                             \
@@ -59,7 +58,7 @@ function installPackage_toolchain2_gcc()
 		--disable-multilib                                                         \
 		--disable-bootstrap                                                        \
 		--disable-libgomp                                                          \
-		--with-mpfr-include="$currentDir"/../"$LFS_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-include="$currentDir"/../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
 		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
 		
 		make

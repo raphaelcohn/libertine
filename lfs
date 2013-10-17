@@ -472,13 +472,13 @@ function setPathsAndExports()
 		exitError "once-per-package path $oncePerPackagePath does not exist or is not a directory"
 	fi
 	
-	readonly oncePerVersionPath="$distributionConfigPath"/once-per-version
-	if [ ! -d "$oncePerVersionPath" ]; then
-		exitError "once-per-version path $oncePerVersionPath does not exist or is not a directory"
+	readonly includesPath="$distributionConfigPath"/includes
+	if [ ! -d "$includesPath" ]; then
+		exitError "includes path $includesPath does not exist or is not a directory"
 	fi
 	
 	readonly functionsPath="$distributionConfigPath"/functions
-	if [ ! -d "$oncePerVersionPath" ]; then
+	if [ ! -d "$includesPath" ]; then
 		exitError "functions path $functionsPath does not exist or is not a directory"
 	fi
 	
@@ -653,54 +653,6 @@ function createSkeletonFolderStructure()
 	ln --symbolic "$LFS_TOOLS_PATH" /
 }
 
-function rehashCertificateAuthorities()
-{
-	# See https://docs.google.com/a/stormmq.com/spreadsheet/pub?key=0Ah-tHXMAwqU3dGx0cGFObG9QM192NFM4UWNBMlBaekE&single=true&gid=1&output=html for CAs
-	
-	if ! which openssl 1>/dev/null 2>/dev/null; then
-		warning "openssl isn't present, so we can't rehash certificate authorities (only matters if curl is linked to openssl and you have changed the certificate authorities)"
-		return 0
-	fi
-	
-	pushd "$certificateAuthoritiesPath" >/dev/null
-		local values
-		local hashValue
-		local sha1ColonSeparated
-		local hashIndex
-		local hashFile
-		local hashValue2
-		local sha1ColonSeparated2
-		for certificateAuthority in *.pem
-		do
-			values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
-			IFS=$'\t' read -r -d $'\n' hashValue sha1ColonSeparated <<<"$values"
-			hashIndex=0
-			while :
-			do
-				hashFile="$hashValue"."$hashIndex"
-				
-				if [ -L "$hashFile" ]; then
-					# It's possible this is a symlink to the same (or similar) file)
-					values="$(openssl x509 -subject_hash -fingerprint -noout -in "$certificateAuthority" | awk 'BEGIN { FS="\n"; RS=""; OFS="\t"} {print $1,substr($2,18)}')"
-					IFS=$'\t' read -r -d $'\n' hashValue2 sha1ColonSeparated2 <<<"$values"
-					if [ "$sha1ColonSeparated2" = "$sha1ColonSeparated" ]; then
-						break
-					fi
-					hashIndex=$((hashIndex+1))
-					continue
-				fi
-				
-				if [ -e "$hashFile" ]; then
-					rm -rf -- "$hashFile"
-				fi
-				
-				ln --symbolic "$certificateAuthority" "$hashFile"
-				break
-			done
-		done
-	popd >/dev/null
-}
-
 function downloadCertificateAuthorities()
 {
 	local certificateAuthorityName
@@ -712,100 +664,105 @@ function downloadCertificateAuthorities()
 
 function downloadSignatures()
 {
-	local -i signatureNumber
-	for signatureNumber in ${!signatures_Mirror[@]}
+	local -i index
+	for index in ${!signatures_Mirror[@]}
 	do
-		downloadFileAndCheckHash "signature" "${signatures_Mirror[$signatureNumber]}" "${signatures_RelativePath[$signatureNumber]}" "$signaturesPath" "${signatures_FileName[$signatureNumber]}" "${signatures_Compression[$signatureNumber]}" "yes" ""
+		downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "yes" ""
 	done
 }
 
 function downloadKeyrings()
 {
-	local -i keyringNumber
-	local keyringFileName
-	for keyringNumber in ${!keyrings_Mirror[@]}
+	local -i index
+	for index in ${!keyrings_Mirror[@]}
 	do
-		keyringFileName="${keyrings_FileName[$keyringNumber]}"
-		case "$keyringFileName" in
-			
-			pubring.gpg|secring.gpg|trustdb.gpg)
-				exitError "Can not download a keyring called '$keyringFileName' as it conflicts with a GPG file"
-			;;
-			
-		esac
-		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$keyringNumber]}" "${keyrings_RelativePath[$keyringNumber]}" "$keyringsPath" "$keyringFileName" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$keyringNumber]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$index]}"
 	done
 }
 
 function downloadKeys()
 {
-	local -i keyNumber
-	for keyNumber in ${!keys_Mirror[@]}
+	local -i index
+	for index in ${!keys_Mirror[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Mirror[$keyNumber]}" "${keys_RelativePath[$keyNumber]}" "$keysPath" "${keys_FileName[$keyNumber]}" "${keys_Compression[$keyNumber]}" "yes" "${keys_Hashes[$keyNumber]}"
+		downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "yes" "${keys_Hashes[$index]}"
 	done
 }
 
 function downloadSources()
 {
 	local -i index
-	local key
-	local mirrorName
-	for index in ${!sourcePackages_IndicesToKeys[@]}
+	for index in ${!sourcePackages_Mirror[@]}
 	do
-		key="${sourcePackages_IndicesToKeys[$index]}"
-		mirrorName="${sourcePackages_Mirror["${key}"]}"
-		if [ ! -z "$mirrorName" ]; then
-			downloadFileAndCheckHash "source package" "$mirrorName" "${sourcePackages_RelativePath["${key}"]}" "$LFS_SOURCES_PATH" "${sourcePackages_FileName["${key}"]}" "${sourcePackages_Compression["${key}"]}" "no" "${sourcePackages_Hashes["${key}"]}"
-		fi
-		
-		local -i patchNumber
-		for patchNumber in ${sourcePackages_Patches["${key}"]}
-		do
-			downloadFileAndCheckHash "patch" "${patches_Mirror[$patchNumber]}" "${patches_RelativePath[$patchNumber]}" "$LFS_SOURCES_PATH" "${patches_FileName[$patchNumber]}" "${patches_Compression[$patchNumber]}" "no" "${patches_Hashes[$patchNumber]}"
-		done
+		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "$LFS_SOURCES_PATH" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "no" "${sourcePackages_Hashes[$index]}"
 	done
 }
 
-function installationFailedTrapHandler()
+function downloadPatches()
 {
-	set +x
-	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
+	local -i index
+	for index in ${!patches_Mirror[@]}
+	do
+		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "$LFS_SOURCES_PATH" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "no" "${patches_Hashes[$index]}"
+	done
 }
 
-function installLocation()
+function dependencyToPath()
 {
-	local -r key="$1"
-	echo /opt/lfs/"$LFS_VERSION"/"${sourcePackages_SourcePackageName["${key}"]}"/"${sourcePackages_Version["${key}"]}"/"${sourcePackages_RecipeHash["${key}"]}"
+	local -r phase="$1"
+	local -r sourcePackageName="$2"
+	local -r version="$3"
+	
+	dependency_key "$phase" "$sourcePackageName" "$version"
+	local -r installationRelativePath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"/"$phase"/"$sourcePackageName"/"$version"/"${dependency_RecipeHash["$DependencyKey"]}"-"${include_Hash["$sourcePackageName"]}"
+	
+	# This is our path, less the last part which is a hash of all dependencies
 }
 
 function installPackage()
 {
-	local -r phase="$1"
-	local -r key="$2"
-	shift 2
+	LFS_PHASE="$1"
+	LFS_DEPENDENCY_KEY="$2"
+	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_NAME"]}"
+	local -ir LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_NAME"]}"
 	
-	LFS_PHASE="$phase"
-	LFS_KEY="$key"
-	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_SourcePackageName["${key}"]}"
-	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version["${key}"]}"
-	LFS_RECIPE_HASH_VALUE="${sourcePackages_RecipeHash["${key}"]}"
+	if [ $LFS_DEPENDENCY_SKIP_INSTALL -eq 1 ]; then
+		return 0
+	fi
 	
-	LFS_INSTALL_LOCATION="$(installLocation "$key")"
+	LFS_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_Name[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_SOURCE_PACKAGE_COMPRESSION="${sourcePackages_Compression[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_SOURCE_PACKAGE_FILENAME="${sourcePackages_FileName[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_SOURCE_PACKAGE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_SOURCE_PACKAGE_INDEX]}"
 	
-	progressMessage "Installing phase $LFS_PHASE source package $LFS_SOURCE_PACKAGE_NAME version $LFS_SOURCE_PACKAGE_VERSION ($key)"
+	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
+	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
 	
-	LFS_OUR_COMPRESSION="${sourcePackages_Compression["${key}"]}"
-	local -r LFS_OUR_FILENAME="${sourcePackages_FileName["${key}"]}"
-	LFS_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder["${key}"]}"
-	LFS_PATCHES="${sourcePackages_Patches["${key}"]}"
-	local -r LFS_IS_TARBOMB="${sourcePackages_IsTarbomb["${key}"]}"
-	
+	local -r logPathPrefix="$LFS_LOG_PATH"/"$LFS_DEPENDENCY_KEY"
+	local -r extractStdOutLogFile="$logPathPrefix".extract.stdout.log
+	local -r extractStdErrLogFile="$logPathPrefix".extract.stderr.log
+	local -r installStdOutLogFile="$logPathPrefix".install.stdout.log
+	local -r installStdErrLogFile="$logPathPrefix".install.stderr.log
 	local -i exitCode
 	
+	
+	
+	
+	#LFS_INSTALL_LOCATION="$(installLocation "$key")"
+	
+	
+	
+	
+	
+	progressMessage "Installing phase $LFS_PHASE source package $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($key)"
+	
 	# Use an override (versioned) installer, otherwise the default
-	local -r installer_versioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}_${LFS_SOURCE_PACKAGE_VERSION}
-	local -r installer_unversioned=installPackage_${phase}_${LFS_SOURCE_PACKAGE_NAME}
 	if type "$installer_versioned" &>/dev/null; then
 		local -r installer="$installer_versioned"
 	elif type "$installer_unversioned" &>/dev/null; then
@@ -814,39 +771,31 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
-	local -r logPathPrefix="$LFS_LOG_PATH"/"$phase"/"${LFS_SOURCE_PACKAGE_NAME}"-"${LFS_SOURCE_PACKAGE_VERSION}"
-	
-	local -r extractStdOutLogFile="$logPathPrefix".extract.stdout.log
-	local -r extractStdErrLogFile="$logPathPrefix".extract.stderr.log
-	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
-		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
-			if ! tarExtract "$LFS_OUR_FILENAME" "$LFS_EXTRACTED_TARBALL_FOLDER" "$LFS_OUR_COMPRESSION" "$LFS_IS_TARBOMB" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
+		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+			if ! tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
 				progressMessageFailed "extraction failed, logs in $logPathPrefix.extract.*.log"
 			else
 				progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 			fi
 		fi
-	
-		local -r installStdOutLogFile="$logPathPrefix".install.stdout.log
-		local -r installStdErrLogFile="$logPathPrefix".install.stderr.log
 		
-		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
-			pushd "$LFS_EXTRACTED_TARBALL_FOLDER" >/dev/null
+		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+			pushd "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
-			
+		
 			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $logPathPrefix.install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"
 				exec 7>&2 2>"$installStdErrLogFile"
 					
-					local -i patchNumber
-					for patchNumber in $LFS_PATCHES
+					local -i index
+					for index in ${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}
 					do
-						echo "Applying patch ${patches_FileName[$patchNumber]}"
-						if ! patch -Np1 -i ../"${patches_FileName[$patchNumber]}"; then
+						echo "Applying patch ${patches_FileName[$index]}"
+						if ! patch -Np1 -i ../"${patches_FileName[$index]}"; then
 							exit 100
 						fi
 					done
@@ -861,9 +810,9 @@ function installPackage()
 				
 			removeLastTrapHandler
 		
-		if [ ! -z "$LFS_EXTRACTED_TARBALL_FOLDER" ]; then
+		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
 			popd >/dev/null
-			rm -rf -- "$LFS_EXTRACTED_TARBALL_FOLDER"
+			rm -rf -- "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"
 		fi
 		
 	popd >/dev/null
@@ -876,9 +825,9 @@ function installPackages()
 	local -r phase="$1"
 	local key
 	
-	for key in ${phase_InstallationOrder["${phase}"]}
+	for dependencyKey in ${phase_InstallationOrder["${phase}"]}
 	do
-		installPackage "$phase" "$key"
+		installPackage "$phase" "$dependencyKey"
 	done
 }
 
@@ -1253,6 +1202,7 @@ function main()
 	downloadKeyrings
 	downloadKeys
 	downloadSources
+	downloadPatches
 	
 	createOrUseBackUpToolchain
 	

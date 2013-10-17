@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 5.18.1
 {
 	depends patch
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_perl()

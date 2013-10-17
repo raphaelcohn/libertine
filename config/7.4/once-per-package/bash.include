@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-addCVE 21050 GNU-Bash

@@ -3,10 +3,6 @@ set -o errexit +o hashall
 version 4.2
 {
 	depends ncurses
-	
-	include_once_per_package
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_bash()

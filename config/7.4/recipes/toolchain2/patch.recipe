@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 2.7.1
 {
 	depends make
-
-	include_once_per_version
 }
 
 function installPackage_toolchain2_patch()

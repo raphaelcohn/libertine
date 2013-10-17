@@ -1,0 +1,5 @@
+set -o errexit +o hashall
+
+source_package MPC "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:b32a2e1a3daa392372fbd586d1ed3679
+
+source_package_skip_install toolchain1 toolchain2

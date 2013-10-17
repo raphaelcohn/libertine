@@ -1,3 +1,0 @@
-set -o errexit +o hashall
-
-source_package_with_download GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.xz MD5:99180208ec2a82ce71f55b0d7389f1b3,KEYRING:gnu-keyring.gpg

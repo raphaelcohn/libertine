@@ -2,9 +2,9 @@ set -o errexit +o hashall
 
 version 1.42.8
 {
+	source_package SOURCEFORGE "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:8ef664b6eb698aa6b733df59b17b9ed4
+	
 	depends util-linux
-
-	source_package_with_download SOURCEFORGE "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.gz MD5:8ef664b6eb698aa6b733df59b17b9ed4
 }
 
 function installPackage_system_e2fsprogs()

@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 0.18.3
 {
 	depends gawk
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_gettext()

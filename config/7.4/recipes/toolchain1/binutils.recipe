@@ -2,7 +2,6 @@ set -o errexit +o hashall
 
 version 2.23.2
 {
-	include_once_per_version
 }
 
 function installPackage_toolchain1_binutils()
@@ -11,7 +10,7 @@ function installPackage_toolchain1_binutils()
 
 	createBuildFolderAndPushd
 
-		../"$LFS_EXTRACTED_TARBALL_FOLDER"/configure \
+		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix=/"$LFS_TOOLS" \
 		--with-sysroot="$LFS" \
 		--with-lib-path=/"$LFS_TOOLS"/lib \

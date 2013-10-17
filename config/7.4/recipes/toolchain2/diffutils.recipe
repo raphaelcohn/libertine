@@ -3,8 +3,6 @@ set -o errexit +o hashall
 version 3.3
 {
 	depends coreutils
-	
-	include_once_per_version
 }
 
 function installPackage_toolchain2_diffutils()

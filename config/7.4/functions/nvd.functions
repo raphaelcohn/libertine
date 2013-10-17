@@ -1,0 +1,65 @@
+set -o errexit +o hashall
+
+# NVD Hosts most data (nvd.nist.gov)
+# scapsync.com provides good JSON / XML feeds of most of it
+
+# NON-HTTPS list of all cpe identifiers, updated pretty much daily (supports ETag,Ranges but is huge at 16Mb)
+# http://static.nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.gz
+# http://static.nvd.nist.gov/feeds/xml/cpe/dictionary/ contains archives, but the file naming is NOT friendly and NOT compressed
+# https://nvd.nist.gov/download.cfm lists downloads of 
+# http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-2002.xml  All data for 2002 and prior
+# http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-2003.xml through http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-2012.xml  All data for each year
+# http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-2023.xml  All data for current year to date (also -modified, -recent files but it's not clear what timescale they use)
+
+# Also OSVDB (http://www.osvdb.org/) as opposed to NVD and cvedetails.com
+
+# Also https://www.scaprepo.com/ is a good place to query
+# One of the problems is we can only add CPEs post a version is made vulnerable
+# eg addCPE 4.2 cpe:/a:gnu:bash:4.2
+# Not all CPEs are predictable, eg for java:-
+# cpe:/a:oracle:jdk:1.6.0:update_23
+# However, in this case, we could 'guess' the CPE based on previously registered ones
+# Other CPEs are unversioned, eg this one for gnu gzip:  cpe:/a:gnu:gzip  but also cpe:/a:gnu:gzip:1.2.4 and 
+# for maximum confusion, cpe:/a:gnu:gzip:1.2.4a
+
+# scapsync - very useful
+# Also try curl -H 'Accept: text/xml'  http://scapsync.com/cpe/cpe:/h:apple:ipad
+# For bash, one would use: 
+
+function addCVE()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Not enough arguments"
+	fi
+	
+	local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r cveProductId="$1"
+	local -r cveProductName="$2"
+	
+	# https://cve.mitre.org/data/downloads/allitems.csv.gz
+	#
+	# https://nvd.nist.gov/download.cfm  eg
+	# http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-recent.xml
+	# Contains entry elements, buried within which are cpe-lang expressions (oh, for f's sake, can't people make things simple)?
+	# These ultimately reference things like cpe:/a:adobe:coldfusion:9.0 and cpe:/a:adobe:coldfusion:9.0.2 which presumably match affected packages
+	# another example is  cpe:/a:eucalyptus:eucalyptus:3.2.1  
+	#
+	# A php XML parser for the list is at  http://homes.cerias.purdue.edu/~pmeunier/nvd_xml_parser.txt
+	# A ruby one is at http://seclists.org/fulldisclosure/2011/Feb/356
+	# An old perl one is at http://www.perlmonks.org/?node_id=625277
+	
+	# holds product definitions (but includes versions, too, irritating)
+	# http://static.nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml
+	#<cpe-item name="cpe:/a:gnu:bash:1.14.0">
+	#	<title xml:lang="en-US">GNU Bourne-Again SHellbash (GNU Bash) 1.14.0</title>
+	#	<cpe-23:cpe23-item name="cpe:2.3:a:gnu:bash:1.14.0:*:*:*:*:*:*:*"/>
+	#</cpe-item>
+	# https://web.nvd.nist.gov/view/cpe/search/results?searchChoice=keyword&searchText=bash
+	#
+	# Not all CVEs are fixed; there's an outstanding one for bash from 1999.
+	#
+	#
+	# CPE -- vendor, product, version
+	#
+	#
+}

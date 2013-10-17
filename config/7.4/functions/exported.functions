@@ -17,26 +17,6 @@ declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
 
-# Exists because ${!sourcePackages_XXXX[@]} returns INDICES not KEYS; we can also use indices it seems against associative arrays
-declare_for_chroot -a sourcePackages_IndicesToKeys
-declare_for_chroot -A sourcePackages_SourcePackageName
-declare_for_chroot -A sourcePackages_Version
-declare_for_chroot -A sourcePackages_Mirror
-declare_for_chroot -A sourcePackages_RelativePath
-declare_for_chroot -A sourcePackages_Compression
-declare_for_chroot -A sourcePackages_FileName
-declare_for_chroot -A sourcePackages_ExtractedTarballFolder
-declare_for_chroot -A sourcePackages_IsTarbomb
-declare_for_chroot -A sourcePackages_Hashes
-declare_for_chroot -A sourcePackages_Patches
-declare_for_chroot -A sourcePackages_RecipeHash
-
-declare_for_chroot -a patches_Mirror
-declare_for_chroot -a patches_RelativePath
-declare_for_chroot -a patches_FileName
-declare_for_chroot -a patches_Hashes
-declare_for_chroot -a patches_Compression
-
 declare -i nextSystemUid=-1
 declare -i nextSystemGid=-1
 declare -i nextUserUid=-1
@@ -58,10 +38,6 @@ declare -a latePathCommands
 
 declare_for_chroot -a previousMirrors
 declare_for_chroot -a previousProfiles
-
-declare_for_chroot -A phase_PreviousRecipes
-phase_PreviousRecipes+=(['toolchain1']="" ['toolchain2']="" ['system']="")
-declare_for_chroot -A phase_InstallationOrder
 
 function progressMessage()
 {
@@ -100,46 +76,11 @@ function progressMessageSucceeded()
 	echo " PASSED (in ${SECONDS}s)"
 }
 
-function printKey()
+function dependency_key()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Too many arguments"
-	fi
-	
-	local -r localSourcePackageName="$1"
-	local -r localVersion="$2"
-	# bash has problems with keys containing non-alphanumerics when the key has not previously been added to an associative array
-	# this is a problem for existence checks
+	# bash has problems with keys containing non-alphanumerics
 	# printf so as to avoid tr replacing a trailing \n (as would happen with a heredoc)
-	printf '%s' "${localSourcePackageName}:${localVersion}" | tr --complement '[:alpha:][:digit:]' '_'
-}
-
-function printDistributionVersionKey()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	local -r localDistributionVersion="$1"
-	printf '%s' "${localDistributionVersion}" | tr --complement '[:alpha:][:digit:]' '_'
-}
-
-function sourcePackagesKeyExists()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Too many arguments"
-	fi
-	
-	local -r key="$1"
-	local -i index
-	for index in ${!sourcePackages_IndicesToKeys[@]}
-	do
-		if [ "$key" = "${sourcePackages_IndicesToKeys[$index]}" ]; then
-			# key already exists
-			return 0
-		fi
-	done
-	return 1
+	DependencyKey="$(printf '%s:%s:%s' "$1" "$2" "$3" | tr --complement '[:alpha:][:digit:]' '_')"
 }
 
 function signature()
@@ -274,46 +215,67 @@ function hkp()
 	key HKPS "$keyId" "" "$keyId"
 }
 
-function source_package_without_download()
+declare_for_chroot -A dependency_Phase
+declare_for_chroot -A dependency_Name
+declare_for_chroot -A dependency_Version
+declare_for_chroot -A dependency_RecipeHash
+declare_for_chroot -Ai dependency_SourcePackageIndex
+declare_for_chroot -A dependency_PatchIndices
+declare_for_chroot -A dependency_Dependencies
+declare_for_chroot -A dependency_Path
+declare_for_chroot -Ai dependency_SkipInstall
+
+declare_for_chroot -a sourcePackages_Name
+declare_for_chroot -a sourcePackages_Version
+declare_for_chroot -a sourcePackages_Mirror
+declare_for_chroot -a sourcePackages_RelativePath
+declare_for_chroot -a sourcePackages_Hashes
+declare_for_chroot -a sourcePackages_FileName
+declare_for_chroot -a sourcePackages_Compression
+declare_for_chroot -a sourcePackages_ExtractedTarballFolder
+declare_for_chroot -a sourcePackages_IsTarbomb
+
+declare_for_chroot -a patches_Mirror
+declare_for_chroot -a patches_RelativePath
+declare_for_chroot -a patches_FileName
+declare_for_chroot -a patches_Hashes
+declare_for_chroot -a patches_Compression
+
+function source_package_skip_install()
 {
-	case $# in
-		1|6)
-			:
-		;;
-		
-		*)
-			exitError "Needs 1 or 6 arguments"
-		;;
-	esac
-	
-	if [ $# -eq 1 ]; then
-		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-		local -r ourSourcePackageVersion="$1"
-	else
-		local -r ourSourcePackageName="$1"
-		local -r ourSourcePackageVersion="$2"
-	fi
-	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
-	
-	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
-	if sourcePackagesKeyExists "$key"; then
-		return 0
-	fi
-	sourcePackages_IndicesToKeys["${#sourcePackages_IndicesToKeys[@]}"]="$key"
-	sourcePackages_SourcePackageName["${key}"]="$ourSourcePackageName"
-	sourcePackages_Version["${key}"]="$ourSourcePackageVersion"
-	sourcePackages_RecipeHash["${key}"]="$LFS_RECIPE_HASH_VALUE"
-	
-	if [ $# -eq 6 ]; then
-		sourcePackages_Compression["${key}"]="$3"
-		sourcePackages_FileName["${key}"]="$4"
-		sourcePackages_ExtractedTarballFolder["${key}"]="$5"
-		sourcePackages_IsTarbomb["${key}"]="$6"
-	fi
+	local phase
+	for phase in "$@"
+	do
+		if [ "$phase" = "$LFS_PHASE" ]; then
+			dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+			dependency_SkipInstall["$DependencyKey"]=1
+			return 0
+		fi
+	done
 }
 
-function source_package_with_download()
+function source_package_alias()
+{
+	local -r aliasSourcePackageName="$1"
+	local -r aliasSourcePackageVersion="$2"
+	
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	
+	local -i index
+	for index in ${!sourcePackages_Name[@]}
+	do
+		if [ "${sourcePackages_Name[$index]}" = "$aliasSourcePackageName" ]; then
+			if [ "${sourcePackages_Version[$index]}" = "$aliasSourcePackageVersion" ]; then
+				dependency_SourcePackageIndex["$DependencyKey"]=$index
+				return 0
+			fi
+		fi
+	done
+	
+	exitError "Unknown aliased source package $aliasSourcePackageName $aliasSourcePackageVersion"
+}
+
+function source_package()
 {
 	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
@@ -331,31 +293,26 @@ function source_package_with_download()
 	local -r compressionExtension="${ourFileName##*.}"
 	
 	if [ $# -ge 4 ]; then
-		local -r LFS_EXTRACTED_TARBALL_FOLDER="$4"
+		local -r ourExtractedTarballFolder="$4"
 	else
 		local -r withoutCompressionExtension="${ourFileName%.*}"
 		if [ -z "$compressionExtension" ]; then
-			local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
+			local -r ourExtractedTarballFolder="$withoutCompressionExtension"
 		else
 			case "$compressionExtension" in
 				
 				# The various abominations are also slackware packages (txz, tgz especially)
 				tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
-					local -r LFS_EXTRACTED_TARBALL_FOLDER="$withoutCompressionExtension"
+					local -r ourExtractedTarballFolder="$withoutCompressionExtension"
 				;;
 				
 				*)
-					local -r LFS_EXTRACTED_TARBALL_FOLDER="${withoutCompressionExtension%.*}"
+					local -r ourExtractedTarballFolder="${withoutCompressionExtension%.*}"
 				;;
 				
 			esac
 		fi
 	fi
-	
-	# TODO:  cpio/cpgz  zip/jar/war/ear  ar/deb  shar  rpm (using rpm2cpio, so we can think of rpm as a compressed cpio file)
-	# TODO: support non-tar formats, eg cpio/rpm, zip, ar/deb
-	# TODO: split compression from tar for non-tar formats
-	#
 	
 	if [ $# -ge 5 ]; then
 		local -r ourCompression="$5"
@@ -410,32 +367,38 @@ function source_package_with_download()
 		local -r isTarbomb="no"
 	fi
 	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourSourcePackageVersion")"
-	
-	# There are very nasty bugs in bash that mean a key can 'already exist' but with the previously added key's value!
-	if sourcePackagesKeyExists "$key"; then
-		local -r existingMirror="${sourcePackages_Mirror["${key}"]}"
-		if [ "${sourcePackages_Mirror["${key}"]}" != "$ourMirror" ]; then
-			exitError "Attempt to override mirror for source package $ourFileName to $ourMirror"
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$ourSourcePackageVersion"
+	local -i index
+	for index in ${!sourcePackages_Name[@]}
+	do
+		if [ "${sourcePackages_Name[$index]}" = "$LFS_SOURCE_PACKAGE_NAME" ]; then
+			if [ "${sourcePackages_Version[$index]}" = "$ourSourcePackageVersion" ]; then
+				dependency_SourcePackageIndex["$DependencyKey"]=$index
+				return 0
+			fi
 		fi
-		if ["${sourcePackages_RelativePath["${key}"]}" != "$ourRelativePath" ]; then
-			exitError "Attempt to override mirror for source package $ourFileName to $ourRelativePath"
-		fi
-		return 0
-	fi
+	done
 	
-	source_package_without_download "$ourSourcePackageName" "$ourSourcePackageVersion" "$ourCompression" "$ourFileName" "$LFS_EXTRACTED_TARBALL_FOLDER" "$isTarbomb"
+	index=${#sourcePackages_Name[@]}
+	dependency_SourcePackageIndex["$DependencyKey"]=$index
 	
-	sourcePackages_Mirror["${key}"]="$ourMirror"
-	sourcePackages_RelativePath["${key}"]="$ourRelativePath"
-	sourcePackages_Hashes["${key}"]="${ourHashes//,/ }"
-	sourcePackages_Patches["${key}"]=""
+	sourcePackages_Name+=("$LFS_SOURCE_PACKAGE_NAME")
+	sourcePackages_Version+=("$ourSourcePackageVersion")
+	sourcePackages_Mirror+=("$ourMirror")
+	sourcePackages_RelativePath+=("$ourRelativePath")
+	sourcePackages_Hashes+=("${ourHashes//,/ }")
+	sourcePackages_Compression+=("$ourCompression")
+	sourcePackages_FileName+=("$ourFileName")
+	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
+	sourcePackages_IsTarbomb+=("$isTarbomb")
 	
-	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes["${key}"]}"
+	signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
 }
 
-function patch_download()
+function source_patch()
 {
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$localSourcePackageVersion"
+	
 	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
@@ -447,37 +410,165 @@ function patch_download()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
-	local -r key="$(printKey "$ourSourcePackageName" "$ourVersion")"
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$ourSourcePackageVersion"
+	local -r existingPatchIndices="${dependency_PatchIndices["$DependencyKey"]}"
+	local -i index
+	for index in ${patches_RelativePath["${key}"]}
+	do
+		if [ "${patches_RelativePath[$index]}" = "$ourRelativePath" ]; then
+			if [ "${patches_Mirror[$index]}" = "$ourMirror" ]; then
+				if [ -z "$existingPatchIndices" ]; then
+					dependency_PatchIndices["$DependencyKey"]="$index"
+				else
+					dependency_PatchIndices["$DependencyKey"]="$existingPatchIndices $index"
+				fi
+				return 0
+			fi
+		fi
+	done
 	
-	# Ensure a tar ball download exists
-	if ! sourcePackagesKeyExists "$key"; then
-		exitError "No source package exists for patch $ourFileName to $ourSourcePackageName version $ourVersion"
+	local -ir index=${#patches_Mirror[@]}
+	patches_Mirror[$index]="$ourMirror"
+	patches_FileName[$index]="$ourFileName"
+	patches_RelativePath[$index]="$ourRelativePath"
+	patches_Hashes[$index]="${ourHashes//,/ }"
+	patches_Compression[$index]=""
+	
+	if [ -z "$existingPatchIndices" ]; then
+		dependency_PatchIndices["$DependencyKey"]="$index"
+	else
+		dependency_PatchIndices["$DependencyKey"]="$existingPatchIndices $index"
 	fi
 	
-	# Check for duplicate patches
-	local -i existingPatchNumber
-	for existingPatchNumber in ${sourcePackages_Patches["${key}"]}
+	signature "$ourMirror" "$ourRelativePath" "${patches_Hashes[$index]}"
+}
+
+function version()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
+	fi
+	local -r localSourcePackageVersion="$1"
+	
+	local -r previousVersions="${LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	if [ -z "$previousVersions" ]; then
+		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
+	else
+		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$previousVersions $localSourcePackageVersion"
+	fi
+	LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
+	
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$localSourcePackageVersion"
+	dependency_Phase["$DependencyKey"]="$LFS_PHASE"
+	dependency_Name["$DependencyKey"]="$LFS_SOURCE_PACKAGE_NAME"
+	dependency_Version["$DependencyKey"]="$localSourcePackageVersion"
+	dependency_RecipeHash["$DependencyKey"]="$LFS_RECIPE_HASH"
+	dependency_IncludeHash["$DependencyKey"]="$LFS_INCLUDE_HASH"
+	dependency_SourcePackageIndex["$DependencyKey"]=-1
+	dependency_PatchIndices["$DependencyKey"]=""
+	dependency_Dependencies["$DependencyKey"]=""
+	dependency_Path["$DependencyKey"]=""
+	dependency_SkipInstall["$DependencyKey"]=0
+	
+	if [ -f "$LFS_INCLUDE_FILE" ]; then
+		source "$LFS_INCLUDE_FILE"
+	fi
+}
+
+declare_for_chroot -A phase_PreviousRecipes
+phase_PreviousRecipes+=(['toolchain1']="" ['toolchain2']="" ['system']="")
+declare_for_chroot -A phase_InstallationOrder
+
+function depends()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
+	fi
+	
+	local -r localSourcePackageName="$1"
+	
+	local -i alreadySourced=0
+	local previousRecipe
+	for previousRecipe in ${phase_PreviousRecipes["${LFS_PHASE}"]}
 	do
-		if [ "${patches_FileName[$existingPatchNumber]}" = "$ourFileName" ]; then
-			if [ "${patches_Mirror[$existingPatchNumber]}" != "$ourMirror" ]; then
-				exitError "Attempt to override mirror for key $ourFileName to $ourMirror"
-			fi
-			if [ "${patches_RelativePath[$existingPatchNumber]}" != "$ourRelativePath" ]; then
-				exitError "Attempt to override mirror for key $ourFileName to $ourRelativePath"
-			fi
+		if [ "$previousRecipe" = "$localSourcePackageName" ]; then
+			alreadySourced=1
+			break
+		fi
+	done
+	
+	if [ $alreadySourced -eq 0 ]; then
+		
+		local -r recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
+		
+		if [ ! -f "$recipeFile" ]; then
+			exitError "recipe $localSourcePackageName ($recipeFile) does not exist or is not a file"
+		fi
+		
+		# Prevent recursion
+		phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
+	
+		# set / unset inside include_phase
+		# Set to blank to avoid bash's associative array bugs with non-existent members (it aliases the last added member)
+		LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]=""
+		
+		# Holds the last set version
+		LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]=""
+	
+		local -r includeFile="$includesPath"/"$LFS_SOURCE_PACKAGE_NAME".include
+		if [ -f "$includeFile" ]; then
+			local -r includeHash="$(sha512sum "$includeFile" | awk 'NR==1 {print $1}')"
+		else
+			local -r includeHash="0"
+		fi
+		
+		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
+		# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
+	fi
+	
+	# We currently only do this for the last set version. In future, we might be able to take a directive from above
+	# if depends bash is called, which does version 4.2, depends gcc, version 2.5, then once back in 'depends bash':-
+	#  LFS_SOURCE_PACKAGE_NAME is blank
+	# "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"   is 4.2
+	#  localSourcePackageName is gcc
+	# "${LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]}"   is 2.5
+	
+	# Add to parent's dependencies
+	# LFS_SOURCE_PACKAGE_NAME will be blank for the package listed in the profile
+	dependency_key "$LFS_PHASE" "$localSourcePackageName" "${LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]}"
+	local -r child="$DependencyKey"
+	
+	if [ ! -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
+		dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+		local -r parent="$DependencyKey"
+		local -r dependencies="${dependency_Dependencies["$parent"]}"
+		if [ -z "$dependencies" ]; then
+			dependency_Dependencies["$parent"]="$child"
+		else
+			dependency_Dependencies["$parent"]="$dependencies $child"
+		fi
+	fi
+	
+	local existingInstall
+	for existingInstall in "${phase_InstallationOrder["${LFS_PHASE}"]}"
+	do
+		if [ "$existingInstall" = "$child" ]; then
 			return 0
 		fi
 	done
 	
-	local -ir patchNumber=${#patches_Mirror[@]}
-	patches_Mirror[$patchNumber]="$ourMirror"
-	patches_RelativePath[$patchNumber]="$ourRelativePath"
-	patches_FileName[$patchNumber]="$ourFileName"
-	patches_Hashes[$patchNumber]="${ourHashes//,/ }"
-	patches_Compression[$patchNumber]=""
-	sourcePackages_Patches["${key}"]="${sourcePackages_Patches["${key}"]} $patchNumber"
-	
-	signature "$ourMirror" "$ourRelativePath" "${patches_Hashes[$patchNumber]}"
+	local -r all="${phase_InstallationOrder["${LFS_PHASE}"]}"
+	if [ -z "$all" ]; then
+		phase_InstallationOrder["${LFS_PHASE}"]="$child"
+	else
+		phase_InstallationOrder["${LFS_PHASE}"]="$all $child"
+	fi
+}
+
+function conflicts()
+{
+	exitError "Unimplemented"
 }
 
 function system_group()
@@ -703,7 +794,7 @@ function recurse_callback_permissions()
 	local -r extendedAttributesToApplyFirst="$5"
 	local -r extendedAttributesToApplyLast="$6"
 	
-	chmod "$mode" "$target" -- "$target"
+	chmod "$mode" -- "$target"
 	chown $uid:$gid -- "$target"
 	if [ ! -z "$extendedAttributesToApplyFirst" ]; then
 		chattr +"$extendedAttributesToApplyFirst" "$target"
@@ -937,256 +1028,6 @@ function include_profile()
 	fi
 }
 
-function version()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Needs 1 argument"
-	fi
-	local -r localSourcePackageVersion="$1"
-	
-	local -r previousVersions="${LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]}"
-	if [ -z "$previousVersions" ]; then
-		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
-	else
-		LFS_SOURCE_PACKAGE_VERSIONS["${LFS_SOURCE_PACKAGE_NAME}"]="$previousVersions $localSourcePackageVersion"
-	fi
-	LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]="$localSourcePackageVersion"
-}
-
-declare_for_chroot -a alreadyIncludedOncePerPackages
-function include_once_per_package()
-{
-	local alreadyIncludedOncePerPackage
-	for alreadyIncludedOncePerPackage in "${alreadyIncludedOncePerPackages[@]}"
-	do
-		if [ "$alreadyIncludedOncePerPackage" = "$LFS_SOURCE_PACKAGE_NAME" ]; then
-			return 0
-		fi
-	done
-	alreadyIncludedOncePerPackages+=("$LFS_SOURCE_PACKAGE_NAME")
-	
-	if [ -f "$oncePerPackagePath"/"$LFS_SOURCE_PACKAGE_NAME".include ]; then
-		source "$oncePerPackagePath"/"$LFS_SOURCE_PACKAGE_NAME".include
-	else
-		exitError "include once-per-package $ourSourcePackageName.include does not exist in path $oncePerPackagePath or is not a file"
-	fi
-}
-
-declare_for_chroot -a alreadyIncludedOncePerVersionKeys
-function include_once_per_version()
-{
-	local -r ourSourcePackageVersion="${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
-	
-	local -r key="$(printKey "$LFS_SOURCE_PACKAGE_NAME" "$ourSourcePackageVersion")"
-	
-	local alreadyIncludedOncePerVersionKey
-	for alreadyIncludedOncePerVersionKey in "${alreadyIncludedOncePerVersionKeys[@]}"
-	do
-		if [ "$alreadyIncludedOncePerVersionKey" = "$key" ]; then
-			return 0
-		fi
-	done
-	alreadyIncludedOncePerVersionKeys+=("$key")
-	
-	if [ -f "$oncePerVersionPath"/"$LFS_SOURCE_PACKAGE_NAME".include ]; then
-		source "$oncePerVersionPath"/"$LFS_SOURCE_PACKAGE_NAME".include
-	else
-		exitError "include once-per-version $LFS_SOURCE_PACKAGE_NAME.include does not exist in path $oncePerVersionPath or is not a file"
-	fi
-}
-
-function depends()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Needs 1 argument"
-	fi
-	
-	local -r localSourcePackageName="$1"
-	
-	local previousRecipe
-	for previousRecipe in ${phase_PreviousRecipes["${LFS_PHASE}"]}
-	do
-		if [ "$previousRecipe" = "$localSourcePackageName" ]; then
-			return 0
-		fi
-	done
-	
-	local -r recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
-	
-	if [ ! -f "$recipeFile" ]; then
-		exitError "recipe $localSourcePackageName ($recipeFile) does not exist or is not a file"
-	fi
-	
-	local -r hashValue="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')"
-	
-	# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
-	# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
-	
-	# Prevent recursion
-	phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
-	
-	# set / unset inside include_phase
-	# Set to blank to avoid bash's associative array bugs with non-existent members (it aliases the last added member)
-	LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]=""
-	# Holds the last set version - useful for scripting
-	LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]=""
-	LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH_VALUE="$hashValue" source "$recipeFile"
-	
-	# this needs to be the LAST call to version BEFORE depends
-	local localSourcePackageVersion
-	local key
-	local previousDependenciesInstall
-	local previousDependency
-	
-	for localSourcePackageVersion in ${LFS_SOURCE_PACKAGE_VERSIONS["${localSourcePackageName}"]}
-	do
-		# Add to installation for phase if not previously added to this phase
-		key="$(printKey "$localSourcePackageName" "$localSourcePackageVersion")"
-		previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
-		for previousDependency in $previousDependenciesInstall
-		do
-			if [ "$previousDependency" = "$key" ]; then
-				break
-			fi
-		done
-		phase_InstallationOrder["${LFS_PHASE}"]="$previousDependenciesInstall $key"
-	done
-}
-
-function resolved_dependency()
-{
-	local -r dependencySourcePackageName="$1"
-	
-	case "$LFS_SOURCE_PACKAGE_NAME" in
-		
-		gcc)
-			
-			case "$LFS_SOURCE_PACKAGE_VERSION" in
-				
-				4.8.1)
-					
-					case "$dependencySourcePackageName" in
-						
-						mpc)
-							echo 1.0.1
-						;;
-						
-						gmp)
-							echo 5.1.2
-						;;
-						
-						mpfr)
-							echo 3.1.2
-						;;
-						
-						*)
-							exitError "Not yet supported"
-						;;
-						
-					esac
-					
-				;;
-				
-				*)
-					exitError "Not yet supported"
-				;;
-				
-			esac
-		;;
-		
-		*)
-			exitError "Not yet supported"
-		;;
-		
-	esac
-}
-
-function conflicts()
-{
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
-	fi
-	
-	local -r localConflictsWithSourcePackageName="$1"
-	local -r localConflictsWithVersion="$2"
-	local -r key="$(printKey "$localConflictsWithSourcePackageName" "$localConflictsWithVersion")"
-	
-	local previousDependenciesInstall="${phase_InstallationOrder["${LFS_PHASE}"]}"
-	local previousDependency
-	local -i alreadyInstalled=1
-	for previousDependency in $previousDependenciesInstall
-	do
-		if [ "$previousDependency" = "$key" ]; then
-			exitError "Package $LFS_SOURCE_PACKAGE_NAME conflicts with $localConflictsWithSourcePackageName"
-		fi
-	done
-}
-
-# Also https://www.scaprepo.com/ is a good place to query
-# One of the problems is we can only add CPEs post a version is made vulnerable
-# eg addCPE 4.2 cpe:/a:gnu:bash:4.2
-# Not all CPEs are predictable, eg for java:-
-# cpe:/a:oracle:jdk:1.6.0:update_23
-# However, in this case, we could 'guess' the CPE based on previously registered ones
-# Other CPEs are unversioned, eg this one for gnu gzip:  cpe:/a:gnu:gzip  but also cpe:/a:gnu:gzip:1.2.4 and 
-# for maximum confusion, cpe:/a:gnu:gzip:1.2.4a
-function addCPE()
-{
-	if [ $# -ne 2 ]; then
-		exitError "Not enough arguments"
-	fi
-	
-	local -r localVersion="$1"
-	local -r localCpe="$2"
-	
-	local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r key="$(printKey "$localSourcePackageName" "$localVersion")"
-	
-	# Ensure a tar ball download exists
-	if ! sourcePackagesKeyExists "$key"; then
-		exitError "No source package exists for $ourSourcePackageName version $ourVersion"
-	fi
-}
-
-# Called inside recipe
-function addCVE()
-{
-	if [ $# -ne 2 ]; then
-		exitError "Not enough arguments"
-	fi
-	
-	local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
-	local -r cveProductId="$1"
-	local -r cveProductName="$2"
-	
-	# https://cve.mitre.org/data/downloads/allitems.csv.gz
-	#
-	# https://nvd.nist.gov/download.cfm  eg
-	# http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-recent.xml
-	# Contains entry elements, buried within which are cpe-lang expressions (oh, for f's sake, can't people make things simple)?
-	# These ultimately reference things like cpe:/a:adobe:coldfusion:9.0 and cpe:/a:adobe:coldfusion:9.0.2 which presumably match affected packages
-	# another example is  cpe:/a:eucalyptus:eucalyptus:3.2.1  
-	#
-	# A php XML parser for the list is at  http://homes.cerias.purdue.edu/~pmeunier/nvd_xml_parser.txt
-	# A ruby one is at http://seclists.org/fulldisclosure/2011/Feb/356
-	# An old perl one is at http://www.perlmonks.org/?node_id=625277
-	
-	# holds product definitions (but includes versions, too, irritating)
-	# http://static.nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml
-	#<cpe-item name="cpe:/a:gnu:bash:1.14.0">
-	#	<title xml:lang="en-US">GNU Bourne-Again SHellbash (GNU Bash) 1.14.0</title>
-	#	<cpe-23:cpe23-item name="cpe:2.3:a:gnu:bash:1.14.0:*:*:*:*:*:*:*"/>
-	#</cpe-item>
-	# https://web.nvd.nist.gov/view/cpe/search/results?searchChoice=keyword&searchText=bash
-	#
-	# Not all CVEs are fixed; there's an outstanding one for bash from 1999.
-	#
-	#
-	# CPE -- vendor, product, version
-	#
-	#
-}
-
 function tarExtract()
 {
 	if [ $# -ne 4 ]; then
@@ -1225,19 +1066,32 @@ function tarExtract()
 # Assumes it is in the build folder
 function extractDependencyIntoBuildFolder()
 {
-	if [ $# -ne 2 ]; then
-		exitError "Needs 2 arguments"
+	if [ $# -ne 1 ]; then
+		exitError "Needs 1 argument"
 	fi
 	
 	local -r localSourcePackageName="$1"
-	local -r localVersion="$2"
 	
-	local -r key="$(printKey "$localSourcePackageName" "$localVersion")"
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION"
+	local dependency
+	for dependency in dependency_Dependencies["$DependencyKey"]
+	do
+		if [ "${dependency_Name["$dependency"]}" = "$localSourcePackageName" ]; then
+			local -r localVersion="${dependency_Version["$dependency"]}"
+			break
+		fi
+	done
 	
-	local -r localFileName="${sourcePackages_FileName["${key}"]}"
-	local -r localExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["${key}"]}"
-	local -r localCompression="${sourcePackages_Compression["${key}"]}"
-	local -r localIsTarbomb="${sourcePackages_IsTarbomb["${key}"]}"
+	if [ -z "$localVersion" ]; then
+		exitError "$dependencySourcePackageName not known"
+	fi
+	
+	dependency_key "$LFS_PHASE" "$localSourcePackageName" "$localVersion"
+	
+	local -r localFileName="${sourcePackages_FileName["$DependencyKey"]}"
+	local -r localExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["$DependencyKey"]}"
+	local -r localCompression="${sourcePackages_Compression["$DependencyKey"]}"
+	local -r localIsTarbomb="${sourcePackages_IsTarbomb["$DependencyKey"]}"
 	
 	if [ -z "$localFileName" ]; then
 		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
@@ -1246,6 +1100,7 @@ function extractDependencyIntoBuildFolder()
 	if [ -z "$localExtractedTarballFolder" ]; then
 		progressMessageFailed "No tarball for $localSourcePackageName $localVersion"
 	fi
+	
 	tarExtract ../"$localFileName" "$localExtractedTarballFolder" "$localCompression" "$localIsTarbomb"
 	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
 }

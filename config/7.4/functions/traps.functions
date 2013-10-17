@@ -21,6 +21,12 @@ function removeLastTrapHandler()
 	unset trapHandlers[$((${#trapHandlers[*]}-1))]
 }
 
+function installationFailedTrapHandler()
+{
+	set +x
+	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
+}
+
 function removeFilesOnExit()
 {
 	rm -rf -- "${filesToRemoveOnExit[@]}"
