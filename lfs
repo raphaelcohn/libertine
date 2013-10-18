@@ -707,6 +707,7 @@ function dependencyToPath()
 
 function installPackage()
 {
+	set -x
 	LFS_PHASE="$1"
 	LFS_DEPENDENCY_KEY="$2"
 	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
@@ -726,6 +727,8 @@ function installPackage()
 	LFS_SOURCE_PACKAGE_FILENAME="${sourcePackages_FileName[$LFS_SOURCE_PACKAGE_INDEX]}"
 	LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_SOURCE_PACKAGE_INDEX]}"
 	LFS_SOURCE_PACKAGE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_SOURCE_PACKAGE_INDEX]}"
+	
+	set +x
 	
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
