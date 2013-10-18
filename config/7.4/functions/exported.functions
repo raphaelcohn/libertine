@@ -249,6 +249,9 @@ function source_package_skip_install()
 		if [ "$phase" = "$LFS_PHASE" ]; then
 			dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
 			dependency_SkipInstall["$DependencyKey"]="1"
+	echo
+	echo ${dependency_SkipInstall["$DependencyKey"]}
+	echo $SHLVL
 			return 0
 		fi
 	done
@@ -469,6 +472,9 @@ function version()
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
+	echo
+	echo ${dependency_SkipInstall["$DependencyKey"]}
+	echo $SHLVL
 	
 	if [ ! -z "$LFS_INCLUDE_FILE" ]; then
 		source "$LFS_INCLUDE_FILE"
