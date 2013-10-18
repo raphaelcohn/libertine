@@ -1054,14 +1054,8 @@ function tarExtract()
 	
 		if [ -z "$tarballCompression" ]; then
 			tar --extract --file "$absoluteTarballPath"
-			if [ $? -ne 0 ]; then
-				return 1
-			fi
 		else
 			tar --extract --file "$absoluteTarballPath" --$tarballCompression
-			if [ $? -ne 0 ]; then
-				return 1
-			fi
 		fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then

@@ -731,8 +731,6 @@ function installPackage()
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
 	
 	local -r logPathPrefix="$LFS_LOG_PATH"/"$LFS_DEPENDENCY_KEY"
-	local -r extractStdOutLogFile="$logPathPrefix".extract.stdout.log
-	local -r extractStdErrLogFile="$logPathPrefix".extract.stderr.log
 	local -r installStdOutLogFile="$logPathPrefix".install.stdout.log
 	local -r installStdErrLogFile="$logPathPrefix".install.stderr.log
 	local -i exitCode
@@ -761,13 +759,8 @@ function installPackage()
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-			set -x
-			if ! tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
-				progressMessageFailed "extraction failed, logs in $logPathPrefix.extract.*.log"
-			else
-				progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
-			fi
-			set +x
+			tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"
+			progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 		fi
 		
 		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
