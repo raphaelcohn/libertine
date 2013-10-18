@@ -413,7 +413,7 @@ function source_patch()
 	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$ourSourcePackageVersion"
 	local -r existingPatchIndices="${dependency_PatchIndices["$DependencyKey"]}"
 	local -i index
-	for index in ${patches_RelativePath["${key}"]}
+	for index in ${!patches_RelativePath[@]}
 	do
 		if [ "${patches_RelativePath[$index]}" = "$ourRelativePath" ]; then
 			if [ "${patches_Mirror[$index]}" = "$ourMirror" ]; then
