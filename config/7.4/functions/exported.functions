@@ -1065,47 +1065,22 @@ function tarExtract()
 # Assumes it is in the build folder
 function extractDependencyIntoBuildFolder()
 {
-	if [ $# -ne 1 ]; then
-		exitError "Needs 1 argument"
-	fi
-	
-	local -r localSourcePackageName="$1"
-	
-	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION"
 	local dependency
+	local localSourcePackageName
+	local -i index
+	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION"
 	for dependency in ${dependency_Dependencies["$DependencyKey"]}
 	do
-		if [ "${dependency_Name["$dependency"]}" = "$localSourcePackageName" ]; then
-			local -r localVersion="${dependency_Version["$dependency"]}"
-			break
-		fi
+		for localSourcePackageName in "$@"
+		do
+			if [ "${dependency_Name["$dependency"]}" = "$localSourcePackageName" ]; then
+				index=dependency_SourcePackageIndex["$dependency"]
+				
+				tarExtract ../"${sourcePackages_FileName[$index]}" "${sourcePackages_ExtractedTarballFolder[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_IsTarbomb[$index]}"
+				mv -v "${sourcePackages_ExtractedTarballFolder[$index]}" "$localSourcePackageName"
+			fi
+		done
 	done
-	
-	if [ -z "$localVersion" ]; then
-		exitError "$localSourcePackageName not known"
-	fi
-	
-	dependency_key "$LFS_PHASE" "$localSourcePackageName" "$localVersion"
-	
-	local -r localFileName="${sourcePackages_FileName["$DependencyKey"]}"
-	local -r localExtractedTarballFolder="${sourcePackages_ExtractedTarballFolder["$DependencyKey"]}"
-	local -r localCompression="${sourcePackages_Compression["$DependencyKey"]}"
-	local -r localIsTarbomb="${sourcePackages_IsTarbomb["$DependencyKey"]}"
-	
-	if [ -z "$localFileName" ]; then
-		progressMessageFailed "No known source package definition for dependency $localSourcePackageName $localVersion"
-	fi
-	
-	if [ -z "$localExtractedTarballFolder" ]; then
-		progressMessageFailed "No tarball for $localSourcePackageName $localVersion"
-	fi
-	
-	set -x
-	tarExtract ../"$localFileName" "$localExtractedTarballFolder" "$localCompression" "$localIsTarbomb"
-	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
-	set +x
-	exit 60
-	
 }
 
 function installPackagePrototype()

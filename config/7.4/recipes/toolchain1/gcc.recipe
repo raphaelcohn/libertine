@@ -12,9 +12,7 @@ version 4.8.1
 
 function installPackage_toolchain1_gcc()
 {
-	extractDependencyIntoBuildFolder mpfr
-	extractDependencyIntoBuildFolder gmp
-	extractDependencyIntoBuildFolder mpc
+	extractDependencyIntoBuildFolder mpfr gmp mpc
 
 	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
