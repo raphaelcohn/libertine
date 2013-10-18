@@ -3,19 +3,18 @@ set -o errexit +o hashall
 # Needs to track gcc version numbering
 version 4.8.1
 {
-	depends glibc
-	
 	source_package_alias gcc "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	
+	depends glibc
 }
 
 function installPackage_toolchain1_libstdc++()
 {
-	local gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
-	local -r gccPackageVersionKey="$(printKey gcc "$gccVersion")"
+	local gccVersion="4.8.1"
 	
-	createBuildFolderAndPushd "gcc" "$gccVersion"
+	createBuildFolderAndPushd "gcc" "$LFS_SOURCE_PACKAGE_VERSION"
 	
-		../"${sourcePackages_ExtractedTarballFolder["${gccPackageVersionKey}"]}"/libstdc++-v3/configure \
+		../gcc-"$LFS_SOURCE_PACKAGE_VERSION"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
 		--prefix=/"$LFS_TOOLS"                                        \
 		--disable-multilib                                     \
@@ -23,7 +22,7 @@ function installPackage_toolchain1_libstdc++()
 		--disable-nls                                          \
 		--disable-libstdcxx-threads                            \
 		--disable-libstdcxx-pch                                \
-		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$gccVersion"
+		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$LFS_SOURCE_PACKAGE_VERSION"
 	
 		make
 	
