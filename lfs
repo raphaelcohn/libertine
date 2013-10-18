@@ -759,7 +759,7 @@ function installPackage()
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-			tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"
+			tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB"
 			progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 		fi
 		

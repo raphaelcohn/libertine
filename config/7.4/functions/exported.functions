@@ -1033,31 +1033,38 @@ function tarExtract()
 	if [ $# -ne 4 ]; then
 		exitError "Not enough arguments"
 	fi
-	
+	echo $SECONDS
 	local -r tarball="$1"
 	local -r tarballFolder="$2"
 	local -r tarballCompression="$3"
 	local -r isTarbomb="$4"
 	
+	echo $SECONDS
 	rm -rf -- "$tarballFolder"
 	
+	echo $SECONDS
 	pushd "$(purebash_dirname "$tarball")" >/dev/null
 		
+	echo $SECONDS
 		local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
 		
+	echo $SECONDS
 	popd >/dev/null
 	
+	echo $SECONDS
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		mkdir -m 0755 -p "$tarballFolder"
 		pushd "$tarballFolder" >/dev/null
 	fi
 	
+	echo $SECONDS
 		if [ -z "$tarballCompression" ]; then
 			tar --extract --file "$absoluteTarballPath"
 		else
 			tar --extract --file "$absoluteTarballPath" --$tarballCompression
 		fi
 	
+	echo $SECONDS
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		popd >/dev/null
 	fi
