@@ -89,6 +89,8 @@ function signature()
 	local -r originalFileRelativePath="$2"
 	local -r ourHashesSpaceSeparated="$3"
 	
+	echo signature "$ourMirror" "$originalFileRelativePath" "$ourHashesSpaceSeparated"
+	
 	local hashNameAndValue
 	local hashName
 	local hashValue
@@ -290,7 +292,8 @@ function source_package()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
-	echo signature "$ourMirror" "$ourRelativePath" "${sourcePackages_Hashes[$index]}"
+	echo
+	echo source_package "$ourMirror" "$ourRelativePath" "$ourHashes"
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
