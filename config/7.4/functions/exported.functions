@@ -475,7 +475,7 @@ function version()
 	echo
 	echo $DependencyKey
 	echo ${dependency_SkipInstall["$DependencyKey"]}
-	echo $SHLVL
+	echo
 	
 	if [ ! -z "$LFS_INCLUDE_FILE" ]; then
 		source "$LFS_INCLUDE_FILE"
