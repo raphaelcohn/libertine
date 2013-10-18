@@ -621,24 +621,15 @@ function createSkeletonFolderStructure()
 {
 	mkdir -m 0755 -p "$LFS"
 	
-	readonly downloadsLogsPath="$LFS_LOG_PATH"/downloads
-	readonly toolchain1LogsPath="$LFS_LOG_PATH"/toolchain1
-	readonly toolchain2LogsPath="$LFS_LOG_PATH"/toolchain2
-	readonly systemLogsPath="$LFS_LOG_PATH"/system
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('systemLogsPath')
-	
 	# Logs
 	mkdir -m 0755 -p "$LFS_LOG_PATH"
 	rm -rf "$LFS_LOG_PATH"/*
+	
+	readonly downloadsLogsPath="$LFS_LOG_PATH"/downloads
 	mkdir -m 0755 -p "$downloadsLogsPath"
-	mkdir -m 0755 -p "$toolchain1LogsPath"
-	mkdir -m 0755 -p "$toolchain2LogsPath"
-	mkdir -m 0755 -p "$systemLogsPath"
-	#chmod a+wt "$LFS_LOG_PATH"
 	
 	# Sources
 	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
-	#chmod a+wt "$LFS_SOURCES_PATH"
 	
 	# Tools Symlink
 	if [ -L /"$LFS_TOOLS" ]; then
@@ -831,8 +822,8 @@ function stripToolchainSymbolsAfterToolchain2()
 	if [ "$stripToolchainSymbols" = "yes" ]; then
 		set +e
 		# Fails for /tools/lib/thread2.7.0/libthread2.7.0.so
-		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug 1>"$toolchain2LogsPath".strip.stdout.log 2>"$toolchain2LogsPath".strip.stderr.log
-		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded 1>>"$toolchain2LogsPath".strip.stdout.log 2>>"$toolchain2LogsPath".strip.stderr.log
+		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug
+		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded
 		set -e
 	fi
 }
@@ -842,11 +833,6 @@ function stripToolchainDocsAfterToolchain2
 	if [ "$stripToolchainDocs" = "yes" ]; then
 		rm -rf -- /"$LFS_TOOLS"/{,share}/{info,man,doc}
 	fi
-}
-
-function changeOwnerOfToolchain()
-{
-	chown -R root:root "$LFS_TOOLS_PATH"
 }
 
 function backUpToolchain()
@@ -877,9 +863,15 @@ function createToolchain()
 	
 	installPackages toolchain1
 	installPackages toolchain2
-	stripToolchainSymbolsAfterToolchain2
-	stripToolchainDocsAfterToolchain2
-	changeOwnerOfToolchain
+	
+	progressMessage "Stripping toolchain symbols ($stripToolchainSymbols)"
+	stripToolchainSymbolsAfterToolchain2 1>"$"$LFS_LOG_PATH""/toolchain2_strip-symbols.stdout.log 2>/toolchain2_strip-symbols.stderr.log
+	progressMessageSucceeded
+	
+	progressMessage "Stripping toolchain docs ($stripToolchainDocs)"
+	stripToolchainDocsAfterToolchain2 1>"$"$LFS_LOG_PATH""/toolchain2_strip-docs.stdout.log 2>/toolchain2_strip-docs.stderr.log
+	progressMessageSucceeded
+	
 	backUpToolchain
 }
 
@@ -891,7 +883,7 @@ function cleanUpTarget()
 	
 	progressMessage "Cleaning up target $LFS"
 	
-		chattr -R -f -ai "$LFS" 1>"$systemLogsPath"/chattr-cleanup.stdout.log 2>"$systemLogsPath"/chattr-cleanup.stderr.log || true
+		chattr -R -f -ai "$LFS" 1>"$LFS_LOG_PATH"/system_chattr-cleanup.stdout.log 2>"$LFS_LOG_PATH"/system_chattr-cleanup.stderr.log || true
 		
 		pushd "$LFS" >/dev/null
 		
@@ -990,8 +982,8 @@ function runSystemInstallationLogic()
 {
 	local -r callback="$1"
 	
-	local -r stdoutLog="$systemLogsPath"/"$callback".stdout.log
-	local -r stderrLog="$systemLogsPath"/"$callback".stderr.log
+	local -r stdoutLog="$LFS_LOG_PATH"/system_"$callback".stdout.log
+	local -r stderrLog="$LFS_LOG_PATH"/system_"$callback".stderr.log
 	
 	progressMessage "Phase system, executing $callback on target"
 		
