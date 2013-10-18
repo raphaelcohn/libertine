@@ -744,7 +744,7 @@ function installPackage()
 	
 	
 	
-	
+	set -x
 	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	# Use an override (versioned) installer, otherwise the default
