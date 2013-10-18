@@ -1100,8 +1100,12 @@ function extractDependencyIntoBuildFolder()
 		progressMessageFailed "No tarball for $localSourcePackageName $localVersion"
 	fi
 	
+	set -x
 	tarExtract ../"$localFileName" "$localExtractedTarballFolder" "$localCompression" "$localIsTarbomb"
 	mv -v "$localExtractedTarballFolder" "$localSourcePackageName"
+	set +x
+	exit 60
+	
 }
 
 function installPackagePrototype()

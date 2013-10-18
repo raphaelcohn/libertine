@@ -16,7 +16,7 @@ function installPackage_toolchain1_gcc()
 	extractDependencyIntoBuildFolder gmp
 	extractDependencyIntoBuildFolder mpc
 
-	# Adjust paths to use /tools and remove /usr/include
+	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
 	do
@@ -32,7 +32,7 @@ function installPackage_toolchain1_gcc()
 		touch "$file".orig
 	done
 	
-	# Stack protection
+	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
 	createBuildFolderAndPushd
