@@ -746,7 +746,7 @@ function installPackage()
 	
 	
 	
-	progressMessage "Installing phase $LFS_PHASE source package $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($key)"
+	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	# Use an override (versioned) installer, otherwise the default
 	if type "$installer_versioned" &>/dev/null; then
