@@ -713,8 +713,8 @@ function installPackage()
 	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_NAME"]}"
-	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_NAME"]}"
+	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
+	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
 	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
 		return 0
@@ -729,7 +729,7 @@ function installPackage()
 	LFS_SOURCE_PACKAGE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_SOURCE_PACKAGE_INDEX]}"
 	
 	echo
-	echo installPackage $BASH_SUBSHELL $DependencyKey ${dependency_SkipInstall["$DependencyKey"]}
+	echo installPackage $BASH_SUBSHELL $LFS_DEPENDENCY_KEY ${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}
 	set +x
 	exit 50
 	
