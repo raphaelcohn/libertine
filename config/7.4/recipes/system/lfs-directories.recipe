@@ -52,11 +52,11 @@ version 0
 	
 	# Attributes don't seem to work for anything other than folders or files
 	
-	directory / 0755 root root D ai
+	directory / 0755 root root '' ai
 	
-	directory /dev 0755 root root DT ''
-	directory /proc 0755 root root DT ''
-	directory /sys 0755 root root DT ''
+	directory /dev 0755 root root T ''
+	directory /proc 0755 root root T ''
+	directory /sys 0755 root root T ''
 	
 	# Required by the kernel to boot before udevd is started
 	make_character_device /dev/console 5 1 600 root root
@@ -67,27 +67,27 @@ version 0
 	
 	# a makes folders only allow creation; i makes them immutable
 	#mkdir -m 0755 -p /{bin,boot,etc/{opt,sysconfig},home,lib,mnt,opt,run}
-	directory /bin 0755 root root D ai
-	directory /boot 0755 root root D ai
-	directory /etc 0755 root root D ai
-	directory /etc/opt 0755 root root D ai
-	directory /etc/sysconfig 0755 root root D ai
-	directory /home 0755 root root DT ai
-	directory /lib 0755 root root D ai
-	directory /mnt 0755 root root DT ai
-	directory /opt 0755 root root DT ai
-	directory /run 0755 root root D ai
-	directory /srv 0755 root root DT ai
-	directory /usr 0755 root root DT ai
-	directory /usr/local 0755 root root DT ai
+	directory /bin 0755 root root '' ai
+	directory /boot 0755 root root '' ai
+	directory /etc 0755 root root '' ai
+	directory /etc/opt 0755 root root '' ai
+	directory /etc/sysconfig 0755 root root '' ai
+	directory /home 0755 root root T ai
+	directory /lib 0755 root root '' ai
+	directory /mnt 0755 root root T ai
+	directory /opt 0755 root root T ai
+	directory /run 0755 root root '' ai
+	directory /srv 0755 root root T ai
+	directory /usr 0755 root root T ai
+	directory /usr/local 0755 root root T ai
 	
 	#mkdir -m 0755 -p /{media/{floppy,cdrom},sbin,srv,var}
-	directory /media 0755 root root D ai
-	#directory /media/floppy 0755 root root D ai
-	#directory /media/cdrom 0755 root root D ai
-	directory /sbin 0755 root root D ai
-	directory /srv 0755 root root DT ai
-	directory /var 0755 root root DT ai
+	directory /media 0755 root root '' ai
+	#directory /media/floppy 0755 root root '' ai
+	#directory /media/cdrom 0755 root root '' ai
+	directory /sbin 0755 root root '' ai
+	directory /srv 0755 root root T ai
+	directory /var 0755 root root T ai
 	
 	#install -m 0750 --directory /root
 	directory /root 0750 root root '' D
@@ -97,59 +97,59 @@ version 0
 	directory /var/tmp 1777 root root '' D
 	
 	#mkdir -m 0755 -p /usr/{,local/}{bin,include,lib,sbin,src}
-	directory /usr/bin 0755 root root D ai
-	directory /usr/include 0755 root root D ai
-	directory /usr/lib 0755 root root D ai
-	directory /usr/sbin 0755 root root D ai
-	directory /usr/src 0755 root root D ai
-	directory /usr/local/bin 0755 root root D ai
-	directory /usr/local/include 0755 root root D ai
-	directory /usr/local/lib 0755 root root D ai
-	directory /usr/local/sbin 0755 root root D ai
-	directory /usr/local/src 0755 root root D ai
+	directory /usr/bin 0755 root root '' ai
+	directory /usr/include 0755 root root '' ai
+	directory /usr/lib 0755 root root '' ai
+	directory /usr/sbin 0755 root root '' ai
+	directory /usr/src 0755 root root '' ai
+	directory /usr/local/bin 0755 root root '' ai
+	directory /usr/local/include 0755 root root '' ai
+	directory /usr/local/lib 0755 root root '' ai
+	directory /usr/local/sbin 0755 root root '' ai
+	directory /usr/local/src 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/{doc,info,locale,man}
-	directory /usr/share/doc 0755 root root D ai
-	directory /usr/share/info 0755 root root D ai
-	directory /usr/share/locale 0755 root root D ai
-	directory /usr/share/man 0755 root root D ai
-	directory /usr/local/share/doc 0755 root root D ai
-	directory /usr/local/share/info 0755 root root D ai
-	directory /usr/local/share/locale 0755 root root D ai
-	directory /usr/local/share/man 0755 root root D ai
+	directory /usr/share/doc 0755 root root '' ai
+	directory /usr/share/info 0755 root root '' ai
+	directory /usr/share/locale 0755 root root '' ai
+	directory /usr/share/man 0755 root root '' ai
+	directory /usr/local/share/doc 0755 root root '' ai
+	directory /usr/local/share/info 0755 root root '' ai
+	directory /usr/local/share/locale 0755 root root '' ai
+	directory /usr/local/share/man 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/{misc,terminfo,zoneinfo}
-	directory /usr/share/misc 0755 root root D ai
-	directory /usr/share/terminfo 0755 root root D ai
-	directory /usr/share/zoneinfo 0755 root root D ai
-	directory /usr/local/share/misc 0755 root root D ai
-	directory /usr/local/share/terminfo 0755 root root D ai
-	directory /usr/local/share/zoneinfo 0755 root root D ai
+	directory /usr/share/misc 0755 root root '' ai
+	directory /usr/share/terminfo 0755 root root '' ai
+	directory /usr/share/zoneinfo 0755 root root '' ai
+	directory /usr/local/share/misc 0755 root root '' ai
+	directory /usr/local/share/terminfo 0755 root root '' ai
+	directory /usr/local/share/zoneinfo 0755 root root '' ai
 	
-	#directory /usr/share/dict 0755 root root D ai
-	#directory /usr/local/share/dict 0755 root root D ai
-	#directory /usr/share/misc 0755 root root D ai
-	#directory /usr/local/share/misc 0755 root root D ai
-	#directory /usr/share/sgml 0755 root root D ai
-	#directory /usr/local/share/sgml 0755 root root D ai
+	#directory /usr/share/dict 0755 root root '' ai
+	#directory /usr/local/share/dict 0755 root root '' ai
+	#directory /usr/share/misc 0755 root root '' ai
+	#directory /usr/local/share/misc 0755 root root '' ai
+	#directory /usr/share/sgml 0755 root root '' ai
+	#directory /usr/local/share/sgml 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/man/man{1..8}
-	directory /usr/share/man/man1 0755 root root D ai
-	directory /usr/share/man/man2 0755 root root D ai
-	directory /usr/share/man/man3 0755 root root D ai
-	directory /usr/share/man/man4 0755 root root D ai
-	directory /usr/share/man/man5 0755 root root D ai
-	directory /usr/share/man/man6 0755 root root D ai
-	directory /usr/share/man/man7 0755 root root D ai
-	directory /usr/share/man/man8 0755 root root D ai
-	directory /usr/local/share/man/man1 0755 root root D ai
-	directory /usr/local/share/man/man2 0755 root root D ai
-	directory /usr/local/share/man/man3 0755 root root D ai
-	directory /usr/local/share/man/man4 0755 root root D ai
-	directory /usr/local/share/man/man5 0755 root root D ai
-	directory /usr/local/share/man/man6 0755 root root D ai
-	directory /usr/local/share/man/man7 0755 root root D ai
-	directory /usr/local/share/man/man8 0755 root root D ai
+	directory /usr/share/man/man1 0755 root root '' ai
+	directory /usr/share/man/man2 0755 root root '' ai
+	directory /usr/share/man/man3 0755 root root '' ai
+	directory /usr/share/man/man4 0755 root root '' ai
+	directory /usr/share/man/man5 0755 root root '' ai
+	directory /usr/share/man/man6 0755 root root '' ai
+	directory /usr/share/man/man7 0755 root root '' ai
+	directory /usr/share/man/man8 0755 root root '' ai
+	directory /usr/local/share/man/man1 0755 root root '' ai
+	directory /usr/local/share/man/man2 0755 root root '' ai
+	directory /usr/local/share/man/man3 0755 root root '' ai
+	directory /usr/local/share/man/man4 0755 root root '' ai
+	directory /usr/local/share/man/man5 0755 root root '' ai
+	directory /usr/local/share/man/man6 0755 root root '' ai
+	directory /usr/local/share/man/man7 0755 root root '' ai
+	directory /usr/local/share/man/man8 0755 root root '' ai
 	
 	# this is target source, rather than ln -s source target
 	symlink /usr/man share/man
@@ -186,8 +186,8 @@ version 0
 	
 	directory /var/opt 0755 root root '' D
 	directory /var/cache 0755 root root '' D
-	directory /var/lib 0755 root root D ai
-	directory /var/lib/misc 0755 root root D ai
+	directory /var/lib 0755 root root '' ai
+	directory /var/lib/misc 0755 root root '' ai
 	directory /var/lib/locate 0755 root root '' D
 	directory /var/local 0755 root root '' D
 	

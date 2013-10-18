@@ -851,7 +851,7 @@ function backUpToolchain()
 function createToolchain()
 {
 	progressMessage "Initiating creation of toolchain ($LFS_TOOLS)"
-		chattr -R -f -ai "$LFS" 1>/dev/null 2>/dev/null || true
+		chattr -R -f -aiD "$LFS" 1>/dev/null 2>/dev/null || true
 		rm -rf -- "$LFS_TOOLS_PATH"
 		mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 		export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
@@ -879,7 +879,7 @@ function cleanUpTarget()
 	
 	progressMessage "Cleaning up target $LFS"
 	
-		chattr -R -f -ai "$LFS" 1>"$LFS_LOG_PATH"/system_chattr-cleanup.stdout.log 2>"$LFS_LOG_PATH"/system_chattr-cleanup.stderr.log || true
+		chattr -R -f -aiD "$LFS" 1>"$LFS_LOG_PATH"/system_chattr-cleanup.stdout.log 2>"$LFS_LOG_PATH"/system_chattr-cleanup.stderr.log || true
 		
 		pushd "$LFS" >/dev/null
 		
