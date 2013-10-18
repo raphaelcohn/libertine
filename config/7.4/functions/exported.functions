@@ -223,7 +223,7 @@ declare_for_chroot -Ai dependency_SourcePackageIndex
 declare_for_chroot -A dependency_PatchIndices
 declare_for_chroot -A dependency_Dependencies
 declare_for_chroot -A dependency_Path
-declare_for_chroot -Ai dependency_SkipInstall
+declare_for_chroot -A dependency_SkipInstall
 
 declare_for_chroot -a sourcePackages_Name
 declare_for_chroot -a sourcePackages_Version
@@ -248,7 +248,7 @@ function source_package_skip_install()
 	do
 		if [ "$phase" = "$LFS_PHASE" ]; then
 			dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
-			dependency_SkipInstall["$DependencyKey"]=1
+			dependency_SkipInstall["$DependencyKey"]="1"
 			return 0
 		fi
 	done
@@ -468,7 +468,7 @@ function version()
 	dependency_PatchIndices["$DependencyKey"]=""
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
-	dependency_SkipInstall["$DependencyKey"]=0
+	dependency_SkipInstall["$DependencyKey"]="0"
 	
 	if [ ! -z "$LFS_INCLUDE_FILE" ]; then
 		source "$LFS_INCLUDE_FILE"
