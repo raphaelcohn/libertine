@@ -243,6 +243,7 @@ declare_for_chroot -a patches_Compression
 
 function source_package_skip_install()
 {
+	set -x
 	local phase
 	for phase in "$@"
 	do
@@ -252,6 +253,7 @@ function source_package_skip_install()
 			return 0
 		fi
 	done
+	set +x
 }
 
 function source_package_alias()

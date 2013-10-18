@@ -741,6 +741,7 @@ function installPackage()
 	
 	
 	#LFS_INSTALL_LOCATION="$(installLocation "$key")"
+	# include hash of settings  -  this means change the name of the toolchain, too
 	
 	
 	
