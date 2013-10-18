@@ -1052,10 +1052,16 @@ function tarExtract()
 		pushd "$tarballFolder" >/dev/null
 	fi
 	
-		if [ -z "$ourCompression" ]; then
+		if [ -z "$tarballCompression" ]; then
 			tar --extract --file "$absoluteTarballPath"
+			if [ $? -ne 0 ]; then
+				return 1
+			fi
 		else
 			tar --extract --file "$absoluteTarballPath" --$tarballCompression
+			if [ $? -ne 0 ]; then
+				return 1
+			fi
 		fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
@@ -1074,7 +1080,7 @@ function extractDependencyIntoBuildFolder()
 	
 	dependency_key "$LFS_PHASE" "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_VERSION"
 	local dependency
-	for dependency in dependency_Dependencies["$DependencyKey"]
+	for dependency in ${dependency_Dependencies["$DependencyKey"]}
 	do
 		if [ "${dependency_Name["$dependency"]}" = "$localSourcePackageName" ]; then
 			local -r localVersion="${dependency_Version["$dependency"]}"
@@ -1083,7 +1089,7 @@ function extractDependencyIntoBuildFolder()
 	done
 	
 	if [ -z "$localVersion" ]; then
-		exitError "$dependencySourcePackageName not known"
+		exitError "$localSourcePackageName not known"
 	fi
 	
 	dependency_key "$LFS_PHASE" "$localSourcePackageName" "$localVersion"

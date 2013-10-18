@@ -707,7 +707,6 @@ function dependencyToPath()
 
 function installPackage()
 {
-	set -x
 	LFS_PHASE="$1"
 	LFS_DEPENDENCY_KEY="$2"
 	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
@@ -762,11 +761,13 @@ function installPackage()
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+			set -x
 			if ! tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" 1>"$extractStdOutLogFile" 2>"$extractStdErrLogFile"; then
 				progressMessageFailed "extraction failed, logs in $logPathPrefix.extract.*.log"
 			else
 				progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 			fi
+			set +x
 		fi
 		
 		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
