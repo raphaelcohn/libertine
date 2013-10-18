@@ -713,10 +713,14 @@ function installPackage()
 	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_NAME"]}"
-	local -ir LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_NAME"]}"
+	local -ir LFS_DEPENDENCY_SKIP_INSTALL=${dependency_SkipInstall["$LFS_DEPENDENCY_NAME"]}
 	
 	if [ $LFS_DEPENDENCY_SKIP_INSTALL -eq 1 ]; then
 		return 0
+	fi
+	
+	if [ $LFS_DEPENDENCY_NAME = "mpfr" ]; then
+		exit 50
 	fi
 	
 	LFS_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
