@@ -277,6 +277,7 @@ function source_package_alias()
 
 function source_package()
 {
+	echo source_package $@
 	if [ $# -lt 3 ]; then
 		exitError "Not enough arguments"
 	elif [ $# -gt 6 ]; then
