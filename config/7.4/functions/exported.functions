@@ -522,11 +522,12 @@ function depends()
 		# Holds the last set version
 		LFS_SOURCE_PACKAGE_VERSION["${localSourcePackageName}"]=""
 	
-		local -r includeFile="$includesPath"/"$localSourcePackageName".include
+		local includeFile="$includesPath"/"$localSourcePackageName".include
 		if [ -f "$includeFile" ]; then
 			local -r includeHash="$(sha512sum "$includeFile" | awk 'NR==1 {print $1}')"
 		else
 			local -r includeHash="0"
+			includeFile=""
 		fi
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
