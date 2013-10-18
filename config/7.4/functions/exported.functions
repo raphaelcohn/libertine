@@ -475,7 +475,7 @@ function version()
 	dependency_Path["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]=0
 	
-	if [ -f "$LFS_INCLUDE_FILE" ]; then
+	if [ ! -z "$LFS_INCLUDE_FILE" ]; then
 		echo include source "$LFS_INCLUDE_FILE"
 		source "$LFS_INCLUDE_FILE"
 	fi
