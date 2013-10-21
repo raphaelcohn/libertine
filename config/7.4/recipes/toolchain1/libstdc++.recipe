@@ -3,9 +3,9 @@ set -o errexit +o hashall
 # Needs to track gcc version numbering
 version 4.8.1
 {
-	source_package_alias gcc "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
-	
 	depends glibc
+	
+	source_package_alias gcc "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
 }
 
 function installPackage_toolchain1_libstdc++()

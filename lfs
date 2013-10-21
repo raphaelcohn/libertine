@@ -695,14 +695,63 @@ function downloadPatches()
 
 function dependencyToPath()
 {
-	local -r phase="$1"
-	local -r sourcePackageName="$2"
-	local -r version="$3"
+	local -r sourcePackageName="$1"
+	local -r version="$2"
 	
-	dependency_key "$phase" "$sourcePackageName" "$version"
-	local -r installationRelativePath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"/"$phase"/"$sourcePackageName"/"$version"/"${dependency_RecipeHash["$DependencyKey"]}"-"${include_Hash["$sourcePackageName"]}"
+	local -r relativatePackagePath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
+	local -r absolutePackagePath="$LFS"/"$relativatePackagePath"
+	mkdir -m 0755 -p "$absolutePackagePath"
 	
-	# This is our path, less the last part which is a hash of all dependencies
+	local -r relativeVersionPath="$relativatePackagePath"/"$LFS_DEPENDENCY_VERSION"
+	local -r absoluteVersionPath="$LFS"/"$relativeVersionPath"
+	mkdir -m 0755 -p "$absoluteVersionPath"
+	rm -rf -- "$absolutePackagePath"/current
+	ln -s current ""$absolutePackagePath""/current
+	
+	local -r relativeRecipePath="$relativeVersionPath"/"$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_INCLUDE_HASH"
+	local -r absoluteRecipePath="$LFS"/"$absoluteVersionPath"
+	mkdir -m 0755 -p "$absoluteRecipePath"
+	rm -rf -- "$absoluteVersionPath"/current
+	ln -s current "$absoluteVersionPath"/current
+	
+	addFileToRemoveOnExit
+	local -r dependenciesFileUnsorted="$TMP_FILE"
+	
+	
+	# Find and hash dependencies
+	local dependency
+	declare -A dependencyPaths=()
+	for dependency in "${dependency_Dependencies[@]}"
+	do
+		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
+		dependencyPaths["${dependency_Name["$dependency"]}"]="${dependency_Path["$dependency"]}"
+	done
+	addFileToRemoveOnExit
+	local -r dependenciesFileSorted="$TMP_FILE"
+	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
+	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
+	local -r dependenciesHash="$(sha512sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
+	
+	
+	local -r relativeCompletePath="$relativeRecipePath"/"$dependenciesHash"
+	local -r absoluteCompletePath="$LFS"/"$relativeCompletePath"
+	mkdir -m 0755 -p "$absoluteCompletePath"
+	rm -rf -- "$absoluteRecipePath"/current
+	ln -s current "$absoluteRecipePath"/current
+	
+	mkdir -m 0755 -p "$absoluteCompletePath"/root
+	
+	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
+	
+	local -r absoluteDependenciesPath="$absoluteCompletePath"/dependencies
+	local dependencyName
+	local dependencyPath
+	for dependencyName in "${!dependencyPaths[@]}"
+	do
+		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
+	done
+	
+	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
 }
 
 function installPackage()
@@ -713,8 +762,11 @@ function installPackage()
 	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
-	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
+	dependencyToPath
+	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
+	
+	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
 		return 0
 	fi
