@@ -717,7 +717,7 @@ function dependencyToPath()
 	addFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
 	
-	
+	set -x
 	# Find and hash dependencies
 	local dependency
 	declare -A dependencyPaths=()
