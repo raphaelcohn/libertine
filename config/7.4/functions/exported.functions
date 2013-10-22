@@ -224,6 +224,10 @@ declare_for_chroot -A dependency_PatchIndices
 declare_for_chroot -A dependency_Dependencies
 declare_for_chroot -A dependency_Path
 declare_for_chroot -A dependency_SkipInstall
+declare_for_chroot -A dependency_User
+declare_for_chroot -A dependency_Group
+declare_for_chroot -Ai dependency_Uid
+declare_for_chroot -Ai dependency_Gid
 
 declare_for_chroot -a sourcePackages_Name
 declare_for_chroot -a sourcePackages_Version
@@ -443,6 +447,8 @@ function source_patch()
 	signature "$ourMirror" "$ourRelativePath" "${patches_Hashes[$index]}"
 }
 
+declare -ir nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
+declare -ir nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 function version()
 {
 	if [ $# -ne 1 ]; then
@@ -469,6 +475,37 @@ function version()
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
+	if [ "$LFS_PHASE" = "system" ]; then
+		
+		local ourUserOrGroup=lfs-"$LFS_SOURCE_PACKAGE_NAME"
+		
+		local user
+		for user in ${users_Name[@]}
+		do
+			if [ "$user" = "$ourUserOrGroup" ]; then
+				exitError "User $ourUserOrGroup explicitly defined for dependency $DependencyKey"
+			fi
+		done
+		
+		local group
+		for group in ${groups_Name[@]}
+		do
+			if [ "$group" = "$ourUserOrGroup" ]; then
+				exitError "Group $ourUserOrGroup explicitly defined for dependency $DependencyKey"
+			fi
+		done
+		
+		user "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_NAME" /dev/null /bin/false
+		dependency_User["$DependencyKey"]="$ourUserOrGroup"
+		dependency_Group["$DependencyKey"]="$ourUserOrGroup"
+		dependency_Uid["$DependencyKey"]="$LFS_LAST_UID"
+		dependency_Gid["$DependencyKey"]="$LFS_LAST_GID"
+	else
+		dependency_User["$DependencyKey"]="nobody"
+		dependency_Group["$DependencyKey"]="nogroup"
+		dependency_Uid["$DependencyKey"]=$nobodyUid
+		dependency_Gid["$DependencyKey"]=$nogroupGid
+	fi
 	
 	if [ ! -z "$LFS_INCLUDE_FILE" ]; then
 		source "$LFS_INCLUDE_FILE"
@@ -516,7 +553,7 @@ function depends()
 	
 		local includeFile="$includesPath"/"$localSourcePackageName".include
 		if [ -f "$includeFile" ]; then
-			local -r includeHash="$(sha512sum "$includeFile" | awk 'NR==1 {print $1}')"
+			local -r includeHash="$(sha224sum "$includeFile" | awk 'NR==1 {print $1}')"
 		else
 			local -r includeHash="0"
 			includeFile=""
@@ -524,7 +561,7 @@ function depends()
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions! Darn!
-		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha512sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
+		LFS_SOURCE_PACKAGE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_INCLUDE_HASH="$includeHash" LFS_INCLUDE_FILE="$includeFile" source "$recipeFile"
 	fi
 	
 	# We currently only do this for the last set version. In future, we might be able to take a directive from above
@@ -719,7 +756,8 @@ function user()
 	users_Uid[$index]=$uid
 	users_Gid[$index]=$gid
 	
-	#printf "$userName:x:$uid:$gid:$gecos:$home:$shell"
+	LFS_LAST_UID=$uid
+	LFS_LAST_GID=$gid
 }
 
 function permissions_after()
@@ -1047,14 +1085,14 @@ function tarExtract()
 	popd >/dev/null
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
-		mkdir -m 0755 -p "$tarballFolder"
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
 		pushd "$tarballFolder" >/dev/null
 	fi
 	
 		if [ -z "$tarballCompression" ]; then
-			tar --extract --file "$absoluteTarballPath"
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"
 		else
-			tar --extract --file "$absoluteTarballPath" --$tarballCompression
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath" --$tarballCompression
 		fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then

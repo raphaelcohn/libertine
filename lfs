@@ -695,36 +695,32 @@ function downloadPatches()
 
 function dependencyToPath()
 {
-	local -r sourcePackageName="$1"
-	local -r version="$2"
+	# TODO: Defer the 'current' creation
 	
-	local -r relativatePackagePath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
-	local -r absolutePackagePath="${LFS}${relativatePackagePath}"
+	local -r relativeOptPath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
+	local -r absoluteOptPath="${LFS}${relativeOptPath}"
+	mkdir -m 0755 -p "$absoluteOptPath"
+	rm -rf -- "$absoluteOptPath"/current
+	ln -s "$LFS_DISTRIBUTION_VERSION" "$absoluteOptPath"/current
+	
+	local -r relativatePackagePath="$relativeOptPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
+	local -r absolutePackagePath="${LFS}${absoluteOptPath}"
 	mkdir -m 0755 -p "$absolutePackagePath"
 	
 	local -r relativeVersionPath="$relativatePackagePath"/"$LFS_DEPENDENCY_VERSION"
-	local -r absoluteVersionPath="$LFS"/"$relativeVersionPath"
+	local -r absoluteVersionPath="${LFS}${relativeVersionPath}"
 	mkdir -m 0755 -p "$absoluteVersionPath"
 	rm -rf -- "$absolutePackagePath"/current
 	ln -s "$LFS_DEPENDENCY_VERSION" "$absolutePackagePath"/current
 	
-	local -r relativeRecipePath="$relativeVersionPath"/"$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_INCLUDE_HASH"
-	local -r absoluteRecipePath="$LFS"/"$absoluteVersionPath"
-	mkdir -m 0755 -p "$absoluteRecipePath"
-	rm -rf -- "$absoluteVersionPath"/current
-	ln -s  "$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_INCLUDE_HASH" "$absoluteVersionPath"/current
 	
+	# Find and hash dependencies
 	addFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
-	
-	set -x
-	# Find and hash dependencies
 	local dependency
 	declare -A dependencyPaths=()
 	for dependency in ${!dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
 	do
-		echo "$dependency"
-		exit 50
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
 		local name="${dependency_Name["$dependency"]}"
 		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
@@ -733,20 +729,27 @@ function dependencyToPath()
 	local -r dependenciesFileSorted="$TMP_FILE"
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	local -r dependenciesHash="$(sha512sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
+	local -r dependenciesHash="$(sha224sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
 	
 	
-	local -r relativeCompletePath="$relativeRecipePath"/"$dependenciesHash"
-	local -r absoluteCompletePath="$LFS"/"$relativeCompletePath"
-	mkdir -m 0755 -p "$absoluteCompletePath"
-	rm -rf -- "$absoluteRecipePath"/current
-	ln -s current "$absoluteRecipePath"/current
 	
-	mkdir -m 0755 -p "$absoluteCompletePath"/root
+	# We should consider breaking-up settings to per recipe - as this better reflects changes
+	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-dependencies-"$dependenciesHash"-settings-"$LFS_SETTINGS_HASH"
+	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
+	local -r absoluteCompletePath="${LFS}${absoluteVersionPath}"
+	mkdir -m 0755 -p "$absoluteRecipePath"
+	rm -rf -- "$absoluteVersionPath"/current
+	ln -s "$recipeVersion" "$absoluteVersionPath"/current
+	
+	
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/root
 	
 	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
+	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
+	chmod 0400 "$absoluteCompletePath"/dependencies.list
 	
 	local -r absoluteDependenciesPath="$absoluteCompletePath"/dependencies
+	mkdir -m 0755 -p "$absoluteDependenciesPath"
 	local dependencyName
 	local dependencyPath
 	for dependencyName in "${!dependencyPaths[@]}"
@@ -765,6 +768,11 @@ function installPackage()
 	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
+	
+	LFS_DEPENDENCY_USER="${dependency_User["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_GROUP="${dependency_Group["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_UID="${dependency_Uid["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_GID="${dependency_Gid["$LFS_DEPENDENCY_KEY"]}"
 	
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
@@ -830,8 +838,9 @@ function installPackage()
 					
 					set -x
 					# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
-					FORCE_UNSAFE_CONFIGURE=1 $installer
+					sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- FORCE_UNSAFE_CONFIGURE=1 $installer
 					set +x
+					
 					
 				exec 1>&6 6>&-
 				exec 2>&7 7>&-
@@ -1203,6 +1212,8 @@ function sourceFunctionsAndSettings()
 		
 	popd >/dev/null
 	
+	declare_for_chroot LFS_SETTINGS_HASH
+	LFS_SETTINGS_HASH="$(sha224sum "$settingsPath" | awk 'NR==1 {print $1}')"
 	source "$settingsPath"
 }
 
