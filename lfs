@@ -699,20 +699,20 @@ function dependencyToPath()
 	local -r version="$2"
 	
 	local -r relativatePackagePath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
-	local -r absolutePackagePath="$LFS"/"$relativatePackagePath"
+	local -r absolutePackagePath="${LFS}${relativatePackagePath}"
 	mkdir -m 0755 -p "$absolutePackagePath"
 	
 	local -r relativeVersionPath="$relativatePackagePath"/"$LFS_DEPENDENCY_VERSION"
 	local -r absoluteVersionPath="$LFS"/"$relativeVersionPath"
 	mkdir -m 0755 -p "$absoluteVersionPath"
 	rm -rf -- "$absolutePackagePath"/current
-	ln -s current ""$absolutePackagePath""/current
+	ln -s "$LFS_DEPENDENCY_VERSION" "$absolutePackagePath"/current
 	
 	local -r relativeRecipePath="$relativeVersionPath"/"$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_INCLUDE_HASH"
 	local -r absoluteRecipePath="$LFS"/"$absoluteVersionPath"
 	mkdir -m 0755 -p "$absoluteRecipePath"
 	rm -rf -- "$absoluteVersionPath"/current
-	ln -s current "$absoluteVersionPath"/current
+	ln -s  "$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_INCLUDE_HASH" "$absoluteVersionPath"/current
 	
 	addFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
@@ -723,6 +723,8 @@ function dependencyToPath()
 	declare -A dependencyPaths=()
 	for dependency in "${!dependency_Dependencies[@]}"
 	do
+		echo $dependency
+		exit 50
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
 		local name="${dependency_Name["$dependency"]}"
 		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
