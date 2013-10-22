@@ -196,7 +196,7 @@ function findOurNameAndPath()
 function executeWithCleanEnvironment()
 {
 	essentialProgramCheck env sudo
-	exec env -i HOME="$HOME" TERM="$TERM" PATH="/bin:/usr/bin" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
+	exec env -i HOME="$HOME" TERM="$TERM" PATH="/sbin:/bin:/usr/sbin:/usr/bin" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
 }
 
 function exitHelp()
@@ -411,7 +411,7 @@ function parseCommandLine()
 
 function setPathsAndExports()
 {
-	export PATH=/bin:/usr/bin
+	export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 	
 	essentialProgramCheck mkdir uname awk sort md5sum
 	
