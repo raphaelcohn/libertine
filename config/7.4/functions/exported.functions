@@ -696,7 +696,9 @@ function user()
 			if [ $nextSystemUid -eq -1 ]; then
 				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
 			fi
+			set +x
 			local -ir uid=$((nextSystemUid++))
+			exit 60
 		else
 			if [ $nextUserId -eq -1 ]; then
 				nextUserUid=${settings_integer[LFS_INCLUSIVE_USER_UID]}
