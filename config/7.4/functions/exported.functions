@@ -693,6 +693,7 @@ function user()
 	else
 		if [ "$shell" = "/bin/false" ]; then
 			set -x
+			echo x $nextSystemUid x
 			if [ $nextSystemUid -eq -1 ]; then
 				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
 			fi
