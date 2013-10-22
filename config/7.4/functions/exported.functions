@@ -22,9 +22,6 @@ declare -i nextSystemGid=-1
 declare -i nextUserUid=-1
 declare -i nextUserGid=-1
 
-echo $nextSystemUid
-exit 50
-
 declare_for_chroot -a groups_Name
 declare_for_chroot -a groups_Gid
 declare_for_chroot -a groups_Members
@@ -696,7 +693,7 @@ function user()
 	else
 		if [ "$shell" = "/bin/false" ]; then
 			set -x
-			echo x $nextSystemUid x
+			echo x $nextSystemUid x ${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]} x
 			if [ $nextSystemUid -eq -1 ]; then
 				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
 			fi
