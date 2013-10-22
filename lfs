@@ -721,9 +721,9 @@ function dependencyToPath()
 	# Find and hash dependencies
 	local dependency
 	declare -A dependencyPaths=()
-	for dependency in "${!dependency_Dependencies[@]}"
+	for dependency in ${!dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
 	do
-		echo "${!dependency_Dependencies[@]}"
+		echo "$dependency"
 		exit 50
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
 		local name="${dependency_Name["$dependency"]}"
