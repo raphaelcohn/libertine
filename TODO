@@ -11,7 +11,7 @@
 * CONSIDER ADDING Linux ACL (setfacl) and SELinux support to toolchain
 * User xattrs, using setfattr in the attr package
 
-
+* prelinking for java et al, perhaps, but security impacts. Good for large, frequently run programs
 
 * Integrate, if only slightly, with the cvedetails.com database (if only for a package name mapping)
 	* Vendor name, eg GNU, vendor id 72

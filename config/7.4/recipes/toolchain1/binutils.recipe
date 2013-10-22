@@ -22,14 +22,28 @@ function installPackage_toolchain1_binutils()
 		make
 
 		# Ensure toolchain sanity on 64-bit x864
+		# Actually, all this should be done in DESTDIR
 		case "$(uname -m)" in
 			x86_64)
 				mkdir -m 0755 -p /"$LFS_TOOLS"/lib
 				ln --symbolic lib /"$LFS_TOOLS"/lib64
 			;;
 		esac
-
-		make install
+		
+		# With glibc, this variable is install_root . For others, it's prefix=
+		# Check http://www.linuxfromscratch.org/hints/downloads/files/fakeroot.txt
+		# Perl modules are problematic
+		
+		make DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
 
 	popdBuildFolder
+	
+	# The concept of a package-user, so we know to whom the files belong. We could even make this include a version...
+	# We will need to control the group to divide-and-conqueur for certain files (eg binaries, libraries, etc)
+	
+	pushd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
+		
+		tar cd - . | (cd "$LFS" ; tar xf - )
+		
+	popd >/dev/null
 }

@@ -765,6 +765,7 @@ function installPackage()
 	
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/root
 	
 	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
