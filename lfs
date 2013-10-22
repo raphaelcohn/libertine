@@ -724,7 +724,8 @@ function dependencyToPath()
 	for dependency in "${dependency_Dependencies[@]}"
 	do
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
-		dependencyPaths["${dependency_Name["$dependency"]}"]="${dependency_Path["$dependency"]}"
+		local name="${dependency_Name["$dependency"]}"
+		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
 	done
 	addFileToRemoveOnExit
 	local -r dependenciesFileSorted="$TMP_FILE"
