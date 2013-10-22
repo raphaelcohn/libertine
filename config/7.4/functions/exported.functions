@@ -692,6 +692,7 @@ function user()
 		local -ir uid=$5
 	else
 		if [ "$shell" = "/bin/false" ]; then
+			set -x
 			if [ $nextSystemUid -eq -1 ]; then
 				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
 			fi
