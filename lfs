@@ -723,6 +723,7 @@ function dependencyToPath()
 	declare -A dependencyPaths=()
 	for dependency in "${dependency_Dependencies[@]}"
 	do
+		echo $dependency
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
 		local name="${dependency_Name["$dependency"]}"
 		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
