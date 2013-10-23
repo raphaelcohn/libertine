@@ -1167,3 +1167,7 @@ function popdBuildFolder()
 	popd >/dev/null
 	#rm -rf -- "$buildFolder"
 }
+
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
+	

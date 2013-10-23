@@ -593,8 +593,6 @@ function include_phase()
 {
 	local -r phase="$1"
 	shift 1
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
 	
 	pushd "$profilesPath" >/dev/null
 		
