@@ -1221,8 +1221,6 @@ function sourceFunctionsAndSettings()
 	declare_for_chroot LFS_SETTINGS_HASH
 	LFS_SETTINGS_HASH="$(sha224sum "$settingsPath" | awk 'NR==1 {print $1}')"
 	source "$settingsPath"
-	
-	exit 60
 }
 
 function main()
