@@ -661,6 +661,8 @@ function verifyGroupExists()
 
 function user()
 {
+	set -x
+	
 	local -r userName="$1"
 	local -r gecos="$2"
 	local -r home="$3"
