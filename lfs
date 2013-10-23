@@ -1236,7 +1236,7 @@ function main()
 	setPathsAndExports
 	sourceFunctionsAndSettings
 	
-	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo anextSystemUid $nextSystemUid nextSystemUid
 	echo aHELLO_WORLD $HELLO_WORLD HELLO_WORLD
 	
 	addNextTrapHandler removeFilesOnExit

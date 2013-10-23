@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-declare HELLO_WORLD="FFF"
+declare -g HELLO_WORLD="FFF"
 declare_for_chroot -a signatures_Mirror
 declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
@@ -17,10 +17,14 @@ declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
 
-declare -i nextSystemUid=-1
-declare -i nextSystemGid=-1
-declare -i nextUserUid=-1
-declare -i nextUserGid=-1
+# Since this file is source'd inside a function, the declare builtin defaults to making variables local!
+declare -ig nextSystemUid=-1
+declare -ig nextSystemGid=-1
+declare -ig nextUserUid=-1
+declare -ig nextUserGid=-1
+
+declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
+declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 
 declare_for_chroot -a groups_Name
 declare_for_chroot -a groups_Gid
@@ -33,8 +37,8 @@ declare_for_chroot -a users_Shell
 declare_for_chroot -a users_Uid
 declare_for_chroot -a users_Gid
 
-declare -a earlyPathCommands
-declare -a latePathCommands
+declare -ag earlyPathCommands
+declare -ag latePathCommands
 
 declare_for_chroot -a previousMirrors
 declare_for_chroot -a previousProfiles
@@ -447,8 +451,6 @@ function source_patch()
 	signature "$ourMirror" "$ourRelativePath" "${patches_Hashes[$index]}"
 }
 
-declare -ir nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
-declare -ir nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 function version()
 {
 	if [ $# -ne 1 ]; then
