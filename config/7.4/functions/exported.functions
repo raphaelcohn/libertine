@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-declare -g HELLO_WORLD="FFF"
+
 declare_for_chroot -a signatures_Mirror
 declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
@@ -23,9 +23,6 @@ declare -ig nextSystemGid=-1
 declare -ig nextUserUid=-1
 declare -ig nextUserGid=-1
 
-declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
-declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
-
 declare_for_chroot -a groups_Name
 declare_for_chroot -a groups_Gid
 declare_for_chroot -a groups_Members
@@ -42,6 +39,10 @@ declare -ag latePathCommands
 
 declare_for_chroot -a previousMirrors
 declare_for_chroot -a previousProfiles
+
+essentialProgramCheck getent awk
+declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
+declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 
 function progressMessage()
 {
@@ -694,14 +695,9 @@ function user()
 		local -ir uid=$5
 	else
 		if [ "$shell" = "/bin/false" ]; then
-			set -x
-			echo x $nextSystemUid x ${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]} x
 			if [ $nextSystemUid -eq -1 ]; then
 				nextSystemUid=${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
 			fi
-			set +x
-			local -ir uid=$((nextSystemUid++))
-			exit 60
 		else
 			if [ $nextUserId -eq -1 ]; then
 				nextUserUid=${settings_integer[LFS_INCLUSIVE_USER_UID]}

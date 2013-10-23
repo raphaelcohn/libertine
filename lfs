@@ -1202,9 +1202,6 @@ function renderLatePathCommands()
 
 function sourceFunctionsAndSettings()
 {
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
-	
 	local fileToSource
 	pushd "$functionsPath" >/dev/null
 		
@@ -1215,15 +1212,9 @@ function sourceFunctionsAndSettings()
 		
 	popd >/dev/null
 	
-	echo xnextSystemUid $nextSystemUid nextSystemUid
-	echo xHELLO_WORLD $HELLO_WORLD HELLO_WORLD
-	
 	declare_for_chroot LFS_SETTINGS_HASH
 	LFS_SETTINGS_HASH="$(sha224sum "$settingsPath" | awk 'NR==1 {print $1}')"
 	source "$settingsPath"
-	
-	echo ynextSystemUid $nextSystemUid nextSystemUid
-	echo yHELLO_WORLD $HELLO_WORLD HELLO_WORLD
 }
 
 function main()
@@ -1236,28 +1227,13 @@ function main()
 	setPathsAndExports
 	sourceFunctionsAndSettings
 	
-	echo anextSystemUid $nextSystemUid nextSystemUid
-	echo aHELLO_WORLD $HELLO_WORLD HELLO_WORLD
-	
 	addNextTrapHandler removeFilesOnExit
-	
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo bHELLO_WORLD $HELLO_WORLD HELLO_WORLD
 	
 	verifyHostSystemRequirements
 	
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo cHELLO_WORLD $HELLO_WORLD HELLO_WORLD
-	
 	include_mirrors
 	
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo dHELLO_WORLD $HELLO_WORLD HELLO_WORLD
-	
 	include_profiles
-	
-	echo nextSystemUid $nextSystemUid nextSystemUid
-	echo eHELLO_WORLD $HELLO_WORLD HELLO_WORLD
 		
 	# Suspended for now, as we are using --cacert instead of --capath
 	#rehashCertificateAuthorities
