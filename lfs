@@ -591,6 +591,9 @@ function include_mirrors()
 
 function include_phase()
 {
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
+	
 	local -r phase="$1"
 	shift 1
 	
@@ -608,6 +611,9 @@ function include_phase()
 		unset LFS_SOURCE_PACKAGE_VERSIONS
 		
 	popd >/dev/null
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
+	
 }
 
 function include_profiles()
