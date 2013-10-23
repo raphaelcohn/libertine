@@ -21,7 +21,7 @@ declare -i nextSystemUid=-1
 declare -i nextSystemGid=-1
 declare -i nextUserUid=-1
 declare -i nextUserGid=-1
-echo nextSystemUid $nextSystemUid
+
 declare_for_chroot -a groups_Name
 declare_for_chroot -a groups_Gid
 declare_for_chroot -a groups_Members
