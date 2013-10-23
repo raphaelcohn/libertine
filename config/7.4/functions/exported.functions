@@ -498,11 +498,14 @@ function version()
 			fi
 		done
 		
+		set -x
 		user "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_NAME" /dev/null /bin/false
 		dependency_User["$DependencyKey"]="$ourUserOrGroup"
 		dependency_Group["$DependencyKey"]="$ourUserOrGroup"
 		dependency_Uid["$DependencyKey"]="$LFS_LAST_UID"
 		dependency_Gid["$DependencyKey"]="$LFS_LAST_GID"
+		set +x
+		exit 80
 	else
 		dependency_User["$DependencyKey"]="nobody"
 		dependency_Group["$DependencyKey"]="nogroup"
@@ -661,8 +664,6 @@ function verifyGroupExists()
 
 function user()
 {
-	set -x
-	
 	local -r userName="$1"
 	local -r gecos="$2"
 	local -r home="$3"
