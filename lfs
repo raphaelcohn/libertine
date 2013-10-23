@@ -1202,6 +1202,9 @@ function renderLatePathCommands()
 
 function sourceFunctionsAndSettings()
 {
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
+	exit 60
 	local fileToSource
 	pushd "$functionsPath" >/dev/null
 		
@@ -1211,6 +1214,9 @@ function sourceFunctionsAndSettings()
 		done
 		
 	popd >/dev/null
+	
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	echo HELLO_WORLD $HELLO_WORLD HELLO_WORLD
 	
 	declare_for_chroot LFS_SETTINGS_HASH
 	LFS_SETTINGS_HASH="$(sha224sum "$settingsPath" | awk 'NR==1 {print $1}')"
