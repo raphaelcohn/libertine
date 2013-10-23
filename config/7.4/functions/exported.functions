@@ -1,5 +1,5 @@
 set -o errexit +o hashall
-
+declare HELLO_WORLD="FFF"
 declare_for_chroot -a signatures_Mirror
 declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
