@@ -593,7 +593,8 @@ function include_phase()
 {
 	local -r phase="$1"
 	shift 1
-	echo nextSystemUid $nextSystemUid
+	echo nextSystemUid $nextSystemUid nextSystemUid
+	type $signatures_Mirror
 	pushd "$profilesPath" >/dev/null
 		
 		declare -A LFS_SOURCE_PACKAGE_VERSIONS
