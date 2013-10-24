@@ -508,7 +508,6 @@ function setPathsAndExports()
 	LFS_TOOLS=tools-"$LFS_VERSION"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TOOLS')
 	
-	LFS_SOURCES_PATH="$LFS"/sources
 	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
 	
 	readonly toolsBackUpPath="$LFS"/"$LFS_TOOLS".backup
@@ -633,9 +632,6 @@ function createSkeletonFolderStructure()
 	readonly downloadsLogsPath="$LFS_LOG_PATH"/downloads
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
-	# Sources
-	mkdir -m 0755 -p "$LFS_SOURCES_PATH"
-	
 	# Tools Symlink
 	if [ -L /"$LFS_TOOLS" ]; then
 		rm -rf -- /"$LFS_TOOLS"
@@ -685,7 +681,7 @@ function downloadSources()
 	local -i index
 	for index in ${!sourcePackages_Mirror[@]}
 	do
-		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "$LFS_SOURCES_PATH" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "no" "${sourcePackages_Hashes[$index]}"
+		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "no" "${sourcePackages_Hashes[$index]}"
 	done
 }
 
@@ -694,7 +690,7 @@ function downloadPatches()
 	local -i index
 	for index in ${!patches_Mirror[@]}
 	do
-		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "$LFS_SOURCES_PATH" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "no" "${patches_Hashes[$index]}"
+		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "no" "${patches_Hashes[$index]}"
 	done
 }
 
@@ -821,6 +817,19 @@ function dependencyToPath()
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
 	
+	
+	# Copy in source and patches from download cache
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/source
+	linkOrCopyFile "${sourcePackages_Mirror[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}" "${sourcePackages_RelativePath[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}" "$absoluteCompletePath"/source "${sourcePackages_FileName[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	local -i index
+	for index in $LFS_DEPENDENCY_PATCHES
+	do
+		linkOrCopyFile "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "$absoluteCompletePath"/source "${patches_FileName[$index]}"
+	done
+	chmod -R 0644 -- "$absoluteCompletePath"/source/*
+	chown -R ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/*
+	
+	
 	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
 	chmod 0400 "$absoluteCompletePath"/dependencies.list
@@ -922,12 +931,16 @@ function installPackage()
 	LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
 	LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
 	
+	LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+	LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
 	if [ "$LFS_PHASE" = "system" ]; then
 		LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/install
+		LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PATH"/source
 	else
 		LFS_DEPENDENCY_INSTALL_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/install
+		LFS_DEPENDENCY_SOURCE_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/source
 	fi
 	
 	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
@@ -935,13 +948,12 @@ function installPackage()
 		return 0
 	fi
 	
-	LFS_RECIPE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
-	LFS_RECIPE_NAME="${sourcePackages_Name[$LFS_RECIPE_INDEX]}"
-	LFS_RECIPE_VERSION="${sourcePackages_Version[$LFS_RECIPE_INDEX]}"
-	LFS_RECIPE_COMPRESSION="${sourcePackages_Compression[$LFS_RECIPE_INDEX]}"
-	LFS_RECIPE_FILENAME="${sourcePackages_FileName[$LFS_RECIPE_INDEX]}"
-	LFS_RECIPE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_RECIPE_INDEX]}"
-	LFS_RECIPE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_NAME="${sourcePackages_Name[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_VERSION="${sourcePackages_Version[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_COMPRESSION="${sourcePackages_Compression[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_FILENAME="${sourcePackages_FileName[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
 	
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
@@ -964,7 +976,7 @@ function installPackage()
 	
 	installPerPackageFhs
 	
-	pushd "$LFS_SOURCES_PATH" >/dev/null
+	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
@@ -982,7 +994,7 @@ function installPackage()
 				exec 7>&2 2>"$installStdErrLogFile"
 					
 					local -i index
-					for index in ${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}
+					for index in $LFS_DEPENDENCY_PATCHES
 					do
 						echo "Applying patch ${patches_FileName[$index]}"
 						if ! patch -Np1 -i ../"${patches_FileName[$index]}"; then
@@ -1301,7 +1313,6 @@ function chrootToEnvironment()
 		
 		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
-		LFS_SOURCES_PATH=/sources
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		

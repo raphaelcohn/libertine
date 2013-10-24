@@ -1,5 +1,26 @@
 set -o errexit +o hashall
 
+function linkOrCopyFile()
+{
+	local -r mirrorName="$1"
+	local -r relativePath="$2"
+	local -r toPath="$3"
+	local -r fileName="$4"
+	
+	if [ "$toPath" = "/dev/null" ]; then
+		return
+	fi
+	
+	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
+	local -r linkTo="$toPath"/"$fileName"
+	
+	if [ ! -f "$linkTo" ]; then
+		rm -rf -- "$linkTo"
+		# Try to hard link, then copy
+		ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+	fi
+}
+
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrorNames logic
 function downloadFileAndCheckHash()
 {
@@ -28,15 +49,10 @@ function downloadFileAndCheckHash()
 	fi
 	mkdir -m 0755 -p "$downloadFolderPath"
 	
-	local -r linkTo="$toPath"/"$fileName"
-	
 	if [ -f "$downloadFilePath" ]; then
-		if [ ! -f "$linkTo" ]; then
-			rm -rf -- "$linkTo"
-			# Try to hard link, then copy
-			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
-		fi
-		progressMessage "Using downloaded $downloadName $url at $downloadFilePath, linked to $linkTo"
+		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
+		
+		progressMessage "Using cached $downloadName $url at $downloadFilePath"
 		progressMessageSucceeded
 	else
 		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
@@ -93,10 +109,7 @@ function downloadFileAndCheckHash()
 		if [ $exitCode -ne 0 ]; then
 			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
 		else
-			
-			rm -rf -- "$linkTo"
-			# Try to hard link, then copy
-			ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 			progressMessageSucceeded
 		fi
 	fi
