@@ -463,13 +463,13 @@ function setPathsAndExports()
 	fi
 	
 	readonly recipesPath="$distributionConfigPath"/recipes
-	if [ ! -f "$recipesPath" ]; then
-		exitError "Recipes path $recipesPath does not exist or is not a file"
+	if [ ! -d "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
 	readonly recipesPackageUidFile="$recipesPath"/package-uid
-	if [ ! -d "$recipesPackageUidFile" ]; then
-		exitError "package-uid file $recipesPackageUidFile does not exist or is not a directory"
+	if [ ! -f "$recipesPackageUidFile" ]; then
+		exitError "package-uid file $recipesPackageUidFile does not exist or is not a file"
 	fi
 	
 	readonly includesPath="$distributionConfigPath"/includes
