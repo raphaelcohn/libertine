@@ -716,6 +716,12 @@ function installEssentialFolderStructure()
 	
 	mkdir -m 0750 -p "$LFS"/root
 	
+	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
+	for folder in X11R6 bin include lib libexec sbin src
+	do
+		mkdir -m 0775 -p "$LFS"/usr/"$folder" "$LFS"/usr/local/"$folder"
+	done
+	
 	case "$(uname -m)" in
 		x86_64)
 			ln -s lib "$LFS"/lib64
@@ -728,12 +734,6 @@ function installEssentialFolderStructure()
 			ln -s lib "$LFS"/usr/local/lib32
 		;;
 	esac
-	
-	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
-	for folder in X11R6 bin include lib libexec sbin src
-	do
-		mkdir -m 0775 -p "$LFS"/usr/"$folder" "$LFS"/usr/local/"$folder"
-	done
 	
 	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
 	do
