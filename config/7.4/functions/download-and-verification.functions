@@ -43,6 +43,7 @@ function downloadFileAndCheckHash()
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
 	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
+	local -r downloadFileName="$(purebash_basename "$downloadFilePath")"
 	local -r downloadFolderPath="$(purebash_dirname "$downloadFilePath")"
 	if [ ! -d "$downloadFolderPath" ]; then
 		rm -rf -- "$downloadFolderPath"
@@ -139,7 +140,7 @@ function downloadFileAndCheckHash()
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
 				hashProgram=${hashName,,}sum
 				hasHash=0
-				if ! verifyHash "$downloadFolderPath" "$fileName" "$hashProgram" "$hashValue"; then
+				if ! verifyHash "$downloadFolderPath" "$downloadFileName" "$hashProgram" "$hashValue"; then
 					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
 				fi
 			;;
@@ -155,19 +156,19 @@ function downloadFileAndCheckHash()
 				
 				case "$hashName" in
 					KEYRING)
-						if ! verifyKeyringSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyKeyringSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					KEYFILE)
-						if ! verifyKeyFileSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyKeyFileSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					HKP)
-						if ! verifyHkpSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyHkpSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
@@ -175,9 +176,9 @@ function downloadFileAndCheckHash()
 					HKP_UNCOMPRESSED)
 						temporaryFolderToRemoveOnExit
 						temporaryFolder="$TMP_FILE"
-						decompressFileToStdout "$decompressionOption" "$downloadFolderPath"/"$fileName" >"$temporaryFolder"/"$fileName"
+						decompressFileToStdout "$decompressionOption" "$downloadFilePath" >"$temporaryFolder"/"$downloadFileName"
 						
-						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
+						if ! verifyHkpSignature "$temporaryFolder" "$downloadFileName" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
