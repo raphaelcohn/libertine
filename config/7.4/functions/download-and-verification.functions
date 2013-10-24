@@ -121,7 +121,7 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
-	progressMessage "Verifying $downloadName $url hashes of $toPath/$fileName"
+	progressMessage "Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
 	local hashName
