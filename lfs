@@ -808,6 +808,7 @@ function dependencyToPath()
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
 	mkdir -m 0755 -p "$absoluteCompletePath"
+	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
 	rm -rf -- "$absoluteVersionPath"/current
 	ln -s "$recipeVersion" "$absoluteVersionPath"/current
 	
