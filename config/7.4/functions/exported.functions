@@ -226,7 +226,7 @@ declare_for_chroot -A dependency_Version
 declare_for_chroot -A dependency_RecipeHash
 declare_for_chroot -A dependency_IncludeHash
 declare_for_chroot -A dependency_SettingsHash
-declare_for_chroot -Ai dependency_UidGid
+declare_for_chroot -A dependency_UidGid
 declare_for_chroot -Ai dependency_SourcePackageIndex
 declare_for_chroot -A dependency_PatchIndices
 declare_for_chroot -A dependency_Dependencies
