@@ -541,8 +541,8 @@ function depends()
 		fi
 		
 		local userAndGroupName=lfs-"$localSourcePackageName"
-		# defaults to 0, ie root, if not declared
-		local uidAndGid="$(grep "^${localSourcePackageName}$" "$recipesPackageUidFile" | awk '{print $2}')"
+		
+		local uidAndGid="$(grep -F "${localSourcePackageName} " "$recipesPackageUidFile" | awk '{print $2}')"
 		if [ -z "$uidAndGid" ]; then
 			exitError "Undefined package uid for $localSourcePackageName"
 		fi
