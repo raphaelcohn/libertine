@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.53
 {
-	source_package LINUX docs/"$LFS_SOURCE_PACKAGE_NAME"/Archive/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.xz MD5:c3ab5df043bc95de69f73cb71a3c7bb6,HKP_UNCOMPRESSED:3A35CE5E:"$LFS_SOURCE_PACKAGE_NAME"-3.53.tar.sign
+	source_package LINUX docs/"$LFS_RECIPE_NAME"/Archive/"$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.xz MD5:c3ab5df043bc95de69f73cb71a3c7bb6,HKP_UNCOMPRESSED:3A35CE5E:"$LFS_RECIPE_NAME"-3.53.tar.sign
 	
 	depends linux
 }

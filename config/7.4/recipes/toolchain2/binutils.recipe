@@ -14,7 +14,7 @@ function installPackage_toolchain2_binutils()
 		CC=$LFS_TGT-gcc                           \
 		AR=$LFS_TGT-ar                            \
 		RANLIB=$LFS_TGT-ranlib                    \
-		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure \
+		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix=/"$LFS_TOOLS"                    \
 		--disable-nls                             \
 		--with-lib-path=/"$LFS_TOOLS"/lib         \

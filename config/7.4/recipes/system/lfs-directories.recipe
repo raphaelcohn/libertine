@@ -52,79 +52,79 @@ version 0
 	
 	# Attributes don't seem to work for anything other than folders or files
 	
-	directory / 0755 root root '' ai
+#	directory / 0755 root root '' ai
 	
-	directory /dev 0755 root root T ''
-	directory /proc 0755 root root T ''
-	directory /sys 0755 root root T ''
+#	directory /dev 0755 root root T ''
+#	directory /proc 0755 root root T ''
+#	directory /sys 0755 root root T ''
 	
 	# Required by the kernel to boot before udevd is started
-	make_character_device /dev/console 5 1 600 root root
-	make_character_device /dev/null 1 3 666 root root
+#	make_character_device /dev/console 5 1 600 root root
+#	make_character_device /dev/null 1 3 666 root root
 	
 	# What about 'd', no dump?
 	# requires e2fsprogs in the toolchain
 	
 	# a makes folders only allow creation; i makes them immutable
 	#mkdir -m 0755 -p /{bin,boot,etc/{opt,sysconfig},home,lib,mnt,opt,run}
-	directory /bin 0755 root root '' ai
-	directory /boot 0755 root root '' ai
-	directory /etc 0755 root root '' ai
-	directory /etc/opt 0755 root root '' ai
-	directory /etc/sysconfig 0755 root root '' ai
-	directory /home 0755 root root T ai
-	directory /lib 0755 root root '' ai
-	directory /mnt 0755 root root T ai
-	directory /opt 0755 root root T ai
-	directory /run 0755 root root '' ai
-	directory /srv 0755 root root T ai
-	directory /usr 0755 root root T ai
-	directory /usr/local 0755 root root T ai
+#	directory /bin 0755 root root '' ai
+#	directory /boot 0755 root root '' ai
+#	directory /etc 0755 root root '' ai
+#	directory /etc/opt 0755 root root '' ai
+#	directory /etc/sysconfig 0755 root root '' ai
+#	directory /home 0755 root root T ai
+#	directory /lib 0755 root root '' ai
+#	directory /mnt 0755 root root T ai
+#	directory /opt 0755 root root T ai
+#	directory /run 0755 root root '' ai
+#	directory /srv 0755 root root T ai
+#	directory /usr 0755 root root T ai
+#	directory /usr/local 0755 root root T ai
 	
 	#mkdir -m 0755 -p /{media/{floppy,cdrom},sbin,srv,var}
-	directory /media 0755 root root '' ai
+#	directory /media 0755 root root '' ai
 	#directory /media/floppy 0755 root root '' ai
 	#directory /media/cdrom 0755 root root '' ai
-	directory /sbin 0755 root root '' ai
-	directory /srv 0755 root root T ai
-	directory /var 0755 root root T ai
+#	directory /sbin 0755 root root '' ai
+#	directory /srv 0755 root root T ai
+#	directory /var 0755 root root T ai
 	
 	#install -m 0750 --directory /root
-	directory /root 0750 root root '' D
+#	directory /root 0750 root root '' D
 	
 	#install -m 1777 --directory /tmp /var/tmp
-	directory /tmp 1777 root root '' D
-	directory /var/tmp 1777 root root '' D
+#	directory /tmp 1777 root root '' D
+#	directory /var/tmp 1777 root root '' D
 	
 	#mkdir -m 0755 -p /usr/{,local/}{bin,include,lib,sbin,src}
-	directory /usr/bin 0755 root root '' ai
-	directory /usr/include 0755 root root '' ai
-	directory /usr/lib 0755 root root '' ai
-	directory /usr/sbin 0755 root root '' ai
-	directory /usr/src 0755 root root '' ai
-	directory /usr/local/bin 0755 root root '' ai
-	directory /usr/local/include 0755 root root '' ai
-	directory /usr/local/lib 0755 root root '' ai
-	directory /usr/local/sbin 0755 root root '' ai
-	directory /usr/local/src 0755 root root '' ai
+#	directory /usr/bin 0755 root root '' ai
+#	directory /usr/include 0755 root root '' ai
+#	directory /usr/lib 0755 root root '' ai
+#	directory /usr/sbin 0755 root root '' ai
+#	directory /usr/src 0755 root root '' ai
+#	directory /usr/local/bin 0755 root root '' ai
+#	directory /usr/local/include 0755 root root '' ai
+#	directory /usr/local/lib 0755 root root '' ai
+#	directory /usr/local/sbin 0755 root root '' ai
+#	directory /usr/local/src 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/{doc,info,locale,man}
-	directory /usr/share/doc 0755 root root '' ai
-	directory /usr/share/info 0755 root root '' ai
-	directory /usr/share/locale 0755 root root '' ai
-	directory /usr/share/man 0755 root root '' ai
-	directory /usr/local/share/doc 0755 root root '' ai
-	directory /usr/local/share/info 0755 root root '' ai
-	directory /usr/local/share/locale 0755 root root '' ai
-	directory /usr/local/share/man 0755 root root '' ai
+#	directory /usr/share/doc 0755 root root '' ai
+#	directory /usr/share/info 0755 root root '' ai
+#	directory /usr/share/locale 0755 root root '' ai
+#	directory /usr/share/man 0755 root root '' ai
+#	directory /usr/local/share/doc 0755 root root '' ai
+#	directory /usr/local/share/info 0755 root root '' ai
+#	directory /usr/local/share/locale 0755 root root '' ai
+#	directory /usr/local/share/man 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/{misc,terminfo,zoneinfo}
-	directory /usr/share/misc 0755 root root '' ai
-	directory /usr/share/terminfo 0755 root root '' ai
-	directory /usr/share/zoneinfo 0755 root root '' ai
-	directory /usr/local/share/misc 0755 root root '' ai
-	directory /usr/local/share/terminfo 0755 root root '' ai
-	directory /usr/local/share/zoneinfo 0755 root root '' ai
+#	directory /usr/share/misc 0755 root root '' ai
+#	directory /usr/share/terminfo 0755 root root '' ai
+#	directory /usr/share/zoneinfo 0755 root root '' ai
+#	directory /usr/local/share/misc 0755 root root '' ai
+#	directory /usr/local/share/terminfo 0755 root root '' ai
+#	directory /usr/local/share/zoneinfo 0755 root root '' ai
 	
 	#directory /usr/share/dict 0755 root root '' ai
 	#directory /usr/local/share/dict 0755 root root '' ai
@@ -134,43 +134,43 @@ version 0
 	#directory /usr/local/share/sgml 0755 root root '' ai
 	
 	#mkdir -m 0755 -p /usr/{,local/}share/man/man{1..8}
-	directory /usr/share/man/man1 0755 root root '' ai
-	directory /usr/share/man/man2 0755 root root '' ai
-	directory /usr/share/man/man3 0755 root root '' ai
-	directory /usr/share/man/man4 0755 root root '' ai
-	directory /usr/share/man/man5 0755 root root '' ai
-	directory /usr/share/man/man6 0755 root root '' ai
-	directory /usr/share/man/man7 0755 root root '' ai
-	directory /usr/share/man/man8 0755 root root '' ai
-	directory /usr/local/share/man/man1 0755 root root '' ai
-	directory /usr/local/share/man/man2 0755 root root '' ai
-	directory /usr/local/share/man/man3 0755 root root '' ai
-	directory /usr/local/share/man/man4 0755 root root '' ai
-	directory /usr/local/share/man/man5 0755 root root '' ai
-	directory /usr/local/share/man/man6 0755 root root '' ai
-	directory /usr/local/share/man/man7 0755 root root '' ai
-	directory /usr/local/share/man/man8 0755 root root '' ai
+#	directory /usr/share/man/man1 0755 root root '' ai
+#	directory /usr/share/man/man2 0755 root root '' ai
+#	directory /usr/share/man/man3 0755 root root '' ai
+#	directory /usr/share/man/man4 0755 root root '' ai
+#	directory /usr/share/man/man5 0755 root root '' ai
+#	directory /usr/share/man/man6 0755 root root '' ai
+#	directory /usr/share/man/man7 0755 root root '' ai
+#	directory /usr/share/man/man8 0755 root root '' ai
+#	directory /usr/local/share/man/man1 0755 root root '' ai
+#	directory /usr/local/share/man/man2 0755 root root '' ai
+#	directory /usr/local/share/man/man3 0755 root root '' ai
+#	directory /usr/local/share/man/man4 0755 root root '' ai
+#	directory /usr/local/share/man/man5 0755 root root '' ai
+#	directory /usr/local/share/man/man6 0755 root root '' ai
+#	directory /usr/local/share/man/man7 0755 root root '' ai
+#	directory /usr/local/share/man/man8 0755 root root '' ai
 	
 	# this is target source, rather than ln -s source target
-	symlink /usr/man share/man
-	symlink /usr/doc share/doc
-	symlink /usr/info share/info
-	symlink /usr/local/man share/man
-	symlink /usr/local/doc share/doc
-	symlink /usr/local/info share/info
+#	symlink /usr/man share/man
+#	symlink /usr/doc share/doc
+#	symlink /usr/info share/info
+#	symlink /usr/local/man share/man
+#	symlink /usr/local/doc share/doc
+#	symlink /usr/local/info share/info
 	
-	case "$(uname -m)" in
-		x86_64)
-			symlink /lib64 lib
-			symlink /usr/lib64 lib
-			symlink /usr/local/lib64 lib
-		;;
-	esac
+#	case "$(uname -m)" in
+#		x86_64)
+#			symlink /lib64 lib
+#			symlink /usr/lib64 lib
+#			symlink /usr/local/lib64 lib
+#		;;
+#	esac
 	
 	#mkdir -m 0755 -p /var/{log,mail,spool}
-	directory /var/log 0755 root root '' D
-	directory /var/mail 0755 root root '' D
-	directory /var/spool 0755 root root '' D
+#	directory /var/log 0755 root root '' D
+#	directory /var/mail 0755 root root '' D
+#	directory /var/spool 0755 root root '' D
 	
 	# ?
 	#directory /var/backups 0755 root root '' D
@@ -181,15 +181,15 @@ version 0
 	#directory /var/yp 0755 root root '' D
 	#directory /var/crash 1777 root root '' D
 	
-	symlink /var/run /run
-	symlink /var/lock /run/lock
+#	symlink /var/run /run
+#	symlink /var/lock /run/lock
 	
-	directory /var/opt 0755 root root '' D
-	directory /var/cache 0755 root root '' D
-	directory /var/lib 0755 root root '' ai
-	directory /var/lib/misc 0755 root root '' ai
-	directory /var/lib/locate 0755 root root '' D
-	directory /var/local 0755 root root '' D
+#	directory /var/opt 0755 root root '' D
+#	directory /var/cache 0755 root root '' D
+#	directory /var/lib 0755 root root '' ai
+#	directory /var/lib/misc 0755 root root '' ai
+#	directory /var/lib/locate 0755 root root '' D
+#	directory /var/local 0755 root root '' D
 	
 	# Ensures that essential tools from the toolchain exist and are slowly replaced during the installation
 	#ln -sv /"$LFS_TOOLS"/bin/{bash,cat,echo,pwd,stty} /bin
@@ -213,40 +213,11 @@ version 0
 	
 	# historic mtab
 	#ln -sv /proc/self/mounts /etc/mtab
-	symlink /etc/mtab /proc/self/mounts
-	
-	touch_file /var/log/btmp 600 root utmp jS ''
-	touch_file /var/log/utmp 600 root utmp jS ''
-	touch_file /var/log/lastlog 664 root utmp jS ''
-	
-	touch_file /etc/passwd 644 root root jS ai
-	touch_file /etc/group 644 root root jS ai
-	touch_file /etc/lsb-release 644 root root jS ai
+#	symlink /etc/mtab /proc/self/mounts
 }
 
 function installPackage_system_lfs-directories()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >>/usr/lib/libstdc++.la
-	
-	# /etc/users
-	local -i index
-	for index in ${!users_Name[@]}
-	do
-		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
-	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/passwd
-	
-	# /etc/group
-	for index in ${!groups_Name[@]}
-	do
-		printf "%s:x:%s:%s\n" "$${groups_Name[$index]}" "${groups_Gid[$index]}" "${groups_Members[$index]}"
-	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/group
-	
-	# Section 9.1
-	cat >>/etc/lsb-release <<-EOF
-		DISTRIB_ID="${settings_string[LFS_DISTRIBUTION_ID]}"
-		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION"
-		DISTRIB_CODENAME="${settings_string[LFS_DISTRIBUTION_CODENAME]}"
-		DISTRIB_DESCRIPTION="${settings_string[LFS_DISTRIBUTION_DESCRIPTION]}"
-	EOF
 }

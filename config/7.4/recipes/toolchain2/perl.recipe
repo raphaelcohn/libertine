@@ -13,7 +13,7 @@ function installPackage_toolchain2_perl()
 	
 	cp -v perl cpan/podlators/pod2man /"$LFS_TOOLS"/bin
 	
-	local -r ourFolder=/"$LFS_TOOLS"/lib/perl5/"$LFS_SOURCE_PACKAGE_VERSION"
+	local -r ourFolder=/"$LFS_TOOLS"/lib/perl5/"$LFS_RECIPE_VERSION"
 	mkdir -pv "$ourFolder"
 	cp -Rv lib/* "$ourFolder"
 }

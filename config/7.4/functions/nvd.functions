@@ -32,7 +32,7 @@ function addCVE()
 		exitError "Not enough arguments"
 	fi
 	
-	local -r localSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	local -r localSourcePackageName="$LFS_RECIPE_NAME"
 	local -r cveProductId="$1"
 	local -r cveProductName="$2"
 	

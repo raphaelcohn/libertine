@@ -1,0 +1,22 @@
+set -o errexit +o hashall
+
+# Make sure the northamerica and etcetcera regions are defined below
+setting_string LFS_TIMEZONE_POSIXRULES America/New_York
+setting_string LFS_TIMEZONE_TARGET Etc/UTC
+
+# Also available: factory (pointless) leapseconds (used in a different form)
+# backward must occur after most continents
+timezone_region etcetera
+timezone_region southamerica
+timezone_region northamerica
+timezone_region europe
+timezone_region africa
+timezone_region antarctica
+timezone_region asia
+timezone_region australasia
+timezone_region backward
+timezone_region pacificnew
+timezone_region solar87
+timezone_region solar88
+timezone_region solar89
+timezone_region systemv

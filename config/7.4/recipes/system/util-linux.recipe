@@ -3,7 +3,7 @@ set -o errexit +o hashall
 version 2.23.2
 {
 	# Dumb naming - v2.23 can't be easily resolved away
-	source_package LINUX utils/"$LFS_SOURCE_PACKAGE_NAME"/v2.23/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.xz MD5:b39fde897334a4858bb2098edcce5b3f,HKP_UNCOMPRESSED:6092693E:"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}".tar.sign
+	source_package LINUX utils/"$LFS_RECIPE_NAME"/v2.23/"$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.xz MD5:b39fde897334a4858bb2098edcce5b3f,HKP_UNCOMPRESSED:6092693E:"$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.sign
 	
 	depends zlib
 }

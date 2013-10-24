@@ -467,6 +467,11 @@ function setPathsAndExports()
 		exitError "Recipes path $recipesPath does not exist or is not a directory"
 	fi
 	
+	readonly recipesPackageUidFile="$recipesPath"/package-uid
+	if [ ! -d "$recipesPackageUidFile" ]; then
+		exitError "package-uid file $recipesPackageUidFile does not exist or is not a directory"
+	fi
+	
 	readonly includesPath="$distributionConfigPath"/includes
 	if [ ! -d "$includesPath" ]; then
 		exitError "includes path $includesPath does not exist or is not a directory"
@@ -596,16 +601,16 @@ function include_phase()
 	
 	pushd "$profilesPath" >/dev/null
 		
-		declare -A LFS_SOURCE_PACKAGE_VERSIONS
-		declare -A LFS_SOURCE_PACKAGE_VERSION
+		declare -A LFS_RECIPE_VERSIONS
+		declare -A LFS_RECIPE_VERSION
 		for profile in "$@"
 		do
 			progressMessage "Including phase $phase profile $profile"
 			LFS_PHASE="$phase" include_profile "$profile"
 			progressMessageSucceeded
 		done
-		declare -A LFS_SOURCE_PACKAGE_VERSION
-		unset LFS_SOURCE_PACKAGE_VERSIONS
+		declare -A LFS_RECIPE_VERSION
+		unset LFS_RECIPE_VERSIONS
 		
 	popd >/dev/null
 }
@@ -693,6 +698,72 @@ function downloadPatches()
 	done
 }
 
+function installEssentialFolderStructure()
+{
+	# usr/local/etc exists occasionally. Why there isn't /usr/etc isn't clear.
+	local folder
+	for folder in bin boot dev proc etc home lib media mnt opt root run sbin srv sys usr var usr/local usr/local/etc
+	do
+		mkdir -m 0775 -p "$LFS"/"$folder"
+	done
+	
+	for folder in tmp var/tmp
+	do
+		mkdir -m 1775 -p "$LFS"/"$folder"
+	done
+	
+	mkdir -m 0750 -p "$LFS"/root
+	
+	case "$(uname -m)" in
+		x86_64)
+			ln -s lib "$LFS"/lib64
+			ln -s lib "$LFS"/usr/lib64
+			ln -s lib "$LFS"/usr/local/lib64
+		;;
+		x86_32)
+			ln -s lib "$LFS"/lib32
+			ln -s lib "$LFS"/usr/lib32
+			ln -s lib "$LFS"/usr/local/lib32
+		;;
+	esac
+	
+	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
+	for folder in X11R6 bin include lib libexec sbin src
+	do
+		mkdir -m 0775 -p "$LFS"/usr/"$folder" "$LFS"/usr/local/"$folder"
+	done
+	
+	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
+	do
+		mkdir -m 0775 -p "$LFS"/usr/share/"$folder" "$LFS"/usr/local/share/"$folder"
+	done
+	
+	for folder in man1 man2 man3 man4 man5 man6 man7 man8
+	do
+		mkdir -m 0775 -p "$LFS"/usr/share/man/"$folder" "$LFS"/usr/local/share/man/"$folder"
+	done
+	
+	ln -s /run "$LFS"/var/run
+	ln -s /run/lock "$LFS"/var/lock
+	
+	ln -s /media "$LFS"/media
+	ln -s /tmp "$LFS"/tmp
+	
+	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron
+	for folder in account cache crash games lib local log mail opt spool tmp yp
+	do
+		ln -s /var/"$folder" "$LFS"/var/"$folder"
+	done
+	
+	for folder in man doc info
+	do
+		ln -s share/"$folder" "$LFS"/usr/"$folder"
+		ln -s share/"$folder" "$LFS"/usr/local/"$folder"
+	done
+	
+	ln -s /proc/self/mounts "$LFS"/etc/mtab
+}
+
 function dependencyToPath()
 {
 	# TODO: Defer the 'current' creation
@@ -734,7 +805,7 @@ function dependencyToPath()
 	
 	
 	# We should consider breaking-up settings to per recipe - as this better reflects changes
-	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-dependencies-"$dependenciesHash"-settings-"$LFS_SETTINGS_HASH"
+	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-settings-"$LFS_DEPENDENCY_SETTINGS_HASH"-dependencies-"$dependenciesHash"
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
 	local -r absoluteCompletePath="${LFS}${absoluteVersionPath}"
 	mkdir -m 0755 -p "$absoluteRecipePath"
@@ -760,6 +831,74 @@ function dependencyToPath()
 	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
 }
 
+function installPerPackageFhs()
+{
+	ln -s /dev "$LFS_DEPENDENCY_PATH"/dev
+	ln -s /proc "$LFS_DEPENDENCY_PATH"/proc
+	ln -s /sys "$LFS_DEPENDENCY_PATH"/sys
+	
+	# Required by the kernel to boot before udevd is started
+	mknod -m 600 /dev/console c 5 1
+	mknod -m 666 /dev/null c 1 3
+	
+	local folder
+	for folder in bin boot etc home lib media mnt opt run sbin srv usr var etc/opt usr/local
+	do
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/"$folder"
+	done
+	
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0750 -p "$LFS_DEPENDENCY_PATH"/root
+	
+	case "$(uname -m)" in
+		x86_64)
+			ln -s lib "$LFS_DEPENDENCY_PATH"/lib64
+			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/lib64
+			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/local/lib64
+		;;
+		x86_32)
+			ln -s lib "$LFS_DEPENDENCY_PATH"/lib32
+			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/lib32
+			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/local/lib32
+		;;
+	esac
+	
+	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
+	for folder in X11R6 bin include lib libexec sbin src
+	do
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/"$folder"
+	done
+	
+	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
+	do
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/share/"$folder"
+	done
+	
+	for folder in man1 man2 man3 man4 man5 man6 man7 man8
+	do
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/share/man/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/share/man/"$folder"
+	done
+	
+	ln -s /run "$LFS_DEPENDENCY_PATH"/var/run
+	ln -s /run/lock "$LFS_DEPENDENCY_PATH"/var/lock
+	
+	ln -s /media "$LFS_DEPENDENCY_PATH"/media
+	ln -s /tmp "$LFS_DEPENDENCY_PATH"/tmp
+	
+	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron, /var/lib/locate
+	for folder in account cache crash games lib local log mail opt spool tmp yp
+	do
+		ln -s /var/"$folder" "$LFS_DEPENDENCY_PATH"/var/"$folder"
+	done
+	
+	for folder in man doc info
+	do
+		ln -s share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/"$folder"
+		ln -s share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/"$folder"
+	done
+	
+	ln -s /proc/self/mounts "$LFS_DEPENDENCY_PATH"/etc/mtab
+}
+
 function installPackage()
 {
 	LFS_PHASE="$1"
@@ -768,11 +907,12 @@ function installPackage()
 	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
 	
-	LFS_DEPENDENCY_USER="${dependency_User["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_GROUP="${dependency_Group["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_UID="${dependency_Uid["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_GID="${dependency_Gid["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
+	LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
+	LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
+	LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
 	
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
@@ -783,13 +923,13 @@ function installPackage()
 		return 0
 	fi
 	
-	LFS_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
-	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_Name[$LFS_SOURCE_PACKAGE_INDEX]}"
-	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version[$LFS_SOURCE_PACKAGE_INDEX]}"
-	LFS_SOURCE_PACKAGE_COMPRESSION="${sourcePackages_Compression[$LFS_SOURCE_PACKAGE_INDEX]}"
-	LFS_SOURCE_PACKAGE_FILENAME="${sourcePackages_FileName[$LFS_SOURCE_PACKAGE_INDEX]}"
-	LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_SOURCE_PACKAGE_INDEX]}"
-	LFS_SOURCE_PACKAGE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+	LFS_RECIPE_NAME="${sourcePackages_Name[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_VERSION="${sourcePackages_Version[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_COMPRESSION="${sourcePackages_Compression[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_FILENAME="${sourcePackages_FileName[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_RECIPE_INDEX]}"
+	LFS_RECIPE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_RECIPE_INDEX]}"
 	
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
@@ -810,15 +950,17 @@ function installPackage()
 		progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
 	fi
 	
+	installPerPackageFhs
+	
 	pushd "$LFS_SOURCES_PATH" >/dev/null
 		
-		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-			tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB"
+		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
+			tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
 			progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
 		fi
 		
-		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-			pushd "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" >/dev/null
+		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
+			pushd "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
 		
 			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $logPathPrefix.install.*.log"
@@ -847,9 +989,9 @@ function installPackage()
 				
 			removeLastTrapHandler
 		
-		if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			popd >/dev/null
-			rm -rf -- "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"
+			rm -rf -- "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
 		fi
 		
 	popd >/dev/null
@@ -1211,10 +1353,6 @@ function sourceFunctionsAndSettings()
 		done
 		
 	popd >/dev/null
-	
-	declare_for_chroot LFS_SETTINGS_HASH
-	LFS_SETTINGS_HASH="$(sha224sum "$settingsPath" | awk 'NR==1 {print $1}')"
-	source "$settingsPath"
 }
 
 function main()
@@ -1246,6 +1384,7 @@ function main()
 	downloadSources
 	downloadPatches
 	
+	installEssentialFolderStructure
 	createOrUseBackUpToolchain
 	
 	runSystemInstallationLogic renderEarlyPathCommands

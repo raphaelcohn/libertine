@@ -42,7 +42,7 @@ function installPackage_toolchain2_gcc()
 		CXX="$LFS_TGT"-g++                                                         \
 		AR="$LFS_TGT"-ar                                                           \
 		RANLIB="$LFS_TGT"-ranlib                                                   \
-		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure                                  \
+		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure                                  \
 		--prefix=/"$LFS_TOOLS"                                                            \
 		--with-local-prefix=/"$LFS_TOOLS"                                                 \
 		--with-native-system-header-dir=/"$LFS_TOOLS"/include                             \
@@ -55,7 +55,7 @@ function installPackage_toolchain2_gcc()
 		--disable-multilib                                                         \
 		--disable-bootstrap                                                        \
 		--disable-libgomp                                                          \
-		--with-mpfr-include="$currentDir"/../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-include="$currentDir"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
 		--with-mpfr-lib="$currentDir"/mpfr/src/.libs
 		
 		make

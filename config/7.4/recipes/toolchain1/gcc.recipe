@@ -35,7 +35,7 @@ function installPackage_toolchain1_gcc()
 
 	createBuildFolderAndPushd
 		
-		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure        \
+		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TGT"                              \
 		--prefix=/"$LFS_TOOLS"                                  \
 		--with-sysroot="$LFS"                            \
@@ -57,7 +57,7 @@ function installPackage_toolchain1_gcc()
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
 		--enable-languages=c,c++                         \
-		--with-mpfr-include="$(pwd)"/../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
 		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
 
 		make

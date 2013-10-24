@@ -24,14 +24,14 @@ function installPackage_system_glibc()
 	
 	createBuildFolderAndPushd
 		
-		../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure    \
+		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure    \
 		--prefix=/usr          \
 		--disable-profile      \
 		--enable-kernel=2.6.32 \
 		--libexecdir=/usr/lib/glibc
 		
 		#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"
-		#CC=XXXXX CFLAGS="gcc -Wl,-dynamic-linker,/my/lib/ld-linux.so.2" ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/configure    \
+		#CC=XXXXX CFLAGS="gcc -Wl,-dynamic-linker,/my/lib/ld-linux.so.2" ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure    \
 		#--prefix="$LFS_INSTALL_LOCATION"        \
 		#--with-headers="$LFS_INSTALL_LOCATION_LINUX"        \
 		#--disable-profile      \
@@ -48,9 +48,9 @@ function installPackage_system_glibc()
 		make install
 		
 		# Install of NIS and RPC headers not installed by default
-		cp -v ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpc/*.h /usr/include/rpc
-		cp -v ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
-		cp -v ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER"/nis/rpcsvc/*.h /usr/include/rpcsvc
+		cp -v ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpc/*.h /usr/include/rpc
+		cp -v ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
+		cp -v ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/nis/rpcsvc/*.h /usr/include/rpcsvc
 		
 		# Or use glibc-2.18/localedata/SUPPORTED with  make localedata/install-locales
 		if [ ${settings_binary[LFS_LOCALE_INSTALL_ALL]} -eq 1 ]; then

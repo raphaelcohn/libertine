@@ -5,16 +5,16 @@ version 4.8.1
 {
 	depends glibc
 	
-	source_package_alias gcc "${LFS_SOURCE_PACKAGE_VERSION["${LFS_SOURCE_PACKAGE_NAME}"]}"
+	source_package_alias gcc "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 }
 
 function installPackage_toolchain1_libstdc++()
 {
 	local gccVersion="4.8.1"
 	
-	createBuildFolderAndPushd "gcc" "$LFS_SOURCE_PACKAGE_VERSION"
+	createBuildFolderAndPushd "gcc" "$LFS_RECIPE_VERSION"
 	
-		../gcc-"$LFS_SOURCE_PACKAGE_VERSION"/libstdc++-v3/configure \
+		../gcc-"$LFS_RECIPE_VERSION"/libstdc++-v3/configure \
 		--host="$LFS_TGT"                                      \
 		--prefix=/"$LFS_TOOLS"                                        \
 		--disable-multilib                                     \
@@ -22,7 +22,7 @@ function installPackage_toolchain1_libstdc++()
 		--disable-nls                                          \
 		--disable-libstdcxx-threads                            \
 		--disable-libstdcxx-pch                                \
-		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$LFS_SOURCE_PACKAGE_VERSION"
+		--with-gxx-include-dir=/"$LFS_TOOLS"/"$LFS_TGT"/include/c++/"$LFS_RECIPE_VERSION"
 	
 		make
 	

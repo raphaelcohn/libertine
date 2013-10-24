@@ -1,0 +1,39 @@
+set -o errexit +o hashall
+
+version 0
+{
+	depends lfs-directories
+	
+	touch_file /var/log/btmp 600 root utmp jS ''
+	touch_file /var/log/utmp 600 root utmp jS ''
+	touch_file /var/log/lastlog 664 root utmp jS ''
+	
+	touch_file /etc/passwd 644 root root jS ai
+	touch_file /etc/group 644 root root jS ai
+	touch_file /etc/lsb-release 644 root root jS ai
+}
+
+# BIG PROBLEM: This package is affected by adding / removing anything from the system, but the change isn't propagated
+function installPackage_system_lfs-etc()
+{
+	# /etc/passwd
+	local -i index
+	for index in ${!users_Name[@]}
+	do
+		printf "%s:x:%s:%s:%s:%s:%s\n" "${users_Name[$index]}" ${users_Uid[$index]} ${users_Gid[$index]} "${users_Gecos[$index]}" "${users_Home[$index]}" "${users_Shell[$index]}"
+	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/passwd
+	
+	# /etc/group
+	for index in ${!groups_Name[@]}
+	do
+		printf "%s:x:%s:%s\n" "$${groups_Name[$index]}" "${groups_Gid[$index]}" "${groups_Members[$index]}"
+	done | sort --numeric-sort --field-separator=':' --key=3 >>/etc/group
+	
+	# Section 9.1
+	cat >>/etc/lsb-release <<-EOF
+		DISTRIB_ID="${settings_string[LFS_DISTRIBUTION_ID]}"
+		DISTRIB_RELEASE="$LFS_DISTRIBUTION_VERSION"
+		DISTRIB_CODENAME="${settings_string[LFS_DISTRIBUTION_CODENAME]}"
+		DISTRIB_DESCRIPTION="${settings_string[LFS_DISTRIBUTION_DESCRIPTION]}"
+	EOF
+}

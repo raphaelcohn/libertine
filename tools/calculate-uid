@@ -1,0 +1,36 @@
+#!/bin/bash -
+
+function xxxx()
+{
+	local -i nextLargeNumber=100000
+	local -i nextMinorNumber=0
+	local lastNamePrefix="impossible"
+	local -i lastNamePrefixLength
+	while IFS= read -r -d$'\n' name x
+	do
+		if [ "$x" = "x" ]; then
+			printf '%-40s %s\n' "$name" "$nextLargeNumber"
+			nextMinorNumber=$((nextLargeNumber+1))
+			nextLargeNumber=$((nextLargeNumber+100))
+			lastNamePrefix="$name"
+			lastNamePrefixLength=${#lastNamePrefix}
+			continue
+		fi
+		
+		if [ "${name:0:$lastNamePrefixLength}" = "$lastNamePrefix" ]; then
+			printf '%-40s %s\n' "$name" "$nextMinorNumber"
+			nextMinorNumber=$((nextMinorNumber+1))
+			continue
+		fi
+		
+		printf '%-40s %s\n' "$name" "$nextLargeNumber"
+		nextMinorNumber=$((nextLargeNumber+1))
+		nextLargeNumber=$((nextLargeNumber+100))
+		lastNamePrefix="$name"
+		lastNamePrefixLength=${#lastNamePrefix}
+		
+		
+	
+	done < <(cat potential-packages)
+}
+xxxx
