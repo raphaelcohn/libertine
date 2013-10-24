@@ -819,6 +819,8 @@ function dependencyToPath()
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
 	
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/log
+	
 	
 	# Copy in source and patches from download cache
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/source
@@ -942,9 +944,11 @@ function installPackage()
 	if [ "$LFS_PHASE" = "system" ]; then
 		LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/install
 		LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PATH"/source
+		LFS_DEPENDENCY_LOG_PATH="$LFS_DEPENDENCY_PATH"/log
 	else
 		LFS_DEPENDENCY_INSTALL_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/install
 		LFS_DEPENDENCY_SOURCE_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/source
+		LFS_DEPENDENCY_LOG_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/log
 	fi
 	
 	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
@@ -962,9 +966,9 @@ function installPackage()
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
 	
-	local -r logPathPrefix="$LFS_LOG_PATH"/"$LFS_DEPENDENCY_KEY"
-	local -r installStdOutLogFile="$logPathPrefix".install.stdout.log
-	local -r installStdErrLogFile="$logPathPrefix".install.stderr.log
+	local -r logPathPrefix="$LFS_DEPENDENCY_LOG_PATH"
+	local -r installStdOutLogFile="$LFS_DEPENDENCY_LOG_PATH"/install.stdout.log
+	local -r installStdErrLogFile="$LFS_DEPENDENCY_LOG_PATH"/install.stderr.log
 	local -i exitCode
 	
 	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
@@ -984,14 +988,14 @@ function installPackage()
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
-			progressMessageUpdate "(tar extraction complete, logs in $logPathPrefix.extract.*.log)"
+			progressMessageUpdate "(tar extraction complete, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log)"
 		fi
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			pushd "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" >/dev/null
 		fi
 		
-			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $logPathPrefix.install.*.log"
+			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
 			addNextTrapHandler installationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"
