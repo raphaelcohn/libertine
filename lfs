@@ -830,12 +830,12 @@ function dependencyToPath()
 		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
 	done
 	
-	cp "$recipesPath"/"$LFS_PHASE"/"$dependencyName".recipe "$absoluteCompletePath"/recipe
+	cp "$recipesPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".recipe "$absoluteCompletePath"/recipe
 	if [ "$LFS_DEPENDENCY_INCLUDE_HASH" != "0" ]; then
-		cp "$includesPath"/"$dependencyName".include "$absoluteCompletePath"/include
+		cp "$includesPath"/"$LFS_DEPENDENCY_NAME".include "$absoluteCompletePath"/include
 	fi
 	if [ "$LFS_DEPENDENCY_SETTINGS_HASH" != "0" ]; then
-		cp "$settingsPath"/"$LFS_PHASE"/"$dependencyName".settings "$absoluteCompletePath"/settings
+		cp "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".settings "$absoluteCompletePath"/settings
 	fi
 }
 
