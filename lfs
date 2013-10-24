@@ -841,9 +841,9 @@ function dependencyToPath()
 
 function installPerPackageFhs()
 {
-	ln -s /dev "$LFS_DEPENDENCY_PATH"/dev
-	ln -s /proc "$LFS_DEPENDENCY_PATH"/proc
-	ln -s /sys "$LFS_DEPENDENCY_PATH"/sys
+	ln -s /dev "$LFS_DEPENDENCY_INSTALL_PATH"/dev
+	ln -s /proc "$LFS_DEPENDENCY_INSTALL_PATH"/proc
+	ln -s /sys "$LFS_DEPENDENCY_INSTALL_PATH"/sys
 	
 	# Required by the kernel to boot before udevd is started
 	mknod -m 600 /dev/console c 5 1
@@ -852,59 +852,59 @@ function installPerPackageFhs()
 	local folder
 	for folder in bin boot etc home lib media mnt opt run sbin srv usr var etc/opt usr/local
 	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/"$folder"
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$folder"
 	done
 	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0750 -p "$LFS_DEPENDENCY_PATH"/root
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0750 -p "$LFS_DEPENDENCY_INSTALL_PATH"/root
 	
 	case "$(uname -m)" in
 		x86_64)
-			ln -s lib "$LFS_DEPENDENCY_PATH"/lib64
-			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/lib64
-			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/local/lib64
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/lib64
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/lib64
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/lib64
 		;;
 		x86_32)
-			ln -s lib "$LFS_DEPENDENCY_PATH"/lib32
-			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/lib32
-			ln -s lib "$LFS_DEPENDENCY_PATH"/usr/local/lib32
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/lib32
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/lib32
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/lib32
 		;;
 	esac
 	
 	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
 	for folder in X11R6 bin include lib libexec sbin src
 	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/"$folder"
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$folder"
 	done
 	
 	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
 	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/share/"$folder"
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/"$folder"
 	done
 	
 	for folder in man1 man2 man3 man4 man5 man6 man7 man8
 	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_PATH"/usr/share/man/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/share/man/"$folder"
+		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$folder"
 	done
 	
-	ln -s /run "$LFS_DEPENDENCY_PATH"/var/run
-	ln -s /run/lock "$LFS_DEPENDENCY_PATH"/var/lock
+	ln -s /run "$LFS_DEPENDENCY_INSTALL_PATH"/var/run
+	ln -s /run/lock "$LFS_DEPENDENCY_INSTALL_PATH"/var/lock
 	
-	ln -s /media "$LFS_DEPENDENCY_PATH"/media
-	ln -s /tmp "$LFS_DEPENDENCY_PATH"/tmp
+	ln -s /media "$LFS_DEPENDENCY_INSTALL_PATH"/media
+	ln -s /tmp "$LFS_DEPENDENCY_INSTALL_PATH"/tmp
 	
 	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron, /var/lib/locate
 	for folder in account cache crash games lib local log mail opt spool tmp yp
 	do
-		ln -s /var/"$folder" "$LFS_DEPENDENCY_PATH"/var/"$folder"
+		ln -s /var/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/var/"$folder"
 	done
 	
 	for folder in man doc info
 	do
-		ln -s share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/"$folder"
-		ln -s share/"$folder" "$LFS_DEPENDENCY_PATH"/usr/local/"$folder"
+		ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$folder"
+		ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$folder"
 	done
 	
-	ln -s /proc/self/mounts "$LFS_DEPENDENCY_PATH"/etc/mtab
+	ln -s /proc/self/mounts "$LFS_DEPENDENCY_INSTALL_PATH"/etc/mtab
 }
 
 function installPackage()
@@ -924,7 +924,11 @@ function installPackage()
 	
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/root
+	if [ "$LFS_PHASE" = "system" ]; then
+		LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/install
+	else
+		LFS_DEPENDENCY_INSTALL_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/install
+	fi
 	
 	local -r LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
