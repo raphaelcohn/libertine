@@ -547,8 +547,19 @@ function depends()
 			exitError "Undefined package uid for $localSourcePackageName"
 		fi
 		
-		system_group "$userAndGroupName" $uidAndGid
-		user "$userAndGroupName" "$userAndGroupName" /dev/null /bin/false $uidAndGid "$userAndGroupName"
+		local -i create=1
+		local group
+		for group in ${groups_Name[@]}
+		do
+			if [ "$group" = "$userAndGroupName" ]; then
+				create=0
+			fi
+		done
+		
+		if [ $create -eq 1 ]; then
+			system_group "$userAndGroupName" $uidAndGid
+			user "$userAndGroupName" "$userAndGroupName" /dev/null /bin/false $uidAndGid "$userAndGroupName"
+		fi
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions!
