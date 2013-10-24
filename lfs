@@ -766,15 +766,17 @@ function installEssentialFolderStructure()
 function dependencyToPath()
 {
 	# TODO: Defer the 'current' creation
-	
-	local -r relativeOptPath=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
+	local -r relativeOptPath=/opt/lfs
 	local -r absoluteOptPath="${LFS}${relativeOptPath}"
-	mkdir -m 0755 -p "$absoluteOptPath"
-	rm -rf -- "$absoluteOptPath"/current
+	
+	local -r relativeOptVersionPath="$relativeOptPath"/"$LFS_DISTRIBUTION_VERSION"
+	local -r absoluteOptVersionPath="${LFS}${relativeOptVersionPath}"
+	mkdir -m 0755 -p "$absoluteOptVersionPath"
+	rm -rf -- "$absoluteOptVersionPath"/current
 	ln -s "$LFS_DISTRIBUTION_VERSION" "$absoluteOptPath"/current
 	
-	local -r relativatePackagePath="$relativeOptPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
-	local -r absolutePackagePath="${LFS}${absoluteOptPath}"
+	local -r relativatePackagePath="$relativeOptVersionPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
+	local -r absolutePackagePath="${LFS}${relativatePackagePath}"
 	mkdir -m 0755 -p "$absolutePackagePath"
 	
 	local -r relativeVersionPath="$relativatePackagePath"/"$LFS_DEPENDENCY_VERSION"
@@ -859,12 +861,20 @@ function installPerPackageFhs()
 	ln -s /sys "$LFS_DEPENDENCY_INSTALL_PATH"/sys
 	
 	local folder
-	for folder in bin boot etc home lib media mnt opt run sbin srv usr var etc/opt usr/local
+	for folder in bin boot etc home lib opt sbin srv usr var etc/opt usr/local
 	do
 		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$folder"
 	done
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0750 -p "$LFS_DEPENDENCY_INSTALL_PATH"/root
+	
+	ln -s /media "$LFS_DEPENDENCY_INSTALL_PATH"/media
+	ln -s /mnt "$LFS_DEPENDENCY_INSTALL_PATH"/mnt
+	ln -s /run "$LFS_DEPENDENCY_INSTALL_PATH"/run
+	ln -s /tmp "$LFS_DEPENDENCY_INSTALL_PATH"/tmp
+	
+	ln -s /run "$LFS_DEPENDENCY_INSTALL_PATH"/var/run
+	ln -s /run/lock "$LFS_DEPENDENCY_INSTALL_PATH"/var/lock
 	
 	case "$(uname -m)" in
 		x86_64)
@@ -894,12 +904,6 @@ function installPerPackageFhs()
 	do
 		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$folder"
 	done
-	
-	ln -s /run "$LFS_DEPENDENCY_INSTALL_PATH"/var/run
-	ln -s /run/lock "$LFS_DEPENDENCY_INSTALL_PATH"/var/lock
-	
-	ln -s /media "$LFS_DEPENDENCY_INSTALL_PATH"/media
-	ln -s /tmp "$LFS_DEPENDENCY_INSTALL_PATH"/tmp
 	
 	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron, /var/lib/locate
 	for folder in account cache crash games lib local log mail opt spool tmp yp
