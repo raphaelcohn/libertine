@@ -610,8 +610,12 @@ function system_group()
 	for index in ${!groups_Name[@]}
 	do
 		if [ "${groups_Name[$index]}" = "$groupName" ]; then
-			if [ $# -eq 2 && ${groups_Gid[$index]} -ne $proposedGid ]; then
-				exitError "mismatch in group gids for $groupName, $gid (is previously defined as ${groups_Gid[$index]})"
+			if [ $# -eq 2 ]; then
+				if [ ${groups_Gid[$index]} -ne $proposedGid ]; then
+					exitError "mismatch in group gids for $groupName, $gid (is previously defined as ${groups_Gid[$index]})"
+				else
+					return 0
+				fi
 			else
 				return 0
 			fi
