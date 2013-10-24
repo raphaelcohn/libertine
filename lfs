@@ -700,6 +700,8 @@ function downloadPatches()
 
 function installEssentialFolderStructure()
 {
+	rm -rf -- "$LFS"/*
+	
 	# usr/local/etc exists occasionally. Why there isn't /usr/etc isn't clear.
 	local folder
 	for folder in bin boot dev proc etc home lib media mnt opt root run sbin srv sys usr var usr/local usr/local/etc
