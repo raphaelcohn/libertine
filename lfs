@@ -746,9 +746,6 @@ function installEssentialFolderStructure()
 	ln -s /run "$LFS"/var/run
 	ln -s /run/lock "$LFS"/var/lock
 	
-	ln -s /media "$LFS"/media
-	ln -s /tmp "$LFS"/tmp
-	
 	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron
 	for folder in account cache crash games lib local log mail opt spool tmp yp
 	do
