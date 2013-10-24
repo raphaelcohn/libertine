@@ -13531,10 +13531,7 @@ libstarpumpi0
 libstartup-notification0
 libstatgrab
 libstatgrab6
-libstdc++5
-libstdc++6
-libstdc++6-armel-cross
-libstdc++6-armhf-cross
+libstdc++
 libstemmer
 libstemmer-tools
 libstemmer0d
