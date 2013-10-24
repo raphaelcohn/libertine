@@ -483,8 +483,8 @@ function setPathsAndExports()
 	fi
 	
 	readonly settingsPath="$distributionConfigPath"/settings
-	if [ ! -f "$settingsPath" ]; then
-		exitError "settings file $settingsPath does not exist or is not a file"
+	if [ ! -d "$settingsPath" ]; then
+		exitError "settings file $settingsPath does not exist or is not a directory"
 	fi
 	
 	if [ ! -d "$lfsPath" ]; then
