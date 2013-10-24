@@ -806,10 +806,12 @@ function dependencyToPath()
 	# We should consider breaking-up settings to per recipe - as this better reflects changes
 	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-settings-"$LFS_DEPENDENCY_SETTINGS_HASH"-dependencies-"$dependenciesHash"
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
-	local -r absoluteCompletePath="${LFS}${absoluteVersionPath}"
-	mkdir -m 0755 -p "$absoluteRecipePath"
+	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
+	mkdir -m 0755 -p "$absoluteCompletePath"
 	rm -rf -- "$absoluteVersionPath"/current
 	ln -s "$recipeVersion" "$absoluteVersionPath"/current
+	
+	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
 	
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/root
@@ -827,7 +829,13 @@ function dependencyToPath()
 		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
 	done
 	
-	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
+	cp "$recipesPath"/"$LFS_PHASE"/"$dependencyName".recipe "$absoluteCompletePath"/recipe
+	if [ "$LFS_DEPENDENCY_INCLUDE_HASH" != "0" ]; then
+		cp "$includesPath"/"$dependencyName".include "$absoluteCompletePath"/include
+	fi
+	if [ "$LFS_DEPENDENCY_SETTINGS_HASH" != "0" ]; then
+		cp "$settingsPath"/"$LFS_PHASE"/"$dependencyName".settings "$absoluteCompletePath"/settings
+	fi
 }
 
 function installPerPackageFhs()
