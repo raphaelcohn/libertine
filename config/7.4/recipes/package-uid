@@ -16118,7 +16118,7 @@ nco                                      882800
 ncoils                                   882801
 ncompress                                882802
 ncpfs                                    882900
-ncurses-base                             883000
+ncurses                                  883000
 ncurses-bin                              883100
 ncurses-doc                              883200
 ncurses-examples                         883300
