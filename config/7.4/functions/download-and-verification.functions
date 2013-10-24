@@ -139,7 +139,7 @@ function downloadFileAndCheckHash()
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
 				hashProgram=${hashName,,}sum
 				hasHash=0
-				if ! verifyHash "$toPath" "$fileName" "$hashProgram" "$hashValue"; then
+				if ! verifyHash "$downloadFolderPath" "$fileName" "$hashProgram" "$hashValue"; then
 					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
 				fi
 			;;
@@ -155,19 +155,19 @@ function downloadFileAndCheckHash()
 				
 				case "$hashName" in
 					KEYRING)
-						if ! verifyKeyringSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyKeyringSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					KEYFILE)
-						if ! verifyKeyFileSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyKeyFileSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
 			
 					HKP)
-						if ! verifyHkpSignature "$toPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
+						if ! verifyHkpSignature "$downloadFolderPath" "$fileName" "$hashValue" "$signatureFileName" "no"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
@@ -175,7 +175,7 @@ function downloadFileAndCheckHash()
 					HKP_UNCOMPRESSED)
 						temporaryFolderToRemoveOnExit
 						temporaryFolder="$TMP_FILE"
-						decompressFileToStdout "$decompressionOption" "$toPath"/"$fileName" >"$temporaryFolder"/"$fileName"
+						decompressFileToStdout "$decompressionOption" "$downloadFolderPath"/"$fileName" >"$temporaryFolder"/"$fileName"
 						
 						if ! verifyHkpSignature "$temporaryFolder" "$fileName" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
