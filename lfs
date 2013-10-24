@@ -463,8 +463,8 @@ function setPathsAndExports()
 	fi
 	
 	readonly recipesPath="$distributionConfigPath"/recipes
-	if [ ! -d "$recipesPath" ]; then
-		exitError "Recipes path $recipesPath does not exist or is not a directory"
+	if [ ! -f "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a file"
 	fi
 	
 	readonly recipesPackageUidFile="$recipesPath"/package-uid
@@ -1342,7 +1342,7 @@ function renderLatePathCommands()
 	done
 }
 
-function sourceFunctionsAndSettings()
+function sourceFunctions()
 {
 	local fileToSource
 	pushd "$functionsPath" >/dev/null
@@ -1363,7 +1363,7 @@ function main()
 	parseCommandLine "$@"
 	
 	setPathsAndExports
-	sourceFunctionsAndSettings
+	sourceFunctions
 	
 	addNextTrapHandler removeFilesOnExit
 	
