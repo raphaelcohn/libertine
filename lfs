@@ -254,7 +254,6 @@ Last setting wins.
 Options are as follows:-     Default
     skip-toolchain-if-backup-exists  ${skipToolchainIfBackupExists}
     strip-toolchain-symbols          ${stripToolchainSymbols}
-    strip-toolchain-docs             ${stripToolchainDocs}
     strip-system-symbols             ${stripSystemSymbols}
     strip-system-docs                ${stripSystemDocs}
 " 1>&2
@@ -285,9 +284,6 @@ function parseCommandLine()
 	
 	stripToolchainSymbols="yes"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripToolchainSymbols')
-	
-	stripToolchainDocs="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripToolchainDocs')
 	
 	stripSystemSymbols="yes"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripSystemSymbols')
@@ -358,14 +354,6 @@ function parseCommandLine()
 						
 						yes-strip-toolchain-symbols)
 							stripToolchainSymbols="yes"
-						;;
-						
-						no-strip-toolchain-docs)
-							stripToolchainDocs="no"
-						;;
-						
-						yes-strip-toolchain-docs)
-							stripToolchainDocs="yes"
 						;;
 						
 						no-strip-system-symbols)
@@ -494,10 +482,8 @@ function setPathsAndExports()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_LOG_PATH')
-	
-	LFS_DOWNLOADS_PATH="$lfsPath"/downloads
+	readonly lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
+	readonly lfsDownloadsPath="$lfsPath"/downloads
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
@@ -626,10 +612,10 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$LFS"
 	
 	# Logs
-	mkdir -m 0755 -p "$LFS_LOG_PATH"
-	rm -rf "$LFS_LOG_PATH"/*
+	mkdir -m 0755 -p "$lfsLogPath"
+	rm -rf "$lfsLogPath"/*
 	
-	readonly downloadsLogsPath="$LFS_LOG_PATH"/downloads
+	readonly downloadsLogsPath="$lfsLogPath"/downloads
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
 	# Tools Symlink
@@ -1005,16 +991,12 @@ function installPackage()
 					for index in $LFS_DEPENDENCY_PATCHES
 					do
 						echo "Applying patch ${patches_FileName[$index]}"
-						if ! patch -Np1 -i ../"${patches_FileName[$index]}"; then
+						if ! sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} patch -Np1 -i ../"${patches_FileName[$index]}"; then
 							exit 100
 						fi
 					done
 					
-					set -x
-					# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
-					sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- $installer
-					set +x
-					
+					executeFunctionUnderSudo $installer
 					
 				exec 1>&6 6>&-
 				exec 2>&7 7>&-
@@ -1053,22 +1035,15 @@ function stripToolchainSymbolsAfterToolchain2()
 	fi
 }
 
-function stripToolchainDocsAfterToolchain2
-{
-	if [ "$stripToolchainDocs" = "yes" ]; then
-		rm -rf -- /"$LFS_TOOLS"/{,share}/{info,man,doc}
-	fi
-}
-
 function backUpToolchain()
 {
 	if which rsync 1>/dev/null 2>/dev/null; then
 		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
 		mkdir -m 0755 -p "$toolsBackUpPath"
-		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$LFS_LOG_PATH"/toolchain.backup.stdout.log 2>"$LFS_LOG_PATH"/toolchain.backup.stderr.log; then
+		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$lfsLogPath"/toolchain.backup.stdout.log 2>"$lfsLogPath"/toolchain.backup.stderr.log; then
 			progressMessageSucceeded
 		else
-			progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.backup.*.log"
+			progressMessageFailed "check logs in $lfsLogPath/toolchain.backup.*.log"
 		fi
 	fi
 	
@@ -1090,11 +1065,7 @@ function createToolchain()
 	installPackages toolchain2
 	
 	progressMessage "Stripping toolchain symbols ($stripToolchainSymbols)"
-	stripToolchainSymbolsAfterToolchain2 1>"$"$LFS_LOG_PATH""/toolchain2_strip-symbols.stdout.log 2>/toolchain2_strip-symbols.stderr.log
-	progressMessageSucceeded
-	
-	progressMessage "Stripping toolchain docs ($stripToolchainDocs)"
-	stripToolchainDocsAfterToolchain2 1>"$"$LFS_LOG_PATH""/toolchain2_strip-docs.stdout.log 2>/toolchain2_strip-docs.stderr.log
+	stripToolchainSymbolsAfterToolchain2 1>"$"$lfsLogPath""/toolchain2_strip-symbols.stdout.log 2>/toolchain2_strip-symbols.stderr.log
 	progressMessageSucceeded
 	
 	backUpToolchain
@@ -1108,7 +1079,7 @@ function cleanUpTarget()
 	
 	progressMessage "Cleaning up target $LFS"
 	
-		chattr -R -f -aiD "$LFS" 1>"$LFS_LOG_PATH"/system_chattr-cleanup.stdout.log 2>"$LFS_LOG_PATH"/system_chattr-cleanup.stderr.log || true
+		chattr -R -f -aiD "$LFS" 1>"$lfsLogPath"/system_chattr-cleanup.stdout.log 2>"$lfsLogPath"/system_chattr-cleanup.stderr.log || true
 		
 		pushd "$LFS" >/dev/null
 		
@@ -1177,8 +1148,8 @@ function createOrUseBackUpToolchain()
 			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
 				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
 				
-				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$LFS_LOG_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOG_PATH"/toolchain.restore.stderr.log; then
-					progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.restore.*.log"
+				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
+					progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
 				fi
 				changeOwnerOfToolchain
 			progressMessageSucceeded
@@ -1189,8 +1160,8 @@ function createOrUseBackUpToolchain()
 				rm -rf -- "$LFS_TOOLS_PATH"
 				
 				pushd "$LFS"/.. >/dev/null
-					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$LFS_LOG_PATH"/toolchain.restore.stdout.log 2>"$LFS_LOG_PATH"/toolchain.restore.stderr.log; then
-						progressMessageFailed "check logs in $LFS_LOG_PATH/toolchain.restore.*.log"
+					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
+						progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
 					fi
 				popd >/dev/null
 				changeOwnerOfToolchain
@@ -1207,8 +1178,8 @@ function runSystemInstallationLogic()
 {
 	local -r callback="$1"
 	
-	local -r stdoutLog="$LFS_LOG_PATH"/system_"$callback".stdout.log
-	local -r stderrLog="$LFS_LOG_PATH"/system_"$callback".stderr.log
+	local -r stdoutLog="$lfsLogPath"/system_"$callback".stdout.log
+	local -r stderrLog="$lfsLogPath"/system_"$callback".stderr.log
 	
 	progressMessage "Phase system, executing $callback on target"
 		
@@ -1229,129 +1200,6 @@ function runSystemInstallationLogic()
 		removeLastTrapHandler
 		
 	progressMessageSucceeded
-}
-
-function mountVirtualFilesystems()
-{
-	local -i index
-	local -i ttyGid=-1
-	for index in ${!groups_Name[@]}
-	do
-		if [ "${groups_Name[$index]}" = "tty" ]; then
-			ttyGid=${groups_Gid[$index]}
-			break
-		fi
-	done
-	if [ $ttyGid -eq -1 ]; then
-		exitError "Please ensure the tty group is defined on the target system"
-	fi
-	
-	mount --bind /dev "$LFS"/dev
-	mount -t devpts devpts "$LFS"/dev/pts -o gid=$ttyGid,mode=620
-	mount -t proc proc "$LFS"/proc
-	mount -t sysfs sysfs "$LFS"/sys
-	
-	# On Debian/Ubuntu and others, /dev/shm is a symlink to a file that would be outside of the LFS chroot due to the mount of /dev above
-	if [ -h "$LFS"/dev/shm ]; then
-		local -r link="$(readlink "$LFS"/dev/shm)"
-		mkdir -m 0755 -p "$LFS"/"$link"
-		mount -t tmpfs shm "$LFS"/"$link"
-	else
-		mount -t tmpfs shm "$LFS"/dev/shm
-	fi
-}
-
-function unmountVirtualFilesystems()
-{
-	umount "$LFS"/dev/pts
-
-	if [ -h "$LFS"/dev/shm ]; then
-		local -r link=$(readlink "$LFS"/dev/shm)
-		umount "$LFS"/"$link"
-	else
-		umount "$LFS"/dev/shm
-	fi
-
-	umount "$LFS"/dev
-	umount "$LFS"/proc
-	umount "$LFS"/sys
-}
-
-function replicateBashFunctionsAndGlobalVariables()
-{
-	# compgen will include local variables, so we use a subshell...
-	compgen -v | while IFS='' read -r -d $'\n' variableName
-	do
-		if [ "${variableName:0:4}" = "LFS_" ]; then
-			declare -p "$variableName"
-			continue
-		fi
-		for LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT in "${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}"
-		do
-			if [ "$LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT" = "$variableName" ]; then
-				declare -p "$variableName"
-				break
-			fi
-		done
-	done
-	
-	local LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT
-	for LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT in "${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}"
-	do
-		declare -a "$LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT"
-	done
-	
-	declare -f
-}
-
-function chrootToEnvironment()
-{
-	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
-	cat >"$continutationBinaryForChroot" <<-EOF
-		#!/bin/bash -
-		set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
-		
-		$(replicateBashFunctionsAndGlobalVariables)
-	EOF
-	
-	cat >>"$continutationBinaryForChroot" <<-'EOF'
-		
-		# Fix up paths and variables
-		LC_ALL=POSIX
-		
-		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
-		LFS=
-		LFS_TOOLS_PATH=/"$LFS_TOOLS"
-		LFS_LOG_PATH=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-		
-		mkdir -m 0755 -p "$LFS_LOG_PATH"/system
-		
-		setDebugging
-		addNextTrapHandler removeFilesOnExit
-		installPackages system
-	EOF
-	
-	cp "$continutationBinaryForChroot" /tmp/XXXX
-	
-	mountVirtualFilesystems
-	
-	set +e
-	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h /"$LFS_TOOLS"/sbin/lfs-chroot-install
-	local -ir exitCode=$?
-	set -e
-	
-	unmountVirtualFilesystems
-	
-	rm -rf -- "$continutationBinaryForChroot"
-	
-	cp --archive "$LFS"/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"/* "$LFS_LOG_PATH"/ || true
-	rm -rf -- "$LFS"/var/log/lfs
-	
-	if [ $exitCode -ne 0 ]; then
-		exitError "chroot script failed with exit code $exitCode"
-	fi
-	
-	# DESTDIR
 }
 
 function renderEarlyPathCommands()

@@ -7,9 +7,9 @@ version 8.6.0
 
 function installPackage_toolchain2_tcl()
 {
-	local -r majorVersion=8.6
-	
 	sed -i s/500/5000/ generic/regc_nfa.c
+	
+	local -r majorVersion=8.6
 	
 	pushd unix >/dev/null
 		

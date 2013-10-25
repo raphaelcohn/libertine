@@ -1,0 +1,163 @@
+set -o errexit +o hashall
+
+function mountVirtualFilesystems()
+{
+	local -i index
+	local -i ttyGid=-1
+	for index in ${!groups_Name[@]}
+	do
+		if [ "${groups_Name[$index]}" = "tty" ]; then
+			ttyGid=${groups_Gid[$index]}
+			break
+		fi
+	done
+	if [ $ttyGid -eq -1 ]; then
+		exitError "Please ensure the tty group is defined on the target system"
+	fi
+	
+	mount --bind /dev "$LFS"/dev
+	mount -t devpts devpts "$LFS"/dev/pts -o gid=$ttyGid,mode=620
+	mount -t proc proc "$LFS"/proc
+	mount -t sysfs sysfs "$LFS"/sys
+	
+	# On Debian/Ubuntu and others, /dev/shm is a symlink to a file that would be outside of the LFS chroot due to the mount of /dev above
+	if [ -h "$LFS"/dev/shm ]; then
+		local -r link="$(readlink "$LFS"/dev/shm)"
+		mkdir -m 0755 -p "$LFS"/"$link"
+		mount -t tmpfs shm "$LFS"/"$link"
+	else
+		mount -t tmpfs shm "$LFS"/dev/shm
+	fi
+}
+
+function unmountVirtualFilesystems()
+{
+	umount "$LFS"/dev/pts
+
+	if [ -h "$LFS"/dev/shm ]; then
+		local -r link=$(readlink "$LFS"/dev/shm)
+		umount "$LFS"/"$link"
+	else
+		umount "$LFS"/dev/shm
+	fi
+
+	umount "$LFS"/dev
+	umount "$LFS"/proc
+	umount "$LFS"/sys
+}
+
+function replicateBashFunctionsAndGlobalVariables()
+{
+	# compgen will include local variables, so we use a subshell...
+	compgen -v | while IFS='' read -r -d $'\n' variableName
+	do
+		if [ "${variableName:0:4}" = "LFS_" ]; then
+			declare -p "$variableName"
+			continue
+		fi
+		for LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT in "${LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT[@]}"
+		do
+			if [ "$LFS_GLOBAL_VARIABLE_TO_EXPORT_TO_CHROOT" = "$variableName" ]; then
+				declare -p "$variableName"
+				break
+			fi
+		done
+	done
+	
+	local LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT
+	for LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT in "${LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT[@]}"
+	do
+		declare -a "$LFS_ARRAY_VARIABLE_TO_REDECLARE_IN_CHROOT"
+	done
+	
+	declare -f
+}
+
+function executeFunctionUnderSudo()
+{
+	local -r functionToExecute="$1"
+	
+	# If installing
+	addFileToRemoveOnExit
+	local -r continutationBinaryForSudo="$TMP_FILE"
+	
+	cat >"$continutationBinaryForSudo" <<-EOF
+		#!/bin/bash -
+		set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+		
+		$(replicateBashFunctionsAndGlobalVariables)
+		
+		LFS='$LFS'
+	EOF
+	
+	# PATH gets quite complex
+	cat >>"$continutationBinaryForChroot" <<-'EOF'
+		export LC_ALL=POSIX
+		
+		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
+		LFS=
+		LFS_TOOLS_PATH=/"$LFS_TOOLS"
+		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
+		
+		setDebugging
+		addNextTrapHandler removeFilesOnExit
+	EOF
+	
+	cat >"$continutationBinaryForSudo" <<-EOF
+		$functionToExecute
+	EOF
+	
+	# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
+	set -x
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- "$continutationBinaryForSudo"
+	set +x
+	
+	rm -rf -- "$continutationBinaryForSudo"
+}
+
+function chrootToEnvironment()
+{
+	local -r continutationBinaryForChroot="$LFS"/"$LFS_TOOLS"/sbin/lfs-chroot-install
+	cat >"$continutationBinaryForChroot" <<-EOF
+		#!/bin/bash -
+		set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+		
+		$(replicateBashFunctionsAndGlobalVariables)
+	EOF
+	
+	cat >>"$continutationBinaryForChroot" <<-'EOF'
+		
+		# Fix up paths and variables
+		LC_ALL=POSIX
+		
+		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
+		LFS=
+		LFS_TOOLS_PATH=/"$LFS_TOOLS"
+		
+		setDebugging
+		addNextTrapHandler removeFilesOnExit
+		installPackages system
+	EOF
+	
+	cp "$continutationBinaryForChroot" /tmp/XXXX
+	
+	mountVirtualFilesystems
+	
+	set +e
+	/"$LFS_TOOLS"/bin/chroot "$LFS" /"$LFS_TOOLS"/bin/env -i HOME=/root TERM="$TERM" LC_ALL=POSIX PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin /"$LFS_TOOLS"/bin/bash --login --noprofile +h /"$LFS_TOOLS"/sbin/lfs-chroot-install
+	local -ir exitCode=$?
+	set -e
+	
+	unmountVirtualFilesystems
+	
+	rm -rf -- "$continutationBinaryForChroot"
+	
+	#cp --archive "$LFS"/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"/* "$lfsLogPath"/ || true
+	#rm -rf -- "$LFS"/var/log/lfs
+	
+	if [ $exitCode -ne 0 ]; then
+		exitError "chroot script failed with exit code $exitCode"
+	fi
+	
+	# DESTDIR
+}

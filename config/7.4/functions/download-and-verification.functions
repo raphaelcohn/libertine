@@ -11,7 +11,7 @@ function linkOrCopyFile()
 		return
 	fi
 	
-	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
+	local -r downloadFilePath="$lfsDownloadsPath"/"$mirrorName"/"$relativePath"
 	local -r linkTo="$toPath"/"$fileName"
 	
 	if [ ! -f "$linkTo" ]; then
@@ -42,7 +42,7 @@ function downloadFileAndCheckHash()
 	
 	mkdir -m 0755 -p "$downloadsLogsPath"
 	
-	local -r downloadFilePath="$LFS_DOWNLOADS_PATH"/"$mirrorName"/"$relativePath"
+	local -r downloadFilePath="$lfsDownloadsPath"/"$mirrorName"/"$relativePath"
 	local -r downloadFileName="$(purebash_basename "$downloadFilePath")"
 	local -r downloadFolderPath="$(purebash_dirname "$downloadFilePath")"
 	if [ ! -d "$downloadFolderPath" ]; then
@@ -108,7 +108,7 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download $downloadName failed, check logs $LFS_LOG_PATH/downloads/$fileName.*.log"
+			progressMessageFailed "download $downloadName failed, check logs $downloadsLogsPath/$fileName.*.log"
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 			progressMessageSucceeded
@@ -141,13 +141,13 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$downloadFolderPath" "$downloadFileName" "$hashProgram" "$hashValue"; then
-					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $LFS_LOG_PATH/downloads/$fileName.$hashProgram.log"
+					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log"
 				fi
 			;;
 			
 			KEYRING|KEYFILE|HKP|HKP_UNCOMPRESSED)
 				hasHash=0
-				progressMessage="$hashName signature does not match, check logs $LFS_LOG_PATH/downloads/$fileName.${hashName,,}.log"
+				progressMessage="$hashName signature does not match, check logs $downloadsLogsPath/$fileName.${hashName,,}.log"
 				if [ -z "$hashSignatureFileName" ]; then
 					signatureFileName="$fileName".sig
 				else

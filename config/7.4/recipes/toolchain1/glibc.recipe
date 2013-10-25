@@ -7,6 +7,7 @@ version 2.18
 
 function installPackage_toolchain1_glibc()
 {
+	# This is a special case break-out from root
 	if [ ! -r /usr/include/rpc/types.h ]; then
 		mkdir -p /usr/include/rpc
 		cp -v sunrpc/rpc/*.h /usr/include/rpc

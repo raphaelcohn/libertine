@@ -115,3 +115,40 @@
 * Post-package sha512 / sha1 sums of all files
 	Also record file layout, file system, file perms, ACLs, any user id & group id, File type (file/folder/symlink/char device/block device/pipe/domain socket)
 * Linux capabilities and audit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NIXOS - etc
+
+There is /etc
+
+There is a symlink, /etc/static, that points to a package in the store (say /nix/store/blah-etc/), that has an etc root
+For us: /etc
+
+This package's etc contains symlinks to actual package implementations, eg zoneinfo, or ssh_config, stored in the store
+
+What's not clear is why we need the double-indirection - I think the idea is to be able to switch all symlinks to all etc in one go, ie atomically
+
+
+So we would have /etc/current, which points to /opt/lfs/7.4/lfs-etc/0/recipe-245234234/install/etc
+
+We could then have some files *explicitly* in there, eg passwd, but others are themselves symlinks, eg zoneinfo, which points to a further package
+
+In some ways, this makes the etc package the child of all dependencies. Ughh.
+
+
+
+
