@@ -487,17 +487,6 @@ function setPathsAndExports()
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
-	# We use the hashes of the crosscompiler and toolchain2 profiles to establish the uniqueness of the toolchain
-	local -r hashesWithTrailingHyphen="$(sha224sum "$profilesPath"/"$crosscompilerProfile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
-	LFS_VERSION="$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_VERSION')
-	LFS_TOOLS=tools-"$LFS_VERSION"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TOOLS')
-	
-	LFS_TOOLS_PATH="$LFS"/"$LFS_TOOLS"
-	
-	readonly toolsBackUpPath="$LFS"/"$LFS_TOOLS".backup
-	
 	export LC_ALL=POSIX
 	LFS_TGT="$(uname -m)"-lfs-linux-gnu
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TGT')
@@ -617,13 +606,6 @@ function createSkeletonFolderStructure()
 	
 	readonly downloadsLogsPath="$lfsLogPath"/downloads
 	mkdir -m 0755 -p "$downloadsLogsPath"
-	
-	# Tools Symlink
-	if [ -L /"$LFS_TOOLS" ]; then
-		rm -rf -- /"$LFS_TOOLS"
-	fi
-	# symlink, say, /mnt/lfs/tools as /tools
-	ln --symbolic "$LFS_TOOLS_PATH" /
 }
 
 function downloadCertificateAuthorities()

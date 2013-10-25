@@ -17,7 +17,7 @@ function installPackage_crosscompiler_binutils()
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix="$LFS_DEPENDENCY_PATH"/install \
 		--with-sysroot="$LFS" \
-		--with-lib-path=/"$whereToFindLibrariesForBinutils" \
+		--with-lib-path="$whereToFindLibrariesForBinutils" \
 		--target="$LFS_TGT" \
 		--disable-nls \
 		--disable-werror

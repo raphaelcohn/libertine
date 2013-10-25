@@ -95,7 +95,6 @@ function executeFunctionUnderSudo()
 		export LC_ALL=POSIX
 		
 		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
-		LFS=
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
