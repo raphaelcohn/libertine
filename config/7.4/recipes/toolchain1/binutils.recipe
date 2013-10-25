@@ -24,7 +24,7 @@ function installPackage_toolchain1_binutils()
 		
 		make
 		
-		make DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
+		make DESTDIR="$LFS" install
 		
 	popdBuildFolder
 	
