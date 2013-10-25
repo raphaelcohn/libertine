@@ -151,4 +151,16 @@ In some ways, this makes the etc package the child of all dependencies. Ughh.
 
 
 
+ld / binutils uses $prefix/etc/ld.so.conf; if it doesn't exist, falls back to /etc/ld.so.conf
+
+Irritating.
+
+
+
+
+		DESTDIR / others
+		# With glibc, this variable is install_root . For others, it's prefix=
+		# Check http://www.linuxfromscratch.org/hints/downloads/files/fakeroot.txt
+		# Perl modules are problematic
+
 

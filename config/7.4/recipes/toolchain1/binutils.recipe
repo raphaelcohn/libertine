@@ -8,34 +8,24 @@ version 2.23.2
 function installPackage_toolchain1_binutils()
 {
 	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
-
+	
+	# Defaults to  /lib:/usr/lib:/usr/local/lib:/usr/"$LFS_TGT"/lib
+	local -r whereToFindLibrariesForBinutils="$LFS_DEPENDENCY_PATH"/install/lib
+	
 	createBuildFolderAndPushd
-
+		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
-		--prefix=/"$LFS_TOOLS" \
+		--prefix="$LFS_DEPENDENCY_PATH"/install \
 		--with-sysroot="$LFS" \
 		--with-lib-path=/"$LFS_TOOLS"/lib \
 		--target="$LFS_TGT" \
 		--disable-nls \
 		--disable-werror
-
-		make
-
-		# Ensure toolchain sanity on 64-bit x864
-		# Actually, all this should be done in DESTDIR
-		case "$(uname -m)" in
-			x86_64)
-				mkdir -m 0755 -p /"$LFS_TOOLS"/lib
-				ln --symbolic lib /"$LFS_TOOLS"/lib64
-			;;
-		esac
 		
-		# With glibc, this variable is install_root . For others, it's prefix=
-		# Check http://www.linuxfromscratch.org/hints/downloads/files/fakeroot.txt
-		# Perl modules are problematic
+		make
 		
 		make DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
-
+		
 	popdBuildFolder
 	
 	exit 50
