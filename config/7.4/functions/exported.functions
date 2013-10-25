@@ -1106,24 +1106,39 @@ function tarExtract()
 }
 
 # Assumes it is in the build folder
+# A better design would be to symlink the dependency's source
 function extractDependencyIntoBuildFolder()
 {
 	local dependency
-	local localSourcePackageName
+	local dependencyName
 	local -i index
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$LFS_RECIPE_VERSION"
-	for dependency in ${dependency_Dependencies["$DependencyKey"]}
+	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
 	do
-		for localSourcePackageName in "$@"
+		for dependencyName in "$@"
 		do
-			if [ "${dependency_Name["$dependency"]}" = "$localSourcePackageName" ]; then
+			if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
 				index=dependency_SourcePackageIndex["$dependency"]
 				
 				tarExtract ../"${sourcePackages_FileName[$index]}" "${sourcePackages_ExtractedTarballFolder[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_IsTarbomb[$index]}"
-				mv -v "${sourcePackages_ExtractedTarballFolder[$index]}" "$localSourcePackageName"
+				mv -v "${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
 			fi
 		done
 	done
+}
+
+function dependencyPrefixPath()
+{
+	local -r dependencyName="$1"
+	local dependency
+	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
+	do
+		if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
+			echo "${dependency_Path["$dependency"]}"/install
+			return 0
+		fi
+	done
+	
+	exitError "Unknown dependency $dependencyName"
 }
 
 function installPackagePrototype()

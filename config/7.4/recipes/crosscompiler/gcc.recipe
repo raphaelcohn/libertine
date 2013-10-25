@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 4.8.1
 {
-	depends binutils
+	depends linux
 	
 	# These are NOT build dependencies but download ones.
 	depends mpfr
@@ -33,18 +33,26 @@ function installPackage_crosscompiler_gcc()
 	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 
+	# with-native-system-header-dir needs fixing up because this is the location of the linux headers. We could just switch installation order.
+	# 
+
 	createBuildFolderAndPushd
 		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TGT"                              \
-		--prefix=/"$LFS_TOOLS"                                  \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"                                 \
 		--with-sysroot="$LFS"                            \
 		--with-newlib                                    \
 		--without-headers                                \
-		--with-local-prefix=/"$LFS_TOOLS"                       \
-		--with-native-system-header-dir=/"$LFS_TOOLS"/include   \
+		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
+		--with-native-system-header-dir="$(dependencyPrefixPath linux)"/usr/include   \
+		--with-gnu-as \
+		--with-as="$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-ld \
+		--with-gnu-ld \
+		--with-ld="$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-as \
 		--disable-nls                                    \
 		--disable-shared                                 \
+		--disable-multiarch \
 		--disable-multilib                               \
 		--disable-decimal-float                          \
 		--disable-threads                                \
@@ -62,9 +70,16 @@ function installPackage_crosscompiler_gcc()
 
 		make
 
-		make install
+		make DESTDIR="$LFS" install
 
-		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system. This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
+		# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+		
+		# relies on ${LFS_TGT}-gcc being on the path
+		exit 90
+		
+		
+		
 		ln -sv libgcc.a "$(${LFS_TGT}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
 
 	popdBuildFolder

@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.10.10
 {
-	depends gcc
+	depends binutils
 }
 
 function installPackage_crosscompiler_linux()
@@ -13,5 +13,5 @@ function installPackage_crosscompiler_linux()
 	
 	make INSTALL_HDR_PATH=dest headers_install
 	
-	cp -rv dest/include/* /"$LFS_TOOLS"/include
+	cp -rv dest/include/* "$LFS_DEPENDENCY_INSTALL_PATH"/usr/include
 }

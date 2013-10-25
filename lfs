@@ -909,6 +909,7 @@ function installPackage()
 	LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
 	if [ "$LFS_PHASE" = "system" ]; then
 		LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/install
 		LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PATH"/source
