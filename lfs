@@ -1036,13 +1036,6 @@ function backUpToolchain()
 
 function createToolchain()
 {
-	progressMessage "Initiating creation of toolchain ($LFS_TOOLS)"
-		chattr -R -f -aiD "$LFS" 1>/dev/null 2>/dev/null || true
-		rm -rf -- "$LFS_TOOLS_PATH"
-		mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-		export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
-	progressMessageSucceeded
-	
 	installPackages crosscompiler
 	installPackages toolchain2
 	
