@@ -202,7 +202,7 @@ function executeWithCleanEnvironment()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-1 toolchain1Profile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
+Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-1 crosscompilerProfile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
 
 Profiles
 [profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
@@ -215,7 +215,7 @@ another profile it depends on. This is the equivalent of package management on o
 systems. A set of profiles is intended to be version-controlled using a source control system
 such as git and so do not declare explicit version dependencies.
 
-The profiles 'toolchain1' and 'toolchain2' are special. Implementors of profiles can assume
+The profiles 'crosscompiler' and 'toolchain2' are special. Implementors of profiles can assume
 that these profiles are always sourced. It is an error to specify them in the list of profiles.
 
 A profile does not have to just install packages.
@@ -227,7 +227,7 @@ Defaults
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
     mirrors            ${mirrors}
-    toolchain1Profile  ${toolchain1Profile}
+    crosscompilerProfile  ${crosscompilerProfile}
     toolchain2Profile  ${toolchain2Profile}
     option             See below
     profiles           ${profiles}
@@ -273,8 +273,8 @@ function parseCommandLine()
 	mirrors="timezone"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('mirrors')
 	
-	toolchain1Profile=toolchain1
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain1Profile')
+	crosscompilerProfile=crosscompiler
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('crosscompilerProfile')
 	
 	toolchain2Profile=toolchain2
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain2Profile')
@@ -326,7 +326,7 @@ function parseCommandLine()
 				;;
 				
 				1)
-					toolchain1Profile="$OPTARG"
+					crosscompilerProfile="$OPTARG"
 				;;
 				
 				2)
@@ -487,8 +487,8 @@ function setPathsAndExports()
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	
-	# We use the hashes of the toolchain1 and toolchain2 profiles to establish the uniqueness of the toolchain
-	local -r hashesWithTrailingHyphen="$(sha224sum "$profilesPath"/"$toolchain1Profile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
+	# We use the hashes of the crosscompiler and toolchain2 profiles to establish the uniqueness of the toolchain
+	local -r hashesWithTrailingHyphen="$(sha224sum "$profilesPath"/"$crosscompilerProfile".profile "$profilesPath"/"$toolchain2Profile".profile | awk -v ORS='-' '{print $1}')"
 	LFS_VERSION="$LFS_DISTRIBUTION_VERSION"-"${hashesWithTrailingHyphen:0:${#hashesWithTrailingHyphen}-1}"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_VERSION')
 	LFS_TOOLS=tools-"$LFS_VERSION"
@@ -602,7 +602,7 @@ function include_phase()
 
 function include_profiles()
 {
-	include_phase toolchain1 "$toolchain1Profile"
+	include_phase crosscompiler "$crosscompilerProfile"
 	include_phase toolchain2 "$toolchain2Profile"
 	include_phase system $profiles
 }
@@ -1061,7 +1061,7 @@ function createToolchain()
 		export PATH=/"$LFS_TOOLS"/bin:/bin:/usr/bin
 	progressMessageSucceeded
 	
-	installPackages toolchain1
+	installPackages crosscompiler
 	installPackages toolchain2
 	
 	progressMessage "Stripping toolchain symbols ($stripToolchainSymbols)"

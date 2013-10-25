@@ -486,7 +486,7 @@ function version()
 }
 
 declare_for_chroot -A phase_PreviousRecipes
-phase_PreviousRecipes+=(['toolchain1']="" ['toolchain2']="" ['system']="")
+phase_PreviousRecipes+=(['crosscompiler']="" ['toolchain2']="" ['system']="")
 declare_for_chroot -A phase_InstallationOrder
 
 function depends()

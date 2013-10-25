@@ -107,7 +107,8 @@
 
 * ACLs
 	* use setacl / getfacl; can also replace chmod, etc
-	* allow multiple users and multiple groups to have permission bits set on a file
+	* allow multiple users and multip
+	le groups to have permission bits set on a file
 	* for all intents and purposes, this means all files outside of /home could be owned by root:root with classic permissions r--r----- (ie read only to root)
 	* there is also a 'mask' value, which allows more restrictive permissions for ACL'd users/groups (or it should be set to the least permissions viable). Mask doesn't affect classic settings
 	* mask is changed by chmod, though, to user/group/other setting
@@ -162,5 +163,13 @@ Irritating.
 		# With glibc, this variable is install_root . For others, it's prefix=
 		# Check http://www.linuxfromscratch.org/hints/downloads/files/fakeroot.txt
 		# Perl modules are problematic
+
+clang / llvm
+export CC=clang CXX=clang++ && <other-command>
+
+musl-based crosscompiler is at:-
+Look at musl, and especially, https://github.com/GregorR/musl-cross which builds a cross-compiler
+http://musl.codu.org/
+https://googledrive.com/host/0BwnS5DMB0YQ6bDhPZkpOYVFhbk0/musl-0.9.14/crossx86-x86_64-linux-musl-0.9.14.tar.xz
 
 

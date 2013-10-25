@@ -8,7 +8,7 @@ version 4.8.1
 	source_package_alias gcc "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 }
 
-function installPackage_toolchain1_libstdc++()
+function installPackage_crosscompiler_libstdc++()
 {
 	local gccVersion="4.8.1"
 	

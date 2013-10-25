@@ -5,7 +5,7 @@ version 2.18
 	depends linux
 }
 
-function installPackage_toolchain1_glibc()
+function installPackage_crosscompiler_glibc()
 {
 	# This is a special case break-out from root
 	if [ ! -r /usr/include/rpc/types.h ]; then
@@ -34,10 +34,10 @@ function installPackage_toolchain1_glibc()
 		
 	popdBuildFolder
 	
-	localPackage_toolchain1_glibc_verifyGlibc
+	localPackage_crosscompiler_glibc_verifyGlibc
 }
 
-function localPackage_toolchain1_glibc_verifyGlibc()
+function localPackage_crosscompiler_glibc_verifyGlibc()
 {
 	echo 'main(){}' >dummy.c
 	"$LFS_TGT"-gcc dummy.c

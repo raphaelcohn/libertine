@@ -10,7 +10,7 @@ version 4.8.1
 	depends mpc
 }
 
-function installPackage_toolchain1_gcc()
+function installPackage_crosscompiler_gcc()
 {
 	extractDependencyIntoBuildFolder mpfr gmp mpc
 
