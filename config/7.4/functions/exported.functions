@@ -1090,14 +1090,24 @@ function tarExtract()
 	popd >/dev/null
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
+			mkdir -m 0755 -p "$tarballFolder"
+		else
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+		fi
 		pushd "$tarballFolder" >/dev/null
 	fi
-	
+		
 		if [ -z "$tarballCompression" ]; then
-			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"
+			local -r compressionOption=""
 		else
-			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath" --$tarballCompression
+			local -r compressionOption=" --$tarballCompression"
+		fi
+		
+		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
+			tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
+		else
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
 		fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
