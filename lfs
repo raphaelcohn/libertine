@@ -740,7 +740,7 @@ function dependencyToPath()
 	local -r relativeOptVersionPath="$relativeOptPath"/"$LFS_DISTRIBUTION_VERSION"
 	local -r absoluteOptVersionPath="${LFS}${relativeOptVersionPath}"
 	mkdir -m 0755 -p "$absoluteOptVersionPath"
-	rm -rf -- "$absoluteOptVersionPath"/current
+	rm -rf -- "$absoluteOptPath"/current
 	ln -s "$LFS_DISTRIBUTION_VERSION" "$absoluteOptPath"/current
 	
 	local -r relativatePackagePath="$relativeOptVersionPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
