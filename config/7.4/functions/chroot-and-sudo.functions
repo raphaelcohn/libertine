@@ -103,7 +103,7 @@ function executeFunctionUnderSudo()
 		addNextTrapHandler removeFilesOnExit
 	EOF
 	
-	cat >"$continutationBinaryForSudo" <<-EOF
+	cat >>"$continutationBinaryForSudo" <<-EOF
 		$functionToExecute
 	EOF
 	
