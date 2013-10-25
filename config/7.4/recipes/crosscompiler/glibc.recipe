@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 2.18
 {
-	depends linux
+	depends gcc
 }
 
 function installPackage_crosscompiler_glibc()
