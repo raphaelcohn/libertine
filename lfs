@@ -750,7 +750,10 @@ function installEssentialFolderStructure()
 		mkdir -m 0775 -p "$LFS"/usr/share/man/"$folder" "$LFS"/usr/local/share/man/"$folder"
 	done
 	
+	rm -rf -- "$LFS"/var/run
 	ln -s /run "$LFS"/var/run
+	
+	rm -rf -- "$LFS"/var/lock
 	ln -s /run/lock "$LFS"/var/lock
 	
 	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron
