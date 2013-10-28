@@ -484,6 +484,7 @@ function setPathsAndExports()
 	
 	readonly lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 	readonly lfsDownloadsPath="$lfsPath"/downloads
+	readonly lfsExtractsPath="$lfsPath"/extracts
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
 	

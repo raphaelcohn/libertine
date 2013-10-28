@@ -50,7 +50,15 @@ function downloadFileAndCheckHash()
 	fi
 	mkdir -m 0755 -p "$downloadFolderPath"
 	
-	if [ -f "$downloadFilePath" ]; then
+	# Extracts file path - currently only used by linux package / HKP_UNCOMPRESSED
+	local -r extractsFilePath="$lfsExtractsPath"/"$mirrorName"/"$relativePath".decompressed
+	local -r extractsFolderPath="$(purebash_dirname "$extractsFilePath")"
+	
+	if [ -f "$extractsFilePath" ]; then
+		progressMessage "Using cached extracted $downloadName $url at $extractsFilePath"
+		progressMessageSucceeded
+	elif [ -f "$downloadFilePath" ]; then
+		rm -rf -- "$extractsFilePath"
 		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 		
 		progressMessage "Using cached $downloadName $url at $downloadFilePath"
@@ -59,6 +67,7 @@ function downloadFileAndCheckHash()
 		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
 		
 		rm -rf -- "$downloadFilePath"
+		rm -rf -- "$extractsFilePath"
 		
 		# We re-load the config after specifying our options
 		touch "$HOME"/.curlrc
@@ -174,9 +183,14 @@ function downloadFileAndCheckHash()
 					;;
 			
 					HKP_UNCOMPRESSED)
-						temporaryFolderToRemoveOnExit
-						temporaryFolder="$TMP_FILE"
-						decompressFileToStdout "$decompressionOption" "$downloadFilePath" >"$temporaryFolder"/"$downloadFileName"
+						if [ ! -f "$extractsFilePath" ]; then
+							if [ ! -d "$extractsFolderPath" ]; then
+								rm -rf -- "$extractsFolderPath"
+							fi
+							mkdir -m 0755 -p "$extractsFolderPath"
+							rm -rf -- "$extractsFilePath"
+							extractFileForSignatureTest "$decompressionOption" "$downloadFilePath" >"$extractsFilePath"
+						fi
 						
 						if ! verifyHkpSignature "$temporaryFolder" "$downloadFileName" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
@@ -312,7 +326,7 @@ function verifyHkpSignature()
 	gpgVerifySignatureUsingKey "$1" "$2" "$keysPath"/"$3" "$4" "$5" "hkp"
 }
 
-function decompressFileToStdout()
+function extractFileForSignatureTest()
 {
 	local -r decompressionOption="$1"
 	local -r fileToDecompress="$2"
