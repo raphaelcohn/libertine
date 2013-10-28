@@ -68,8 +68,11 @@ function installPackage_crosscompiler_gcc()
 		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
 		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
 		
+		echo "HELLO"
 
 		make
+		
+		echo "BYE"
 
 		make DESTDIR="$LFS" install
 
