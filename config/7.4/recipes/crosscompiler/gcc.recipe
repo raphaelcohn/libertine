@@ -41,11 +41,11 @@ function installPackage_crosscompiler_gcc()
 		--with-newlib                                    \
 		--without-headers                                \
 		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
-		--with-native-system-header-dir="$(dependencyPrefixPath linux)"/usr/include   \
+		--with-native-system-header-dir="${LFS}$(dependencyPrefixPath linux)"/usr/include   \
 		--with-gnu-as \
-		--with-as="$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-ld \
+		--with-as="${LFS}$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-ld \
 		--with-gnu-ld \
-		--with-ld="$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-as \
+		--with-ld="${LFS}$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-as \
 		--disable-nls                                    \
 		--disable-shared                                 \
 		--disable-multiarch \

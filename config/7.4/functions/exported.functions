@@ -1103,7 +1103,8 @@ function dependencyPrefixPath()
 	for dependencyKey in "${!dependency_Name[@]}"
 	do
 		if [ "${dependency_Name["$dependencyKey"]}" = "$dependencyName" ]; then
-			echo "${dependency_Path["$dependencyKey"]}"/install
+			echo -n "${dependency_Path["$dependencyKey"]}"/install
+			return 0
 		fi
 	done
 }
