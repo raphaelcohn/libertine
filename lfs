@@ -777,6 +777,12 @@ function dependencyToPath()
 	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-settings-"$LFS_DEPENDENCY_SETTINGS_HASH"-dependencies-"$dependenciesHash"
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
+	
+	if [ -f "$absoluteCompletePath"/installed ]; then
+		return 0
+	fi
+	
+	rm -rf -- "$absoluteCompletePath"
 	mkdir -m 0755 -p "$absoluteCompletePath"
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
 	rm -rf -- "$absoluteVersionPath"/current
@@ -918,14 +924,21 @@ function installPackage()
 	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
+	
 	if [ "$LFS_PHASE" = "system" ]; then
-		LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PATH"/install
-		LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PATH"/source
-		LFS_DEPENDENCY_LOG_PATH="$LFS_DEPENDENCY_PATH"/log
+		LFS_DEPENDENCY_ROOT=""
 	else
-		LFS_DEPENDENCY_INSTALL_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/install
-		LFS_DEPENDENCY_SOURCE_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/source
-		LFS_DEPENDENCY_LOG_PATH="${LFS}${LFS_DEPENDENCY_PATH}"/log
+		LFS_DEPENDENCY_ROOT="$LFS"
+	fi
+	LFS_DEPENDENCY_INSTALL_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/install
+	LFS_DEPENDENCY_SOURCE_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/source
+	LFS_DEPENDENCY_LOG_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/log
+	LFS_DEPENDENCY_INSTALLED_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/installed
+	
+	if [ -f "$LFS_DEPENDENCY_INSTALLED_PATH" ]; then
+		progressMessage "Skipping phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+		progressMessageSucceeded
+		return 0
 	fi
 	
 	LFS_RECIPE_NAME="${sourcePackages_Name[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
@@ -1005,6 +1018,8 @@ function installPackage()
 		fi
 		
 	popd >/dev/null
+	
+	touch "$LFS_DEPENDENCY_INSTALLED_PATH"
 	
 	progressMessageSucceeded
 }
