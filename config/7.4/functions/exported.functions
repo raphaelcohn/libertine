@@ -1075,7 +1075,7 @@ function linkUnbuiltDependency()
 {
 	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$(pwd)" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
 	local -r relativePathToRootOfFhs="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
-	if [ ! -z "$LFS" ]; then
+	if [ -z "$LFS" ]; then
 		local -r pathToRoot="$relativePathToRootOfFhs"
 	else
 		local -r pathToRoot="$relativePathToRootOfFhs"/"$LFS"
