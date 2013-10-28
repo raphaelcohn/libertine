@@ -664,13 +664,50 @@ function downloadPatches()
 
 function installEssentialFolderStructure()
 {
-	rm -rf -- "$LFS"/*
+	# removes everything from the target bar /opt/lfs, /srv and /var (we could add /home; that's not so clear-cut)
+	local folder
+	if [ -d "$LFS" ]; then
+		pushd "$LFS" >/dev/null
+			for folder in *
+			do
+				case "$folder" in
+					
+					opt|srv|var)
+						:
+					;;
+					
+					*)
+						chattr -R -f -ai "$folder" >/dev/null || true
+						rm -rf -- "$folder"
+					;;
+					
+				esac
+			done
+			
+			if [ -d "opt" ]; then
+				pushd "opt" >/dev/null
+					for folder in *
+					do
+						if [ "$folder" != "lfs" ]; then
+							chattr -R -f -ai "$folder" >/dev/null || true
+							rm -rf -- "$folder"
+						fi
+					done
+				popd >/dev/null
+			fi
+			
+		popd >/dev/null
+	fi
 	
 	# usr/local/etc exists occasionally. Why there isn't /usr/etc isn't clear.
-	local folder
 	for folder in bin boot dev proc etc home lib media mnt opt root run sbin srv sys usr var usr/local usr/local/etc
 	do
-		mkdir -m 0775 -p "$LFS"/"$folder"
+		if [ -d "$folder" ]; then
+			chown 0:0 "$folder"
+			chmod 0755 "$folder"
+		else
+			mkdir -m 0775 -p "$LFS"/"$folder"
+		fi
 	done
 	
 	# Required by the kernel to boot before udevd is started
