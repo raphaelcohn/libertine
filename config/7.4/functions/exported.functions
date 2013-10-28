@@ -1075,6 +1075,11 @@ function linkUnbuiltDependency()
 {
 	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$(pwd)" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
 	local -r relativePathToRootOfFhs="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
+	if [ ! -z "$LFS" ]; then
+		local -r pathToRoot="$relativePathToRootOfFhs"
+	else
+		local -r pathToRoot="$relativePathToRootOfFhs"/"$LFS"
+	fi
 	
 	local dependency
 	local dependencyName
@@ -1086,7 +1091,7 @@ function linkUnbuiltDependency()
 			if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
 				index=dependency_SourcePackageIndex["$dependency"]
 				
-				ln -s "${relativePathToRootOfFhs}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
+				ln -s "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
 			fi
 		done
 	done
