@@ -1095,16 +1095,13 @@ function linkUnbuiltDependency()
 function dependencyPrefixPath()
 {
 	local -r dependencyName="$1"
-	local dependency
-	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
+	local 
+	for dependencyKey in "${!dependency_Name[@]}"
 	do
-		if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
-			echo "${dependency_Path["$dependency"]}"/install
-			return 0
+		if [ "${dependency_Name["$dependencyKey"]}" = "$dependencyName" ]; then
+			echo "${dependency_Path["$dependencyKey"]}"/install
 		fi
 	done
-	
-	exitError "Unknown dependency $dependencyName"
 }
 
 function installPackagePrototype()
