@@ -130,6 +130,10 @@ function downloadFileAndCheckHash()
 		fi
 	fi
 	
+	if [ "$skipSignatureChecks" = "yes" ]; then
+		return 0
+	fi
+	
 	progressMessage "Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
