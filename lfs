@@ -1014,8 +1014,12 @@ function installPackage()
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			popd >/dev/null
-			rm -rf -- "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
 		fi
+		
+		# Just leave the extracted tar ball behind for now
+		#if [ "$LFS_DEPENDENCY_SKIP_INSTALL" != "1" ]; then
+		#	rm -rf -- "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
+		#fi
 		
 	popd >/dev/null
 	
