@@ -1100,7 +1100,6 @@ function linkUnbuiltDependency()
 function dependencyPrefixPath()
 {
 	local -r dependencyName="$1"
-	local 
 	for dependencyKey in "${!dependency_Name[@]}"
 	do
 		if [ "${dependency_Name["$dependencyKey"]}" = "$dependencyName" ]; then
