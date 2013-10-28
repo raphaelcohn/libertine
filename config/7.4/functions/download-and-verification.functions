@@ -350,3 +350,47 @@ function decompressFileToStdout()
 		;;
 	esac
 }
+
+function tarExtract()
+{
+	if [ $# -ne 4 ]; then
+		exitError "Not enough arguments"
+	fi
+	local -r tarball="$1"
+	local -r tarballFolder="$2"
+	local -r tarballCompression="$3"
+	local -r isTarbomb="$4"
+	
+	rm -rf -- "$tarballFolder"
+	
+	pushd "$(purebash_dirname "$tarball")" >/dev/null
+		
+	local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
+		
+	popd >/dev/null
+	
+	if [ "$isTarbomb" = "tarbomb" ]; then
+		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
+			mkdir -m 0755 -p "$tarballFolder"
+		else
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+		fi
+		pushd "$tarballFolder" >/dev/null
+	fi
+		
+		if [ -z "$tarballCompression" ]; then
+			local -r compressionOption=""
+		else
+			local -r compressionOption=" --$tarballCompression"
+		fi
+		
+		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
+			tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
+		else
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
+		fi
+	
+	if [ "$isTarbomb" = "tarbomb" ]; then
+		popd >/dev/null
+	fi
+}

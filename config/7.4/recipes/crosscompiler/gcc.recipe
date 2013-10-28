@@ -4,7 +4,6 @@ version 4.8.1
 {
 	depends linux
 	
-	# These are NOT build dependencies but download ones.
 	depends mpfr
 	depends gmp
 	depends mpc
@@ -12,7 +11,7 @@ version 4.8.1
 
 function installPackage_crosscompiler_gcc()
 {
-	extractDependencyIntoBuildFolder mpfr gmp mpc
+	linkUnbuiltDependency mpfr gmp mpc
 
 	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
@@ -32,10 +31,7 @@ function installPackage_crosscompiler_gcc()
 	
 	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
-
-	# with-native-system-header-dir needs fixing up because this is the location of the linux headers. We could just switch installation order.
-	# 
-
+	
 	createBuildFolderAndPushd
 		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \

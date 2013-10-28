@@ -33,7 +33,7 @@ function installPackage_toolchain2_gcc()
 		touch "$file".orig
 	done
 	
-	extractDependencyIntoBuildFolder mpfr gmp mpc
+	linkUnbuiltDependency mpfr gmp mpc
 	
 	createBuildFolderAndPushd
 		
