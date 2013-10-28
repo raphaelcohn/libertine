@@ -819,6 +819,8 @@ function dependencyToPath()
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
 	
+	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
+	
 	if [ -f "$absoluteCompletePath"/installed ]; then
 		return 0
 	fi
@@ -828,8 +830,6 @@ function dependencyToPath()
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
 	rm -rf -- "$absoluteVersionPath"/current
 	ln -s "$recipeVersion" "$absoluteVersionPath"/current
-	
-	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
 	
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
