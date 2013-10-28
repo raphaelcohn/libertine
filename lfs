@@ -244,18 +244,15 @@ runtime dependencies).
 
 Options
 For options, prefix with either 'yes-' to turn it on
-or 'no-' to turn it off. For example, to turn on 'strip-system-docs' :-
+or 'no-' to turn it off. For example, to turn on 'skip-signature-checks' :-
 
-    ${ourName} -o yes-strip-system-docs
+    ${ourName} -o yes-skip-signature-checks
 
 -o may be repeated as necessary. Options are evaluated in left-to-right order.
 Last setting wins.
 
-Options are as follows:-     Default
-    skip-toolchain-if-backup-exists  ${skipToolchainIfBackupExists}
-    strip-toolchain-symbols          ${stripToolchainSymbols}
-    strip-system-symbols             ${stripSystemSymbols}
-    strip-system-docs                ${stripSystemDocs}
+Options are as follows:-   Default
+    skip-signature-checks  ${skipSignatureChecks}
 " 1>&2
 	exit $1
 }
@@ -279,17 +276,8 @@ function parseCommandLine()
 	toolchain2Profile=toolchain2
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain2Profile')
 	
-	skipToolchainIfBackupExists="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipToolchainIfBackupExists')
-	
-	stripToolchainSymbols="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripToolchainSymbols')
-	
-	stripSystemSymbols="yes"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripSystemSymbols')
-	
-	stripSystemDocs="no"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('stripSystemDocs')
+	skipSignatureChecks="no"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipSignatureChecks')
 	
 	profiles="system"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('profiles')
@@ -340,36 +328,12 @@ function parseCommandLine()
 				
 					case "$OPTARG" in
 						
-						no-skip-toolchain-if-backup-exists)
-							skipToolchainIfBackupExists="no"
+						no-skipSignatureChecks)
+							skipSignatureChecks="no"
 						;;
 						
-						yes-skip-toolchain-if-backup-exists)
-							skipToolchainIfBackupExists="yes"
-						;;
-						
-						no-strip-toolchain-symbols)
-							stripToolchainSymbols="no"
-						;;
-						
-						yes-strip-toolchain-symbols)
-							stripToolchainSymbols="yes"
-						;;
-						
-						no-strip-system-symbols)
-							stripSystemSymbols="no"
-						;;
-						
-						yes-strip-system-symbols)
-							stripSystemSymbols="yes"
-						;;
-						
-						no-strip-system-docs)
-							stripSystemDocs="no"
-						;;
-						
-						yes-strip-system-docs)
-							stripSystemDocs="yes"
+						yes-skipSignatureChecks)
+							skipSignatureChecks="yes"
 						;;
 						
 						*)
@@ -1192,33 +1156,29 @@ function cleanUpTarget()
 
 function createOrUseBackUpToolchain()
 {
-	if [ "$skipToolchainIfBackupExists" = "yes" ]; then
-		if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
-			cleanUpTarget
-			progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
-				mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-				
-				if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
+	if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
+		cleanUpTarget
+		progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
+			mkdir -m 0755 -p "$LFS_TOOLS_PATH"
+			
+			if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
+				progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
+			fi
+			changeOwnerOfToolchain
+		progressMessageSucceeded
+		
+	elif [ -f "$toolsBackUpPath".tar.gz ]; then
+		cleanUpTarget
+		progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
+			rm -rf -- "$LFS_TOOLS_PATH"
+			
+			pushd "$LFS"/.. >/dev/null
+				if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
 					progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
 				fi
-				changeOwnerOfToolchain
-			progressMessageSucceeded
-			
-		elif [ -f "$toolsBackUpPath".tar.gz ]; then
-			cleanUpTarget
-			progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
-				rm -rf -- "$LFS_TOOLS_PATH"
-				
-				pushd "$LFS"/.. >/dev/null
-					if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
-						progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
-					fi
-				popd >/dev/null
-				changeOwnerOfToolchain
-			progressMessageSucceeded
-		else
-			createToolchain
-		fi
+			popd >/dev/null
+			changeOwnerOfToolchain
+		progressMessageSucceeded
 	else
 		createToolchain
 	fi
