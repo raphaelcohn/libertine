@@ -32,8 +32,6 @@ function installPackage_crosscompiler_gcc()
 	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 	
-	#--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
-	#	--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
 	
 	local -r linuxPath="${LFS}$(dependencyPath linux)"/install
 	local -r binutilsPath="${LFS}$(dependencyPath binutils)"/install
@@ -67,6 +65,8 @@ function installPackage_crosscompiler_gcc()
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
 		--enable-languages=c,c++                         \
+		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
 		
 
 		make
