@@ -192,7 +192,7 @@ function downloadFileAndCheckHash()
 							extractFileForSignatureTest "$decompressionOption" "$downloadFilePath" >"$extractsFilePath"
 						fi
 						
-						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_filename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
+						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_basename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
 							progressMessageFailed "$progressMessage"
 						fi
 					;;
