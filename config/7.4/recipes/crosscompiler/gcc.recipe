@@ -32,6 +32,12 @@ function installPackage_crosscompiler_gcc()
 	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 	
+	#--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
+	#	--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
+	
+	local -r linuxPath="${LFS}$(dependencyPath linux)"/install
+	local -r binutilsPath="${LFS}$(dependencyPath binutils)"/install
+	
 	createBuildFolderAndPushd
 		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
@@ -41,11 +47,11 @@ function installPackage_crosscompiler_gcc()
 		--with-newlib                                    \
 		--without-headers                                \
 		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
-		--with-native-system-header-dir="${LFS}$(dependencyPrefixPath linux)"/usr/include   \
+		--with-native-system-header-dir="$linuxPath"/usr/include   \
 		--with-gnu-as \
-		--with-as="${LFS}$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-ld \
+		--with-as="$binutilsPath"/bin/"$LFS_TGT"-ld \
 		--with-gnu-ld \
-		--with-ld="${LFS}$(dependencyPrefixPath binutils)"/bin/"$LFS_TGT"-as \
+		--with-ld="$binutilsPath"/bin/"$LFS_TGT"-as \
 		--disable-nls                                    \
 		--disable-shared                                 \
 		--disable-multiarch \
@@ -61,8 +67,7 @@ function installPackage_crosscompiler_gcc()
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
 		--enable-languages=c,c++                         \
-		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
-		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
+		
 
 		make
 

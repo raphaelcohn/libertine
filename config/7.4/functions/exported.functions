@@ -1097,13 +1097,13 @@ function linkUnbuiltDependency()
 	done
 }
 
-function dependencyPrefixPath()
+function dependencyPath()
 {
 	local -r dependencyName="$1"
 	for dependencyKey in "${!dependency_Name[@]}"
 	do
 		if [ "${dependency_Name["$dependencyKey"]}" = "$dependencyName" ]; then
-			echo -n "${dependency_Path["$dependencyKey"]}"/install
+			echo -n "${dependency_Path["$dependencyKey"]}"
 			return 0
 		fi
 	done
