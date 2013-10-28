@@ -1103,8 +1103,10 @@ function dependencyPath()
 	for dependencyKey in "${!dependency_Name[@]}"
 	do
 		if [ "${dependency_Name["$dependencyKey"]}" = "$dependencyName" ]; then
-			echo -n "${dependency_Path["$dependencyKey"]}"
-			return 0
+			if [ "${dependency_Phase["$dependencyKey"]}" = "$LFS_PHASE" ]; then
+				echo -n "${dependency_Path["$dependencyKey"]}"
+				return 0
+			fi
 		fi
 	done
 }
