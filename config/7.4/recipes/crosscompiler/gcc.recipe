@@ -7,15 +7,11 @@ version 4.8.1
 	depends mpfr
 	depends gmp
 	depends mpc
+	depends binutils
 }
 
-function installPackage_crosscompiler_gcc()
+function dead()
 {
-	linkUnbuiltDependency mpfr gmp mpc
-	
-	# The dynamic linker is provided by glibc... so we have a Mexican standoff with dependencies.
-	
-	
 	
 	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
@@ -32,13 +28,28 @@ function installPackage_crosscompiler_gcc()
 		EOF
 		touch "$file".orig
 	done
+}
+
+function installPackage_crosscompiler_gcc()
+{
+	local -r binutilsPath="$(dependencyPath binutils)"
+	
+	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
+	local -r binutilsInstallPath="${LFS}${binutilsPath}"/install
+	
+	linkUnbuiltDependency mpfr gmp mpc binutils
+	
+	# The dynamic linker is provided by glibc... so we have a Mexican standoff with dependencies.
+	
+	# build binutils with gcc
+	# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
+	
+	
 	
 	# Stack protection fix for glibc-2.18
 	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
 	
 	
-	local -r linuxPath="${LFS}$(dependencyPath linux)"/install
-	local -r binutilsPath="${LFS}$(dependencyPath binutils)"/install
 	
 	# with-build-time-tools won't work if we're compiling ARM on x86; must be unprefixed names like 'ar' rather than x86_64-lfs-linux-gnu-ar
 	
@@ -48,15 +59,12 @@ function installPackage_crosscompiler_gcc()
 		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TARGET"                              \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"                                 \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
 		--with-sysroot="$LFS"                            \
 		--with-newlib                                    \
 		--without-headers                                \
 		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
-		--with-native-system-header-dir="$linuxPath"/usr/include   \
-		--with-as="$binutilsPath"/bin/"$LFS_TARGET"-ld \
-		--with-ld="$binutilsPath"/bin/"$LFS_TARGET"-as \
-		--with-build-time-tools="$binutilsPath"/"$LFS_TARGET"/bin \
+		--with-native-system-header-dir="$linuxInstallPath"/usr/include   \
 		--disable-nls                                    \
 		--disable-shared                                 \
 		--disable-multilib                               \
@@ -70,16 +78,7 @@ function installPackage_crosscompiler_gcc()
 		--disable-libsanitizer                           \
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
-		--enable-languages=c,c++                         \
-		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
-		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
-		--with-mpc-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpc/src \
-		--with-mpfr-lib="$(pwd)"/mpc/src/.libs
-		--with-gmp-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/gmp \
-		--with-gmp-lib="$(pwd)"/gmp/.libs
-		--without-ppl \
-		--without-cloog \
-		--without-isl
+		--enable-languages=c,c++                         
 		
 		echo "HELLO"
 

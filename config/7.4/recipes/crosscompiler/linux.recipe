@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.10.10
 {
-	depends binutils
+	:
 }
 
 function installPackage_crosscompiler_linux()

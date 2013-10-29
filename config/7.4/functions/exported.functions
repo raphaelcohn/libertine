@@ -1071,16 +1071,13 @@ function include_profile()
 	fi
 }
 
+# Derived from http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
 function linkUnbuiltDependency()
 {
-	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$(pwd)" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
-	local -r relativePathToRootOfFhs="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
-	if [ -z "$LFS" ]; then
-		local -r pathToRoot="$relativePathToRootOfFhs"
-	else
-		local -r pathToRoot="$relativePathToRootOfFhs"/"$LFS"
-	fi
+	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$LFS_DEPENDENCY_PATH"/source/"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
+	local -r pathToRoot="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
 	
+	local file
 	local dependency
 	local dependencyName
 	local -i index
@@ -1091,7 +1088,15 @@ function linkUnbuiltDependency()
 			if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
 				index=dependency_SourcePackageIndex["$dependency"]
 				
-				ln -s "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
+				if [ "$dependencyName" = "binutils" ]; then
+					# binutils case for gcc
+					for file in "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}"/*
+					do
+						ln -sv "$file"
+					done
+				else
+					ln -sv "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
+				fi
 			fi
 		done
 	done
