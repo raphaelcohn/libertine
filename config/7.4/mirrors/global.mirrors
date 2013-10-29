@@ -40,6 +40,7 @@ mirror  MPFR     http://www.mpfr.org/
 mirror  GMP      ftp://ftp.gmplib.org/pub/
 mirror  MPC      http://www.multiprecision.org/mpc/download/
 mirror  ZLIB     http://www.zlib.net/
+mirror  MUSL     http://www.musl-libc.org/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
