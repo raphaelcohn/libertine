@@ -752,7 +752,7 @@ function installPackage()
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
 			tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
-			progressMessageUpdate "(tar extraction complete, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log)"
+			progressMessageUpdate "(tar extraction complete)"
 		fi
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then

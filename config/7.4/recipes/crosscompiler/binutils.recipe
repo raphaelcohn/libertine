@@ -14,8 +14,8 @@ function installPackage_crosscompiler_binutils()
 	
 	createBuildFolderAndPushd
 		
-		CFLAGS="-static-libgcc -Wl,-Bstatic -lc" \
-		CXXFLAGS="-static-libgcc -static-libstdc++ -Wl,-Bstatic -lc" \
+		CFLAGS="-static-libgcc -Wl,-Bstatic -lc -ldl" \
+		CXXFLAGS="-static-libgcc -static-libstdc++ -Wl,-Bstatic -lc -ldl" \
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--with-sysroot="$LFS" \
@@ -27,7 +27,7 @@ function installPackage_crosscompiler_binutils()
 		--enable-static \
 		--disable-lto-plugin
 		
-		make
+		make LDFLAGS="-all-static"
 		
 		make DESTDIR="$LFS" install
 		
