@@ -64,7 +64,7 @@ function downloadFileAndCheckHash()
 		progressMessage "Using cached $downloadName $url at $downloadFilePath"
 		progressMessageSucceeded
 	else
-		progressMessage "Downloading $downloadName $url to $toPath/$fileName"
+		progressMessage "Downloading $downloadName $url to $mirrorName/$relativePath"
 		
 		rm -rf -- "$downloadFilePath"
 		rm -rf -- "$extractsFilePath"
