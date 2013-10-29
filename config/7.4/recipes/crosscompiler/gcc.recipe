@@ -13,28 +13,6 @@ function installPackage_crosscompiler_gcc()
 {
 	linkUnbuiltDependency mpfr gmp mpc
 	
-	
-	
-	
-	
-	
-	
-	FIX ME!!!! 
-	
-	http://www.sdutlinux.org/t/960
-	https://samritmaity.wordpress.com/2010/06/20/cannot-compute-suffix-of-object-files-gcc-4-4-3-installation-problem-solved/
-	
-	STANDARD_STARTFILE_PREFIX_1  STANDARD_STARTFILE_PREFIX_2  are /lib and /usr/lib ; used by ld.so as the fallback for runtime dynamic binary linking
-	
-	http://linux.about.com/library/cmd/blcmdl8_ld.so.htm
-	
-	ld.so is AKA ld-linux.so, etc, and is defined using the macro GLIBC_DYNAMIC_LINKER64 (and others)
-	
-	Order is DT_RPATH (if no DT_RUNPATH), LD_LIBRARY_PATH, DT_RUNPATH, cache (unless -z nodeflib linker option, would seem wise)
-	Although actually there are more possibilities
-	
-
-	
 	# The dynamic linker is provided by glibc... so we have a Mexican standoff with dependencies.
 	
 	
