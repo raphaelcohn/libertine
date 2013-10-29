@@ -57,7 +57,7 @@ function installPackage_crosscompiler_gcc()
 	
 	createBuildFolderAndPushd
 		
-		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
+		LDFLAGS="-all-static -static" ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TARGET"                              \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
 		--with-sysroot="$LFS"                            \
@@ -78,6 +78,7 @@ function installPackage_crosscompiler_gcc()
 		--disable-libsanitizer                           \
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
+		--enable-gold \
 		--enable-languages=c,c++                         
 		
 		echo "HELLO"
