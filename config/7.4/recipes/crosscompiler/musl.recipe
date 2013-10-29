@@ -1,0 +1,24 @@
+set -o errexit +o hashall
+
+version 0.9.14
+{
+	:
+}
+
+function installPackage_crosscompiler_musl()
+{
+	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
+		
+	# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
+	# disable-shared makes us static only
+	../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
+	--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+	--exec-prefix="$LFS_DEPENDENCY_PREFIX_PATH"/bin \
+	--syslibdir="$LFS_DEPENDENCY_PREFIX_PATH"/lib
+
+	make
+
+	make DESTDIR="$LFS" install
+	
+	ln -s ld-musl-ARCH.so "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/bin/ldd
+}

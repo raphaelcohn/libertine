@@ -32,10 +32,7 @@ function dead()
 
 function installPackage_crosscompiler_gcc()
 {
-	local -r binutilsPath="$(dependencyPath binutils)"
-	
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
-	local -r binutilsInstallPath="${LFS}${binutilsPath}"/install
 	
 	linkUnbuiltDependency mpfr gmp mpc binutils
 	
@@ -78,24 +75,19 @@ function installPackage_crosscompiler_gcc()
 		--disable-libsanitizer                           \
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
-		--enable-gold \
-			--enable-static \
-			--disable-lto-plugin \
+		--enable-ld \
+		--enable-gold=default \
 		--enable-languages=c,c++ 
 		
-		CFLAGS="-static -Wl,-Bstatic -static-libgcc" CXXFLAGS="-static -Wl,-Bstatic -static-libgcc" LIBS="-lc -lpthread -ldl" make
+		make
 
 		make DESTDIR="$LFS" install
 
 		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
 		# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
 		
-		# relies on ${LFS_TARGET}-gcc being on the path
-		exit 90
-		
-		
-		
-		ln -sv libgcc.a "$(${LFS_TARGET}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
+		local -r gcc=${LFS}${$LFS_DEPENDENCY_PREFIX_PATH}/bin/${LFS_TARGET}-gcc
+		ln -sv libgcc.a "$(${gcc} -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
 
 	popdBuildFolder
 }
