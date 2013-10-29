@@ -57,7 +57,7 @@ function installPackage_crosscompiler_gcc()
 	
 	createBuildFolderAndPushd
 		
-		LDFLAGS="-all-static -static" ../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
+		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
 		--target="$LFS_TARGET"                              \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
 		--with-sysroot="$LFS"                            \
