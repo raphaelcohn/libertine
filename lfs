@@ -716,6 +716,8 @@ function installPackage()
 	LFS_RECIPE_FILENAME="${sourcePackages_FileName[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
 	LFS_RECIPE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
 	LFS_RECIPE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_MIRROR="${sourcePackages_Mirror[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
+	LFS_RECIPE_RELATIVE_PATH="${sourcePackages_RelativePath[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
 	
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
@@ -751,7 +753,11 @@ function installPackage()
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
-			tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
+			if [ -d "$lfsExtractsPath"/"$LFS_RECIPE_MIRROR"/"$LFS_RECIPE_RELATIVE_PATH".decompressed ]; then
+				tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "" "$LFS_RECIPE_IS_TARBOMB"
+			else
+				tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
+			fi
 			progressMessageUpdate "(tar extraction complete)"
 		fi
 		
