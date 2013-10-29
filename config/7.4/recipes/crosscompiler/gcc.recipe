@@ -80,7 +80,7 @@ function installPackage_crosscompiler_gcc()
 		--disable-libstdc++-v3                           \
 		--enable-gold \
 			--enable-static \
-			--disable-lto-plugin
+			--disable-lto-plugin \
 		--enable-languages=c,c++ 
 		
 		CFLAGS="-static -Wl,-Bstatic -static-libgcc" CXXFLAGS="-static -Wl,-Bstatic -static-libgcc" LIBS="-lc -lpthread -ldl" make
