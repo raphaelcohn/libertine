@@ -79,6 +79,7 @@ function installPackage_crosscompiler_gcc()
 		--disable-libssp                                 \
 		--disable-libstdc++-v3                           \
 		--enable-gold \
+			--enable-static \
 		--enable-languages=c,c++                         
 		
 		echo "HELLO"
