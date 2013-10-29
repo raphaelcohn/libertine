@@ -1092,7 +1092,7 @@ function linkUnbuiltDependency()
 					# binutils case for gcc
 					for file in "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}"/*
 					do
-						ln -sv "$file"
+						ln -sv "$file" || true
 					done
 				else
 					ln -sv "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
