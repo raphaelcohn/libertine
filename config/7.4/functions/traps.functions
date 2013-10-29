@@ -1,5 +1,15 @@
 set -o errexit +o hashall
 
+function initialiseTraps()
+{
+	addNextTrapHandler removeFilesOnExit
+}
+
+function addInstallationFailedTrapHandler()
+{
+	addNextTrapHandler installationFailedTrapHandler
+}
+
 function runOnTrap()
 {
 	local trapHandler

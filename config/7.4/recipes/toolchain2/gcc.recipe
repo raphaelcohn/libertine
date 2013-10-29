@@ -12,11 +12,11 @@ version 4.8.1
 
 function installPackage_toolchain2_gcc()
 {
-	cat gcc/limitx.h gcc/glimits.h gcc/limity.h >"$(purebash_dirname $("$LFS_TGT"-gcc -print-libgcc-file-name))"/include-fixed/limits.h
+	cat gcc/limitx.h gcc/glimits.h gcc/limity.h >"$(purebash_dirname $("$LFS_TARGET"-gcc -print-libgcc-file-name))"/include-fixed/limits.h
 	
 	cp -v gcc/Makefile.in{,.tmp}
 	sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp >gcc/Makefile.in
-
+	
 	# Adjust paths to use /tools and remove /usr/include
 	local file
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
@@ -38,10 +38,10 @@ function installPackage_toolchain2_gcc()
 	createBuildFolderAndPushd
 		
 		local -r currentDir="$(pwd)"
-		CC="$LFS_TGT"-gcc                                                          \
-		CXX="$LFS_TGT"-g++                                                         \
-		AR="$LFS_TGT"-ar                                                           \
-		RANLIB="$LFS_TGT"-ranlib                                                   \
+		CC="$LFS_TARGET"-gcc                                                          \
+		CXX="$LFS_TARGET"-g++                                                         \
+		AR="$LFS_TARGET"-ar                                                           \
+		RANLIB="$LFS_TARGET"-ranlib                                                   \
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure                                  \
 		--prefix=/"$LFS_TOOLS"                                                            \
 		--with-local-prefix=/"$LFS_TOOLS"                                                 \
@@ -69,14 +69,14 @@ function installPackage_toolchain2_gcc()
 	localPackage_toolchain2_gcc_verifyGcc
 }
 
-# similar to localPackage_toolchain2_glibc_verifyGlibc except we use 'cc' rather than "$LFS_TGT"-gcc
+# similar to localPackage_toolchain2_glibc_verifyGlibc except we use 'cc' rather than "$LFS_TARGET"-gcc
 function localPackage_toolchain2_gcc_verifyGcc()
 {
 	echo 'main(){}' >dummy.c
 	cc dummy.c
 	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
 	
-	case "$(uname -m)" in
+	case "$LFS_ARCHITECTURE" in
 		x86_64)
 			local -r libraryFolderName=lib64
 		;;

@@ -1,0 +1,66 @@
+set -o errexit +o hashall
+
+function doSets()
+{
+	setLocale
+	setArchitectures
+	setMakeFlags
+}
+
+function setLocale()
+{
+	export LC_ALL=POSIX
+}
+
+function setArchitectures()
+{
+	# MACHTYPE might be x86_64-pc-linux-gnu or i386-apple-darwin9 (CPU, company, OS [eg linux-gnu])
+	# known as 3 component and 4 component triples (such as x86_64-unknown-linux-gnu)
+	# 
+	
+	case "$(echo $MACHTYPE | awk -v FS=- '{print $1}')" in
+		
+		i386|i486|i586|i686)
+			LFS_ARCHITECTURE=i386
+		;;
+		
+		x86_64)
+			LFS_ARCHITECTURE=x86_64
+		;;
+		
+		arm*)
+			LFS_ARCHITECTURE=arm
+		;;
+		
+		mips*)
+			LFS_ARCHITECTURE=mips
+		;;
+		
+		powerpc* | ppc*)
+			LFS_ARCHITECTURE=powerpc
+		;;
+		
+		*)
+			exitError "Unsupported architecture in $MACHTYPE"
+		;;
+		
+	esac
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARCHITECTURE')
+	
+	# Four-component style
+	LFS_TARGET="$LFS_ARCHITECTURE"-lfs-linux-gnu
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TARGET')
+}
+
+function setMakeFlags()
+{
+	essentialProgramCheck make grep
+	
+	if [ -f /proc/cpuinfo ]; then
+		local -i cpuCount=$(grep -c '^processor'$'\t' /proc/cpuinfo)
+	else
+		local -ir cpuCount=1
+	fi
+
+	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug=bijm"
+}

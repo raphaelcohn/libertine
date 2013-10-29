@@ -159,7 +159,7 @@ version 0
 #	symlink /usr/local/doc share/doc
 #	symlink /usr/local/info share/info
 	
-#	case "$(uname -m)" in
+#	case "$LFS_ARCHITECTURE" in
 #		x86_64)
 #			symlink /lib64 lib
 #			symlink /usr/lib64 lib

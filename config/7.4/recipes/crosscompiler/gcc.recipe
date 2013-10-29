@@ -12,7 +12,33 @@ version 4.8.1
 function installPackage_crosscompiler_gcc()
 {
 	linkUnbuiltDependency mpfr gmp mpc
+	
+	
+	
+	
+	
+	
+	
+	FIX ME!!!! 
+	
+	http://www.sdutlinux.org/t/960
+	https://samritmaity.wordpress.com/2010/06/20/cannot-compute-suffix-of-object-files-gcc-4-4-3-installation-problem-solved/
+	
+	STANDARD_STARTFILE_PREFIX_1  STANDARD_STARTFILE_PREFIX_2  are /lib and /usr/lib ; used by ld.so as the fallback for runtime dynamic binary linking
+	
+	http://linux.about.com/library/cmd/blcmdl8_ld.so.htm
+	
+	ld.so is AKA ld-linux.so, etc, and is defined using the macro GLIBC_DYNAMIC_LINKER64 (and others)
+	
+	Order is DT_RPATH (if no DT_RUNPATH), LD_LIBRARY_PATH, DT_RUNPATH, cache (unless -z nodeflib linker option, would seem wise)
+	Although actually there are more possibilities
+	
 
+	
+	# The dynamic linker is provided by glibc... so we have a Mexican standoff with dependencies.
+	
+	
+	
 	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
@@ -36,23 +62,25 @@ function installPackage_crosscompiler_gcc()
 	local -r linuxPath="${LFS}$(dependencyPath linux)"/install
 	local -r binutilsPath="${LFS}$(dependencyPath binutils)"/install
 	
+	# with-build-time-tools won't work if we're compiling ARM on x86; must be unprefixed names like 'ar' rather than x86_64-lfs-linux-gnu-ar
+	
+	# with-arch, with-cpu
+	
 	createBuildFolderAndPushd
 		
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
-		--target="$LFS_TGT"                              \
+		--target="$LFS_TARGET"                              \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"                                 \
 		--with-sysroot="$LFS"                            \
 		--with-newlib                                    \
 		--without-headers                                \
 		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
 		--with-native-system-header-dir="$linuxPath"/usr/include   \
-		--with-gnu-as \
-		--with-as="$binutilsPath"/bin/"$LFS_TGT"-ld \
-		--with-gnu-ld \
-		--with-ld="$binutilsPath"/bin/"$LFS_TGT"-as \
+		--with-as="$binutilsPath"/bin/"$LFS_TARGET"-ld \
+		--with-ld="$binutilsPath"/bin/"$LFS_TARGET"-as \
+		--with-build-time-tools="$binutilsPath"/"$LFS_TARGET"/bin \
 		--disable-nls                                    \
 		--disable-shared                                 \
-		--disable-multiarch \
 		--disable-multilib                               \
 		--disable-decimal-float                          \
 		--disable-threads                                \
@@ -67,6 +95,13 @@ function installPackage_crosscompiler_gcc()
 		--enable-languages=c,c++                         \
 		--with-mpfr-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpfr/src \
 		--with-mpfr-lib="$(pwd)"/mpfr/src/.libs
+		--with-mpc-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/mpc/src \
+		--with-mpfr-lib="$(pwd)"/mpc/src/.libs
+		--with-gmp-include="$(pwd)"/../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/gmp \
+		--with-gmp-lib="$(pwd)"/gmp/.libs
+		--without-ppl \
+		--without-cloog \
+		--without-isl
 		
 		echo "HELLO"
 
@@ -79,12 +114,12 @@ function installPackage_crosscompiler_gcc()
 		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
 		# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
 		
-		# relies on ${LFS_TGT}-gcc being on the path
+		# relies on ${LFS_TARGET}-gcc being on the path
 		exit 90
 		
 		
 		
-		ln -sv libgcc.a "$(${LFS_TGT}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
+		ln -sv libgcc.a "$(${LFS_TARGET}-gcc -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
 
 	popdBuildFolder
 }

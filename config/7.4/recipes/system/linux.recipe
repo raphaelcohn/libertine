@@ -18,4 +18,6 @@ function installPackage_system_linux()
 	cp -rv dest/include/* /usr/include
 	#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"/usr/include
 	#cp -rv dest/include/* "$LFS_INSTALL_LOCATION"/usr/include
+	
+	#"make psdocs", "make pdfdocs", "make htmldocs", or "make mandocs"
 }

@@ -9,18 +9,23 @@ function installPackage_crosscompiler_binutils()
 {
 	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
 	
-	# Defaults to  /lib:/usr/lib:/usr/local/lib:/usr/"$LFS_TGT"/lib
+	# Defaults to  /lib:/usr/lib:/usr/local/lib:/usr/"$LFS_TARGET"/lib
 	local -r whereToFindLibrariesForBinutils="$LFS_DEPENDENCY_INSTALL_PATH"/lib
 	
 	createBuildFolderAndPushd
 		
+		CFLAGS="-static-libgcc -Wl,-Bstatic" \
+		CXXFLAGS="-static-libgcc -static-libstdc++ -Wl,-Bstatic" \
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--with-sysroot="$LFS" \
 		--with-lib-path="$whereToFindLibrariesForBinutils" \
-		--target="$LFS_TGT" \
+		--target="$LFS_TARGET" \
 		--disable-nls \
-		--disable-werror
+		--disable-werror \
+		--disable-shared \
+		--enable-static \
+		--disable-lto-plugin
 		
 		make
 		

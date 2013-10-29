@@ -7,11 +7,8 @@ version 3.10.10
 
 function installPackage_crosscompiler_linux()
 {
-	make mrproper
+	#make mrproper
+	make distclean
 	
-	make headers_check || echo "Warning: non-fatal but ignored as exit code !=0"
-	
-	make INSTALL_HDR_PATH=dest headers_install
-	
-	cp -rv dest/include/* "$LFS_DEPENDENCY_INSTALL_PATH"/usr/include
+	make ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
 }

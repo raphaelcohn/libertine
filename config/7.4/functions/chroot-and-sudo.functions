@@ -92,14 +92,14 @@ function executeFunctionUnderSudo()
 	
 	# PATH gets quite complex
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
-		export LC_ALL=POSIX
+		setLocale
 		
 		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
 		setDebugging
-		addNextTrapHandler removeFilesOnExit
+		initialiseTraps
 	EOF
 	
 	cat >>"$continutationBinaryForSudo" <<-EOF
@@ -126,14 +126,14 @@ function chrootToEnvironment()
 	cat >>"$continutationBinaryForChroot" <<-'EOF'
 		
 		# Fix up paths and variables
-		LC_ALL=POSIX
+		setLocale
 		
 		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		
 		setDebugging
-		addNextTrapHandler removeFilesOnExit
+		initialiseTraps
 		installPackages system
 	EOF
 	

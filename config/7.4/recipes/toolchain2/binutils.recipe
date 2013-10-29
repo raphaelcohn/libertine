@@ -11,9 +11,9 @@ function installPackage_toolchain2_binutils()
 	
 	createBuildFolderAndPushd
 		
-		CC=$LFS_TGT-gcc                           \
-		AR=$LFS_TGT-ar                            \
-		RANLIB=$LFS_TGT-ranlib                    \
+		CC=$LFS_TARGET-gcc                           \
+		AR=$LFS_TARGET-ar                            \
+		RANLIB=$LFS_TARGET-ranlib                    \
 		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 		--prefix=/"$LFS_TOOLS"                    \
 		--disable-nls                             \

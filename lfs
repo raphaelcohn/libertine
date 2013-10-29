@@ -60,81 +60,6 @@ function essentialProgramCheck()
 	done
 }
 
-function verifyDependency()
-{
-	if [ $# -lt 2 ]; then
-		exitError "Needs at least 2 arguments"
-	fi
-	if [ $# -gt 3 ]; then
-		exitError "Needs no more than 3 arguments"
-	fi
-	
-	local -r sourcePackageName="$1"
-	
-	local version
-	read -r -d$'\n' version
-	
-	# May be incomplete, eg part of the left-hand regex
-	# eg 4.2.25(1)-release might be 4.2
-	local -r minimumVersion="$2"
-	
-	# 0 is equal, =
-	# 1 is greater than, >
-	# 2 is less than, <
-	set +e
-	compareVersions "$version" "$minimumVersion"
-	local -i comparison=$?
-	set -e
-	if [ $comparison -eq 2 ]; then
-		warning "Dependency $sourcePackageName has a version, $version, less than the minimum known to work, $minimumVersion"
-	fi
-	
-	if [ $# -eq 3 ]; then
-		local -r maximumVersion="$3"
-		
-		set +e
-		compareVersions "$version" "$maximumVersion"
-		local -i comparison=$?
-		set -e
-		if [ $comparison -eq 1 ]; then
-			warning "Dependency $sourcePackageName has a version, $version, greater than the maximum known to work, $maximumVersion"
-		fi
-	fi
-}
-
-# Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
-function compareVersions()
-{
-	if [[ "$1" == "$2" ]]; then
-		return 0
-	fi
-	
-	local IFS=.
-	local i ver1=($1) ver2=($2)
-	
-	# fill empty fields in ver1 with zeros
-	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
-	do
-		ver1[i]=0
-	done
-	
-	for ((i=0; i<${#ver1[@]}; i++))
-	do
-		if [[ -z ${ver2[i]} ]]; then
-			# fill empty fields in ver2 with zeros
-			ver2[i]=0
-		fi
-		if ((10#${ver1[i]} > 10#${ver2[i]})); then
-			return 1
-		fi
-		if ((10#${ver1[i]} < 10#${ver2[i]})); then
-			return 2
-		fi
-	done
-	
-	return 0
-}
-
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
 # Such a critical piece is code executed before and during command line arg parsing (eg exitError)
@@ -361,11 +286,11 @@ function parseCommandLine()
 	fi
 }
 
-function setPathsAndExports()
+function setPaths()
 {
 	export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 	
-	essentialProgramCheck mkdir uname awk sort md5sum
+	essentialProgramCheck mkdir awk
 	
 	if [ ! -d "$lfsConfigPath" ]; then
 		exitError "Config path $lfsConfigPath does not exist or is not a directory"
@@ -451,114 +376,6 @@ function setPathsAndExports()
 	readonly lfsExtractsPath="$lfsPath"/extracts
 	
 	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
-	
-	export LC_ALL=POSIX
-	LFS_TGT="$(uname -m)"-lfs-linux-gnu
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TGT')
-	
-	if [ -f /proc/cpuinfo ]; then
-		local -i highestCpu
-		read -r -d $'\n' highestCpu < <(awk '$1 ~ /processor/ { print $3 }' /proc/cpuinfo | sort --unique --reverse --numeric-sort)
-		local -ir highestCpuZeroBased=$((highestCpu + 1))
-	else
-		local -ir highestCpuZeroBased=1
-	fi
-	if [ $highestCpuZeroBased -ne 1 ]; then
-		export MAKEFLAGS="-j $((highestCpuZeroBased*2))"
-		LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('MAKEFLAGS')
-	fi
-}
-
-function registerDebianPackage()
-{
-	printf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
-}
-
-function verifyHostSystemRequirements()
-{
-	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
-	
-	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
-	if [ ! -d "$dependencyChecks" ]; then
-		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
-	fi
-	
-	local debianPackagesToInstallForDependencies=""
-	
-	pushd "$dependencyChecks" >/dev/null
-		local dependencyCheck
-		local -i exitCode
-		for dependencyCheck in *.dependency-check
-		do
-			# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
-			temporaryFileToRemoveOnExit
-			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$TMP_FILE"
-			# done as subshell to overcome the fact that commands are executing outside of a function
-			if ! (source "$dependencyCheck"); then
-				if [ -z "$debianPackagesToInstallForDependencies" ]; then
-					debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-				else
-					debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
-				fi
-			fi
-		done
-	popd >/dev/null
-
-	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
-		if which apt-get 1>/dev/null 2>/dev/null; then
-			apt-get --quiet --quiet --yes update
-			apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
-		fi
-	fi
-}
-
-function include_mirrors()
-{
-	progressMessage "Including mirror $mirrors"
-	
-	pushd "$mirrorsPath" >/dev/null
-		
-		include_mirror "$mirrors"
-		
-	popd >/dev/null
-	
-	local requiredMirrorName
-	for requiredMirrorName in "${!keyrings_Mirror[@]}" "${!keys_Mirror[@]}" "${!sourcePackages_Mirror[@]}" "${!patches_Mirror[@]}"
-	do
-		if ! mirrorExists "$requiredMirrorName"; then
-			progressMessageFailed "Mirror $requiredMirrorName is not defined in mirrors $mirrors"
-		fi
-	done
-	
-	progressMessageSucceeded
-}
-
-function include_phase()
-{
-	local -r phase="$1"
-	shift 1
-	
-	pushd "$profilesPath" >/dev/null
-		
-		declare -A LFS_RECIPE_VERSIONS
-		declare -A LFS_RECIPE_VERSION
-		for profile in "$@"
-		do
-			progressMessage "Including phase $phase profile $profile"
-			LFS_PHASE="$phase" include_profile "$profile"
-			progressMessageSucceeded
-		done
-		declare -A LFS_RECIPE_VERSION
-		unset LFS_RECIPE_VERSIONS
-		
-	popd >/dev/null
-}
-
-function include_profiles()
-{
-	include_phase crosscompiler "$crosscompilerProfile"
-	include_phase toolchain2 "$toolchain2Profile"
-	include_phase system $profiles
 }
 
 function createSkeletonFolderStructure()
@@ -571,60 +388,6 @@ function createSkeletonFolderStructure()
 	
 	readonly downloadsLogsPath="$lfsLogPath"/downloads
 	mkdir -m 0755 -p "$downloadsLogsPath"
-}
-
-function downloadCertificateAuthorities()
-{
-	local certificateAuthorityName
-	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
-	do
-		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}"
-	done
-}
-
-function downloadSignatures()
-{
-	local -i index
-	for index in ${!signatures_Mirror[@]}
-	do
-		downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "yes" ""
-	done
-}
-
-function downloadKeyrings()
-{
-	local -i index
-	for index in ${!keyrings_Mirror[@]}
-	do
-		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$index]}"
-	done
-}
-
-function downloadKeys()
-{
-	local -i index
-	for index in ${!keys_Mirror[@]}
-	do
-		downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "yes" "${keys_Hashes[$index]}"
-	done
-}
-
-function downloadSources()
-{
-	local -i index
-	for index in ${!sourcePackages_Mirror[@]}
-	do
-		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "no" "${sourcePackages_Hashes[$index]}"
-	done
-}
-
-function downloadPatches()
-{
-	local -i index
-	for index in ${!patches_Mirror[@]}
-	do
-		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "no" "${patches_Hashes[$index]}"
-	done
 }
 
 function installEssentialFolderStructure()
@@ -692,7 +455,7 @@ function installEssentialFolderStructure()
 		mkdir -m 0775 -p "$LFS"/usr/"$folder" "$LFS"/usr/local/"$folder"
 	done
 	
-	case "$(uname -m)" in
+	case "$LFS_ARCHITECTURE" in
 		x86_64)
 			ln -s lib "$LFS"/lib64
 			ln -s lib "$LFS"/usr/lib64
@@ -858,7 +621,7 @@ function installPerPackageFhs()
 	ln -s /run "$LFS_DEPENDENCY_INSTALL_PATH"/var/run
 	ln -s /run/lock "$LFS_DEPENDENCY_INSTALL_PATH"/var/lock
 	
-	case "$(uname -m)" in
+	case "$LFS_ARCHITECTURE" in
 		x86_64)
 			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/lib64
 			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/lib64
@@ -997,7 +760,7 @@ function installPackage()
 		fi
 		
 			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
-			addNextTrapHandler installationFailedTrapHandler
+			addInstallationFailedTrapHandler
 				
 				exec 6>&1 1>"$installStdOutLogFile"
 				exec 7>&2 2>"$installStdErrLogFile"
@@ -1194,7 +957,7 @@ function runSystemInstallationLogic()
 	progressMessage "Phase system, executing $callback on target"
 		
 		INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
-		addNextTrapHandler installationFailedTrapHandler
+		addInstallationFailedTrapHandler
 			
 			exec 6>&1 1>"$stdoutLog"
 			exec 7>&2 2>"$stderrLog"
@@ -1250,37 +1013,33 @@ function main()
 	findOurNameAndPath
 	ensureWhichInstalled
 	parseCommandLine "$@"
-	
-	setPathsAndExports
+	setPaths
 	sourceFunctions
 	
-	addNextTrapHandler removeFilesOnExit
+	doSets
 	
-	verifyHostSystemRequirements
+	initialiseTraps
 	
-	include_mirrors
+	verifyHostSystemRequirementsUsingDependencyChecks
 	
-	include_profiles
+	doInclude
 		
 	# Suspended for now, as we are using --cacert instead of --capath
 	#rehashCertificateAuthorities
 	
 	createSkeletonFolderStructure
-	downloadCertificateAuthorities
-	downloadSignatures
-	downloadKeyrings
-	downloadKeys
-	downloadSources
-	downloadPatches
+	
+	doDownloads
 	
 	installEssentialFolderStructure
+	
 	createOrUseBackUpToolchain
 	
 	runSystemInstallationLogic renderEarlyPathCommands
-	chrootToEnvironment
-	runSystemInstallationLogic renderLatePathCommands
 	
-	removeFilesOnExit
+	chrootToEnvironment
+	
+	runSystemInstallationLogic renderLatePathCommands
 }
 
 main "$@"

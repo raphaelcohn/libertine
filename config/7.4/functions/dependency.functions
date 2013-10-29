@@ -1,0 +1,119 @@
+set -o errexit +o hashall
+
+function verifyHostSystemRequirementsUsingDependencyChecks()
+{
+	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
+	
+	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
+	if [ ! -d "$dependencyChecks" ]; then
+		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
+	fi
+	
+	local debianPackagesToInstallForDependencies=""
+	
+	pushd "$dependencyChecks" >/dev/null
+		local dependencyCheck
+		local -i exitCode
+		for dependencyCheck in *.dependency-check
+		do
+			# Used to communicate with subshell, as we can't pass variables back (and we output stdout / stderr to the console)
+			temporaryFileToRemoveOnExit
+			LFS_CURRENT_DEBIAN_PACKAGES_TEMP="$TMP_FILE"
+			# done as subshell to overcome the fact that commands are executing outside of a function
+			if ! (source "$dependencyCheck"); then
+				if [ -z "$debianPackagesToInstallForDependencies" ]; then
+					debianPackagesToInstallForDependencies="$(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+				else
+					debianPackagesToInstallForDependencies="$debianPackagesToInstallForDependencies $(head -n 1 "$LFS_CURRENT_DEBIAN_PACKAGES_TEMP")"
+				fi
+			fi
+		done
+	popd >/dev/null
+
+	if [ ! -z "$debianPackagesToInstallForDependencies" ]; then
+		if which apt-get 1>/dev/null 2>/dev/null; then
+			apt-get --quiet --quiet --yes update
+			apt-get --quiet --quiet --yes install $debianPackagesToInstallForDependencies
+		fi
+	fi
+}
+
+function registerDebianPackage()
+{
+	printf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
+}
+
+function verifyDependency()
+{
+	if [ $# -lt 2 ]; then
+		exitError "Needs at least 2 arguments"
+	fi
+	if [ $# -gt 3 ]; then
+		exitError "Needs no more than 3 arguments"
+	fi
+	
+	local -r sourcePackageName="$1"
+	
+	local version
+	read -r -d$'\n' version
+	
+	# May be incomplete, eg part of the left-hand regex
+	# eg 4.2.25(1)-release might be 4.2
+	local -r minimumVersion="$2"
+	
+	# 0 is equal, =
+	# 1 is greater than, >
+	# 2 is less than, <
+	set +e
+	compareVersions "$version" "$minimumVersion"
+	local -i comparison=$?
+	set -e
+	if [ $comparison -eq 2 ]; then
+		warning "Dependency $sourcePackageName has a version, $version, less than the minimum known to work, $minimumVersion"
+	fi
+	
+	if [ $# -eq 3 ]; then
+		local -r maximumVersion="$3"
+		
+		set +e
+		compareVersions "$version" "$maximumVersion"
+		local -i comparison=$?
+		set -e
+		if [ $comparison -eq 1 ]; then
+			warning "Dependency $sourcePackageName has a version, $version, greater than the maximum known to work, $maximumVersion"
+		fi
+	fi
+}
+
+# Derived from http://stackoverflow.com/questions/4023830/bash-how-compare-two-strings-in-version-format
+function compareVersions()
+{
+	if [[ "$1" == "$2" ]]; then
+		return 0
+	fi
+	
+	local IFS=.
+	local i ver1=($1) ver2=($2)
+	
+	# fill empty fields in ver1 with zeros
+	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+	do
+		ver1[i]=0
+	done
+	
+	for ((i=0; i<${#ver1[@]}; i++))
+	do
+		if [[ -z ${ver2[i]} ]]; then
+			# fill empty fields in ver2 with zeros
+			ver2[i]=0
+		fi
+		if ((10#${ver1[i]} > 10#${ver2[i]})); then
+			return 1
+		fi
+		if ((10#${ver1[i]} < 10#${ver2[i]})); then
+			return 2
+		fi
+	done
+	
+	return 0
+}
