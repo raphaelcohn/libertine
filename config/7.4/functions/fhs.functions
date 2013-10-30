@@ -4,7 +4,7 @@ function pathToRootOfChroot()
 {
 	local -r pathRootedInOpt="$1"
 
-	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$pathRootedInOpt" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
+	local -r relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$pathRootedInOpt" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
 	PathToRoot="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
 }
 
@@ -126,7 +126,7 @@ function installPerPackageFhs_NEW()
 
 function installPerPackageFhs()
 {
-	pathToRootOfChroot
+	pathToRootOfChroot "$LFS_DEPENDENCY_INSTALL_PATH"
 	
 	ln -s "$PathToRoot"/dev "$LFS_DEPENDENCY_INSTALL_PATH"/dev
 	ln -s "$PathToRoot"/proc "$LFS_DEPENDENCY_INSTALL_PATH"/proc
