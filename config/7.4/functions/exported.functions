@@ -1074,8 +1074,7 @@ function include_profile()
 # Derived from http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
 function linkUnbuiltDependency()
 {
-	local relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$LFS_DEPENDENCY_PATH"/source/"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
-	local -r pathToRoot="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
+	pathToRootOfChroot "$LFS_DEPENDENCY_PATH"/source/"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
 	
 	local file
 	local dependency
@@ -1090,12 +1089,12 @@ function linkUnbuiltDependency()
 				
 				if [ "$dependencyName" = "binutils" ]; then
 					# binutils case for gcc
-					for file in "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}"/*
+					for file in "${PathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}"/*
 					do
 						ln -sv "$file" || true
 					done
 				else
-					ln -sv "${pathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
+					ln -sv "${PathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
 				fi
 			fi
 		done
