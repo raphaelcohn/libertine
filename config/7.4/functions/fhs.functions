@@ -119,12 +119,12 @@ function installEssentialFolderStructure()
 }
 
 # We do nothing
-function installPerPackageFhs_NEW()
+function installPerPackageFhs()
 {
 	:
 }
 
-function installPerPackageFhs()
+function installPerPackageFhs_OLD()
 {
 	pathToRootOfChroot "$LFS_DEPENDENCY_PATH"/install
 	
