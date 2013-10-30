@@ -33,5 +33,5 @@ function installPackage_crosscompiler_musl()
 	sed -i -e "s;musl-gcc.specs;musl-gcc-external.specs;g" "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/bin/musl-gcc-external
 	
 	cp "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/musl-gcc.specs "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/musl-gcc-external.specs
-	sed -i -e "s;/opt/;${LFS}/opt/g" "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/musl-gcc-external.specs
+	sed -i -e "s;/opt/;${LFS}/opt/;g" "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/musl-gcc-external.specs
 }

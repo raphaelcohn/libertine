@@ -496,27 +496,10 @@ function installPackageSkip()
 
 function installPackage()
 {
-	LFS_PHASE="$1"
-	LFS_DEPENDENCY_KEY="$2"
-	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
-	
-	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
-	
-	LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
-	LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
-	LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
-	LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
-	
-	LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
-	LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
-	
-	dependencyToPath
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
+	
+	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
 	if [ "$LFS_PHASE" = "system" ]; then
 		LFS_DEPENDENCY_ROOT=""
@@ -627,14 +610,52 @@ function installPackage()
 	progressMessageSucceeded
 }
 
+function calculateDependencyPaths()
+{
+	for LFS_PHASE in crosscompiler toolchain2 system
+	do
+		for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
+		do
+			LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
+			LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
+			LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
+			LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
+			LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
+	
+			LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
+			LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
+			LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
+			LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
+	
+			LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+			LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
+
+			dependencyToPath
+		done
+	done
+}
+
 function installPackages()
 {
-	local -r phase="$1"
-	local key
+	LFS_PHASE="$1"
 	
-	for dependencyKey in ${phase_InstallationOrder["${phase}"]}
+	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
 	do
-		installPackage "$phase" "$dependencyKey"
+		LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
+		LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
+		LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
+		LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
+		LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
+	
+		LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
+		LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
+		LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
+		LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
+	
+		LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+		LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
+		
+		installPackage
 	done
 }
 
@@ -862,6 +883,8 @@ function main()
 	doDownloads
 	
 	installEssentialFolderStructure
+	
+	calculateDependencyPaths
 	
 	createOrUseBackUpToolchain
 	
