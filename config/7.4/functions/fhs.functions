@@ -126,7 +126,7 @@ function installPerPackageFhs_NEW()
 
 function installPerPackageFhs()
 {
-	pathToRootOfChroot "$LFS_DEPENDENCY_INSTALL_PATH"
+	pathToRootOfChroot "$LFS_DEPENDENCY_PATH"/install
 	
 	ln -s "$PathToRoot"/dev "$LFS_DEPENDENCY_INSTALL_PATH"/dev
 	ln -s "$PathToRoot"/proc "$LFS_DEPENDENCY_INSTALL_PATH"/proc
