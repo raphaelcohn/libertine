@@ -526,7 +526,7 @@ function depends()
 		
 		local settingsFile="$settingsPath"/"$LFS_PHASE"/"$localSourcePackageName".settings
 		if [ -f "$settingsFile" ]; then
-			local -r settingsHash="$(sha224sum "$settingsFile" | awk 'NR==1 {print $1}')"
+			local -r settingsHash="$(sha256sum "$settingsFile" | awk 'NR==1 {print $1}')"
 			LFS_RECIPE_NAME="$localSourcePackageName" source "$settingsFile"
 		else
 			local -r settingsHash="0"
@@ -534,7 +534,7 @@ function depends()
 		
 		local includeFile="$includesPath"/"$localSourcePackageName".include
 		if [ -f "$includeFile" ]; then
-			local -r includeHash="$(sha224sum "$includeFile" | awk 'NR==1 {print $1}')"
+			local -r includeHash="$(sha256sum "$includeFile" | awk 'NR==1 {print $1}')"
 		else
 			local -r includeHash="0"
 			includeFile=""
@@ -563,7 +563,7 @@ function depends()
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions!
-		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha224sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_INCLUDE_FILE="$includeFile" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$uidAndGid source "$recipeFile"
+		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha256sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_INCLUDE_FILE="$includeFile" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$uidAndGid source "$recipeFile"
 	fi
 	
 	# We currently only do this for the last set version. In future, we might be able to take a directive from above

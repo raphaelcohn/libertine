@@ -390,6 +390,11 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$downloadsLogsPath"
 }
 
+# One of the problems of the 'rm' command is it doesn't like paths longer than 255 characters
+function remove()
+{
+}
+
 function dependencyToPath()
 {
 	# TODO: Defer the 'current' creation
@@ -428,12 +433,11 @@ function dependencyToPath()
 	local -r dependenciesFileSorted="$TMP_FILE"
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	local -r dependenciesHash="$(sha224sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
+	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
 	
 	
 	
-	# We should consider breaking-up settings to per recipe - as this better reflects changes
-	local -r recipeVersion=recipe-"$LFS_DEPENDENCY_RECIPE_HASH"-include-"$LFS_DEPENDENCY_INCLUDE_HASH"-settings-"$LFS_DEPENDENCY_SETTINGS_HASH"-dependencies-"$dependenciesHash"
+	local -r recipeVersion="$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_SETTINGS_HASH"-"$dependenciesHash"
 	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
 	
@@ -446,8 +450,10 @@ function dependencyToPath()
 	rm -rf -- "$absoluteCompletePath"
 	mkdir -m 0755 -p "$absoluteCompletePath"
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
+	rm -rf -- "$absoluteVersionPath"/recipe-settings-dependencies
+	ln -s "$recipeVersion" "$absoluteVersionPath"/recipe-settings-dependencies
 	rm -rf -- "$absoluteVersionPath"/current
-	ln -s "$recipeVersion" "$absoluteVersionPath"/current
+	ln -s recipe-settings-dependencies "$absoluteVersionPath"/current
 	
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
