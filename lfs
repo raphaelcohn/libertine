@@ -390,11 +390,6 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$downloadsLogsPath"
 }
 
-# One of the problems of the 'rm' command is it doesn't like paths longer than 255 characters
-function remove()
-{
-}
-
 function dependencyToPath()
 {
 	# TODO: Defer the 'current' creation
