@@ -29,6 +29,7 @@ mirror  GNU          https://ftp.gnu.org/gnu/ UtnUserFirstHardware
 mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/ GeoTrustGlobal
 mirror  LINUX        https://www.kernel.org/pub/linux/ StartCom
 mirror  IANA         https://www.iana.org/ ValiCertClass2
+mirror  GITHUB       https://github.com/ XXXXXX
 
 # Insecure
 mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
