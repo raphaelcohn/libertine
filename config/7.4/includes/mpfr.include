@@ -2,4 +2,4 @@ set -o errexit +o hashall
 
 source_package MPFR "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION}"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION}".tar.xz MD5:e3d203d188b8fe60bb6578dd3152e05c
 
-skip_install crosscompiler toolchain2
+skip_install toolchain2
