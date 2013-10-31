@@ -83,6 +83,7 @@ function mirror
 	mirrors_Url["${mirrorName}"]="$url"
 	
 	if [ $# -eq 3 ]; then
+		local -r certificateAuthorityName="$3"
 		if ! certificateAuthorityExists "$certificateAuthorityName"; then
 			exitError "Certificate Authority $certificateAuthorityName does not exist for mirror $mirrorName"
 		fi
