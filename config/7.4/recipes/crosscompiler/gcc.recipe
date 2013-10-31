@@ -34,9 +34,6 @@ function dead()
 function installPackage_crosscompiler_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
-
-	dependencyKey "$LFS_PHASE" "musl" xxxxx
-	dependency_Path["$DependencyKey"]
 	
 	local dependencyKey
 	local muslDependencyKey
