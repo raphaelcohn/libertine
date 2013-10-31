@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-version 4.8.1
+version 1.21.1
 {
 	:
 	#depends gcc
