@@ -156,9 +156,9 @@ function signature()
 				echo
 				
 				if [ $hashSignatureRelativePath = "gcc/gcc-4.8.1.tar.bz2.sig" ]; then
+					echo $ourMirror
 					echo $LFS_RECIPE_NAME
 					echo $LFS_SOURCE_PACKAGE_NAME
-					echo $ourMirror
 					echo $2
 					echo $3
 					echo $hashName
