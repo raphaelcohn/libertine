@@ -154,6 +154,10 @@ function signature()
 				echo $hashSignatureRelativePath
 				echo
 				
+				if [ $hashSignatureRelativePath = "gcc/gcc-4.8.1.tar.bz2.sig" ]; then
+					exitError "WHOOOPPPPSSSS"
+				fi
+				
 				signatures_Mirror[$index]="$ourMirror"
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
 				signatures_FileName[$index]="$hashSignatureFileName"
