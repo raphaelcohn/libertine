@@ -1207,21 +1207,7 @@ function popdDepdendencyFolder()
 
 function createBuildFolderAndPushd()
 {
-	if [ $# -gt 2 ]; then
-		exitError "Too many arguments"
-	fi
-	
-	if [ $# -eq 0 ]; then
-		local -r buildFolder=../"$LFS_RECIPE_NAME"-"$LFS_RECIPE_VERSION"-build
-		rm -rf -- "$buildFolder"
-	elif [ $# -eq 2 ]; then
-		local -r ourSourcePackageName="$1"
-		local -r ourSourcePackageVersion="$2"
-		local -r buildFolder=../"$ourSourcePackageName"-"$ourSourcePackageVersion"-build
-	else
-		exitError "Needs 0 or 2 arguments"
-	fi
-	
+	local -r buildFolder=../"$LFS_DEPENDENCY_NAME"-build
 	mkdir -m 0755 -p "$buildFolder"
 	pushd "$buildFolder" >/dev/null
 }

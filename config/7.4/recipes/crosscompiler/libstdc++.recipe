@@ -12,6 +12,10 @@ function installPackage_crosscompiler_libstdc++()
 {
 	local gccVersion="4.8.1"
 	
+	XXXX
+	
+	UNSUPPORTED 
+	
 	createBuildFolderAndPushd "gcc" "$LFS_RECIPE_VERSION"
 	
 		../gcc-"$LFS_RECIPE_VERSION"/libstdc++-v3/configure \

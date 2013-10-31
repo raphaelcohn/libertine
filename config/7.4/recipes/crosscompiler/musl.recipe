@@ -38,11 +38,10 @@ function installPackage_crosscompiler_musl()
 		make
 
 		make DESTDIR="$LFS" install
-	
-		# Has a non-relative link
-		#rm "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
-		#ln -s libc.so "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
-	
+		
+		rm "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
+		ln -s libc.so "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
+		
 		ln -s ../lib/ld-musl-""$LFS_ARCHITECTURE"".so.1 "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/bin/ldd
 	
 		# Create a second set of specs to support musl compilation when running from outside of the chroot
