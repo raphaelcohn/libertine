@@ -198,8 +198,9 @@ function dependencyToPath()
 	do
 		linkOrCopyFile "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "$absoluteCompletePath"/source "${patches_FileName[$index]}"
 	done
-	chmod -R 0644 -- "$absoluteCompletePath"/source/*
-	chown -R ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/*
+	# There may not have been any files copied
+	chmod 0644 -- "$absoluteCompletePath"/source/* || true
+	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/* || true
 	
 	
 	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
