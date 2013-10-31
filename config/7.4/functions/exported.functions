@@ -150,6 +150,10 @@ function signature()
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
 				
+				echo
+				echo $hashSignatureRelativePath
+				echo
+				
 				signatures_Mirror[$index]="$ourMirror"
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
 				signatures_FileName[$index]="$hashSignatureFileName"
