@@ -146,26 +146,9 @@ function signature()
 				index=${#signatures_Mirror[@]}
 				
 				if [ -z "$hashSignatureFileName" ]; then
-					echo XXXXX
 					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
-				
-				echo
-				echo $hashSignatureRelativePath
-				echo
-				
-				if [ $hashSignatureRelativePath = "gcc/gcc-4.8.1.tar.bz2.sig" ]; then
-					echo $ourMirror
-					echo $LFS_RECIPE_NAME
-					echo $LFS_SOURCE_PACKAGE_NAME
-					echo $2
-					echo $3
-					echo $hashName
-					echo $hashValue
-					echo $hashSignatureFileName
-					exitError "WHOOOPPPPSSSS"
-				fi
 				
 				signatures_Mirror[$index]="$ourMirror"
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
