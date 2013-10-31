@@ -2,4 +2,4 @@ set -o errexit +o hashall
 
 source_package MPFR "$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/"$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.xz MD5:e3d203d188b8fe60bb6578dd3152e05c
 
-source_package_skip_install crosscompiler toolchain2
+skip_install crosscompiler toolchain2

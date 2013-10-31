@@ -1,6 +1,0 @@
-set -o errexit +o hashall
-
-version 2.23.2
-{
-	:
-}

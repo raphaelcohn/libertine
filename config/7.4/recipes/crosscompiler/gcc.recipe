@@ -4,10 +4,10 @@ version 4.8.1
 {
 	depends linux
 	
-	depends mpfr
-	depends gmp
-	depends mpc
-	depends binutils
+	include mpfr 3.1.2
+	include gmp 5.1.2
+	include mpc 1.0.1
+	include binutils 2.23.2
 }
 
 function dead()
@@ -33,61 +33,71 @@ function dead()
 function installPackage_crosscompiler_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
-	
-	linkUnbuiltDependency mpfr gmp mpc binutils
-	
-	# The dynamic linker is provided by glibc... so we have a Mexican standoff with dependencies.
-	
-	# build binutils with gcc
-	# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
-	
-	
-	
-	# Stack protection fix for glibc-2.18
-	sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
-	
-	
-	
-	# with-build-time-tools won't work if we're compiling ARM on x86; must be unprefixed names like 'ar' rather than x86_64-lfs-linux-gnu-ar
-	
-	# with-arch, with-cpu
-	
-	createBuildFolderAndPushd
-		
-		../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
-		--target="$LFS_TARGET"                              \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
-		--with-sysroot="$LFS"                            \
-		--with-newlib                                    \
-		--without-headers                                \
-		--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
-		--with-native-system-header-dir="$linuxInstallPath"/usr/include   \
-		--disable-nls                                    \
-		--disable-shared                                 \
-		--disable-multilib                               \
-		--disable-decimal-float                          \
-		--disable-threads                                \
-		--disable-libatomic                              \
-		--disable-libgomp                                \
-		--disable-libitm                                 \
-		--disable-libmudflap                             \
-		--disable-libquadmath                            \
-		--disable-libsanitizer                           \
-		--disable-libssp                                 \
-		--disable-libstdc++-v3                           \
-		--enable-ld \
-		--enable-gold=default \
-		--enable-languages=c,c++ 
-		
-		make
 
-		make DESTDIR="$LFS" install
+	local -r muslGccBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$dependency"]}"/install/bin
+	pushd "$muslGccBinPath" >/dev/null
+		local -r newPath="$(pwd):$PATH"
+	popd >/dev/null
+	
+	pushdDependencyFolder
 
-		# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
-		# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+		# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
 		
-		local -r gcc=${LFS}${$LFS_DEPENDENCY_PREFIX_PATH}/bin/${LFS_TARGET}-gcc
-		ln -sv libgcc.a "$(${gcc} -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
+		local dependencyName
+		for dependencyName in mpfr gmp mpc
+		do
+			ln -sv ../"$dependencyName" "$depdendencyName"
+		done
+		local binutilsFile
+		for binutilsFile in ../binutils/*
+		do
+			# suppress existing entries
+			ln -sv "$binutilsFile" || true
+		done
+		
+		# Stack protection fix for glibc-2.18
+		sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+	
+		createBuildFolderAndPushd
+		
+			../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
+			--target="$LFS_TARGET"                              \
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
+			--with-sysroot="$LFS"                            \
+			--with-newlib                                    \
+			--without-headers                                \
+			--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
+			--with-native-system-header-dir="$linuxInstallPath"/usr/include   \
+			--disable-nls                                    \
+			--disable-shared                                 \
+			--disable-multilib                               \
+			--disable-decimal-float                          \
+			--disable-threads                                \
+			--disable-libatomic                              \
+			--disable-libgomp                                \
+			--disable-libitm                                 \
+			--disable-libmudflap                             \
+			--disable-libquadmath                            \
+			--disable-libsanitizer                           \
+			--disable-libssp                                 \
+			--disable-libgcj \
+			--disable-libada \
+			--disable-libstdc++-v3                           \
+			--enable-ld \
+			--enable-gold=default \
+			--enable-languages=c,c++ 
+		
+			make
 
-	popdBuildFolder
+			make DESTDIR="$LFS" install
+
+			# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
+			# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+		
+			local -r gcc=${LFS}${$LFS_DEPENDENCY_PREFIX_PATH}/bin/${LFS_TARGET}-gcc
+			ln -sv libgcc.a "$(${gcc} -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
+
+		popdBuildFolder
+	
+	popdDepdendencyFolder
 }

@@ -390,106 +390,6 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$downloadsLogsPath"
 }
 
-function dependencyToPath()
-{
-	# TODO: Defer the 'current' creation
-	local -r relativeOptPath=/opt/lfs
-	local -r absoluteOptPath="${LFS}${relativeOptPath}"
-	
-	local -r relativeOptVersionPath="$relativeOptPath"/"$LFS_DISTRIBUTION_VERSION"
-	local -r absoluteOptVersionPath="${LFS}${relativeOptVersionPath}"
-	mkdir -m 0755 -p "$absoluteOptVersionPath"
-	rm -rf -- "$absoluteOptPath"/current
-	ln -s "$LFS_DISTRIBUTION_VERSION" "$absoluteOptPath"/current
-	
-	local -r relativatePackagePath="$relativeOptVersionPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"
-	local -r absolutePackagePath="${LFS}${relativatePackagePath}"
-	mkdir -m 0755 -p "$absolutePackagePath"
-	
-	local -r relativeVersionPath="$relativatePackagePath"/"$LFS_DEPENDENCY_VERSION"
-	local -r absoluteVersionPath="${LFS}${relativeVersionPath}"
-	mkdir -m 0755 -p "$absoluteVersionPath"
-	rm -rf -- "$absolutePackagePath"/current
-	ln -s "$LFS_DEPENDENCY_VERSION" "$absolutePackagePath"/current
-	
-	
-	# Find and hash dependencies
-	addFileToRemoveOnExit
-	local -r dependenciesFileUnsorted="$TMP_FILE"
-	local dependency
-	declare -A dependencyPaths=()
-	for dependency in ${!dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
-	do
-		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
-		local name="${dependency_Name["$dependency"]}"
-		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
-	done
-	addFileToRemoveOnExit
-	local -r dependenciesFileSorted="$TMP_FILE"
-	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
-	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
-	
-	
-	
-	local -r recipeVersion="$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_SETTINGS_HASH"-"$dependenciesHash"
-	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
-	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
-	
-	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
-	
-	if [ -f "$absoluteCompletePath"/installed ]; then
-		return 0
-	fi
-	
-	rm -rf -- "$absoluteCompletePath"
-	mkdir -m 0755 -p "$absoluteCompletePath"
-	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
-	rm -rf -- "$absoluteVersionPath"/recipe-settings-dependencies
-	ln -s "$recipeVersion" "$absoluteVersionPath"/recipe-settings-dependencies
-	rm -rf -- "$absoluteVersionPath"/current
-	ln -s recipe-settings-dependencies "$absoluteVersionPath"/current
-	
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/log
-	
-	
-	# Copy in source and patches from download cache
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/source
-	linkOrCopyFile "${sourcePackages_Mirror[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}" "${sourcePackages_RelativePath[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}" "$absoluteCompletePath"/source "${sourcePackages_FileName[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	local -i index
-	for index in $LFS_DEPENDENCY_PATCHES
-	do
-		linkOrCopyFile "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "$absoluteCompletePath"/source "${patches_FileName[$index]}"
-	done
-	chmod -R 0644 -- "$absoluteCompletePath"/source/*
-	chown -R ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/*
-	
-	
-	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
-	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
-	chmod 0400 "$absoluteCompletePath"/dependencies.list
-	
-	local -r absoluteDependenciesPath="$absoluteCompletePath"/dependencies
-	mkdir -m 0755 -p "$absoluteDependenciesPath"
-	local dependencyName
-	local dependencyPath
-	for dependencyName in "${!dependencyPaths[@]}"
-	do
-		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
-	done
-	
-	cp "$recipesPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".recipe "$absoluteCompletePath"/recipe
-	if [ "$LFS_DEPENDENCY_INCLUDE_HASH" != "0" ]; then
-		cp "$includesPath"/"$LFS_DEPENDENCY_NAME".include "$absoluteCompletePath"/include
-	fi
-	if [ "$LFS_DEPENDENCY_SETTINGS_HASH" != "0" ]; then
-		cp "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".settings "$absoluteCompletePath"/settings
-	fi
-}
-
 function installPackageSkip()
 {
 	:
@@ -499,6 +399,9 @@ function installPackage()
 {
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
+	
+	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH"
+	LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER="$PathToRoot"
 	
 	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
@@ -517,15 +420,6 @@ function installPackage()
 		progressMessageSucceeded
 		return 0
 	fi
-	
-	LFS_RECIPE_NAME="${sourcePackages_Name[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_VERSION="${sourcePackages_Version[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_COMPRESSION="${sourcePackages_Compression[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_FILENAME="${sourcePackages_FileName[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_IS_TARBOMB="${sourcePackages_IsTarbomb[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_MIRROR="${sourcePackages_Mirror[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
-	LFS_RECIPE_RELATIVE_PATH="${sourcePackages_RelativePath[$LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX]}"
 	
 	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
 	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
@@ -560,49 +454,71 @@ function installPackage()
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
-			if [ -d "$lfsExtractsPath"/"$LFS_RECIPE_MIRROR"/"$LFS_RECIPE_RELATIVE_PATH".decompressed ]; then
-				tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "" "$LFS_RECIPE_IS_TARBOMB"
-			else
-				tarExtract "$LFS_RECIPE_FILENAME" "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" "$LFS_RECIPE_COMPRESSION" "$LFS_RECIPE_IS_TARBOMB"
-			fi
-			progressMessageUpdate "(tar extraction complete)"
-		fi
+		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
+		addInstallationFailedTrapHandler
 		
-		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
-			pushd "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" >/dev/null
-		fi
+			exec 6>&1 1>"$installStdOutLogFile"
+			exec 7>&2 2>"$installStdErrLogFile"
 		
-			INSTALLATION_FAILED_MESSAGE="$installer failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
-			addInstallationFailedTrapHandler
-				
-				exec 6>&1 1>"$installStdOutLogFile"
-				exec 7>&2 2>"$installStdErrLogFile"
-					
-					local -i index
-					for index in $LFS_DEPENDENCY_PATCHES
-					do
-						echo "Applying patch ${patches_FileName[$index]}"
-						if ! sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} patch -Np1 -i ../"${patches_FileName[$index]}"; then
-							exit 100
+				local -i index
+				local -i count=0
+				for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
+				do
+					setLfsSourcePackageVariables $index
+			
+					if [ -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
+						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						if [ $count -eq 0 ]; then
+							ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
 						fi
-					done
+					else
+						if [ -d "$lfsExtractsPath"/"$LFS_SOURCE_PACKAGE_MIRROR"/"$LFS_SOURCE_PACKAGE_RELATIVE_PATH".decompressed ]; then
+							tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "" "$LFS_SOURCE_PACKAGE_IS_TARBOMB"
+						else
+							tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB"
+						fi
+
+						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
+						ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						if [ $count -eq 0 ]; then
+							ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+						fi
+					fi
 					
-					executeFunctionUnderSudo $installer
+					let count++
+				done
+
+				local patchSourcePackageName
+				local patchSourcePackageVersion
+				local pathCorrection
+				for index in $LFS_DEPENDENCY_PATCHES
+				do
+					setLfsSourcePackageVariables ${patches_SourcePackageIndex[$index]}
+
+					if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+						pushd "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" >/dev/null
+						pathCorrection=".."
+					else
+						pathCorrection="."
+					fi
 					
-				exec 1>&6 6>&-
-				exec 2>&7 7>&-
+					echo "Applying patch ${patches_FileName[$index]}"
+					if ! sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} patch -Np1 -i "$pathCorrection"/"${patches_FileName[$index]}"; then
+						exit 100
+					fi
 				
-			removeLastTrapHandler
-		
-		if [ ! -z "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER" ]; then
-			popd >/dev/null
-		fi
-		
-		# Just leave the extracted tar ball behind for now
-		#if [ "$LFS_DEPENDENCY_SKIP_INSTALL" != "1" ]; then
-		#	rm -rf -- "$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
-		#fi
+					if [ ! -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
+						popd >/dev/null
+					fi
+				done
+					
+				executeFunctionUnderSudo $installer
+				
+			exec 1>&6 6>&-
+			exec 2>&7 7>&-
+			
+		removeLastTrapHandler
 		
 	popd >/dev/null
 	
@@ -627,8 +543,7 @@ function calculateDependencyPaths()
 			LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
 			LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
 			LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
-	
-			LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+			
 			LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 
 			dependencyToPath
@@ -652,8 +567,7 @@ function installPackages()
 		LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
 		LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
 		LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
-	
-		LFS_DEPENDENCY_SOURCE_PACKAGE_INDEX=${dependency_SourcePackageIndex["$LFS_DEPENDENCY_KEY"]}
+		
 		LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 		
 		installPackage

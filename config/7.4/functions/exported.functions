@@ -1,5 +1,18 @@
 set -o errexit +o hashall
 
+essentialProgramCheck getent awk
+
+# Since this file is source'd inside a function, the declare builtin defaults to making variables local!
+declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
+declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
+
+declare_for_chroot -a previousMirrors
+declare_for_chroot -a previousProfiles
+
+declare_for_chroot -A phase_PreviousRecipes
+phase_PreviousRecipes+=(['crosscompiler']="" ['toolchain2']="" ['system']="")
+declare_for_chroot -A phase_InstallationOrder
+
 declare_for_chroot -a signatures_Mirror
 declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
@@ -16,6 +29,36 @@ declare_for_chroot -a keys_RelativePath
 declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
+
+declare_for_chroot -A dependency_Phase
+declare_for_chroot -A dependency_Name
+declare_for_chroot -A dependency_Version
+declare_for_chroot -A dependency_RecipeHash
+declare_for_chroot -A dependency_IncludeHash
+declare_for_chroot -A dependency_SettingsHash
+declare_for_chroot -A dependency_UidGid
+declare_for_chroot -A dependency_SourcePackageIndices
+declare_for_chroot -A dependency_PatchIndices
+declare_for_chroot -A dependency_Dependencies
+declare_for_chroot -A dependency_Path
+declare_for_chroot -A dependency_SkipInstall
+
+declare_for_chroot -a sourcePackages_Name
+declare_for_chroot -a sourcePackages_Version
+declare_for_chroot -a sourcePackages_Mirror
+declare_for_chroot -a sourcePackages_RelativePath
+declare_for_chroot -a sourcePackages_Hashes
+declare_for_chroot -a sourcePackages_FileName
+declare_for_chroot -a sourcePackages_Compression
+declare_for_chroot -a sourcePackages_ExtractedTarballFolder
+declare_for_chroot -a sourcePackages_IsTarbomb
+
+declare_for_chroot -a patches_Mirror
+declare_for_chroot -a patches_RelativePath
+declare_for_chroot -a patches_FileName
+declare_for_chroot -a patches_Hashes
+declare_for_chroot -a patches_Compression
+declare_for_chroot -ai patches_SourcePackageIndex
 
 # Since this file is source'd inside a function, the declare builtin defaults to making variables local!
 declare -ig nextSystemUid=-1
@@ -34,15 +77,9 @@ declare_for_chroot -a users_Shell
 declare_for_chroot -a users_Uid
 declare_for_chroot -a users_Gid
 
+# Since this file is source'd inside a function, the declare builtin defaults to making variables local!
 declare -ag earlyPathCommands
 declare -ag latePathCommands
-
-declare_for_chroot -a previousMirrors
-declare_for_chroot -a previousProfiles
-
-essentialProgramCheck getent awk
-declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
-declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 
 function progressMessage()
 {
@@ -220,42 +257,17 @@ function hkp()
 	key HKPS "$keyId" "" "$keyId"
 }
 
-declare_for_chroot -A dependency_Phase
-declare_for_chroot -A dependency_Name
-declare_for_chroot -A dependency_Version
-declare_for_chroot -A dependency_RecipeHash
-declare_for_chroot -A dependency_IncludeHash
-declare_for_chroot -A dependency_SettingsHash
-declare_for_chroot -A dependency_UidGid
-declare_for_chroot -Ai dependency_SourcePackageIndex
-declare_for_chroot -A dependency_PatchIndices
-declare_for_chroot -A dependency_Dependencies
-declare_for_chroot -A dependency_Path
-declare_for_chroot -A dependency_SkipInstall
-
-declare_for_chroot -a sourcePackages_Name
-declare_for_chroot -a sourcePackages_Version
-declare_for_chroot -a sourcePackages_Mirror
-declare_for_chroot -a sourcePackages_RelativePath
-declare_for_chroot -a sourcePackages_Hashes
-declare_for_chroot -a sourcePackages_FileName
-declare_for_chroot -a sourcePackages_Compression
-declare_for_chroot -a sourcePackages_ExtractedTarballFolder
-declare_for_chroot -a sourcePackages_IsTarbomb
-
-declare_for_chroot -a patches_Mirror
-declare_for_chroot -a patches_RelativePath
-declare_for_chroot -a patches_FileName
-declare_for_chroot -a patches_Hashes
-declare_for_chroot -a patches_Compression
-
-function source_package_skip_install()
+function skip_install()
 {
+	local -r ourRecipeName="$LFS_RECIPE_NAME"
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+
+	dependency_key "$LFS_PHASE" "$ourRecipeName" "$ourRecipeVersion"
+	
 	local phase
 	for phase in "$@"
 	do
 		if [ "$phase" = "$LFS_PHASE" ]; then
-			dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 			dependency_SkipInstall["$DependencyKey"]="1"
 			return 0
 		fi
@@ -264,17 +276,42 @@ function source_package_skip_install()
 
 function source_package_alias()
 {
+	if [ $# -ne 2 ]; then
+		exitError "Not 2 arguments"
+	fi
+	
+	if [ -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
+		local -r ourSourcePackageName="$LFS_RECIPE_NAME"
+		local -r ourRecipeName="$ourSourcePackageName"
+	else
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r ourRecipeName="$LFS_RECIPE_NAME"
+	fi
+	
+	if [ -z "$LFS_SOURCE_PACKAGE_VERSION" ]; then
+		local -r ourSourcePackageVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+		local -r ourRecipeVersion="$ourSourcePackageVersion"
+	else
+		local -r ourSourcePackageVersion="$LFS_SOURCE_PACKAGE_VERSION"
+		local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	fi
+	
 	local -r aliasSourcePackageName="$1"
 	local -r aliasSourcePackageVersion="$2"
 	
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$ourRecipeName" "$ourRecipeVersion"
 	
 	local -i index
 	for index in ${!sourcePackages_Name[@]}
 	do
 		if [ "${sourcePackages_Name[$index]}" = "$aliasSourcePackageName" ]; then
 			if [ "${sourcePackages_Version[$index]}" = "$aliasSourcePackageVersion" ]; then
-				dependency_SourcePackageIndex["$DependencyKey"]=$index
+				local -r existingSourcePackageIndices="${dependency_SourcePackageIndices["$DependencyKey"]}"
+				if [ -z "$existingSourcePackageIndices" ]; then
+					dependency_SourcePackageIndices["$DependencyKey"]="$index"
+				else
+					dependency_SourcePackageIndices["$DependencyKey"]="$existingSourcePackageIndices $index"
+				fi
 				return 0
 			fi
 		fi
@@ -291,8 +328,22 @@ function source_package()
 		exitError "Too many arguments"
 	fi
 	
-	local -r ourSourcePackageName="$LFS_RECIPE_NAME"
-	local -r ourSourcePackageVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	if [ -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
+		local -r ourSourcePackageName="$LFS_RECIPE_NAME"
+		local -r ourRecipeName="$ourSourcePackageName"
+	else
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r ourRecipeName="$LFS_RECIPE_NAME"
+	fi
+	
+	if [ -z "$LFS_SOURCE_PACKAGE_VERSION" ]; then
+		local -r ourSourcePackageVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+		local -r ourRecipeVersion="$ourSourcePackageVersion"
+	else
+		local -r ourSourcePackageVersion="$LFS_SOURCE_PACKAGE_VERSION"
+		local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	fi
+	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
 	local -r ourHashes="$3"
@@ -375,20 +426,31 @@ function source_package()
 		local -r isTarbomb="no"
 	fi
 	
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourSourcePackageVersion"
+	dependency_key "$LFS_PHASE" "$ourRecipeName" "$ourRecipeVersion"
 	local -i index
 	for index in ${!sourcePackages_Name[@]}
 	do
-		if [ "${sourcePackages_Name[$index]}" = "$LFS_RECIPE_NAME" ]; then
+		if [ "${sourcePackages_Name[$index]}" = "$ourSourcePackageName" ]; then
 			if [ "${sourcePackages_Version[$index]}" = "$ourSourcePackageVersion" ]; then
-				dependency_SourcePackageIndex["$DependencyKey"]=$index
+				local -r existingSourcePackageIndices="${dependency_SourcePackageIndices["$DependencyKey"]}"
+				if [ -z "$existingSourcePackageIndices" ]; then
+					dependency_SourcePackageIndices["$DependencyKey"]="$index"
+				else
+					dependency_SourcePackageIndices["$DependencyKey"]="$existingSourcePackageIndices $index"
+				fi
 				return 0
 			fi
 		fi
 	done
 	
 	index=${#sourcePackages_Name[@]}
-	dependency_SourcePackageIndex["$DependencyKey"]=$index
+
+	local -r existingSourcePackageIndices="${dependency_SourcePackageIndices["$DependencyKey"]}"
+	if [ -z "$existingSourcePackageIndices" ]; then
+		dependency_SourcePackageIndices["$DependencyKey"]="$index"
+	else
+		dependency_SourcePackageIndices["$DependencyKey"]="$existingSourcePackageIndices $index"
+	fi
 	
 	sourcePackages_Name+=("$ourSourcePackageName")
 	sourcePackages_Version+=("$ourSourcePackageVersion")
@@ -405,20 +467,43 @@ function source_package()
 
 function source_patch()
 {
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$localSourcePackageVersion"
-	
 	if [ $# -ne 3 ]; then
 		exitError "Not enough arguments"
 	fi
 	
-	local -r ourSourcePackageName="$LFS_RECIPE_NAME"
-	local -r ourVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	if [ -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
+		local -r ourSourcePackageName="$LFS_RECIPE_NAME"
+	else
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+	fi
+	
+	if [ -z "$LFS_SOURCE_PACKAGE_VERSION" ]; then
+		local -r ourSourcePackageVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	else
+		local -r ourSourcePackageVersion="$LFS_SOURCE_PACKAGE_VERSION"
+	fi
+	
 	local -r ourMirror="$1"
 	local -r ourRelativePath="$2"
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
+
+	local -i sourcePackageIndex=-1
+	for index in ${!sourcePackages_Name[@]}
+	do
+		if [ "$ourSourcePackageName" = "${sourcePackages_Name[$index]}}" ]; then
+			if [ "$ourSourcePackageVersion" = "${sourcePackages_Version[$index]}" ]; then
+				sourcePackageIndex=$index
+				break
+			fi
+		fi
+	done
 	
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourSourcePackageVersion"
+	if [ $sourcePackageIndex -eq -1 ]; then
+		exitError "Patch is for unknown source package $ourSourcePackageName $ourSourcePackageVersion"
+	fi
+	
+	dependency_key "$LFS_PHASE" "$ourSourcePackageName" "$ourSourcePackageVersion"
 	local -r existingPatchIndices="${dependency_PatchIndices["$DependencyKey"]}"
 	local -i index
 	for index in ${!patches_RelativePath[@]}
@@ -441,6 +526,7 @@ function source_patch()
 	patches_RelativePath+=("$ourRelativePath")
 	patches_Hashes+=("${ourHashes//,/ }")
 	patches_Compression+=("")
+	patches_SourcePackageIndex+=($sourcePackageIndex)
 	
 	if [ -z "$existingPatchIndices" ]; then
 		dependency_PatchIndices["$DependencyKey"]="$index"
@@ -456,25 +542,25 @@ function version()
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
-	local -r localSourcePackageVersion="$1"
+	local -r ourSourcePackageVersion="$1"
 	
 	local -r previousVersions="${LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]}"
 	if [ -z "$previousVersions" ]; then
-		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$localSourcePackageVersion"
+		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$ourSourcePackageVersion"
 	else
-		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$previousVersions $localSourcePackageVersion"
+		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$previousVersions $ourSourcePackageVersion"
 	fi
-	LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]="$localSourcePackageVersion"
+	LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]="$ourSourcePackageVersion"
 	
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$localSourcePackageVersion"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourSourcePackageVersion"
 	dependency_Phase["$DependencyKey"]="$LFS_PHASE"
 	dependency_Name["$DependencyKey"]="$LFS_RECIPE_NAME"
-	dependency_Version["$DependencyKey"]="$localSourcePackageVersion"
+	dependency_Version["$DependencyKey"]="$ourSourcePackageVersion"
 	dependency_RecipeHash["$DependencyKey"]="$LFS_RECIPE_HASH"
 	dependency_IncludeHash["$DependencyKey"]="$LFS_RECIPE_INCLUDE_HASH"
 	dependency_SettingsHash["$DependencyKey"]="$LFS_RECIPE_SETTINGS_HASH"
 	dependency_UidGid["$DependencyKey"]="$LFS_RECIPE_UIDGID"
-	dependency_SourcePackageIndex["$DependencyKey"]=-1
+	dependency_SourcePackageIndices["$DependencyKey"]=""
 	dependency_PatchIndices["$DependencyKey"]=""
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
@@ -485,9 +571,22 @@ function version()
 	fi
 }
 
-declare_for_chroot -A phase_PreviousRecipes
-phase_PreviousRecipes+=(['crosscompiler']="" ['toolchain2']="" ['system']="")
-declare_for_chroot -A phase_InstallationOrder
+function include()
+{
+	if [ $# -ne 2 ]; then
+		exitError "Needs 2 arguments"
+	fi
+	
+	local -r includeSourcePackageName="$1"
+	local -r includeSourcePackageVersion="$2"
+	
+	local includeFile="$includesPath"/"$includeSourcePackageName".include
+	if [ ! -f "$includeFile" ]; then
+		exitError "No include $includeSourcePackageName known in recipe $LFS_RECIPE_NAME"
+	fi
+	
+	LFS_SOURCE_PACKAGE_NAME="$includeSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$includeSourcePackageVersion" source "$includeFile"
+}
 
 function depends()
 {
@@ -1071,36 +1170,6 @@ function include_profile()
 	fi
 }
 
-# Derived from http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
-function linkUnbuiltDependency()
-{
-	pathToRootOfChroot "$LFS_DEPENDENCY_PATH"/source/"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"
-	
-	local file
-	local dependency
-	local dependencyName
-	local -i index
-	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
-	do
-		for dependencyName in "$@"
-		do
-			if [ "${dependency_Name["$dependency"]}" = "$dependencyName" ]; then
-				index=dependency_SourcePackageIndex["$dependency"]
-				
-				if [ "$dependencyName" = "binutils" ]; then
-					# binutils case for gcc
-					for file in "${PathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}"/*
-					do
-						ln -sv "$file" || true
-					done
-				else
-					ln -sv "${PathToRoot}${dependency_Path["$dependency"]}"/source/"${sourcePackages_ExtractedTarballFolder[$index]}" "$dependencyName"
-				fi
-			fi
-		done
-	done
-}
-
 function dependencyPath()
 {
 	local -r dependencyName="$1"
@@ -1126,6 +1195,16 @@ function installPackagePrototype()
 	make install
 }
 
+function pushdDependencyFolder()
+{
+	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
+}
+
+function popdDepdendencyFolder()
+{
+	popd >/dev/null
+}
+
 function createBuildFolderAndPushd()
 {
 	if [ $# -gt 2 ]; then
@@ -1149,13 +1228,19 @@ function createBuildFolderAndPushd()
 
 function popdBuildFolder()
 {
-	if [ $# -ne 0 ]; then
-		exitError "Too many arguments"
-	fi
-	
-	local -r buildFolder=../"$LFS_RECIPE_NAME"-build
 	popd >/dev/null
-	#rm -rf -- "$buildFolder"
+}
+
+function setLfsSourcePackageVariables()
+{
+	LFS_SOURCE_PACKAGE_NAME="${sourcePackages_Name[$1]}"
+	LFS_SOURCE_PACKAGE_VERSION="${sourcePackages_Version[$1]}"
+	LFS_SOURCE_PACKAGE_COMPRESSION="${sourcePackages_Compression[$1]}"
+	LFS_SOURCE_PACKAGE_FILENAME="${sourcePackages_FileName[$1]}"
+	LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER="${sourcePackages_ExtractedTarballFolder[$1]}"
+	LFS_SOURCE_PACKAGE_IS_TARBOMB="${sourcePackages_IsTarbomb[$1]}"
+	LFS_SOURCE_PACKAGE_MIRROR="${sourcePackages_Mirror[$1]}"
+	LFS_SOURCE_PACKAGE_RELATIVE_PATH="${sourcePackages_RelativePath[$1]}"
 }
 
 # Perl (CPAN)
