@@ -146,6 +146,7 @@ function signature()
 				index=${#signatures_Mirror[@]}
 				
 				if [ -z "$hashSignatureFileName" ]; then
+					echo XXXXX
 					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
