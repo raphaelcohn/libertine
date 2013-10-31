@@ -35,7 +35,24 @@ function installPackage_crosscompiler_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 
-	local -r muslGccBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$dependency"]}"/install/bin
+	dependencyKey "$LFS_PHASE" "musl" xxxxx
+	dependency_Path["$DependencyKey"]
+	
+	local dependencyKey
+	local muslDependencyKey
+	for dependencyKey in "${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}"
+	do
+		if [ "${dependency_Name["$dependencyKey"]}" ]; then
+			muslDependencyKey="$dependencyKey"
+			break
+		fi
+	done
+	
+	if [ -z "$muslDependencyKey" ]; then
+		exitError "musl dependency not found"
+	fi
+	
+	local -r muslGccBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$muslDependencyKey"]}"/install/bin
 	pushd "$muslGccBinPath" >/dev/null
 		local -r newPath="$(pwd):$PATH"
 	popd >/dev/null
