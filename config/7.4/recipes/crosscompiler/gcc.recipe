@@ -68,7 +68,7 @@ function installPackage_crosscompiler_gcc()
 		for binutilsFile in ../binutils/*
 		do
 			# suppress existing entries
-			ln -sv "$binutilsFile" || true
+			ln -sv "$binutilsFile" 2>/dev/null || true
 		done
 		
 		# Stack protection fix for glibc-2.18
@@ -76,7 +76,7 @@ function installPackage_crosscompiler_gcc()
 	
 		createBuildFolderAndPushd
 		
-			../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure        \
+			../"$LFS_DEPENDENCY_NAME"/configure        \
 			--target="$LFS_TARGET"                              \
 			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
 			--with-sysroot="$LFS"                            \
