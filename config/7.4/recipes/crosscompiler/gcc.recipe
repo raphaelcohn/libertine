@@ -48,6 +48,8 @@ function installPackage_crosscompiler_gcc()
 		exitError "musl dependency not found"
 	fi
 	
+	echo $(pwd)
+	
 	local -r muslGccBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$muslDependencyKey"]}"/install/bin
 	pushd "$muslGccBinPath" >/dev/null
 		local -r newPath="$(pwd):$PATH"
