@@ -37,7 +37,7 @@ function installPackage_crosscompiler_gcc()
 	
 	local dependencyKey
 	local muslDependencyKey
-	for dependencyKey in "${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}"
+	for dependencyKey in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
 	do
 		if [ "${dependency_Name["$dependencyKey"]}" ]; then
 			muslDependencyKey="$dependencyKey"
