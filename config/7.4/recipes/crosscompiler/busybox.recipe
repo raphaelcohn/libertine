@@ -2,7 +2,8 @@ set -o errexit +o hashall
 
 version 4.8.1
 {
-	depends gcc
+	:
+	#depends gcc
 }
 
 function installPackage_crosscompiler_busybox()
