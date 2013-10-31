@@ -62,7 +62,7 @@ function installPackage_crosscompiler_gcc()
 		local dependencyName
 		for dependencyName in mpfr gmp mpc
 		do
-			ln -sv ../"$dependencyName" "$depdendencyName"
+			ln -sv ../"$dependencyName" "$dependencyName"
 		done
 		local binutilsFile
 		for binutilsFile in ../binutils/*
