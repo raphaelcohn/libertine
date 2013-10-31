@@ -559,20 +559,20 @@ function version()
 	if [ $# -ne 1 ]; then
 		exitError "Needs 1 argument"
 	fi
-	local -r ourSourcePackageVersion="$1"
+	local -r ourRecipeVersion="$1"
 	
 	local -r previousVersions="${LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]}"
 	if [ -z "$previousVersions" ]; then
-		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$ourSourcePackageVersion"
+		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$ourRecipeVersion"
 	else
-		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$previousVersions $ourSourcePackageVersion"
+		LFS_RECIPE_VERSIONS["${LFS_RECIPE_NAME}"]="$previousVersions $ourRecipeVersion"
 	fi
-	LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]="$ourSourcePackageVersion"
+	LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]="$ourRecipeVersion"
 	
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourSourcePackageVersion"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
 	dependency_Phase["$DependencyKey"]="$LFS_PHASE"
 	dependency_Name["$DependencyKey"]="$LFS_RECIPE_NAME"
-	dependency_Version["$DependencyKey"]="$ourSourcePackageVersion"
+	dependency_Version["$DependencyKey"]="$ourRecipeVersion"
 	dependency_RecipeHash["$DependencyKey"]="$LFS_RECIPE_HASH"
 	dependency_IncludeHash["$DependencyKey"]="$LFS_RECIPE_INCLUDE_HASH"
 	dependency_SettingsHash["$DependencyKey"]="$LFS_RECIPE_SETTINGS_HASH"
@@ -583,8 +583,8 @@ function version()
 	dependency_Path["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
 	
-	if [ ! -z "$LFS_RECIPE_INCLUDE_FILE" ]; then
-		source "$LFS_RECIPE_INCLUDE_FILE"
+	if [ "$LFS_RECIPE_INCLUDE_HASH" != "0" ]; then
+		include "$LFS_RECIPE_NAME" "$ourRecipeVersion"
 	fi
 }
 
@@ -679,7 +679,7 @@ function depends()
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions!
-		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha256sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_INCLUDE_FILE="$includeFile" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$uidAndGid source "$recipeFile"
+		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha256sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$uidAndGid source "$recipeFile"
 	fi
 	
 	# We currently only do this for the last set version. In future, we might be able to take a directive from above
