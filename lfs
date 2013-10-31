@@ -461,7 +461,7 @@ function installPackage()
 			exec 7>&2 2>"$installStdErrLogFile"
 		
 				local -i index
-				local -i count=0
+				count=0
 				for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 				do
 					setLfsSourcePackageVariables $index
@@ -486,7 +486,7 @@ function installPackage()
 						fi
 					fi
 					
-					((count++))
+					let count=count+1
 				done
 
 				local patchSourcePackageName
