@@ -1,3 +1,3 @@
 set -o errexit +o hashall
 
-source_package GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION}".tar.bz2 MD5:2cee42a2ff4f1cd4f9298eeeb2264519,KEYRING:gnu-keyring.gpg
+source_package GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION".tar.bz2 MD5:2cee42a2ff4f1cd4f9298eeeb2264519,KEYRING:gnu-keyring.gpg

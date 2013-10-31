@@ -34,6 +34,9 @@ mirror  LINUX        https://www.kernel.org/pub/linux/ StartCom
 mirror  IANA         https://www.iana.org/ ValiCertClass2
 mirror  GITHUB       https://codeload.github.com/ DigiCertHACA3
 
+# Invalid certs
+mirror  BUSYBOX  https://www.busybox.net/
+
 # Insecure
 mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
 mirror  PERL     http://www.cpan.org/src/

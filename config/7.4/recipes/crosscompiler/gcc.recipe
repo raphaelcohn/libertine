@@ -13,7 +13,6 @@ version 4.8.1
 
 function dead()
 {
-	
 	# Adjust paths to use /tools' ld (dynamic linker) instead of /lib,/lib32,/lib64 and remove /usr/include
 	local file
 	for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)

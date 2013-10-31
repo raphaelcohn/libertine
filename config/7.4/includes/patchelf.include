@@ -1,3 +1,3 @@
 set -o errexit +o hashall
 
-source_package GITHUB NixOS/"$LFS_SOURCE_PACKAGE_NAME"/tar.gz/"${LFS_SOURCE_PACKAGE_VERSION}" MD5:x,SHA1:x,SHA512:x patchelf-02c4ffa5550a3e35f62ae0bfed4c08812e66bf24 gzip
+source_package GITHUB NixOS/"$LFS_SOURCE_PACKAGE_NAME"/tar.gz/"$LFS_SOURCE_PACKAGE_VERSION" MD5:x,SHA1:x,SHA512:x patchelf-02c4ffa5550a3e35f62ae0bfed4c08812e66bf24 gzip
