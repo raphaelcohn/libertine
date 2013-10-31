@@ -491,7 +491,7 @@ function source_patch()
 	local -i sourcePackageIndex=-1
 	for index in ${!sourcePackages_Name[@]}
 	do
-		if [ "$ourSourcePackageName" = "${sourcePackages_Name[$index]}}" ]; then
+		if [ "$ourSourcePackageName" = "${sourcePackages_Name[$index]}" ]; then
 			if [ "$ourSourcePackageVersion" = "${sourcePackages_Version[$index]}" ]; then
 				sourcePackageIndex=$index
 				break
