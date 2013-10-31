@@ -486,7 +486,7 @@ function installPackage()
 						fi
 					fi
 					
-					let count++
+					((count++))
 				done
 
 				local patchSourcePackageName
