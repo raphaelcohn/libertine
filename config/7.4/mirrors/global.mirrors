@@ -34,9 +34,6 @@ mirror  LINUX        https://www.kernel.org/pub/linux/ StartCom
 mirror  IANA         https://www.iana.org/ ValiCertClass2
 mirror  GITHUB       https://codeload.github.com/ DigiCertHACA3
 
-# Invalid certs
-mirror  BUSYBOX  https://www.busybox.net/
-
 # Insecure
 mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
 mirror  PERL     http://www.cpan.org/src/
@@ -48,6 +45,7 @@ mirror  GMP      ftp://ftp.gmplib.org/pub/
 mirror  MPC      http://www.multiprecision.org/mpc/download/
 mirror  ZLIB     http://www.zlib.net/
 mirror  MUSL     http://www.musl-libc.org/
+mirror  BUSYBOX  http://www.busybox.net/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
