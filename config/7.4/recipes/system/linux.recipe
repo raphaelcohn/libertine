@@ -19,5 +19,26 @@ function installPackage_system_linux()
 	#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"/usr/include
 	#cp -rv dest/include/* "$LFS_INSTALL_LOCATION"/usr/include
 	
-	#"make psdocs", "make pdfdocs", "make htmldocs", or "make mandocs"
+	make V=2 O=OUTDIR mrproper
+	
+	make V=2 O=OUTDIR config
+	
+	# == vmlinux modules bzImage 
+	make V=2 O=OUTDIR all
+	
+	make V=2 O=OUTDIR INSTALL_MOD_PATH=XXX "$LFS_INSTALL_LOCATION"/lib/modules modules_install
+	
+	# Goes to INSTALL_MOD_PATH/lib/firmware
+	make V=2 O=OUTDIR INSTALL_MOD_PATH=XXX firmware_install
+	
+	# install 
+	make INSTALL_PATH=XXX install
+	
+	make htmldocs
+	make pdfdocs
+	make psdocs
+
+	make xmldocs
+	make mandocs
+	make installmandocs
 }

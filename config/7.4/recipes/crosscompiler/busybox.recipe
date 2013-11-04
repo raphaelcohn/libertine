@@ -10,14 +10,14 @@ function installPackage_crosscompiler_busybox()
 {
 	pushdDependencyFolder
 
-	make defconfig
+		make defconfig
 	
-	make menuconfig
+		make menuconfig
 	
-	# prefix to the cross compile tools
-	#CROSS_COMPILE=arm-linux-uclibcgnueabi-
+		# prefix to the cross compile tools
+		#CROSS_COMPILE=arm-linux-uclibcgnueabi-
 	
-	LDFLAGS="--static" make
+		LDFLAGS="--static" make
 	
 	popdDependencyFolder
 }
