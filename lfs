@@ -426,7 +426,7 @@ function installPackage()
 	
 	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
-	# Skip installer (used when designed for gmp/mpc/mpfr dependencies of gcc)
+	# Skip installer
 	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
 		local -r installer="installPackageSkip"
 		if type "$installer_versioned" &>/dev/null; then
@@ -549,6 +549,8 @@ function calculateDependencyPaths()
 function installPackages()
 {
 	LFS_PHASE="$1"
+	
+	prepareZzzLfsPath
 	
 	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
 	do

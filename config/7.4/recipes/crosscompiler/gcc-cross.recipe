@@ -79,4 +79,6 @@ function installPackage_crosscompiler_gcc()
 		popdBuildFolder
 	
 	popdDepdendencyFolder
+	
+	installBinariesToPath bin "$LFS_TARGET"
 }

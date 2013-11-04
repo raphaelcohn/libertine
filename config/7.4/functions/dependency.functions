@@ -118,93 +118,6 @@ function compareVersions()
 	return 0
 }
 
-# Can be done either via union fs, hardlinks or symlinks. Hardlinks are faster, symlinks more obvious
-function configurationDependency()
-{
-	LFS_DEPENDENCY_NAME=lfs-configuration
-	LFS_DEPENDENCY_VERSION=0
-
-	local -r relativeOptPath=/opt/lfs
-	local -r absoluteOptPath="${LFS}${relativeOptPath}"
-	
-	local -r relativeOptVersionPath="$relativeOptPath"/"$LFS_DISTRIBUTION_VERSION"
-	local -r absoluteOptVersionPath="${LFS}${relativeOptVersionPath}"
-	mkdir -m 0755 -p "$absoluteOptVersionPath"
-	rm -rf -- "$absoluteOptPath"/current
-	ln -s "$LFS_DISTRIBUTION_VERSION" "$absoluteOptPath"/current
-	
-	local -r relativatePackagePath="$relativeOptVersionPath"/"$LFS_PHASE"/lfs-configuration
-	local -r absolutePackagePath="${LFS}${relativatePackagePath}"
-	mkdir -m 0755 -p "$absolutePackagePath"
-	
-	local -r relativeVersionPath="$relativatePackagePath"/0
-	local -r absoluteVersionPath="${LFS}${relativeVersionPath}"
-	mkdir -m 0755 -p "$absoluteVersionPath"
-	rm -rf -- "$absolutePackagePath"/current
-	ln -s "$LFS_DEPENDENCY_VERSION" "$absolutePackagePath"/current
-	
-	
-	
-	# Find and hash dependencies
-	addFileToRemoveOnExit
-	local -r dependenciesFileUnsorted="$TMP_FILE"
-	local dependency
-	declare -A dependencyPaths=()
-	for dependency in "${!dependency_Name[@]}"
-	do
-		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
-		local name="${dependency_Name["$dependency"]}"
-		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
-	done
-	addFileToRemoveOnExit
-	local -r dependenciesFileSorted="$TMP_FILE"
-	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
-	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
-	
-	
-	
-	local -r recipeVersion="0-0-${dependenciesHash}"
-	local -r relativeCompletePath="$relativeVersionPath"/"$recipeVersion"
-	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
-	
-	LFS_CONFIGURATION_RELATIVE_PATH="$relativeCompletePath"
-	
-	if [ -f "$absoluteCompletePath"/installed ]; then
-		return 0
-	fi
-	
-	rm -rf -- "$absoluteCompletePath"
-	mkdir -m 0755 -p "$absoluteCompletePath"
-	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
-	rm -rf -- "$absoluteVersionPath"/recipe-settings-dependencies
-	ln -s "$recipeVersion" "$absoluteVersionPath"/recipe-settings-dependencies
-	rm -rf -- "$absoluteVersionPath"/current
-	ln -s recipe-settings-dependencies "$absoluteVersionPath"/current
-	
-	
-	sudo mkdir -m 0755 -p "$absoluteCompletePath"/install
-	
-	sudo mkdir -m 0755 -p "$absoluteCompletePath"/log
-	
-	sudo mkdir -m 0755 -p "$absoluteCompletePath"/source
-	
-	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
-	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
-	chmod 0400 "$absoluteCompletePath"/dependencies.list
-	
-	local -r absoluteDependenciesPath="$absoluteCompletePath"/dependencies
-	mkdir -m 0755 -p "$absoluteDependenciesPath"
-	local dependencyName
-	local dependencyPath
-	for dependencyName in "${!dependency_Name[@]}"
-	do
-		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
-	done
-	
-	# we could make lfs-configuration the final recipe, and get rid of the profile altogether...
-}
-
 function dependencyToPath()
 {
 	# TODO: Defer the 'current' creation
@@ -311,4 +224,116 @@ function dependencyToPath()
 	if [ "$LFS_DEPENDENCY_SETTINGS_HASH" != "0" ]; then
 		cp "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".settings "$absoluteCompletePath"/settings
 	fi
+}
+
+function prepareZzzLfsPath()
+{
+	local dependencyKey
+	LFS_DEPENDENCY_KEY_ZZZ=""
+	for dependencyKey in ${!dependency_Name[@]}
+	do
+		if [ "${dependency_Phase["$dependencyKey"]}" != "$LFS_PHASE" ]; then
+			continue
+		fi
+		
+		if [ "${dependency_Name["$dependencyKey"]}" = "zzz-lfs" ]; then
+			LFS_DEPENDENCY_KEY_ZZZ="$dependencyKey"
+			break
+		fi
+	done
+	
+	if [ -z "$LFS_DEPENDENCY_KEY_ZZZ" ]; then
+		exitError "zzz-lfs dependency not found"
+	fi
+
+	LFS_DEPENDENCY_PATH_ZZZ="${dependency_Path["$LFS_DEPENDENCY_KEY_ZZZ"]}"
+	LFS_DEPENDENCY_PREFIX_PATH_ZZZ="$LFS_DEPENDENCY_PATH"/install
+	
+	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ"
+	LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER_ZZZ="$PathToRoot"
+	
+	LFS_DEPENDENCY_SKIP_INSTALL_ZZZ="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY_ZZZ"]}"
+	
+	if [ "$LFS_PHASE" = "system" ]; then
+		LFS_DEPENDENCY_ROOT=""
+	else
+		LFS_DEPENDENCY_ROOT="$LFS"
+	fi
+	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/install
+	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/source
+	LFS_DEPENDENCY_LOG_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/log
+	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/installed
+	
+	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
+	
+	export PATH="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin:"$PATH"
+}
+
+function installBinariesToPath()
+{
+	local relativeLocationOfBinaries
+	for relativeLocationOfBinaries in "$@"
+	do
+		pushd "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/"$relativeLocationOfBinaries" >/dev/null
+			local binary
+			local resolvedBinary
+			local targetBinary
+			local sourceBinary
+			for binary in *
+			do
+				# block device
+				if [ -b "$binary" ]; then
+					continue
+				fi
+
+				# character device
+				if [ -c "$binary" ]; then
+					continue
+				fi
+			
+				# directory
+				if [ -d "$binary" ]; then
+					continue
+				fi
+			
+				# named pipe (fifo)
+				if [ -p "$binary" ]; then
+					continue
+				fi
+			
+				# socket
+				if [ -S "$binary" ]; then
+					continue
+				fi
+			
+				if [ -L "$binary" ]; then
+					if ! readlink --canonicalize-existing --no-newline "$binary" 1>/dev/null 2>/dev/null; then
+						exitError "$binary in $(pwd) does not point to an extant file"
+					fi
+					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
+					if [ ! -f "$resolvedBinary" ]; then
+						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
+					fi
+					if [ ! -x "$resolvedBinary" ]; then
+						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not executable by root"
+					fi
+				else
+					# not executable to root
+					if [ ! -x "$binary" ]; then
+						continue
+					fi
+				fi
+			
+				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
+	
+				if [ -e "$targetBinary" ]; then
+					rm -rf -- "$targetBinary"
+				fi
+			
+				sourceBinary="$LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER_ZZZ"/../"$LFS_DEPENDENCY_PREFIX_PATH_ZZZ"/"$optLocationOfBinaries"/"$binary"
+	
+				ln -s "$sourceBinary" "$targetBinary"
+			done
+		popd >/dev/null
+	done
 }
