@@ -7,7 +7,6 @@ declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
 declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
 
 declare_for_chroot -a previousMirrors
-declare_for_chroot -a previousProfiles
 
 declare_for_chroot -A phase_PreviousRecipes
 phase_PreviousRecipes+=(['crosscompiler']="" ['toolchain2']="" ['system']="")
@@ -616,7 +615,7 @@ function depends()
 		# Prevent recursion
 		phase_PreviousRecipes["${LFS_PHASE}"]="${phase_PreviousRecipes["${LFS_PHASE}"]} $localSourcePackageName"
 	
-		# set / unset inside include_phase
+		# set / unset inside includeLeafRecipe
 		# Set to blank to avoid bash's associative array bugs with non-existent members (it aliases the last added member)
 		LFS_RECIPE_VERSIONS["${localSourcePackageName}"]=""
 		
@@ -1143,30 +1142,6 @@ function include_mirror()
 		source "$mirrorsPath"/"$localMirror".mirrors
 	else
 		exitError "mirrors $localMirror.mirrors does not exist in mirrors path $mirrorsPath or is not a file"
-	fi
-}
-
-function include_profile()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Not exactly 1 argument"
-	fi
-	
-	local -r localProfile="$1"
-	local previousProfile
-	for previousProfile in "${previousProfiles[@]}"
-	do
-		if [ "$previousProfile" = "$localProfile" ]; then
-			# Allowed (but ignored)
-			return 0
-		fi
-	done
-	previousProfiles+=("$localProfile")
-	
-	if [ -f "$profilesPath"/"$localProfile".profile ]; then
-		source "$profilesPath"/"$localProfile".profile
-	else
-		exitError "profile $localProfile.profile does not exist in profile path $profilesPath or is not a file"
 	fi
 }
 

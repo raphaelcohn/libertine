@@ -1,11 +1,5 @@
 set -o errexit +o hashall
 
-function doInclude()
-{
-	includeMirrors
-	includeProfiles
-}
-
 function includeMirrors()
 {
 	progressMessage "Including mirror $mirrors"
@@ -17,7 +11,7 @@ function includeMirrors()
 	popd >/dev/null
 	
 	local requiredMirrorName
-	for requiredMirrorName in "${!keyrings_Mirror[@]}" "${!keys_Mirror[@]}" "${!sourcePackages_Mirror[@]}" "${!patches_Mirror[@]}"
+	for requiredMirrorName in "${!signatures_Mirror[@]}" "${!keyrings_Mirror[@]}" "${!keys_Mirror[@]}" "${!sourcePackages_Mirror[@]}" "${!patches_Mirror[@]}"
 	do
 		if ! mirrorExists "$requiredMirrorName"; then
 			progressMessageFailed "Mirror $requiredMirrorName is not defined in mirrors $mirrors"
@@ -27,30 +21,24 @@ function includeMirrors()
 	progressMessageSucceeded
 }
 
-function include_phase()
+function includeLeafRecipe()
 {
 	local -r phase="$1"
-	shift 1
 	
-	pushd "$profilesPath" >/dev/null
-		
-		declare -A LFS_RECIPE_VERSIONS
-		declare -A LFS_RECIPE_VERSION
-		for profile in "$@"
-		do
-			progressMessage "Including phase $phase profile $profile"
-			LFS_PHASE="$phase" include_profile "$profile"
-			progressMessageSucceeded
-		done
-		declare -A LFS_RECIPE_VERSION
-		unset LFS_RECIPE_VERSIONS
-		
-	popd >/dev/null
+	declare -A LFS_RECIPE_VERSIONS
+	declare -A LFS_RECIPE_VERSION
+	
+	LFS_PHASE="$phase" depends 'zzz-lfs.recipe'
+	
+	declare -A LFS_RECIPE_VERSION
+	unset LFS_RECIPE_VERSIONS
 }
 
-function includeProfiles()
+function doInclude()
 {
-	include_phase crosscompiler "$crosscompilerProfile"
-	include_phase toolchain2 "$toolchain2Profile"
-	include_phase system $profiles
+	includeMirrors
+	
+	includeLeafRecipe crosscompiler "$crosscompilerProfile"
+	includeLeafRecipe toolchain2 "$toolchain2Profile"
+	includeLeafRecipe system $profiles
 }

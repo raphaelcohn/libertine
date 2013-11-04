@@ -1,6 +1,9 @@
 set -o errexit +o hashall
 
-depends tzdata
+version 0
+{
+	depends tzdata
+}
 
 function downloadsList()
 {

@@ -29,8 +29,11 @@ function installPackage_crosscompiler_gcc()
 			ln -sv "$binutilsFile" 2>/dev/null || true
 		done
 		
-		# Stack protection fix for glibc-2.18
+		# Stack protection fix for glibc-2.18 / musl
 		sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+		
+		# Disable .info files
+		sed -i 's/BUILD_INFO=info/BUILD_INFO=/' gcc/configure
 	
 		# with-native-system-header-dir specifies a path that does not exist at this point in time (we haven't installed linux). Should not be a problem.
 		createBuildFolderAndPushd

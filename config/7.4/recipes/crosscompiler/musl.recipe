@@ -1,8 +1,9 @@
 set -o errexit +o hashall
 
+# Unlinke glibc, musl does not depend on the linux headers!
 version 0.9.14
 {
-	:
+	depends gcc-cross
 }
 
 # libcxx, libcxxabi (includes libunwind), libc++ etc
@@ -25,19 +26,40 @@ version 0.9.14
 
 function installPackage_crosscompiler_musl()
 {
+	local dependencyKey
+	local gccCrossDependencyKey
+	for dependencyKey in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
+	do
+		if [ "${dependency_Name["$dependencyKey"]}" = "gcc-cross" ]; then
+			gccCrossDependencyKey="$dependencyKey"
+			break
+		fi
+	done
+	
+	if [ -z "$gccCrossDependencyKey" ]; then
+		exitError "gcc-cross dependency not found"
+	fi
+	
+	echo $(pwd)
+	
+	local -r gccCrossBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$gccCrossDependencyKey"]}"/install/"$LFS_TARGET"
+	pushd "$gccCrossBinPath" >/dev/null
+		local -r newPath="$(pwd):$PATH"
+	popd >/dev/null
+	
 	pushdDependencyFolder
 	
 		# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
 		# includedir defaults to PREFIX/include, not PREFIX/usr/include (logical, if a violation of FHS)
-		./configure \
+		PATH="$newPath" CC="gcc" ./configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--exec-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--syslibdir="$LFS_DEPENDENCY_PREFIX_PATH"/lib \
 		--target="$LFS_TARGET" \
 
-		make
+		PATH="$newPath" make
 
-		make DESTDIR="$LFS" install
+		PATH="$newPath" make DESTDIR="$LFS" install
 		
 		rm "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
 		ln -s libc.so "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1

@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.10.10
 {
-	:
+	depends gcc-cross
 }
 
 function installPackage_crosscompiler_linux()
@@ -15,7 +15,9 @@ function installPackage_crosscompiler_linux()
 		local -r buildFolder=../"$LFS_DEPENDENCY_NAME"-build
 		mkdir -m 0755 -p "$buildFolder"
 		
-		make V=2 ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
+		# LINK IN THE .config FILE
+		
+		make V=2 O="$buildFolder" ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
 	
 	popdDepdendencyFolder
 }

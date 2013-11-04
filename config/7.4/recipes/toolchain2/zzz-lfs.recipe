@@ -1,3 +1,6 @@
 set -o errexit +o hashall
 
-depends xz
+version 0
+{
+	depends xz
+}

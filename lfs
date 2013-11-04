@@ -314,11 +314,6 @@ function setPaths()
 		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
 	fi
 	
-	readonly profilesPath="$distributionConfigPath"/profiles
-	if [ ! -d "$profilesPath" ]; then
-		exitError "Profiles path $profilesPath does not exist or is not a directory"
-	fi
-	
 	readonly gpghomePath="$distributionConfigPath"/gpghome
 	if [ ! -d "$gpghomePath" ]; then
 		exitError "gpghome path $gpghomePath does not exist or is not a directory"
