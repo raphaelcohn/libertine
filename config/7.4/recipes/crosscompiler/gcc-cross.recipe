@@ -9,7 +9,7 @@ version 4.8.1
 	include binutils 2.23.2
 }
 
-function installPackage_crosscompiler_gcc()
+function installPackage_crosscompiler_gcc-cross()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	
