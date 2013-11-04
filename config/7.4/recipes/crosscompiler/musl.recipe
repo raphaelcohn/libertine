@@ -24,7 +24,7 @@ version 0.9.14
 
 # OR http://ellcc.org/blog/?p=251
 
-function installPackage_crosscompiler_musl()
+function dead()
 {
 	local dependencyKey
 	local gccCrossDependencyKey
@@ -46,12 +46,15 @@ function installPackage_crosscompiler_musl()
 	pushd "$gccCrossBinPath" >/dev/null
 		local -r newPath="$(pwd):$PATH"
 	popd >/dev/null
-	
+}
+
+function installPackage_crosscompiler_musl()
+{
 	pushdDependencyFolder
 	
 		# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
 		# includedir defaults to PREFIX/include, not PREFIX/usr/include (logical, if a violation of FHS)
-		PATH="$newPath" CC="gcc" ./configure \
+		CC="${LFS_TARGET}-gcc" ./configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--exec-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--syslibdir="$LFS_DEPENDENCY_PREFIX_PATH"/lib \
