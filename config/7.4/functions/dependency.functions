@@ -274,7 +274,7 @@ function installBinariesToPath()
 	local relativeLocationOfBinaries
 	for relativeLocationOfBinaries in "$@"
 	do
-		pushd "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/"$relativeLocationOfBinaries" >/dev/null
+		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
 			local binary
 			local resolvedBinary
 			local targetBinary
