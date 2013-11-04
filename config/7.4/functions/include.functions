@@ -28,7 +28,7 @@ function includeLeafRecipe()
 	declare -A LFS_RECIPE_VERSIONS
 	declare -A LFS_RECIPE_VERSION
 	
-	LFS_PHASE="$phase" depends 'zzz-lfs.recipe'
+	LFS_PHASE="$phase" depends 'zzz-lfs'
 	
 	declare -A LFS_RECIPE_VERSION
 	unset LFS_RECIPE_VERSIONS
