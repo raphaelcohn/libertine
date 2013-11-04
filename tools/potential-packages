@@ -5018,6 +5018,7 @@ gcalctool
 gcap
 gcb
 gcc
+gcc-cross
 gcc-arm-linux-gnueabi
 gcc-arm-linux-gnueabihf
 gcc-avr

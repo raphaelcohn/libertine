@@ -5020,6 +5020,7 @@ gcb                                      357500
 gcc                                      357600
 gcc-arm-linux-gnueabi                    357601
 gcc-arm-linux-gnueabihf                  357602
+gcc-cross                                357603
 gcc-avr                                  357603
 gcc-doc                                  357604
 gcc-h8300-hms                            357605
