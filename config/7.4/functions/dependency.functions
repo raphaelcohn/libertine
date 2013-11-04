@@ -259,10 +259,10 @@ function prepareZzzLfsPath()
 	else
 		LFS_DEPENDENCY_ROOT="$LFS"
 	fi
-	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/install
-	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/source
-	LFS_DEPENDENCY_LOG_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/log
-	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/installed
+	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/install
+	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/source
+	LFS_DEPENDENCY_LOG_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/log
+	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/installed
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
 	
@@ -281,6 +281,11 @@ function installBinariesToPath()
 			local sourceBinary
 			for binary in *
 			do
+				# ie if called '*' because no files are present
+				if [ ! -e "$binary" ]; then
+					continue
+				fi
+				
 				# block device
 				if [ -b "$binary" ]; then
 					continue
