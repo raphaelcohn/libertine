@@ -19,6 +19,8 @@ function installPackage_system_linux()
 	#mkdir -m 0755 -p "$LFS_INSTALL_LOCATION"/usr/include
 	#cp -rv dest/include/* "$LFS_INSTALL_LOCATION"/usr/include
 	
+	mkdir OUTDIR
+	
 	make V=2 O=OUTDIR mrproper
 	
 	make V=2 O=OUTDIR config
