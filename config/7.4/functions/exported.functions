@@ -40,7 +40,9 @@ declare_for_chroot -A dependency_SourcePackageIndices
 declare_for_chroot -A dependency_PatchIndices
 declare_for_chroot -A dependency_Dependencies
 declare_for_chroot -A dependency_Path
+declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
+declare_for_chroot -A dependency_BinaryInstallPaths
 
 declare_for_chroot -a sourcePackages_Name
 declare_for_chroot -a sourcePackages_Version
@@ -563,7 +565,9 @@ function version()
 	dependency_PatchIndices["$DependencyKey"]=""
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
+	dependency_RecipeSettingsDependencies["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
+	dependency_BinaryInstallPaths["$DependencyKey"]=""
 	
 	if [ "$LFS_RECIPE_INCLUDE_HASH" != "0" ]; then
 		include "$LFS_RECIPE_NAME" "$ourRecipeVersion"
@@ -861,6 +865,32 @@ function user()
 	
 	LFS_LAST_UID=$uid
 	LFS_LAST_GID=$gid
+}
+
+function install_binaries_in_paths()
+{
+	if [ $# -eq 0 ]; then
+		return 0
+	fi
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local binaryPath
+	local existingPaths
+	for binaryPath in "$@"
+	do
+		if [ -z "$binaryPath" ]; then
+			continue
+		fi
+		
+		existingPaths="${dependency_BinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryInstallPaths["$DependencyKey"]="$binaryPath"
+		else
+			dependency_BinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
+		fi
+	done
 }
 
 function permissions_after()

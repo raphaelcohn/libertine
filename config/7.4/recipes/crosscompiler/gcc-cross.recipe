@@ -7,6 +7,8 @@ version 4.8.1
 	include gmp 5.1.2
 	include mpc 1.0.1
 	include binutils 2.23.2
+	
+	install_binaries_in_paths bin "$LFS_TARGET"
 }
 
 function installPackage_crosscompiler_gcc-cross()
@@ -79,6 +81,4 @@ function installPackage_crosscompiler_gcc-cross()
 		popdBuildFolder
 	
 	popdDepdendencyFolder
-	
-	installBinariesToPath bin "$LFS_TARGET"
 }

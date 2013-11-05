@@ -14,25 +14,6 @@ function installPackage_crosscompiler_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	
-	local dependencyKey
-	local muslDependencyKey
-	for dependencyKey in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
-	do
-		if [ "${dependency_Name["$dependencyKey"]}" = "musl" ]; then
-			muslDependencyKey="$dependencyKey"
-			break
-		fi
-	done
-	
-	if [ -z "$muslDependencyKey" ]; then
-		exitError "musl dependency not found"
-	fi
-	
-	local -r muslGccBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$muslDependencyKey"]}"/install/bin
-	pushd "$muslGccBinPath" >/dev/null
-		local -r newPath="$(pwd):$PATH"
-	popd >/dev/null
-	
 	pushdDependencyFolder
 
 		# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
@@ -57,7 +38,6 @@ function installPackage_crosscompiler_gcc()
 		
 		createBuildFolderAndPushd
 		
-			PATH="$newPath" \
 			CC="musl-gcc-external -Wl,-Bstatic -static-libgcc" \
 			CXX="musl-g++-external -Wl,-Bstatic -static-libgcc" \
 			../"$LFS_DEPENDENCY_NAME"/configure        \

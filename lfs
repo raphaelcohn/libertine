@@ -393,6 +393,7 @@ function installPackageSkip()
 function installPackage()
 {
 	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
 	
 	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH"
@@ -509,6 +510,8 @@ function installPackage()
 				done
 					
 				executeFunctionUnderSudo $installer
+				
+				installBinariesToPath
 				
 			exec 1>&6 6>&-
 			exec 2>&7 7>&-

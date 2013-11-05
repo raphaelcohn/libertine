@@ -166,6 +166,7 @@ function dependencyToPath()
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
 	
 	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
+	dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]="$recipeVersion"
 	
 	if [ -f "$absoluteCompletePath"/installed ]; then
 		return 0
@@ -247,6 +248,7 @@ function prepareZzzLfsPath()
 	fi
 
 	LFS_DEPENDENCY_PATH_ZZZ="${dependency_Path["$LFS_DEPENDENCY_KEY_ZZZ"]}"
+	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES_ZZZ="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY_ZZZ"]}"
 	LFS_DEPENDENCY_PREFIX_PATH_ZZZ="$LFS_DEPENDENCY_PATH"/install
 	
 	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ"
@@ -272,7 +274,7 @@ function prepareZzzLfsPath()
 function installBinariesToPath()
 {
 	local relativeLocationOfBinaries
-	for relativeLocationOfBinaries in "$@"
+	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
 		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
 			local binary
@@ -328,14 +330,14 @@ function installBinariesToPath()
 						continue
 					fi
 				fi
-			
+				
 				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
-	
+				
 				if [ -e "$targetBinary" ]; then
 					rm -rf -- "$targetBinary"
 				fi
-			
-				sourceBinary="$LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER_ZZZ"/../"$LFS_DEPENDENCY_PREFIX_PATH_ZZZ"/"$optLocationOfBinaries"/"$binary"
+				
+				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$optLocationOfBinaries"/"$binary"
 	
 				ln -s "$sourceBinary" "$targetBinary"
 			done
