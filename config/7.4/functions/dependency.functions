@@ -474,25 +474,25 @@ function lockDownPermissions()
 				# Note, we leave c, compression, alone
 				# Note, we leave C (copy-on-write for BTRFS), alone; we can not set this with old versions of chattr
 				# Note we leave T, Orlov block allocation, alone
-				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chattr -DdjsStuai
-				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chattr -djsStuai
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr -DdjsStuai
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr -djsStuai
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
-				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chmod 0555
-				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chmod 0444
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise
-				find "$topLevelFolder" -type b -print0 | xargs -0 -n 10 chmod 0444
-				find "$topLevelFolder" -type c -print0 | xargs -0 -n 10 chmod 0444
-				find "$topLevelFolder" -type p -print0 | xargs -0 -n 10 chmod 0444
-				find "$topLevelFolder" -type s -print0 | xargs -0 -n 10 chmod 0444
+				find "$topLevelFolder" -type b -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type c -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type p -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type s -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# A - no atime
 				# a - append-only
 				# i - immutable
 				# c - compress (can not be applied sensibly to existing files)
-				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chattr +Aai
-				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chattr +Aaic
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr +Aai
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr +Aaic
 			# block, char, named pipe, socket
 			else
 				chmod 0644 "$topLevelFolder"
