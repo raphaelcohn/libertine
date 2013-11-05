@@ -271,13 +271,85 @@ function prepareZzzLfsPath()
 	export PATH="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin:"$PATH"
 }
 
+function setuidBinaries()
+{
+	local relativeBinaryPath
+	local binary
+	for relativeBinaryPath in ${dependency_SetuidBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
+			
+		if [ ! -f "$binary" ]; then
+			exitError "Path $binary is not a file"
+		fi
+		
+		chattr -ai "$binary"
+		chmod u+s "$binary"
+		chattr +ai "$binary"
+	done
+}
+
+function setgidBinaries()
+{
+	local relativeBinaryPath
+	local binary
+	for relativeBinaryPath in ${dependency_SetgidBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
+			
+		if [ ! -f "$binary" ]; then
+			exitError "Path $binary is not a file"
+		fi
+		
+		chattr -ai "$binary"
+		chmod g+s "$binary"
+		chattr +ai "$binary"
+	done
+}
+
+function otherwiseExecutableBinaries()
+{
+	local relativeBinaryPath
+	local binary
+	for relativeBinaryPath in ${dependency_OtherwiseExecutableBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
+			
+		if [ ! -f "$binary" ]; then
+			exitError "Path $binary is not a file"
+		fi
+		
+		chattr -ai "$binary"
+		chmod u+x "$binary"
+		chmod g+x "$binary"
+		chmod o+x "$binary"
+		chattr +ai "$binary"
+	done
+}
+
 function installBinariesToPath()
 {
 	local relativeLocationOfBinaries
+	local binary
 	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
+		# Allows a per-file option, eg for binaries inside /lib folders
+		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
+			
+			binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"
+			
+			chattr -ai "$binary"
+			chmod 0555 "$binary"
+			chattr +ai "$binary"
+			
+			continue
+		fi
+		
+		if [ ! -d "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
+			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder"
+		fi
+		
 		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
-			local binary
 			local resolvedBinary
 			local targetBinary
 			local sourceBinary
@@ -313,6 +385,7 @@ function installBinariesToPath()
 					continue
 				fi
 			
+				# Link
 				if [ -L "$binary" ]; then
 					if ! readlink --canonicalize-existing --no-newline "$binary" 1>/dev/null 2>/dev/null; then
 						exitError "$binary in $(pwd) does not point to an extant file"
@@ -321,26 +394,110 @@ function installBinariesToPath()
 					if [ ! -f "$resolvedBinary" ]; then
 						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
 					fi
-					if [ ! -x "$resolvedBinary" ]; then
-						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not executable by root"
-					fi
-				else
-					# not executable to root
-					if [ ! -x "$binary" ]; then
-						continue
-					fi
 				fi
 				
+				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$optLocationOfBinaries"/"$binary"
 				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
+				
+				# Override permissions on the binary, allowing execution
+				chattr -ai "$binary"
+				chmod 0555 "$binary"
+				chattr +ai "$binary"
 				
 				if [ -e "$targetBinary" ]; then
 					rm -rf -- "$targetBinary"
 				fi
-				
-				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$optLocationOfBinaries"/"$binary"
 	
 				ln -s "$sourceBinary" "$targetBinary"
 			done
 		popd >/dev/null
 	done
+}
+
+# Should remove SUID / GUID
+# Should remove sticky bit on files
+# Should remove linux capabilities, SELinux privs, extended attributes, etc
+# May remove group execution privileges unless exceptions are listed (this is going to be at the heart of what we need)
+# We should consider a 'temporary access' group, allowing a package installer access to certain files for the duration of installation
+# Changes attributes
+# We should then run a post-process re-enabling, ie as exceptions
+function lockDownPermissions()
+{
+	pushd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
+	
+		local topLevelFolder
+		local permissions
+		for topLevelFolder in *
+		do
+			# No files
+			if [ ! -e "$topLevelFolder" ]; then
+				continue
+			fi
+			
+			# Link
+			if [ -L "$topLevelFolder" ]; then
+				continue
+			# File
+			elif [ -f "$topLevelFolder" ]; then
+				# d - Remove dump ignore
+				# j - Remove forced journalling (rely on file system)
+				# s - Remove zeroing of contents on delete (slow, buggy and better supported using an encrypted file system)
+				# S - Remove any synchronised writes
+				# t - Remove tail-merging (buggy and unnecessary)
+				# u - Remove undeletion
+				# Note, we leave c, compression, alone
+				# Note, we leave C (disable copy-on-write for BTRFS), alone
+				chattr -djsStuai "$topLevelFolder"
+				
+				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
+				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
+				chmod 0444 "$topLevelFolder"
+				
+				# A - atime not recorded
+				# a - append-only (means vi will be broken)
+				# i - immutable (even to root)
+				chattr +Aai "$topLevelFolder"
+			# Folder
+			elif [ -d "$topLevelFolder" ]; then
+				
+				# Remove options from folders; we do not use chattr -R because attributes of the same name apply differently on files and folders
+				# Usually an useless attribute is ignored, but some (eg +C on btrfs) have undefined behaviour
+				# Disable Copy-on-Write and compression really need to be configured BEFORE a file is written (eg for /var/log/*, /usr/man/*, /usr/share/*, etc)
+
+				# D - Remove dirsync
+				# d - Remove dump ignore
+				# j - Remove forced journalling (rely on file system)
+				# s - Remove zeroing of contents on delete (slow, buggy and better supported using an encrypted file system)
+				# S - Remove any synchronised writes
+				# t - Remove tail-merging (buggy and unnecessary)
+				# u - Remove undeletion
+				# Note, we leave c, compression, alone
+				# Note, we leave C (copy-on-write for BTRFS), alone; we can not set this with old versions of chattr
+				# Note we leave T, Orlov block allocation, alone
+				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chattr -DdjsStuai
+				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chattr -djsStuai
+				
+				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
+				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chmod 0555
+				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chmod 0444
+				
+				# block, char, named pipe, socket likewise
+				find "$topLevelFolder" -type b -print0 | xargs -0 -n 10 chmod 0444
+				find "$topLevelFolder" -type c -print0 | xargs -0 -n 10 chmod 0444
+				find "$topLevelFolder" -type p -print0 | xargs -0 -n 10 chmod 0444
+				find "$topLevelFolder" -type s -print0 | xargs -0 -n 10 chmod 0444
+				
+				# A - no atime
+				# a - append-only
+				# i - immutable
+				# c - compress (can not be applied sensibly to existing files)
+				find "$topLevelFolder" -type f -print0 | xargs -0 -n 10 chattr +Aai
+				find "$topLevelFolder" -type d -print0 | xargs -0 -n 10 chattr +Aaic
+			# block, char, named pipe, socket
+			else
+				chmod 0644 "$topLevelFolder"
+			fi
+		done
+		
+	popd >/dev/null
 }

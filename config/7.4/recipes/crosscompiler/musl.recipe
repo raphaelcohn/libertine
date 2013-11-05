@@ -4,6 +4,8 @@ set -o errexit +o hashall
 version 0.9.14
 {
 	depends gcc-cross
+	
+	install_binaries_in_paths bin
 }
 
 # libcxx, libcxxabi (includes libunwind), libc++ etc
@@ -60,9 +62,9 @@ function installPackage_crosscompiler_musl()
 		--syslibdir="$LFS_DEPENDENCY_PREFIX_PATH"/lib \
 		--target="$LFS_TARGET" \
 
-		PATH="$newPath" make
+		make
 
-		PATH="$newPath" make DESTDIR="$LFS" install
+		make DESTDIR="$LFS" install
 		
 		rm "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
 		ln -s libc.so "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/ld-musl-""$LFS_ARCHITECTURE"".so.1
