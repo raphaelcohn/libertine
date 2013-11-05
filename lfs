@@ -508,10 +508,12 @@ function installPackage()
 						popd >/dev/null
 					fi
 				done
-					
-				executeFunctionUnderSudo $installer
 				
+				executeFunctionUnderSudo $installer
+				set -x
+				echo "HELLO2"
 				lockDownPermissions
+				echo "HELLO3"
 				installBinariesToPath
 				otherwiseExecutableBinaries
 				setuidBinaries

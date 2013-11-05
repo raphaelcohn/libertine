@@ -94,7 +94,6 @@ function executeFunctionUnderSudo()
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
 		setLocale
 		
-		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
@@ -110,6 +109,7 @@ function executeFunctionUnderSudo()
 	# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- /bin/bash "$continutationBinaryForSudo"
 	
+	echo "HELLO"
 	rm -rf -- "$continutationBinaryForSudo"
 }
 
