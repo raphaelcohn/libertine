@@ -329,17 +329,19 @@ function otherwiseExecutableBinaries()
 
 function installBinariesToPath()
 {
+	set -x
 	local relativeLocationOfBinaries
 	local binary
 	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
+		echo "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"
 		# Allows a per-file option, eg for binaries inside /lib folders
 		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
 			
 			binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"
 			
 			chattr -ai "$binary"
-			chmod 0555 "$binary"
+			chmod a+x "$binary"
 			chattr +ai "$binary"
 			
 			continue
@@ -355,6 +357,7 @@ function installBinariesToPath()
 			local sourceBinary
 			for binary in *
 			do
+				echo "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"/"$binary"
 				# ie if called '*' because no files are present
 				if [ ! -e "$binary" ]; then
 					continue
@@ -399,7 +402,6 @@ function installBinariesToPath()
 				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$optLocationOfBinaries"/"$binary"
 				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
 				
-				# Override permissions on the binary, allowing execution
 				chattr -ai "$binary"
 				chmod a+x "$binary"
 				chattr +ai "$binary"
@@ -451,6 +453,9 @@ function lockDownPermissions()
 				
 				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
 				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
+				if [ -x "$topLevelFolder" ]; then
+					echo "Removing execute permissions from $topLevelFolder"
+				fi
 				chmod 0444 "$topLevelFolder"
 				
 				# A - atime not recorded
@@ -479,6 +484,7 @@ function lockDownPermissions()
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
 				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
+				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from "
 				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise

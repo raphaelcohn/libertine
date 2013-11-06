@@ -1,0 +1,27 @@
+set -o errexit +o hashall
+
+version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
+{
+	:
+	#depends musl
+}
+
+function installPackage_crosscompiler_patchelf()
+{
+	pushdDependencyFolder
+		
+	local -r ourFolderName="$(purebash_basename "$(pwd)")"
+		
+		# relies on autoreconf
+		./bootstrap.sh
+	
+		./configure \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+		--disable-dependency-tracking
+		
+		make
+		
+		make DESTDIR="$LFS" install
+		
+	popdDepdendencyFolder
+}

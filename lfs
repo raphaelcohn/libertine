@@ -509,8 +509,6 @@ function installPackage()
 					fi
 				done
 				
-				echo $PATH
-				
 				executeFunctionUnderSudo $installer
 				
 				lockDownPermissions

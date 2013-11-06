@@ -103,7 +103,6 @@ function executeFunctionUnderSudo()
 	
 	cat >>"$continutationBinaryForSudo" <<-EOF
 		set -x
-		echo $PATH
 		$functionToExecute
 	EOF
 	
@@ -129,7 +128,6 @@ function chrootToEnvironment()
 		# Fix up paths and variables
 		setLocale
 		
-		export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/"$LFS_TOOLS"/bin
 		LFS=
 		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		
