@@ -401,7 +401,7 @@ function installBinariesToPath()
 				
 				# Override permissions on the binary, allowing execution
 				chattr -ai "$binary"
-				chmod 0555 "$binary"
+				chmod a+x "$binary"
 				chattr +ai "$binary"
 				
 				if [ -e "$targetBinary" ]; then

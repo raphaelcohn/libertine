@@ -103,6 +103,7 @@ function executeFunctionUnderSudo()
 	
 	cat >>"$continutationBinaryForSudo" <<-EOF
 		set -x
+		echo $PATH
 		$functionToExecute
 	EOF
 	
