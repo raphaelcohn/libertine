@@ -183,6 +183,8 @@ function dependencyToPath()
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
 	
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/binpath
+	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/log
 	
 	
@@ -261,14 +263,114 @@ function prepareZzzLfsPath()
 	else
 		LFS_DEPENDENCY_ROOT="$LFS"
 	fi
-	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/install
-	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/source
-	LFS_DEPENDENCY_LOG_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/log
-	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"/installed
+	LFS_DEPENDENCY_PACKAGE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"
+	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/install
+	LFS_DEPENDENCY_BINPATH_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/binpath
+	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/source
+	LFS_DEPENDENCY_LOG_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/log
+	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/installed
+	
+	mkdir -m 0755 -p "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
 	
 	export PATH="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin:"$PATH"
+}
+
+# Should remove SUID / GUID
+# Should remove sticky bit on files
+# Should remove linux capabilities, SELinux privs, extended attributes, etc
+# May remove group execution privileges unless exceptions are listed (this is going to be at the heart of what we need)
+# We should consider a 'temporary access' group, allowing a package installer access to certain files for the duration of installation
+# Changes attributes
+# We should then run a post-process re-enabling, ie as exceptions
+function lockDownPermissions()
+{
+	chattr -DdjsStuai "$LFS_DEPENDENCY_INSTALL_PATH"
+	pushd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
+	
+		local topLevelFolder
+		local permissions
+		for topLevelFolder in *
+		do
+			# No files
+			if [ ! -e "$topLevelFolder" ]; then
+				continue
+			fi
+			
+			# Link
+			if [ -L "$topLevelFolder" ]; then
+				continue
+			# File
+			elif [ -f "$topLevelFolder" ]; then
+				# d - Remove dump ignore
+				# j - Remove forced journalling (rely on file system)
+				# s - Remove zeroing of contents on delete (slow, buggy and better supported using an encrypted file system)
+				# S - Remove any synchronised writes
+				# t - Remove tail-merging (buggy and unnecessary)
+				# u - Remove undeletion
+				# Note, we leave c, compression, alone
+				# Note, we leave C (disable copy-on-write for BTRFS), alone
+				chattr -djsStuai "$topLevelFolder"
+				
+				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
+				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
+				if [ -x "$topLevelFolder" ]; then
+					echo "Removing execute permissions from $topLevelFolder"
+				fi
+				chmod 0444 "$topLevelFolder"
+				
+				# A - atime not recorded
+				# a - append-only (means vi will be broken)
+				# i - immutable (even to root)
+				chattr +Aai "$topLevelFolder"
+			# Folder
+			elif [ -d "$topLevelFolder" ]; then
+				
+				# Remove options from folders; we do not use chattr -R because attributes of the same name apply differently on files and folders
+				# Usually an useless attribute is ignored, but some (eg +C on btrfs) have undefined behaviour
+				# Disable Copy-on-Write and compression really need to be configured BEFORE a file is written (eg for /var/log/*, /usr/man/*, /usr/share/*, etc)
+
+				# D - Remove dirsync
+				# d - Remove dump ignore
+				# j - Remove forced journalling (rely on file system)
+				# s - Remove zeroing of contents on delete (slow, buggy and better supported using an encrypted file system)
+				# S - Remove any synchronised writes
+				# t - Remove tail-merging (buggy and unnecessary)
+				# u - Remove undeletion
+				# Note, we leave c, compression, alone
+				# Note, we leave C (copy-on-write for BTRFS), alone; we can not set this with old versions of chattr
+				# Note we leave T, Orlov block allocation, alone
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr -DdjsStuai
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr -djsStuai
+				
+				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
+				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
+				
+				# block, char, named pipe, socket likewise
+				find "$topLevelFolder" -type b -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type c -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type p -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$topLevelFolder" -type s -print0 | xargs -0 -r -n 10 chmod 0444
+				
+				# A - no atime
+				# a - append-only
+				# i - immutable
+				# c - compress (can not be applied sensibly to existing files)
+				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr +Aai
+				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr +Aaic
+			# block, char, named pipe, socket
+			else
+				chmod 0644 "$topLevelFolder"
+			fi
+		done
+		
+	popd >/dev/null
+	
+	chmod 0555 "$LFS_DEPENDENCY_INSTALL_PATH"
+	chattr +Aai "$LFS_DEPENDENCY_INSTALL_PATH"
 }
 
 function setSetuidBinaries()
@@ -372,36 +474,47 @@ function setOtherExecutableBinaries()
 	done
 }
 
-function installBinariesToPath()
+function installBinariesToPackagePath()
 {
 	local relativeLocationOfBinaries
 	local binary
+	local resolvedBinary
+	local sourceBinary
+	local targetBinary
 	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
-		echo "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"
 		# Allows a per-file option, eg for binaries inside /lib folders
 		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
 			
-			binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"
-			
-			chattr -ai "$binary"
-			chmod a+x "$binary"
-			chattr +ai "$binary"
+			pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"/.. >/dev/null
+				
+				binary="$(purebash_basename "$relativeLocationOfBinaries")"
+				
+				chattr -ai "$binary"
+				chmod a+x "$binary"
+				chattr +ai "$binary"
+				
+				sourceBinary=../install/"$relativeLocationOfBinaries"
+				targetBinary="$LFS_DEPENDENCY_BINPATH_PATH"/"$binary"
+				
+				if [ -e "$targetBinary" ]; then
+					rm -rf -- "$targetBinary"
+				fi
+	
+				ln -s "$sourceBinary" "$targetBinary"
+				
+			popd >/dev/null
 			
 			continue
 		fi
 		
 		if [ ! -d "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
-			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder"
+			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder (symlinks are not permitted)"
 		fi
 		
 		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
-			local resolvedBinary
-			local targetBinary
-			local sourceBinary
 			for binary in *
 			do
-				echo "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"/"$binary"
 				# ie if called '*' because no files are present
 				if [ ! -e "$binary" ]; then
 					continue
@@ -443,12 +556,12 @@ function installBinariesToPath()
 					fi
 				fi
 				
-				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$relativeLocationOfBinaries"/"$binary"
-				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
-				
 				chattr -ai "$binary"
 				chmod a+x "$binary"
 				chattr +ai "$binary"
+				
+				sourceBinary=../install/"$relativeLocationOfBinaries"/"$binary"
+				targetBinary="$LFS_DEPENDENCY_BINPATH_PATH"/"$binary"
 				
 				if [ -e "$targetBinary" ]; then
 					rm -rf -- "$targetBinary"
@@ -460,31 +573,64 @@ function installBinariesToPath()
 	done
 }
 
-# Should remove SUID / GUID
-# Should remove sticky bit on files
-# Should remove linux capabilities, SELinux privs, extended attributes, etc
-# May remove group execution privileges unless exceptions are listed (this is going to be at the heart of what we need)
-# We should consider a 'temporary access' group, allowing a package installer access to certain files for the duration of installation
-# Changes attributes
-# We should then run a post-process re-enabling, ie as exceptions
-function lockDownPermissions()
+function installPackagePathBinariesToPath()
 {
-	pushd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
+	if [ "$LFS_DEPENDENCY_BINPATH_PATH" = "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ" ]; then
+		return 0
+	fi
 	
-		local topLevelFolder
-		local permissions
-		for topLevelFolder in *
+	pushd "$LFS_DEPENDENCY_BINPATH_PATH" >/dev/null
+	
+		local binary
+		local sourceBinary
+		local targetBinary
+		for binary in *
+		do
+			if [ ! -e "$binary" ]; then
+				continue
+			fi
+			
+			if [ ! -L "$binary" ]; then
+				continue
+			fi
+			
+			
+			
+			sourceBinary=../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/binpath/"$binary"
+			targetBinary="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"/"$binary"
+	
+			if [ -e "$targetBinary" ]; then
+				rm -rf -- "$targetBinary"
+			fi
+
+			ln -s "$sourceBinary" "$targetBinary"
+				
+	popd >/dev/null
+}
+
+# Locks down /source, /log, etc
+function lockDownPackage()
+{
+	local file
+	
+	chattr -DdjsStuai "$LFS_DEPENDENCY_PACKAGE_PATH"
+	pushd "$LFS_DEPENDENCY_PACKAGE_PATH" >/dev/null
+		for file in *
 		do
 			# No files
-			if [ ! -e "$topLevelFolder" ]; then
+			if [ ! -e "$file" ]; then
+				continue
+			fi
+			
+			if [ "$file" = "install" ]; then
 				continue
 			fi
 			
 			# Link
-			if [ -L "$topLevelFolder" ]; then
+			if [ -L "$file" ]; then
 				continue
 			# File
-			elif [ -f "$topLevelFolder" ]; then
+			elif [ -f "$file" ]; then
 				# d - Remove dump ignore
 				# j - Remove forced journalling (rely on file system)
 				# s - Remove zeroing of contents on delete (slow, buggy and better supported using an encrypted file system)
@@ -493,21 +639,19 @@ function lockDownPermissions()
 				# u - Remove undeletion
 				# Note, we leave c, compression, alone
 				# Note, we leave C (disable copy-on-write for BTRFS), alone
-				chattr -djsStuai "$topLevelFolder"
-				
-				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
-				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
+				chattr -djsStuai "$file"
+
 				if [ -x "$topLevelFolder" ]; then
 					echo "Removing execute permissions from $topLevelFolder"
 				fi
-				chmod 0444 "$topLevelFolder"
+				chmod 0444 "$file"
 				
 				# A - atime not recorded
 				# a - append-only (means vi will be broken)
 				# i - immutable (even to root)
-				chattr +Aai "$topLevelFolder"
+				chattr +Aai "$file"
 			# Folder
-			elif [ -d "$topLevelFolder" ]; then
+			elif [ -d "$file" ]; then
 				
 				# Remove options from folders; we do not use chattr -R because attributes of the same name apply differently on files and folders
 				# Usually an useless attribute is ignored, but some (eg +C on btrfs) have undefined behaviour
@@ -523,31 +667,33 @@ function lockDownPermissions()
 				# Note, we leave c, compression, alone
 				# Note, we leave C (copy-on-write for BTRFS), alone; we can not set this with old versions of chattr
 				# Note we leave T, Orlov block allocation, alone
-				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr -DdjsStuai
-				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr -djsStuai
+				find "$file" -type d -print0 | xargs -0 -r -n 10 chattr -DdjsStuai
+				find "$file" -type f -print0 | xargs -0 -r -n 10 chattr -djsStuai
 				
-				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
-				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
-				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
-				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
+				# We strip all dangerous permissions (Sticky bit, set suid, set guid)
+				find "$file" -type d -print0 | xargs -0 -r -n 10 chmod 0555
+				find "$file" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
+				find "$file" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise
-				find "$topLevelFolder" -type b -print0 | xargs -0 -r -n 10 chmod 0444
-				find "$topLevelFolder" -type c -print0 | xargs -0 -r -n 10 chmod 0444
-				find "$topLevelFolder" -type p -print0 | xargs -0 -r -n 10 chmod 0444
-				find "$topLevelFolder" -type s -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$file" -type b -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$file" -type c -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$file" -type p -print0 | xargs -0 -r -n 10 chmod 0444
+				find "$file" -type s -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# A - no atime
 				# a - append-only
 				# i - immutable
 				# c - compress (can not be applied sensibly to existing files)
-				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr +Aai
-				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr +Aaic
+				find "$file" -type f -print0 | xargs -0 -r -n 10 chattr +Aai
+				find "$file" -type d -print0 | xargs -0 -r -n 10 chattr +Aaic
 			# block, char, named pipe, socket
 			else
-				chmod 0644 "$topLevelFolder"
+				chmod 0644 "$file"
 			fi
 		done
-		
 	popd >/dev/null
+	
+	chmod 0555 "$LFS_DEPENDENCY_PACKAGE_PATH"
+	chattr +Aai "$LFS_DEPENDENCY_PACKAGE_PATH"
 }

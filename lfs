@@ -406,13 +406,18 @@ function installPackage()
 	else
 		LFS_DEPENDENCY_ROOT="$LFS"
 	fi
-	LFS_DEPENDENCY_INSTALL_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/install
-	LFS_DEPENDENCY_SOURCE_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/source
-	LFS_DEPENDENCY_LOG_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/log
-	LFS_DEPENDENCY_INSTALLED_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"/installed
+	LFS_DEPENDENCY_PACKAGE_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"
+	LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/install
+	LFS_DEPENDENCY_BINPATH_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/binpath
+	LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/source
+	LFS_DEPENDENCY_LOG_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/log
+	LFS_DEPENDENCY_INSTALLED_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/installed
 	
 	if [ -f "$LFS_DEPENDENCY_INSTALLED_PATH" ]; then
 		progressMessage "Skipping phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+		
+		installPackagePathBinariesToPath
+		
 		progressMessageSucceeded
 		return 0
 	fi
@@ -515,7 +520,8 @@ function installPackage()
 				setOtherExecutableBinaries
 				setSetuidBinaries
 				setSetgidBinaries
-				installBinariesToPath
+				installBinariesToPackagePath
+				installPackagePathBinariesToPath
 				
 			exec 1>&6 6>&-
 			exec 2>&7 7>&-
@@ -525,6 +531,7 @@ function installPackage()
 	popd >/dev/null
 	
 	touch "$LFS_DEPENDENCY_INSTALLED_PATH"
+	lockDownPackage
 	
 	progressMessageSucceeded
 }
