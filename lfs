@@ -512,9 +512,9 @@ function installPackage()
 				executeFunctionUnderSudo $installer
 				
 				lockDownPermissions
-				otherwiseExecutableBinaries
-				setuidBinaries
-				setgidBinaries
+				setOtherExecutableBinaries
+				setSetuidBinaries
+				setSetgidBinaries
 				installBinariesToPath
 				
 			exec 1>&6 6>&-

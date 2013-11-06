@@ -271,7 +271,7 @@ function prepareZzzLfsPath()
 	export PATH="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin:"$PATH"
 }
 
-function setuidBinaries()
+function setSetuidBinaries()
 {
 	local relativeBinaryPath
 	local binary
@@ -289,7 +289,7 @@ function setuidBinaries()
 	done
 }
 
-function setgidBinaries()
+function setSetgidBinaries()
 {
 	local relativeBinaryPath
 	local binary
@@ -307,23 +307,68 @@ function setgidBinaries()
 	done
 }
 
-function otherwiseExecutableBinaries()
+function setOtherExecutableBinaries()
 {
 	local relativeBinaryPath
 	local binary
+	local file
+	local resolvedBinary
 	for relativeBinaryPath in ${dependency_OtherwiseExecutableBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
 		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
+		
+		if [ -f "$binary" ]; then
+			chattr -ai "$binary"
+			chmod u+x "$binary"
+			chmod g+x "$binary"
+			chmod o+x "$binary"
+			chattr +ai "$binary"
 			
-		if [ ! -f "$binary" ]; then
-			exitError "Path $binary is not a file"
+			continue
 		fi
 		
-		chattr -ai "$binary"
-		chmod u+x "$binary"
-		chmod g+x "$binary"
-		chmod o+x "$binary"
-		chattr +ai "$binary"
+		if [ ! -d "$binary" ]; then
+			exitError "Path $binary is not a file or directory"
+		fi
+		
+		pushd "$binary" >/dev/null
+		
+			for file in *
+			do
+				if [ ! -e "$file" ]; then
+					continue
+				fi
+				
+				if [ -L "$file" ]; then
+					if ! readlink --canonicalize-existing --no-newline "$file" 1>/dev/null 2>/dev/null; then
+						exitError "$file in $(pwd) does not point to an extant file"
+					fi
+					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$file")"
+					if [ ! -f "$resolvedBinary" ]; then
+						exitError "$file in $(pwd) points to something ($resolvedBinary) that is not a file"
+					fi
+					
+					chattr -ai "$resolvedBinary"
+					chmod u+x "$resolvedBinary"
+					chmod g+x "$resolvedBinary"
+					chmod o+x "$resolvedBinary"
+					chattr +ai "$resolvedBinary"
+				fi
+				
+				if [ ! -f "$file" ]; then
+					continue
+				fi
+				
+				chattr -ai "$file"
+				chmod u+x "$file"
+				chmod g+x "$file"
+				chmod o+x "$file"
+				chattr +ai "$file"
+				
+			done
+		
+		popd >/dev/null
+		
 	done
 }
 
@@ -399,7 +444,7 @@ function installBinariesToPath()
 					fi
 				fi
 				
-				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$optLocationOfBinaries"/"$binary"
+				sourceBinary=../../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/install/"$relativeLocationOfBinaries"/"$binary"
 				targetBinary="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin/"$binary"
 				
 				chattr -ai "$binary"
@@ -484,7 +529,7 @@ function lockDownPermissions()
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
 				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
-				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from "
+				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
 				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise
@@ -507,6 +552,3 @@ function lockDownPermissions()
 		
 	popd >/dev/null
 }
-
-# initrd creation
-# http://www.ibm.com/developerworks/linux/library/l-initrd/index.html

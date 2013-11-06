@@ -8,7 +8,16 @@ version 4.8.1
 	include mpc 1.0.1
 	include binutils 2.23.2
 	
-	install_binaries_in_paths bin "$LFS_TARGET"
+	install_binaries_in_paths bin "$LFS_TARGET"/bin
+	
+	# plugin, install-tools are folders
+	make_executable_binary \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/cc1 \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/collect2 \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto1 \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto-wrapper \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/plugin \
+		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools
 }
 
 function installPackage_crosscompiler_gcc-cross()
