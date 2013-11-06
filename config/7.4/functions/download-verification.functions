@@ -17,7 +17,7 @@ function linkOrCopyFile()
 	if [ ! -f "$linkTo" ]; then
 		rm -rf -- "$linkTo"
 		# Try to hard link, then copy
-		ln --force "$downloadFilePath" "$linkTo" || cp --force "$downloadFilePath" "$linkTo"
+		ln --force "$downloadFilePath" "$linkTo" 2>/dev/null || cp --force "$downloadFilePath" "$linkTo"
 	fi
 }
 
