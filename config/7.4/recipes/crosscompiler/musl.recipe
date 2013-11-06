@@ -54,6 +54,10 @@ function installPackage_crosscompiler_musl()
 {
 	pushdDependencyFolder
 	
+		echo $PATH
+		
+		which "${LFS_TARGET}-gcc"
+	
 		# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
 		# includedir defaults to PREFIX/include, not PREFIX/usr/include (logical, if a violation of FHS)
 		CC="${LFS_TARGET}-gcc" ./configure \
