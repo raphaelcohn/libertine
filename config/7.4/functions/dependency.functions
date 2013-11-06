@@ -374,7 +374,6 @@ function setOtherExecutableBinaries()
 
 function installBinariesToPath()
 {
-	set -x
 	local relativeLocationOfBinaries
 	local binary
 	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
