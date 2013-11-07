@@ -74,7 +74,7 @@ function installPackage_crosscompiler_gcc-cross()
 			--disable-libada \
 			--disable-libstdc++-v3                           \
 			--enable-ld \
-			--enable-gold=default \
+			--disable-gold \
 			--enable-languages=c
 		
 			make

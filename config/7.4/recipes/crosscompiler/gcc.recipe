@@ -68,7 +68,7 @@ function installPackage_crosscompiler_gcc()
 			--disable-libstdc++-v3 \
 			--disable-libstdcxx-pch \
 			--enable-ld \
-			--enable-gold=default \
+			--disable-gold \
 			--enable-languages=c \
 			--disable-lto-plugin \
 			--disable-bootstrap
