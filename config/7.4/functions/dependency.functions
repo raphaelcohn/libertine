@@ -274,7 +274,7 @@ function prepareZzzLfsPath()
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
 	
-	export PATH="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin:"$PATH"
+	export PATH="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$PATH"
 }
 
 # Should remove SUID / GUID
