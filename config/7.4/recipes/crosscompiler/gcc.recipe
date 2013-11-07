@@ -15,8 +15,6 @@ function installPackage_crosscompiler_gcc()
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	
 	pushdDependencyFolder
-
-		# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
 		
 		local dependencyName
 		for dependencyName in mpfr gmp mpc
@@ -38,29 +36,48 @@ function installPackage_crosscompiler_gcc()
 		
 		createBuildFolderAndPushd
 		
-			CC="musl-gcc-external -Wl,-Bstatic -static-libgcc" \
-			CXX="musl-g++-external -Wl,-Bstatic -static-libgcc" \
-			../"$LFS_DEPENDENCY_NAME"/configure        \
-			--target="$LFS_TARGET"                              \
-			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
-			--with-sysroot="$LFS"                            \
-			--with-newlib                                    \
-			--without-headers                                \
-			--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH"                       \
-			--with-native-system-header-dir="$linuxInstallPath"/usr/include   \
-			--disable-nls                                    \
+			REALGCC="$LFS_TARGET"-gcc \
+			CC="musl-gcc-external" \
+			CXX="$LFS_TARGET"-g++ \
+			AR="$LFS_TARGET"-gcc-ar \
+			AS="$LFS_TARGET"-as \
+			LD="$LFS_TARGET"-ld \
+			NM="$LFS_TARGET"-gcc-nm \
+			RANLIB="$LFS_TARGET"-gcc-ranlib \
+			STRIP="$LFS_TARGET"-strip \
+			OBJCOPY="$LFS_TARGET"-objcopy \
+			OBJDUMP="$LFS_TARGET"-objdump \
+			READELF="$LFS_TARGET"-readelf \
+			CC="" \
+			CXX="" \
+			CPPFLAGS="" \
+			CFLAGS="" \
+			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
+			CXXFLAGS="" \
+			../"$LFS_DEPENDENCY_NAME"/configure \
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+			--with-newlib \
+			--without-headers \
+			--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+			--with-native-system-header-dir="$linuxInstallPath"/usr/include \
+			--enable-clocale=gnu \
+			--enable-shared \
+			--enable-threads=posix \
+			--enable-__cxa_atexit \
 			--disable-multilib \
 			--disable-libmudflap \
 			--disable-libsanitizer \
-			--disable-libstdc++-v3                           \
+			--disable-libstdc++-v3 \
+			--disable-libstdcxx-pch \
 			--enable-ld \
 			--enable-gold=default \
 			--enable-languages=c \
-			--disable-lto-plugin
+			--disable-lto-plugin \
+			--disable-bootstrap
 		
-			PATH="$newPath" make
+			REALGCC="$LFS_TARGET"-gcc make
 
-			PATH="$newPath" make DESTDIR="$LFS" install
+			REALGCC="$LFS_TARGET"-gcc make DESTDIR="$LFS" install
 
 			# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
 			# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
