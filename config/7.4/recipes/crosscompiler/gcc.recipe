@@ -65,7 +65,15 @@ function installPackage_crosscompiler_gcc()
 			--disable-multilib \
 			--disable-libmudflap \
 			--disable-libsanitizer \
-			--disable-libstdc++-v3 \
+			--disable-libgomp                                \
+			--disable-libitm                                 \
+			--disable-libmudflap                             \
+			--disable-libquadmath                            \
+			--disable-libsanitizer                           \
+			--disable-libssp                                 \
+			--disable-libgcj \
+			--disable-libada \
+			--disable-libstdc++-v3                           \
 			--disable-libstdcxx-pch \
 			--enable-ld \
 			--disable-gold \
