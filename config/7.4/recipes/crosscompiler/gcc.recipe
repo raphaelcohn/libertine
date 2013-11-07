@@ -40,9 +40,9 @@ function installPackage_crosscompiler_gcc()
 			CC="musl-gcc-external" \
 			CXX="$LFS_TARGET"-g++ \
 			CPPFLAGS="" \
-			CFLAGS="-fPIC" \
+			CFLAGS="-fPIC -Wall" \
 			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
-			CXXFLAGS="-Wall" \
+			CXXFLAGS="" \
 			AR="$LFS_TARGET"-ar \
 			AS="$LFS_TARGET"-as \
 			LD="$LFS_TARGET"-ld \
