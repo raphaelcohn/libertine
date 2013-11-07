@@ -28,7 +28,7 @@ function installPackage_crosscompiler_libstdc++()
 		OBJCOPY="$LFS_TARGET"-objcopy \
 		OBJDUMP="$LFS_TARGET"-objdump \
 		READELF="$LFS_TARGET"-readelf \
-		../gcc-"$LFS_RECIPE_VERSION"/libstdc++-v3/configure \
+		../gcc/libstdc++-v3/configure \
 		--host="$LFS_TARGET"                                      \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
 		--disable-multilib                                     \
