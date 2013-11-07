@@ -43,11 +43,11 @@ function installPackage_crosscompiler_gcc()
 			CFLAGS="" \
 			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
 			CXXFLAGS="" \
-			AR="$LFS_TARGET"-gcc-ar \
+			AR="$LFS_TARGET"-ar \
 			AS="$LFS_TARGET"-as \
 			LD="$LFS_TARGET"-ld \
-			NM="$LFS_TARGET"-gcc-nm \
-			RANLIB="$LFS_TARGET"-gcc-ranlib \
+			NM="$LFS_TARGET"-nm \
+			RANLIB="$LFS_TARGET"-ranlib \
 			STRIP="$LFS_TARGET"-strip \
 			OBJCOPY="$LFS_TARGET"-objcopy \
 			OBJDUMP="$LFS_TARGET"-objdump \
