@@ -42,7 +42,7 @@ function installPackage_crosscompiler_gcc()
 			CPPFLAGS="" \
 			CFLAGS="-fPIC" \
 			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
-			CXXFLAGS="" \
+			CXXFLAGS="-Wall" \
 			AR="$LFS_TARGET"-ar \
 			AS="$LFS_TARGET"-as \
 			LD="$LFS_TARGET"-ld \
