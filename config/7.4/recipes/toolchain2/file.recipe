@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 5.14
 {
-	depends diffutils
+	:
 }
 
 function installPackage_toolchain2_file()

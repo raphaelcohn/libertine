@@ -3,6 +3,7 @@ set -o errexit +o hashall
 # Needs to track gcc version numbering
 version 4.8.1
 {
+	depends glibc
 	depends musl
 	
 	source_package_alias gcc "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
@@ -14,12 +15,12 @@ function installPackage_crosscompiler_libstdc++()
 	
 		createBuildFolderAndPushd
 
-			REALGCC="$LFS_TARGET"-gcc \
-			CC="musl-gcc-external" \
+			#REALGCC="$LFS_TARGET"-gcc \
+			CC="$LFS_TARGET"-gcc \
 			CXX="$LFS_TARGET"-g++ \
 			CPPFLAGS="" \
-			CFLAGS="-fPIC -Wall -Wno-error" \
-			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
+			CFLAGS="" \
+			LDFLAGS="" \
 			CXXFLAGS="" \
 			AR="$LFS_TARGET"-ar \
 			AS="$LFS_TARGET"-as \
@@ -31,20 +32,18 @@ function installPackage_crosscompiler_libstdc++()
 			OBJDUMP="$LFS_TARGET"-objdump \
 			READELF="$LFS_TARGET"-readelf \
 			../gcc/libstdc++-v3/configure \
-			--host="$LFS_TARGET"                                      \
-			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"           \
-			--disable-multilib                                     \
-			--disable-shared                                       \
-			--disable-nls                                          \
-			--disable-libstdcxx-threads                            \
-			--disable-libstdcxx-pch                                \
-			--enable-version-specific-runtime-libs
-		
-			#--with-gxx-include-dir="$LFS_DEPENDENCY_PREFIX_PATH"/"$LFS_TARGET"/include/c++/"$LFS_RECIPE_VERSION"
-	
-			REALGCC="$LFS_TARGET"-gcc make
-	
-			REALGCC="$LFS_TARGET"-gcc make DESTDIR="$LFS" install
+			--host="$LFS_TARGET" \
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+			--disable-multilib \
+			--disable-shared \
+			--disable-nls \
+			--disable-libstdcxx-threads \
+			--disable-libstdcxx-pch \
+			--with-gxx-include-dir="$LFS_DEPENDENCY_PREFIX_PATH"/$LFS_TARGET/include/c++/"$LFS_RECIPE_VERSION"
+			
+			make
+			
+			make DESTDIR="$LFS" install
 		
 		popdBuildFolder
 	

@@ -3,7 +3,6 @@ set -o errexit +o hashall
 version 1.21.1
 {
 	:
-	#depends gcc
 }
 
 function installPackage_crosscompiler_busybox()

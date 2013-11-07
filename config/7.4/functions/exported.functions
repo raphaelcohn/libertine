@@ -1275,13 +1275,13 @@ function dependencyPath()
 
 function installPackagePrototype()
 {
-	./configure --prefix=/"$LFS_TOOLS" $@
+	./configure --prefix="$LFS_DEPENDENCY_PREFIX_PATH" $@
 	
 	make
 	
 	#make check
 	
-	make install
+	make DESTDIR="$LFS" install
 }
 
 function pushdDependencyFolder()

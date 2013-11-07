@@ -26,30 +26,6 @@ version 0.9.14
 
 # OR http://ellcc.org/blog/?p=251
 
-function dead()
-{
-	local dependencyKey
-	local gccCrossDependencyKey
-	for dependencyKey in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
-	do
-		if [ "${dependency_Name["$dependencyKey"]}" = "gcc-cross" ]; then
-			gccCrossDependencyKey="$dependencyKey"
-			break
-		fi
-	done
-	
-	if [ -z "$gccCrossDependencyKey" ]; then
-		exitError "gcc-cross dependency not found"
-	fi
-	
-	echo $(pwd)
-	
-	local -r gccCrossBinPath="${LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER}${dependency_Path["$gccCrossDependencyKey"]}"/install/"$LFS_TARGET"
-	pushd "$gccCrossBinPath" >/dev/null
-		local -r newPath="$(pwd):$PATH"
-	popd >/dev/null
-}
-
 function installPackage_crosscompiler_musl()
 {
 	pushdDependencyFolder
@@ -63,7 +39,7 @@ function installPackage_crosscompiler_musl()
 		# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
 		# includedir defaults to PREFIX/include, not PREFIX/usr/include (logical, if a violation of FHS)
 		CC="${LFS_TARGET}-gcc" \
-		CFLAGS="-fno-tree-loop-distribute-patterns -fPIC" \
+		CFLAGS="-fno-tree-loop-distribute-patterns" \
 		./configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--exec-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \

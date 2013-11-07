@@ -2,12 +2,12 @@ set -o errexit +o hashall
 
 version 4.2
 {
-	depends ncurses
+	:
 }
 
 function installPackage_toolchain2_bash()
 {
 	installPackagePrototype --without-bash-malloc
 	
-	ln -sv bash /"$LFS_TOOLS"/bin/sh
+	#ln -sv bash /"$LFS_TOOLS"/bin/sh
 }

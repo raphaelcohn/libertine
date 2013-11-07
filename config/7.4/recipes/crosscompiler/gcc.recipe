@@ -4,17 +4,23 @@ version 4.8.1
 {
 	depends libstdc++
 	
+	include gcc 4.8.1
 	include mpfr 3.1.2
 	include gmp 5.1.2
 	include mpc 1.0.1
 	include binutils 2.23.2
+	
+	install_binaries_in_paths bin
 }
 
-function installPackage_crosscompiler_gcc()
+function installPackage_toolchain2_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
+	local -r glibcInstallPath="${LFS}$(dependencyPath glibc)"/install
 	
 	pushdDependencyFolder
+
+		# http://stackoverflow.com/questions/1726042/recipe-for-compiling-binutils-gcc-together
 		
 		local dependencyName
 		for dependencyName in mpfr gmp mpc
@@ -28,76 +34,90 @@ function installPackage_crosscompiler_gcc()
 			ln -sv "$binutilsFile" 2>/dev/null || true
 		done
 		
-		# Stack protection fix for glibc-2.18 / musl
-		sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+		local file
+		for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+		do
+			cp -u "$file" "$file".orig
+			
+			# change ld location (matches /lib, /lib32, /lib64 and /libx32, the \1 is a group reference)
+			# /usr seems to be used for non-x86 setups
+			sed -r -e "s;/lib(64|32|x32|)/ld;/${glibcInstallPath}/lib\1/ld;g" -e "s;/usr;/${glibcInstallPath}/usr;g" "$file".orig >"$file"
+			
+			cat >>"$file" <<-EOF
+			
+				#undef STANDARD_STARTFILE_PREFIX_1
+				#undef STANDARD_STARTFILE_PREFIX_2
+				#define STANDARD_STARTFILE_PREFIX_1 "$glibcInstallPath/lib/"
+				#define STANDARD_STARTFILE_PREFIX_2 ""
+			EOF
+			touch "$file".orig
+		done
+	
+		local -r libgccPath=$("$LFS_TARGET"-gcc -print-libgcc-file-name)
+		cat gcc/limitx.h gcc/glimits.h gcc/limity.h >"$(purebash_dirname "$libgccPath")"/include-fixed/limits.h
 		
-		# Disable .info files
-		sed -i 's/BUILD_INFO=info/BUILD_INFO=/' gcc/configure
-		
+		cp -v gcc/Makefile.in{,.tmp}
+		sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp >gcc/Makefile.in
+	
 		createBuildFolderAndPushd
-
-			REALGCC="$LFS_TARGET"-gcc \
-			CC="musl-gcc-external" \
+		
+			local -r currentDir="$(pwd)"
+			CC="$LFS_TARGET"-gcc \
 			CXX="$LFS_TARGET"-g++ \
-			CPPFLAGS="" \
-			CFLAGS="-fPIC -Wall -Wno-error" \
-			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
-			CXXFLAGS="" \
 			AR="$LFS_TARGET"-ar \
-			AS="$LFS_TARGET"-as \
-			LD="$LFS_TARGET"-ld \
-			NM="$LFS_TARGET"-nm \
 			RANLIB="$LFS_TARGET"-ranlib \
-			STRIP="$LFS_TARGET"-strip \
-			OBJCOPY="$LFS_TARGET"-objcopy \
-			OBJDUMP="$LFS_TARGET"-objdump \
-			READELF="$LFS_TARGET"-readelf \
-			../"$LFS_DEPENDENCY_NAME"/configure \
+			../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
 			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-			--with-newlib \
-			--without-headers \
 			--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 			--with-native-system-header-dir="$linuxInstallPath"/usr/include \
-			--enable-clocale=ieee_1003.1-2001 \
-			--disable-shared \
+			--enable-clocale=gnu \
+			--enable-shared \
 			--enable-threads=posix \
 			--enable-__cxa_atexit \
-			--disable-multilib \
-			--disable-libmudflap \
-			--disable-libsanitizer \
-			--disable-libgomp                                \
-			--disable-libitm                                 \
-			--disable-libmudflap                             \
-			--disable-libquadmath                            \
-			--disable-libsanitizer                           \
-			--disable-libssp                                 \
-			--disable-libgcj \
-			--disable-libada \
-			--disable-libstdc++-v3                           \
+			--enable-languages=c,c++ \
 			--disable-libstdcxx-pch \
-			--enable-ld \
-			--disable-gold \
-			--enable-languages=c \
-			--disable-lto-plugin \
-			--disable-lto \
-			--disable-bootstrap
+			--disable-multilib \
+			--disable-bootstrap \
+			--disable-libgomp \
+				--with-lib-path="$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/lib
 		
-			REALGCC="$LFS_TARGET"-gcc make
-
-			REALGCC="$LFS_TARGET"-gcc make DESTDIR="$LFS" install
-
-			# Using --disable-shared means that the libgcc_eh.a file isn't created and installed. The Glibc package depends on this library as it uses -lgcc_eh within its build system.
-			# This dependency can be satisfied by creating a symlink to libgcc.a, since that file will end up containing the objects normally contained in libgcc_eh.a: 
+			# --with-lib-path=XXXX == make -C ld LIB_PATH=XXXX in effect, this is the ld search path
+			# With pass 2 of gcc, we need to set lib-path differently when the linker (ld) is used inside the chroot
 		
-			#local -r gcc=${LFS}${$LFS_DEPENDENCY_PREFIX_PATH}/bin/${LFS_TARGET}-gcc
-			#ln -sv libgcc.a "$(${gcc} -print-libgcc-file-name | sed 's/libgcc/&_eh/')"
-
+			make
+		
+			make DESTDIR="$LFS" install
+		
+			ln -sv gcc "$LFS_DEPENDENCY_PREFIX_PATH"/bin/cc
+		
 		popdBuildFolder
-		
-
-		# TOIDO: un"fix" headers
-		# rm -rf "$CC_PREFIX/lib/gcc/$TRIPLE"/*/include-fixed/ "$CC_PREFIX/lib/gcc/$TRIPLE"/*/include/stddef.h
-		
+	
+		#localPackage_toolchain2_gcc_verifyGcc
 	
 	popdDepdendencyFolder
+}
+
+# similar to localPackage_toolchain2_glibc_verifyGlibc except we use 'cc' rather than "$LFS_TARGET"-gcc
+function localPackage_toolchain2_gcc_verifyGcc()
+{
+	echo 'main(){}' >dummy.c
+	cc dummy.c
+	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
+	
+	case "$LFS_ARCHITECTURE" in
+		x86_64)
+			local -r libraryFolderName=lib64
+		;;
+		
+		*)
+			local -r libraryFolderName=lib
+		;;
+	esac
+	
+	if [ "$(purebash_dirname "$interpreter")" != /"$LFS_TOOLS"/"$libraryFolderName" ]; then
+		echo "$interpreter is incorrect"
+		exit 3
+	fi
+	
+	rm -f -v dummy.c a.out
 }

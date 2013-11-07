@@ -2,5 +2,13 @@ set -o errexit +o hashall
 
 version 0
 {
-	depends xz
+	depends busybox
+	depends ncurses
+	depends bash
+	depends file
+	depends gettext
+	depends m4
+	depends make
+	depends perl
+	depends texinfo
 }

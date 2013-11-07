@@ -1,0 +1,70 @@
+set -o errexit +o hashall
+
+version 2.18
+{
+	depends linux
+	
+	#install_binaries_in_paths bin "$LFS_TARGET"/bin
+}
+
+function installPackage_crosscompiler_glibc()
+{
+	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
+	
+	# This is a special case break-out from root
+	if [ ! -r /usr/include/rpc/types.h ]; then
+		mkdir -p /usr/include/rpc
+		cp -v sunrpc/rpc/*.h /usr/include/rpc
+	fi
+	
+	pushdDependencyFolder
+	
+		sed -i -e 's/static __m128i/inline &/' sysdeps/x86_64/multiarch/strstr.c
+	
+		createBuildFolderAndPushd
+		
+			../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/configure \
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+			--host="$LFS_TARGET" \
+			--build="$(../"$LFS_RECIPE_EXTRACTED_TARBALL_FOLDER"/scripts/config.guess)" \
+			--disable-profile \
+			--enable-kernel=2.6.32 \
+			--with-headers="$linuxInstallPath"/usr/include \
+			libc_cv_forced_unwind=yes \
+			libc_cv_ctors_header=yes \
+			libc_cv_c_cleanup=yes
+		
+			make
+		
+			make DESTDIR="$LFS" install
+		
+		popdBuildFolder
+	
+		#localPackage_crosscompiler_glibc_verifyGlibc
+	
+	popdDepdendencyFolder
+}
+
+function localPackage_crosscompiler_glibc_verifyGlibc()
+{
+	echo 'main(){}' >dummy.c
+	"$LFS_TARGET"-gcc dummy.c
+	local -r interpreter="$(readelf -l a.out | awk -v FS=': ' -v ORS='' 'NR==1, $0 ~ /Requesting program interpreter/ {print $2}')"
+	
+	case "$LFS_ARCHITECTURE" in
+		x86_64)
+			local -r libraryFolderName=lib64
+		;;
+		
+		*)
+			local -r libraryFolderName=lib
+		;;
+	esac
+	
+	if [ "$(purebash_dirname "$interpreter")" != "$LFS_DEPENDENCY_PREFIX_PATH"/"$libraryFolderName" ]; then
+		echo "$interpreter is incorrect"
+		exit 3
+	fi
+	
+	rm -f -v dummy.c a.out
+}

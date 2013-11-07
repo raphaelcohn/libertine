@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 5.9
 {
-	depends check
+	:
 }
 
 function installPackage_toolchain2_ncurses()

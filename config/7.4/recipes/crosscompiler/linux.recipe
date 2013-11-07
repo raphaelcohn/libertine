@@ -9,15 +9,12 @@ function installPackage_crosscompiler_linux()
 {
 	pushdDependencyFolder
 	
-		#make mrproper
-		make distclean
+		make mrproper
+		
+		make V=2 O="$buildFolder" ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
 
 		local -r buildFolder=../"$LFS_DEPENDENCY_NAME"-build
 		mkdir -m 0755 -p "$buildFolder"
-		
-		# LINK IN THE .config FILE
-		
-		make V=2 O="$buildFolder" ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
 	
 	popdDepdendencyFolder
 }

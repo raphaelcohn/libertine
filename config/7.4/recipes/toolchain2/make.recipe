@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 3.82
 {
-	depends m4
+	depends busybox
 }
 
 function installPackage_toolchain2_make()

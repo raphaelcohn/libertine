@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 0.18.3
 {
-	depends gawk
+	:
 }
 
 function installPackage_toolchain2_gettext()

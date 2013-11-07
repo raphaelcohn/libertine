@@ -4,5 +4,5 @@ keyring GNU gnu-keyring.gpg MD5:ea2df5cf03e548e657bbcc2b8e1c1552,SHA1:f764ebb3f7
 
 version 0
 {
-	depends gcc
+	depends patchelf
 }
