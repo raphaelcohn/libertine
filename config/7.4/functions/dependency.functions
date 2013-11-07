@@ -174,8 +174,8 @@ function dependencyToPath()
 	
 	# chattr -R doesn't work on symlinks, etc; it's useless
 	if [ -d "$absoluteCompletePath" ]; then
-		find "$absoluteCompletePath" -type f -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
-		find "$absoluteCompletePath" -type d -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
+		find "$absoluteCompletePath" -type f -print0 | xargs -0 -n 10 chattr -aijsu "$absoluteCompletePath"
+		find "$absoluteCompletePath" -type d -print0 | xargs -0 -n 10 chattr -aiD "$absoluteCompletePath"
 	fi
 	
 	rm -rf -- "$absoluteCompletePath"
