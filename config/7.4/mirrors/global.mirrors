@@ -23,7 +23,7 @@ certificate_authority  AddTrustExternal  UtnUserFirstHardware  COMODO    7      
 
 # THIS IS A DER cert
 # https://www.digicert.com/digicert-root-certificates.htm
-certificate_authority  root  DigiCertHACA3         DIGICERT  DigiCertHighAssuranceEVRootCA.crt  MD5:d474de575c39b2d39c8583c5c065498a,SHA1:5fb7ee0633e259dbad0c4c9ae6d38f1a61c7dc25,SHA256:7431e5f4c3c1ce4690774f0b61e05440883ba9a01ed00ba6abd7806ed3b118cf,SHA512:7b9cf079b9769dfa9eb2e28cf5a4da9922b0f80e415097d326bf20547505a6ab1b7ac6a83846d0b8253e9168b1f915b8974aec844a9b31c3adcab3aec89fcd07
+certificate_authority  root  DigiCertHACA3         DIGICERT  DigiCertHighAssuranceEVRootCA.crt  MD5:d474de575c39b2d39c8583c5c065498a,SHA1:5fb7ee0633e259dbad0c4c9ae6d38f1a61c7dc25,SHA256:7431e5f4c3c1ce4690774f0b61e05440883ba9a01ed00ba6abd7806ed3b118cf,SHA512:7b9cf079b9769dfa9eb2e28cf5a4da9922b0f80e415097d326bf20547505a6ab1b7ac6a83846d0b8253e9168b1f915b8974aec844a9b31c3adcab3aec89fcd07  DigiCertHighAssuranceEVRootCA.crt  DER
 
 # NOTE: Must be reliable and support options=mr or simple file-based URLs
 # Keyserver

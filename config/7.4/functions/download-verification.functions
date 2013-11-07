@@ -88,17 +88,24 @@ function downloadFileAndCheckHash()
 		else
 			if [ "${certificateAuthorities_Parent["${certificateAuthorityName}"]}" = "root" ]; then
 				local -r certificateAuthorityBundle="$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
+				local -r certType="${certificateAuthorities_Format["${certificateAuthorityName}"]}"
 			else
 				temporaryFileToRemoveOnExit
 				local -r certificateAuthorityBundle="$TMP_FILE"
 				
 				while [ "$certificateAuthorityName" != "root" ]
 				do
-					cat "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" >>"$certificateAuthorityBundle"
+					if [ "${certificateAuthorities_Format["${certificateAuthorityName}"]}" == "PEM" ]; then
+						cat "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" >>"$certificateAuthorityBundle"
+					else
+						# Assume DER, other formats are much rarer
+						openssl x509 -in "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" -inform DER -outform PEM >>"$certificateAuthorityBundle"
+					fi
 					certificateAuthorityName="${certificateAuthorities_Parent["${certificateAuthorityName}"]}"
 				done
+				local -r certType=PEM
 			fi
-			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthorityBundle")
+			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthorityBundle" "--cert-type" "$certType")
 		fi
 		
 		set +e

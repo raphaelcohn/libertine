@@ -7,12 +7,14 @@ declare_for_chroot -A certificateAuthorities_RelativePath
 declare_for_chroot -A certificateAuthorities_FileName
 declare_for_chroot -A certificateAuthorities_Hashes
 declare_for_chroot -A certificateAuthorities_Compression
+declare_for_chroot -A certificateAuthorities_Format
+
 function certificate_authority()
 {
 	if [ $# -lt 5 ]; then
-		exitError "Needs 5 or 6 arguments"
-	elif [ $# -gt 6 ]; then
-		exitError "Needs 5 or 6 arguments"
+		exitError "Needs 5, 6 or 7 arguments"
+	elif [ $# -gt 7 ]; then
+		exitError "Needs 5, 6 or 7 arguments"
 	fi
 	
 	local -r parentCertificateAuthorityName="$1"
@@ -22,10 +24,16 @@ function certificate_authority()
 	local -r relativePath="$4"
 	local -r ourHashes="$5"
 	
-	if [ $# -eq 6 ]; then
+	if [ $# -gt 5 ]; then
 		local -r fileName="$6"
 	else
 		local -r fileName="$(purebash_basename "$relativePath")"
+	fi
+	
+	if [ $# -eq 7 ]; then
+		local -r format="$7"
+	else
+		local -r format="PEM"
 	fi
 	
 	if [ "$certificateAuthorityName" = "root" ]; then
@@ -48,6 +56,7 @@ function certificate_authority()
 	certificateAuthorities_FileName["${certificateAuthorityName}"]="$fileName"
 	certificateAuthorities_Hashes["${certificateAuthorityName}"]="${ourHashes//,/ }"
 	certificateAuthorities_Compression["${certificateAuthorityName}"]=""
+	certificateAuthorities_Format["${certificateAuthorityName}"]="$format"
 }
 
 function certificateAuthorityExists()
