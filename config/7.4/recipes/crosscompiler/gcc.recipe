@@ -59,7 +59,7 @@ function installPackage_crosscompiler_gcc()
 			--with-local-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 			--with-native-system-header-dir="$linuxInstallPath"/usr/include \
 			--enable-clocale=gnu \
-			--enable-shared \
+			--disable-shared \
 			--enable-threads=posix \
 			--enable-__cxa_atexit \
 			--disable-multilib \
