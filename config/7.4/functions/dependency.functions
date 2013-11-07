@@ -172,6 +172,7 @@ function dependencyToPath()
 		return 0
 	fi
 	
+	chattr -R -ai "$absoluteCompletePath"
 	rm -rf -- "$absoluteCompletePath"
 	mkdir -m 0755 -p "$absoluteCompletePath"
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
