@@ -84,6 +84,4 @@ function installPackage_crosscompiler_musl()
 		sed -i -e "s;/opt/;${LFS}/opt/;g" "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/musl-gcc-external.specs
 	
 	popdDepdendencyFolder
-	
-	installBinariesToPath bin
 }
