@@ -173,10 +173,13 @@ function dependencyToPath()
 	fi
 	
 	# chattr -R doesn't work on symlinks, etc; it's useless
-	find "$absoluteCompletePath" -type f -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
-	find "$absoluteCompletePath" -type d -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
+	if [ -d "$absoluteCompletePath" ]; then
+		find "$absoluteCompletePath" -type f -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
+		find "$absoluteCompletePath" -type d -print0 | xargs -0 -n 10 chattr -ai "$absoluteCompletePath"
+	fi
 	
 	rm -rf -- "$absoluteCompletePath"
+	
 	mkdir -m 0755 -p "$absoluteCompletePath"
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"
 	rm -rf -- "$absoluteVersionPath"/recipe-settings-dependencies
