@@ -57,10 +57,14 @@ function installPackage_crosscompiler_musl()
 		echo $PATH
 		
 		which "${LFS_TARGET}-gcc"
-	
+		
+		# -fno-tree-loop-distribute-patterns is a bug fix for gcc 4.8.1
+		
 		# syslibdir is where the dynamic linker will go, and is baked in by musl-gcc
 		# includedir defaults to PREFIX/include, not PREFIX/usr/include (logical, if a violation of FHS)
-		CC="${LFS_TARGET}-gcc" ./configure \
+		CC="${LFS_TARGET}-gcc" \
+		CFLAGS="-fno-tree-loop-distribute-patterns -fPIC" \
+		./configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--exec-prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--syslibdir="$LFS_DEPENDENCY_PREFIX_PATH"/lib \
