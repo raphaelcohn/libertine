@@ -79,6 +79,7 @@ function installPackage_crosscompiler_gcc()
 			--disable-gold \
 			--enable-languages=c \
 			--disable-lto-plugin \
+			--disable-lto \
 			--disable-bootstrap
 		
 			REALGCC="$LFS_TARGET"-gcc make
