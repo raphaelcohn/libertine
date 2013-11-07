@@ -87,7 +87,14 @@ function downloadFileAndCheckHash()
 			local -ar certificateAuthorityOption=("--insecure" "--capath" "$certificateAuthoritiesPath")
 		else
 			if [ "${certificateAuthorities_Parent["${certificateAuthorityName}"]}" = "root" ]; then
-				local -r certificateAuthorityBundle="$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
+				if [ "${certificateAuthorities_Format["${certificateAuthorityName}"]}" == "PEM" ]; then
+					local -r certificateAuthorityBundle="$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
+				else
+					# Assume DER, other formats are much rarer
+					temporaryFileToRemoveOnExit
+					local -r certificateAuthorityBundle="$TMP_FILE"
+					openssl x509 -in "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" -inform DER -outform PEM >"$certificateAuthorityBundle"
+				fi
 				local -r certType="${certificateAuthorities_Format["${certificateAuthorityName}"]}"
 			else
 				temporaryFileToRemoveOnExit
