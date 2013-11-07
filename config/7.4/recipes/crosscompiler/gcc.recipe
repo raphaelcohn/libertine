@@ -35,10 +35,14 @@ function installPackage_crosscompiler_gcc()
 		sed -i 's/BUILD_INFO=info/BUILD_INFO=/' gcc/configure
 		
 		createBuildFolderAndPushd
-		
+
 			REALGCC="$LFS_TARGET"-gcc \
 			CC="musl-gcc-external" \
 			CXX="$LFS_TARGET"-g++ \
+			CPPFLAGS="" \
+			CFLAGS="" \
+			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
+			CXXFLAGS="" \
 			AR="$LFS_TARGET"-gcc-ar \
 			AS="$LFS_TARGET"-as \
 			LD="$LFS_TARGET"-ld \
@@ -48,12 +52,6 @@ function installPackage_crosscompiler_gcc()
 			OBJCOPY="$LFS_TARGET"-objcopy \
 			OBJDUMP="$LFS_TARGET"-objdump \
 			READELF="$LFS_TARGET"-readelf \
-			CC="" \
-			CXX="" \
-			CPPFLAGS="" \
-			CFLAGS="" \
-			LDFLAGS="-Wl,-Bstatic -static-libgcc" \
-			CXXFLAGS="" \
 			../"$LFS_DEPENDENCY_NAME"/configure \
 			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 			--with-newlib \
