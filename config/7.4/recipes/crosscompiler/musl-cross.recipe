@@ -39,6 +39,11 @@ function install_crosscompiler_musl-cross()
 				# Override fetch
 				ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 				
+				# we use .tar.xz, musl-cross uses .tar.bz2
+				if [ "$dependency" = "linux" ]; then
+					ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"${LFS_SOURCE_PACKAGE_FILENAME%*.xz}.bz2"
+				fi
+				
 				local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
 				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
 				
