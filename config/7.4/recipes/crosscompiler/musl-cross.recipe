@@ -66,13 +66,11 @@ function install_crosscompiler_musl-cross()
 	
 	pushd "$LFS_DEPENDENCY_NAME"/extra >/dev/null
 		
-		cp ../config.sh ../config.sh.orig
-	
 		cp build-tarballs.sh build-tarballs.sh.orig
 		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
 		
 		cp build-gcc-deps.sh build-gcc-deps.sh.orig
-		sed -i -e "s;gitfetchextract 'git://repo.or.cz/libelf-compat.git' ;fetchextract irrelevant;g" build-gcc-deps.sh
+		sed -i -e "s;gitfetchextract 'git://repo.or.cz/libelf-compat.git' ;fetchextract irrelevant ;g" build-gcc-deps.sh
 	
 		cp extraconfig.sh extraconfig.sh.orig
 	

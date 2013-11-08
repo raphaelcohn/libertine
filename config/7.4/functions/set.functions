@@ -64,6 +64,7 @@ function setMakeFlags()
 	else
 		local -ir cpuCount=1
 	fi
-
+	
+	declare_for_chroot -x MAKEFLAGS
 	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug=bijm"
 }
