@@ -600,7 +600,6 @@ function include()
 		exitError "No include $includeSourcePackageName known in recipe $LFS_RECIPE_NAME"
 	fi
 	
-	set -x
 	local -i index
 	for index in ${dependency_IncludeIndices["$DependencyKey"]}
 	do
@@ -610,7 +609,6 @@ function include()
 			fi
 		fi
 	done
-	set +x
 	
 	LFS_SOURCE_PACKAGE_NAME="$includeSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$includeSourcePackageVersion" source "$includeFile"
 	
