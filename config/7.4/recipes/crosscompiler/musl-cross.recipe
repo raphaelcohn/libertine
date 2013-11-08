@@ -85,10 +85,12 @@ function install_crosscompiler_musl-cross()
 		cp build-tarballs.sh build-tarballs.sh.orig
 		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
 		
-		cp build-gcc-deps.sh build-gcc-deps.sh.orig
-		sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
-		sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
-		sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+		mv build-gcc-deps.sh build-gcc-deps.sh.orig
+		#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
+		#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
+		#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+		
+		grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
 	
 		cp extraconfig.sh extraconfig.sh.orig
 	
