@@ -531,7 +531,7 @@ function installPackage()
 	popd >/dev/null
 	
 	touch "$LFS_DEPENDENCY_INSTALLED_PATH"
-	lockDownPackage
+	lockDownPackage 1>"$installStdOutLogFile" 2>"$installStdErrLogFile"
 	
 	progressMessageSucceeded
 }

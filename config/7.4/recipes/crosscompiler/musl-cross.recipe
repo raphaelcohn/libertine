@@ -10,6 +10,19 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include mpc 1.0.1
 	include mpfr 3.1.2
 	include musl 0.9.14
+	
+	install_binaries_in_paths "$LFS_ARCHITECTURE"-linux-musl/bin "$LFS_ARCHITECTURE"-linux-musl/"$LFS_ARCHITECTURE"-linux-musl/bin
+	
+	make_executable_binary \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/cc1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/cc1plus \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/collect2 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto-wrapper \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/fixincl \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/fixinc.sh \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/mkheaders \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/mkinstalldirs
 }
 
 function install_crosscompiler_musl-cross()
