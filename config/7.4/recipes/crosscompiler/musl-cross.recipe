@@ -87,13 +87,8 @@ function install_crosscompiler_musl-cross()
 			NO_GCC_DEPS=yes
 		EOF
 		
-		# relative paths not allowed for prefix!
-		pushd ../../../install >/dev/null
-			local -r prefix="$(pwd)"
-		popd >/dev/null
-
 		# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
-		./build-tarballs.sh "$prefix" "musl-cross-" "" "$LFS_ARCHITECTURE"
+		./build-tarballs.sh "$LFS_DEPENDENCY_PREFIX_PATH" "musl-cross-" "" "$LFS_ARCHITECTURE"
 		
 	popd >/dev/null
 }
