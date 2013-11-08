@@ -52,7 +52,7 @@ function install_crosscompiler_musl-cross()
 				case "$dependency" in
 					
 					gmp|mpfr|mpc)
-						ln -s ../../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
+						ln -s ../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
 					;;
 					
 					*)
