@@ -29,7 +29,7 @@ function install_crosscompiler_musl-cross()
 				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
 				
 				# Override extracted tarball
-				ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
+				ln -s ../../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
 		
 				# Override extract file name
 				touch "$muslCrossExtractedPath"/extracted
@@ -38,7 +38,7 @@ function install_crosscompiler_musl-cross()
 				case "$dependency" in
 					
 					gmp|mpfr|mpc)
-						ln -s "$muslCrossExtractedPath" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
+						ln -s ../../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
 					;;
 					
 					*)
@@ -49,6 +49,9 @@ function install_crosscompiler_musl-cross()
 			fi
 		done
 	done
+	
+	echo "FIXME"
+	exit 70
 	
 	pushd "$LFS_DEPENDENCY_NAME"/extra >/dev/null
 	
