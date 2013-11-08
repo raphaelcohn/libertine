@@ -13,7 +13,21 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 }
 
 function install_crosscompiler_musl-cross()
-{	
+{
+	local gccVersion=""
+	for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
+	do
+		setLfsSourcePackageVariables $index
+		if [ "$LFS_SOURCE_PACKAGE_NAME" = "gcc" ]; then
+			gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
+			break
+		fi
+	done
+	
+	if [ -z "$gccVersion" ]; then
+		exitError "No gcc version"
+	fi
+	
 	local dependency
 	local -i index
 	for dependency in binutils gcc gmp elfutils linux mpfr mpc musl
@@ -23,9 +37,9 @@ function install_crosscompiler_musl-cross()
 			setLfsSourcePackageVariables $index
 			if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
 				# Override fetch
-				ln "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
+				ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 				
-				local muslCrossExtractedFolderName="$dependency"-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["$dependency"]}"
+				local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
 				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
 				
 				# Override extracted tarball
@@ -38,7 +52,7 @@ function install_crosscompiler_musl-cross()
 				case "$dependency" in
 					
 					gmp|mpfr|mpc)
-						ln -s ../../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
+						ln -s ../../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
 					;;
 					
 					*)
