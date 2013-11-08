@@ -33,7 +33,7 @@ mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/                       
 mirror  LINUX        https://www.kernel.org/pub/linux/                                             StartCom
 mirror  IANA         https://www.iana.org/                                                         ValiCertClass2
 mirror  GITHUB       https://codeload.github.com/                                                  DigiCertHACA3
-mirror  FEDORA       https://fedorahosted.org/releases                                             GeoTrustGlobal
+mirror  FEDORA       https://fedorahosted.org/releases/                                            GeoTrustGlobal
 
 # Insecure
 mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
