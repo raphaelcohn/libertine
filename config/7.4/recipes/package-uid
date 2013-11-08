@@ -15842,6 +15842,7 @@ musescore-common                         864808
 musescore-soundfont-gm                   864809
 musetup-gtk                              864810
 musl                                     864900
+musl-cross                               864901
 music-bin                                865000
 music-doc                                865100
 music123                                 865200

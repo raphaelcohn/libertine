@@ -15842,6 +15842,7 @@ musescore-common
 musescore-soundfont-gm
 musetup-gtk
 musl
+musl-cross
 music-bin
 music-doc
 music123
