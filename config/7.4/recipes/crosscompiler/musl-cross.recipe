@@ -52,7 +52,7 @@ function install_crosscompiler_musl-cross()
 						continue
 					fi
 					withNewCompressionExtension="$withoutCompressionExtension"."$newCompressionExtension"
-					ln -s "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
+					ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
 				done
 				
 				local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
