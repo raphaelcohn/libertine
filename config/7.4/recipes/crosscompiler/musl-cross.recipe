@@ -4,7 +4,6 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 {
 	include binutils 2.23.2
 	include gcc 4.8.1
-	#include gdb XXXX
 	include gmp 5.1.2
 	include elfutils 0.154
 	include linux 3.10.10
@@ -24,6 +23,9 @@ function install_crosscompiler_musl-cross()
 			setLfsSourcePackageVariables $index
 			if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
 				# Override fetch
+				pwd
+				local -r eeee="$(pwd)"
+				echo $eeee
 				ln ../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 				
 				local muslCrossExtractedFolderName="$dependency"-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["$dependency"]}"
