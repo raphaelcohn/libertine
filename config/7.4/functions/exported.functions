@@ -600,12 +600,14 @@ function include()
 		exitError "No include $includeSourcePackageName known in recipe $LFS_RECIPE_NAME"
 	fi
 	
+	set -x
 	local -i index
 	for index in ${dependency_IncludeIndices["$DependencyKey"]}
 	do
 		if [ "${includes_DependencyKey[$index]}" = "$DependencyKey" ]; then
 			if [ "${includes_Name[$index]}" = "$includeSourcePackageName" ]; then
 				if [ "${includes_Version[$index]}" = "$includeSourcePackageVersion" ]; then
+					exitError "DDDD"
 					return 0
 				else
 					exitError "Multiple versions of $includeSourcePackageName (${includes_Version[$index]} and $includeSourcePackageVersion) are not supported"
