@@ -16,32 +16,29 @@ function install_crosscompiler_musl-cross()
 {	
 	local dependency
 	local -i index
-	for dependency in binutils gmp mpfr mpc elfutils linux musl
+	for dependency in binutils gcc gmp elfutils linux mpfr mpc musl
 	do
 		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 		do
 			setLfsSourcePackageVariables $index
 			if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
 				# Override fetch
-				pwd
-				local -r eeee="$(pwd)"
-				echo $eeee
-				ln ../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
+				ln "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 				
 				local muslCrossExtractedFolderName="$dependency"-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["$dependency"]}"
 				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
 				
 				# Override extracted tarball
-				ln ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
+				ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
 		
 				# Override extract file name
 				touch "$muslCrossExtractedPath"/extracted
 				
+				# gcc inner links (note binutils is NOT included, although it can be)
 				case "$dependency" in
 					
 					gmp|mpfr|mpc)
-						# Override gcc deps
-						ln "$muslCrossExtractedPath" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
+						ln -s "$muslCrossExtractedPath" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
 					;;
 					
 					*)
