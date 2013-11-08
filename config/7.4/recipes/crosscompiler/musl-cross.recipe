@@ -30,6 +30,10 @@ function install_crosscompiler_musl-cross()
 	
 	local dependency
 	local -i index
+	local originalCompressionExtension
+	local withoutCompressionExtension
+	local newCompressionExtension
+	local withNewCompressionExtension
 	for dependency in binutils gcc gmp elfutils linux mpfr mpc musl
 	do
 		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
@@ -39,10 +43,17 @@ function install_crosscompiler_musl-cross()
 				# Override fetch
 				ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 				
-				# we use .tar.xz, musl-cross uses .tar.bz2
-				if [ "$dependency" = "linux" ]; then
-					ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"${LFS_SOURCE_PACKAGE_FILENAME%*.xz}.bz2"
-				fi
+				# This logic ensures that mismatches in tarball compression between us and musl-cross are handled
+				originalCompressionExtension="${LFS_SOURCE_PACKAGE_FILENAME##*.}"
+				withoutCompressionExtension="$(basename "$LFS_SOURCE_PACKAGE_FILENAME" ."$originalCompressionExtension")"
+				for newCompressionExtension in gz bz2 xz
+				do
+					if [ "$newCompressionExtension" = "$originalCompressionExtension" ]; then
+						continue
+					fi
+					withNewCompressionExtension="$withoutCompressionExtension"."$newCompressionExtension"
+					ln -s "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
+				done
 				
 				local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
 				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
