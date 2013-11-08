@@ -5,7 +5,7 @@ version 1.21.1
 	:
 }
 
-function installPackage_crosscompiler_busybox()
+function install_crosscompiler_busybox()
 {
 	pushdDependencyFolder
 

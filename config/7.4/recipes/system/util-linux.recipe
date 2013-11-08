@@ -8,7 +8,7 @@ version 2.23.2
 	depends zlib
 }
 
-function installPackage_system_util-linux()
+function install_system_util-linux()
 {
 	sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' $(grep -rl '/etc/adjtime' .)
 	mkdir -m 0755 -p /var/lib/hwclock

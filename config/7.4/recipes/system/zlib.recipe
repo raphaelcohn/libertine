@@ -7,7 +7,7 @@ version 1.2.8
 	depends linux
 }
 
-function installPackage_system_zlib()
+function install_system_zlib()
 {
 	installPackagePrototype --prefix=/usr
 	

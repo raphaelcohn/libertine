@@ -16,7 +16,7 @@ version 2.18
 	permissions_after /usr/lib/locale/locale-archive 644 root root js ai
 }
 
-function installPackage_system_glibc()
+function install_system_glibc()
 {
 	# -nostdinc and -iquote and --with-headers=/"$LFS_TOOLS"/include 
 	

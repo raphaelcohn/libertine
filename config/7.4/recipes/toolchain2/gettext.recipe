@@ -5,7 +5,7 @@ version 0.18.3
 	:
 }
 
-function installPackage_toolchain2_gettext()
+function install_toolchain2_gettext()
 {
 	pushd gettext-tools >/dev/null
 		

@@ -5,7 +5,7 @@ version 1.26
 	depends sed
 }
 
-function installPackage_toolchain2_tar()
+function install_toolchain2_tar()
 {
 	sed -i -e '/gets is a/d' gnu/stdio.in.h
 	

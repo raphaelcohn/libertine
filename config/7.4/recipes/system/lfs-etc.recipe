@@ -14,7 +14,7 @@ version 0
 }
 
 # BIG PROBLEM: This package is affected by adding / removing anything from the system, but the change isn't propagated
-function installPackage_system_lfs-etc()
+function install_system_lfs-etc()
 {
 	# /etc/passwd
 	local -i index

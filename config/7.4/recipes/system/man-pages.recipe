@@ -7,7 +7,7 @@ version 3.53
 	depends linux
 }
 
-function installPackage_system_man-pages()
+function install_system_man-pages()
 {
 	make install
 	

@@ -5,7 +5,7 @@ version 5.14
 	:
 }
 
-function installPackage_toolchain2_file()
+function install_toolchain2_file()
 {
 	installPackagePrototype
 }

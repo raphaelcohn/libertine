@@ -5,7 +5,7 @@ version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
 	depends musl-cross
 }
 
-function installPackage_crosscompiler_patchelf()
+function install_crosscompiler_patchelf()
 {
 	pushdDependencyFolder
 	

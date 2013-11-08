@@ -5,7 +5,7 @@ version 5.9
 	:
 }
 
-function installPackage_toolchain2_ncurses()
+function install_toolchain2_ncurses()
 {
 	installPackagePrototype --with-shared --without-debug --without-ada --enable-overwrite
 }

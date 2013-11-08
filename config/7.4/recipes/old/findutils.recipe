@@ -5,7 +5,7 @@ version 4.4.2
 	depends file
 }
 
-function installPackage_toolchain2_findutils()
+function install_toolchain2_findutils()
 {
 	installPackagePrototype
 }

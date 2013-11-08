@@ -5,7 +5,7 @@ version 2.14
 	depends gettext
 }
 
-function installPackage_toolchain2_grep()
+function install_toolchain2_grep()
 {
 	installPackagePrototype
 }

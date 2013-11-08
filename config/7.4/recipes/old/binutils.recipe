@@ -5,7 +5,7 @@ version 2.23.2
 	:
 }
 
-function installPackage_toolchain2_binutils()
+function install_toolchain2_binutils()
 {
 	sed -i -e 's/@colophon/@@colophon/' -e 's/doc@cygnus.com/doc@@cygnus.com/' bfd/doc/bfd.texinfo
 	

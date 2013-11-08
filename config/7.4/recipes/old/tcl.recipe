@@ -5,7 +5,7 @@ version 8.6.0
 	depends gcc
 }
 
-function installPackage_toolchain2_tcl()
+function install_toolchain2_tcl()
 {
 	sed -i s/500/5000/ generic/regc_nfa.c
 	

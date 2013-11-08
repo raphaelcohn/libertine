@@ -7,7 +7,7 @@ version 2.18
 	#install_binaries_in_paths bin "$LFS_TARGET"/bin
 }
 
-function installPackage_crosscompiler_glibc()
+function install_crosscompiler_glibc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	

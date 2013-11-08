@@ -5,7 +5,7 @@ version 0.9.10
 	depends dejagnu
 }
 
-function installPackage_toolchain2_check()
+function install_toolchain2_check()
 {
 	installPackagePrototype
 }

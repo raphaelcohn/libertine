@@ -40,7 +40,7 @@ function downloadsList()
 		
 		patch	automake	1.14	"$PATCHES"/automake-1.14-test-1.patch	1bc501443baee55bca4d6552ed18a757		automake-1.14-test-1.patch	automake-1.14-test-1.patch
 		patch	bash	4.2	"$PATCHES"/bash-4.2-fixes-12.patch	419f95c173596aea47a23d922598977a		bash-4.2-fixes-12.patch	bash-4.2-fixes-12.patch
-		patch	bzip2	1.0.6	"$PATCHES"/bzip2-1.0.6-installPackage_docs-1.patch	6a5ac7e89b791aae556de0f745916f7f		bzip2-1.0.6-installPackage_docs-1.patch
+		patch	bzip2	1.0.6	"$PATCHES"/bzip2-1.0.6-install_docs-1.patch	6a5ac7e89b791aae556de0f745916f7f		bzip2-1.0.6-install_docs-1.patch
 		patch	coreutils	8.21	"$PATCHES"/coreutils-8.21-i18n-1.patch	ada0ea6e1c00c4b7e0d634f49827943e		coreutils-8.21-i18n-1.patch	coreutils-8.21-i18n-1.patch
 		patch	kbd	2.0.0	"$PATCHES"/kbd-2.0.0-backspace-1.patch	f75cca16a38da6caa7d52151f7136895		kbd-2.0.0-backspace-1.patch	kbd-2.0.0-backspace-1.patch
 		patch	make	3.82	"$PATCHES"/make-3.82-upstream_fixes-3.patch	95027ab5b53d01699845d9b7e1dc878d		make-3.82-upstream_fixes-3.patch

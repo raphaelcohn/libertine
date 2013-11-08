@@ -216,7 +216,7 @@ version 0
 #	symlink /etc/mtab /proc/self/mounts
 }
 
-function installPackage_system_lfs-directories()
+function install_system_lfs-directories()
 {
 	local -r sedExpression="s/$LFS_TOOLS/usr/"
 	sed "$sedExpression" /"$LFS_TOOLS"/lib/libstdc++.la >>/usr/lib/libstdc++.la

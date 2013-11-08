@@ -26,7 +26,7 @@ version 0.9.14
 
 # OR http://ellcc.org/blog/?p=251
 
-function installPackage_crosscompiler_musl()
+function install_crosscompiler_musl()
 {
 	pushdDependencyFolder
 	

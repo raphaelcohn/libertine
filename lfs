@@ -422,8 +422,8 @@ function installPackage()
 		return 0
 	fi
 	
-	local -r installer_versioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
-	local -r installer_unversioned=installPackage_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
+	local -r installer_versioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
+	local -r installer_unversioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
 	
 	local -r logPathPrefix="$LFS_DEPENDENCY_LOG_PATH"
 	local -r installStdOutLogFile="$LFS_DEPENDENCY_LOG_PATH"/install.stdout.log

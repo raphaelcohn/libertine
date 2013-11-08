@@ -5,7 +5,7 @@ version 8.21
 	depends bzip2
 }
 
-function installPackage_toolchain2_coreutils()
+function install_toolchain2_coreutils()
 {
 	installPackagePrototype --enable-install-program=hostname
 }

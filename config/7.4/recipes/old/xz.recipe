@@ -5,7 +5,7 @@ version 5.0.5
 	depends texinfo
 }
 
-function installPackage_toolchain2_xz()
+function install_toolchain2_xz()
 {
 	installPackagePrototype
 }

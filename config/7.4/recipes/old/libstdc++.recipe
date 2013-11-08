@@ -9,7 +9,7 @@ version 4.8.1
 	source_package_alias gcc "${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 }
 
-function installPackage_crosscompiler_libstdc++()
+function install_crosscompiler_libstdc++()
 {
 	pushdDependencyFolder
 	

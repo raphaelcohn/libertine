@@ -7,7 +7,7 @@ version 1.42.8
 	depends util-linux
 }
 
-function installPackage_system_e2fsprogs()
+function install_system_e2fsprogs()
 {
 	installPackagePrototype
 }

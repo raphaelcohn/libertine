@@ -18,7 +18,7 @@ version 2013d
 	permissions_after_recursive /usr/share/zoneinfo 0644 root root '' ai 0 10 file
 }
 
-function installPackage_system_tzdata()
+function install_system_tzdata()
 {
 	local -r zoneinfoPath=/usr/share/zoneinfo
 	

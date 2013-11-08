@@ -5,7 +5,7 @@ version 5.18.1
 	depends busybox
 }
 
-function installPackage_toolchain2_perl()
+function install_toolchain2_perl()
 {
 	sh Configure -des -Dprefix=/"$LFS_TOOLS"
 	

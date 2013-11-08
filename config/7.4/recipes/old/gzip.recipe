@@ -5,7 +5,7 @@ version 1.6
 	depends grep
 }
 
-function installPackage_toolchain2_gzip()
+function install_toolchain2_gzip()
 {
 	installPackagePrototype
 }

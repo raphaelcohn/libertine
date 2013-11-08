@@ -20,7 +20,7 @@ version 4.8.1
 		libexec/gcc/"$LFS_TARGET"/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools
 }
 
-function installPackage_crosscompiler_gcc-cross()
+function install_crosscompiler_gcc-cross()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	local -r glibcInstallPath="${LFS}$(dependencyPath glibc)"/install

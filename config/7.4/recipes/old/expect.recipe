@@ -5,7 +5,7 @@ version 5.45
 	depends tcl
 }
 
-function installPackage_toolchain2_expect()
+function install_toolchain2_expect()
 {
 	cp -v configure{,.orig}
 	sed 's:/usr/local/bin:/bin:' configure.orig >configure

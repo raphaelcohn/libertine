@@ -5,7 +5,7 @@ version 1.0.6
 	depends bash
 }
 
-function installPackage_toolchain2_bzip2()
+function install_toolchain2_bzip2()
 {
 	make
 	

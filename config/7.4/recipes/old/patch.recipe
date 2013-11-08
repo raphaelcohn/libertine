@@ -5,7 +5,7 @@ version 2.7.1
 	depends make
 }
 
-function installPackage_toolchain2_patch()
+function install_toolchain2_patch()
 {
 	installPackagePrototype
 }

@@ -13,7 +13,7 @@ version 4.8.1
 	install_binaries_in_paths bin
 }
 
-function installPackage_toolchain2_gcc()
+function install_toolchain2_gcc()
 {
 	local -r linuxInstallPath="${LFS}$(dependencyPath linux)"/install
 	local -r glibcInstallPath="${LFS}$(dependencyPath glibc)"/install

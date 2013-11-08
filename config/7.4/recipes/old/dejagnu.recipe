@@ -5,7 +5,7 @@ version 1.5.1
 	depends expect
 }
 
-function installPackage_toolchain2_dejagnu()
+function install_toolchain2_dejagnu()
 {
 	./configure --prefix=/"$LFS_TOOLS"
 
