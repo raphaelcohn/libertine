@@ -52,7 +52,7 @@ function install_crosscompiler_musl-cross()
 				case "$dependency" in
 					
 					gmp|mpfr|mpc)
-						ln -s ../"$muslCrossExtractedFolderName" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
+						ln -s ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
 					;;
 					
 					*)
@@ -64,14 +64,15 @@ function install_crosscompiler_musl-cross()
 		done
 	done
 	
-	echo "FIXME"
-	exit 70
-	
 	pushd "$LFS_DEPENDENCY_NAME"/extra >/dev/null
-	
-		sed -e -i "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
 		
-		sed -e -i "s;gitfetchextract 'git://repo.or.cz/libelf-compat.git' ;fetchextract irrelevant;g"
+		cp ../config.sh ../config.sh.orig
+	
+		cp build-tarballs.sh build-tarballs.sh.orig
+		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
+		
+		cp build-gcc-deps.sh build-gcc-deps.sh.orig
+		sed -i -e "s;gitfetchextract 'git://repo.or.cz/libelf-compat.git' ;fetchextract irrelevant;g" build-gcc-deps.sh
 	
 		cp extraconfig.sh extraconfig.sh.orig
 	
