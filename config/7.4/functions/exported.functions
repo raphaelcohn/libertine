@@ -606,11 +606,7 @@ function include()
 	do
 		if [ "${includes_DependencyKey[$index]}" = "$DependencyKey" ]; then
 			if [ "${includes_Name[$index]}" = "$includeSourcePackageName" ]; then
-				if [ "${includes_Version[$index]}" = "$includeSourcePackageVersion" ]; then
-					return 0
-				else
-					exitError "Multiple versions of $includeSourcePackageName (${includes_Version[$index]} and $includeSourcePackageVersion) are not supported"
-				fi
+				exitError "Multiple versions of $includeSourcePackageName (${includes_Version[$index]} and $includeSourcePackageVersion) are not supported"
 			fi
 		fi
 	done
@@ -619,7 +615,7 @@ function include()
 	LFS_SOURCE_PACKAGE_NAME="$includeSourcePackageName" LFS_SOURCE_PACKAGE_VERSION="$includeSourcePackageVersion" source "$includeFile"
 	
 	index=${#includes_DependencyKey[@]}
-	includes_DependencyKey+="$DependencyKey"
+	includes_DependencyKey+=("$DependencyKey")
 	includes_Name+=("$includeSourcePackageName")
 	includes_Version+=("$includeSourcePackageVersion")
 	
