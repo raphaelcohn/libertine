@@ -581,6 +581,8 @@ function installPackages()
 		
 		LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 		
+		lfs_dependency_includes
+		
 		installPackage
 	done
 }

@@ -28,11 +28,12 @@ certificate_authority  root  DigiCertHACA3         DIGICERT  DigiCertHighAssuran
 # NOTE: Must be reliable and support options=mr or simple file-based URLs
 # Keyserver
 mirror  HKPS         'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x' SKS
-mirror  GNU          https://ftp.gnu.org/gnu/ UtnUserFirstHardware
-mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/ GeoTrustGlobal
-mirror  LINUX        https://www.kernel.org/pub/linux/ StartCom
-mirror  IANA         https://www.iana.org/ ValiCertClass2
-mirror  GITHUB       https://codeload.github.com/ DigiCertHACA3
+mirror  GNU          https://ftp.gnu.org/gnu/                                                      UtnUserFirstHardware
+mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/                                          GeoTrustGlobal
+mirror  LINUX        https://www.kernel.org/pub/linux/                                             StartCom
+mirror  IANA         https://www.iana.org/                                                         ValiCertClass2
+mirror  GITHUB       https://codeload.github.com/                                                  DigiCertHACA3
+mirror  FEDORA       https://fedorahosted.org/releases                                             GeoTrustGlobal
 
 # Insecure
 mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/

@@ -18,6 +18,9 @@ function setArchitectures()
 	# known as 3 component and 4 component triples (such as x86_64-unknown-linux-gnu)
 	# 
 	
+	# Or gcc -dumpmachine | sed 's/-.*//'
+	# Or uname -m
+	
 	case "$(echo $MACHTYPE | awk -v FS=- '{print $1}')" in
 		
 		i386|i486|i586|i686)

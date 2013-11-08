@@ -1,0 +1,99 @@
+set -o errexit +o hashall
+
+version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
+{
+	include binutils 2.23.2
+	include gcc 4.8.1
+	#include gdb XXXX
+	include gmp 5.1.2
+	include elfutils 0.154
+	include linux 3.10.10
+	include mpc 1.0.1
+	include mpfr 3.1.2
+	include musl 0.9.14
+}
+
+function install_crosscompiler_musl-cross()
+{	
+	local dependency
+	local -i index
+	for dependency in binutils gmp mpfr mpc elfutils linux musl
+	do
+		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
+		do
+			setLfsSourcePackageVariables $index
+			if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
+				# Override fetch
+				ln ../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
+				
+				local muslCrossExtractedFolderName="$dependency"-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["$dependency"]}"
+				local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
+				
+				# Override extracted tarball
+				ln ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
+		
+				# Override extract file name
+				touch "$muslCrossExtractedPath"/extracted
+				
+				case "$dependency" in
+					
+					gmp|mpfr|mpc)
+						# Override gcc deps
+						ln "$muslCrossExtractedPath" "$LFS_DEPENDENCY_NAME"/extra/gcc-"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/"$dependency"
+					;;
+					
+					*)
+						:
+					;;
+					
+				esac
+			fi
+		done
+	done
+	
+	pushd "$LFS_DEPENDENCY_NAME"/extra >/dev/null
+	
+		sed -e -i "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
+		
+		sed -e -i "s;gitfetchextract 'git://repo.or.cz/libelf-compat.git' ;fetchextract irrelevant;g"
+	
+		cp extraconfig.sh extraconfig.sh.orig
+	
+		cat >>extraconfig.sh <<-EOF
+			BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
+			GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
+			#GDB_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gdb"]}"
+			GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
+			LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
+			LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
+			MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
+			MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+			
+			MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+			MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
+			MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+			MUSL_GIT=no
+			
+			LANG_CXX=yes
+			LANG_OBJC=no
+			LANG_FORTRAN=no
+			
+			MAKEFLAGS="$MAKEFLAGS"
+			
+			# Affects the bootstrap (1st) compiler
+			GCC_BUILTIN_PREREQS=yes
+			
+			# Only affects the static cross-compilers; possibly might change
+			NO_GCC_DEPS=yes
+		EOF
+		
+		# relative paths not allowed for prefix!
+		pushd ../../../install >/dev/null
+			local -r prefix="$(pwd)"
+		popd >/dev/null
+
+		# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
+		./build-tarballs.sh "$prefix" "musl-cross-" "" "$LFS_ARCHITECTURE"
+		
+	popd >/dev/null
+}

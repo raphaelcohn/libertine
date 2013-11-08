@@ -236,6 +236,20 @@ function dependencyToPath()
 	fi
 }
 
+function lfs_dependency_includes()
+{
+	declare -Ag LFS_DEPENDENCY_INCLUDE_VERSIONS
+	local -i index
+	local name
+	local version
+	for index in ${dependency_IncludeIndices["$LFS_DEPENDENCY_KEY"]}
+	do
+		name="${includes_Name[$index]}"
+		version="${includes_Version[$index]}"
+		LFS_DEPENDENCY_INCLUDE_VERSIONS["$name"]="$version"
+	done
+}
+
 function prepareZzzLfsPath()
 {
 	local dependencyKey
