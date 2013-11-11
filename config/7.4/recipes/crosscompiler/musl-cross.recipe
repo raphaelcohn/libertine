@@ -196,7 +196,7 @@ function install_crosscompiler_musl-cross()
 				# Only affects the static cross-compilers; possibly might change
 				NO_GCC_DEPS=yes
 				
-				# Added by us to defs.sh to force a chroot-local sysroot
+				# Added by us to defs.sh to try to force a chroot-local sysroot
 				LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
 				LFS="$LFS"
 				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
