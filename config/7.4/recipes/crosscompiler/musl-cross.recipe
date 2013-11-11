@@ -227,8 +227,8 @@ function install_crosscompiler_musl-cross()
 		# hard link to g++
 		rm c++
 		
-		ln gcc-toolchain2 cc
-		ln g++-toolchain2 c++
+		ln toolchain2-gcc cc
+		ln toolchain2-g++ c++
 		
 	popd >/dev/null
 	
