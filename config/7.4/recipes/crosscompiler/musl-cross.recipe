@@ -100,8 +100,8 @@ function install_crosscompiler_musl-cross()
 			
 			buildinstall()
 			{
-				# Override only for 2nd build, non-bootstrap
-				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "${CC_PREFIX: -10: 10}" != "/bootstrap" ]; then
+				# Override only for 2nd build, gcc, non-bootstrap
+				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_PREFIX_BASE"/bootstrap ]; then
 					
 					# We are going to override sysroot, local prefix (and prefix)
 					
@@ -185,6 +185,7 @@ function install_crosscompiler_musl-cross()
 				# Added by us to defs.sh to force a chroot-local sysroot
 				SYSROOT_PREFIX_FOR_GCC="$LFS_DEPENDENCY_PREFIX_PATH"
 				LFS="$LFS"
+				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
 			EOF
 		
 			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
