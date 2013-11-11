@@ -130,15 +130,16 @@ function install_crosscompiler_musl-cross()
 					echo $CC
 					echo ----
 					
+					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
 					# --disable-werror and --with-lib-path for embedded binutils
 					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build "$1" "$2" --target=$TRIPLE \
 					--with-local-prefix=="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
-					--with-sysroot="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
+					--with-sysroot="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE" \
 					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
 			        --disable-libsanitizer \
-					--with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
+					--with-lib-path="=/lib64:=/lib \
 					--disable-werror \
 			        $GCC_CONFFLAGS
 					
@@ -196,7 +197,7 @@ function install_crosscompiler_musl-cross()
 				NO_GCC_DEPS=yes
 				
 				# Added by us to defs.sh to force a chroot-local sysroot
-				SYSROOT_PREFIX_FOR_GCC="$LFS_DEPENDENCY_PREFIX_PATH"
+				LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
 				LFS="$LFS"
 				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
 			EOF
@@ -206,6 +207,28 @@ function install_crosscompiler_musl-cross()
 		
 		popd >/dev/null
 	
+	popd >/dev/null
+	
+	pushd ../install/"$LFS_ARCHITECTURE"-linux-musl/"$LFS_ARCHITECTURE"-linux-musl/bin >/dev/null
+	
+		cat >toolchain2-gcc <<-EOF
+			#!/bin/sh
+			gcc "$@" --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
+		EOF
+		chmod +x toolchain2-gcc
+	
+		cat >toolchain2-g++ <<-EOF
+			#!/bin/sh
+			gcc "$@" --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
+		EOF
+		chmod +x toolchain2-g++
+		
+		# hard link to g++
+		rm c++
+		
+		ln -s gcc-toolchain2 cc
+		ln -s g++-toolchain2 c++
+		
 	popd >/dev/null
 	
 	echo "IGNORING LDSCRIPTS FOR NOW"
