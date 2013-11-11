@@ -5,7 +5,7 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	localPackage_crosscompiler_musl_cross_gccVersion=4.8.1
 	
 	include binutils 2.23.2
-	include "$localPackage_crosscompiler_musl_cross_gccVersion" 4.8.1
+	include gcc "$localPackage_crosscompiler_musl_cross_gccVersion"
 	include gmp 5.1.2
 	include elfutils 0.154
 	include linux 3.10.10
