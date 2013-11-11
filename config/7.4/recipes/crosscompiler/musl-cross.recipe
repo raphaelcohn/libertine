@@ -220,15 +220,15 @@ function install_crosscompiler_musl-cross()
 	
 		cat >toolchain2-g++ <<-EOF
 			#!/bin/sh
-			gcc "$@" --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
+			g++ "$@" --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
 		EOF
 		chmod +x toolchain2-g++
 		
 		# hard link to g++
 		rm c++
 		
-		ln -s gcc-toolchain2 cc
-		ln -s g++-toolchain2 c++
+		ln gcc-toolchain2 cc
+		ln g++-toolchain2 c++
 		
 	popd >/dev/null
 	

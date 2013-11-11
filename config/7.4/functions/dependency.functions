@@ -345,8 +345,8 @@ function prepareMuslCrossPath()
 	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
 
 	local -r NATIVE_CROSS="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_ARCHITECTURE"-linux-musl/bin/"$LFS_ARCHITECTURE"-linux-musl
-	LFS_toolchain2_CC="toolchain2-gcc --sysroot $LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
-	LFS_toolchain2_CXX="toolchain2-g++ --sysroot $LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"
+	LFS_toolchain2_CC="toolchain2-gcc"
+	LFS_toolchain2_CXX="toolchain2-g++"
 }
 
 # Should remove SUID / GUID
