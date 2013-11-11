@@ -6,3 +6,8 @@ version 0
 {
 	depends musl-cross
 }
+
+function install_crosscompiler_zzz-lfs()
+{
+	:
+}
