@@ -11,13 +11,19 @@ function install_crosscompiler_patchelf()
 	
 		# relies on autoreconf
 		./bootstrap.sh
-	
+
+		CC="$LFS_toolchain2_CC" \
+		CXX="$LFS_toolchain2_CXX" \
 		./configure \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		--disable-dependency-tracking
-		
+
+		CC="$LFS_toolchain2_CC" \
+		CXX="$LFS_toolchain2_CXX" \
 		make
-		
+
+		CC="$LFS_toolchain2_CC" \
+		CXX="$LFS_toolchain2_CXX" \
 		make DESTDIR="$LFS" install
 		
 	popdDepdendencyFolder

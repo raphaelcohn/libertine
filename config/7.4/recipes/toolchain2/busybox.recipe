@@ -38,10 +38,6 @@ function install_crosscompiler_busybox()
 			value="${busyboxConfiguration[""$key""]}"
 			sed -i -e 's^'${key}'=.*$;'${key}'="'${value}'";g' .config
 		done
-		
-	
-		# prefix to the cross compile tools
-		#CROSS_COMPILE=arm-linux-uclibcgnueabi-
 	
 		LDFLAGS="--static" make
 	
