@@ -136,8 +136,8 @@ function install_crosscompiler_musl-cross()
 					local ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
 					PREFIX="$ourPrefix" build "$1" "$2" --target=$TRIPLE \
 					--with-local-prefix=="$ourPrefix" \
-					--with-build-sysroot="$ourPrefix" \
-					--with-sysroot="$PREFIX"/"$TRIPLE" \
+					--with-sysroot="$ourPrefix" \
+					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
 			        --disable-libsanitizer \
 					--with-lib-path="=/lib64:=/lib" \
