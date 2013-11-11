@@ -12,8 +12,10 @@ function install_crosscompiler_patchelf()
 		# relies on autoreconf
 		./bootstrap.sh
 		
-		which cc
-		which c++
+		which gcc
+		which g++
+		which toolchain2-gcc
+		which toolchain2-g++
 		
 		CC="$LFS_toolchain2_CC" \
 		CXX="$LFS_toolchain2_CXX" \
