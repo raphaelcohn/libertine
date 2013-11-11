@@ -139,7 +139,7 @@ function install_crosscompiler_musl-cross()
 					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
 			        --disable-libsanitizer \
-					--with-lib-path="=/lib64:=/lib \
+					--with-lib-path="=/lib64:=/lib" \
 					--disable-werror \
 			        $GCC_CONFFLAGS
 					
