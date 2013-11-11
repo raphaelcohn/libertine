@@ -563,6 +563,7 @@ function installPackages()
 	LFS_PHASE="$1"
 	
 	prepareZzzLfsPath
+	prepareMuslCrossPath
 	
 	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
 	do

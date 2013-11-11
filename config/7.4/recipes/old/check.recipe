@@ -7,5 +7,5 @@ version 0.9.10
 
 function install_toolchain2_check()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

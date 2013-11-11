@@ -7,5 +7,5 @@ version 1.6
 
 function install_toolchain2_gzip()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

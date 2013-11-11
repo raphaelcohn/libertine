@@ -7,5 +7,5 @@ version 3.3
 
 function install_toolchain2_diffutils()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

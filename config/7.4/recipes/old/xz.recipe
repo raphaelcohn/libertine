@@ -7,5 +7,5 @@ version 5.0.5
 
 function install_toolchain2_xz()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

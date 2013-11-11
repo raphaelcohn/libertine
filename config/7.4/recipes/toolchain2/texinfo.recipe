@@ -7,5 +7,5 @@ version 5.1
 
 function install_toolchain2_texinfo()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

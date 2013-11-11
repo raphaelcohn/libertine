@@ -7,5 +7,5 @@ version 5.14
 
 function install_toolchain2_file()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

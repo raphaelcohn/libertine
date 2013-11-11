@@ -9,5 +9,5 @@ function install_toolchain2_tar()
 {
 	sed -i -e '/gets is a/d' gnu/stdio.in.h
 	
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

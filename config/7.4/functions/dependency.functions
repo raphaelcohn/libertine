@@ -303,6 +303,52 @@ function prepareZzzLfsPath()
 	export PATH="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$PATH"
 }
 
+function prepareMuslCrossPath()
+{
+	local dependencyKey
+	LFS_DEPENDENCY_KEY_MUSL_CROSS=""
+	for dependencyKey in ${!dependency_Name[@]}
+	do
+		if [ "${dependency_Phase["$dependencyKey"]}" != "crosscompiler" ]; then
+			continue
+		fi
+		
+		if [ "${dependency_Name["$dependencyKey"]}" = "musl-cross" ]; then
+			LFS_DEPENDENCY_KEY_MUSL_CROSS="$dependencyKey"
+			break
+		fi
+	done
+	
+	if [ -z "$LFS_DEPENDENCY_KEY_MUSL_CROSS" ]; then
+		exitError "musl-cross dependency not found"
+	fi
+
+	LFS_DEPENDENCY_PATH_MUSL_CROSS="${dependency_Path["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
+	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES_MUSL_CROSS="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
+	LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PATH"/install
+	
+	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"
+	LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER_MUSL_CROSS="$PathToRoot"
+	
+	LFS_DEPENDENCY_SKIP_INSTALL_MUSL_CROSS="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
+	
+	if [ "$LFS_PHASE" = "system" ]; then
+		LFS_DEPENDENCY_ROOT=""
+	else
+		LFS_DEPENDENCY_ROOT="$LFS"
+	fi
+	LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_MUSL_CROSS}"
+	LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/install
+	LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/binpath
+	LFS_DEPENDENCY_SOURCE_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/source
+	LFS_DEPENDENCY_LOG_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/log
+	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
+
+	local -r NATIVE_CROSS="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_ARCHITECTURE"-linux-musl/bin/"$LFS_ARCHITECTURE"-linux-musl
+	LFS_toolchain2_CC="'"$NATIVE_CROSS-gcc"' -sysroot '"$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"'"
+	LFS_toolchain2_CXX="'"$NATIVE_CROSS-g++"' -sysroot '"$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"'"
+}
+
 # Should remove SUID / GUID
 # Should remove sticky bit on files
 # Should remove linux capabilities, SELinux privs, extended attributes, etc

@@ -1306,14 +1306,18 @@ function dependencyPath()
 	done
 }
 
-function installPackagePrototype()
+function toolchain2InstallPackagePrototype()
 {
+	CC="$LFS_toolchain2_CC" \
+	CXX="$LFS_toolchain2_CXX" \
 	./configure --prefix="$LFS_DEPENDENCY_PREFIX_PATH" $@
-	
+
+	CC="$LFS_toolchain2_CC" \
+	CXX="$LFS_toolchain2_CXX" \
 	make
-	
-	#make check
-	
+
+	CC="$LFS_toolchain2_CC" \
+	CXX="$LFS_toolchain2_CXX" \
 	make DESTDIR="$LFS" install
 }
 

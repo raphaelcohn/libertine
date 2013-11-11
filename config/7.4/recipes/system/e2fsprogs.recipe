@@ -9,5 +9,5 @@ version 1.42.8
 
 function install_system_e2fsprogs()
 {
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }

@@ -9,5 +9,5 @@ function install_toolchain2_m4()
 {
 	sed -i -e '/gets is a/d' lib/stdio.in.h
 	
-	installPackagePrototype
+	toolchain2InstallPackagePrototype
 }
