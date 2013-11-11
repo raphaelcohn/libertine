@@ -121,6 +121,11 @@ function install_crosscompiler_musl-cross()
 					
 					cd - >/dev/null
 					
+					echo ----
+					echo $PATH
+					echo $CC
+					echo ----
+					
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
 					# --disable-werror and --with-lib-path for embedded binutils
 					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build "$1" "$2" --target=$TRIPLE \
