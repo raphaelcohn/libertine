@@ -109,7 +109,7 @@ function install_crosscompiler_musl-cross()
 					# We do not need to build musl again, because it has no path dependencies (except for the musl-gcc wrapper and specs, which we won't require in any event)
 					
 					unset CDPATH
-					cd "$MUSL_CC_BASE"/..gcc-$GCC_VERSION >/dev/null
+					cd "$MUSL_CC_BASE"/../gcc-$GCC_VERSION >/dev/null
 					
 						for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
 						do
