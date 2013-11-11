@@ -122,7 +122,7 @@ function install_crosscompiler_musl-cross()
 					cd - >/dev/null
 					
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
-					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build --target=$TRIPLE \
+					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build "$1" "$2" --target=$TRIPLE \
 					--with-local-prefix=="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
 					--with-sysroot="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
