@@ -47,6 +47,7 @@ mirror  MPC      http://www.multiprecision.org/mpc/download/
 mirror  ZLIB     http://www.zlib.net/
 mirror  MUSL     http://www.musl-libc.org/
 mirror  BUSYBOX  http://www.busybox.net/
+mirror  SELINUX  http://userspace.selinuxproject.org/releases/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html

@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-version 2013-10-30
+version 20131030
 {
 	depends musl-cross
 	
@@ -16,12 +16,7 @@ function install_crosscompiler_linux()
 {
 	pushdDependencyFolder
 	
-		make mrproper
-		
-		make V=2 O="$buildFolder" ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
-
-		local -r buildFolder=../"$LFS_DEPENDENCY_NAME"-build
-		mkdir -m 0755 -p "$buildFolder"
+		:
 	
 	popdDepdendencyFolder
 }
