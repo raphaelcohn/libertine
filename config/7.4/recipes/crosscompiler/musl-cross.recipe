@@ -93,51 +93,122 @@ function install_crosscompiler_musl-cross()
 		done
 	done
 	
-	pushd "$LFS_DEPENDENCY_NAME"/extra >/dev/null
-		
-		cp build-tarballs.sh build-tarballs.sh.orig
-		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" build-tarballs.sh
-		
-		mv build-gcc-deps.sh build-gcc-deps.sh.orig
-		#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
-		#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
-		#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
-		
-		grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
-		chmod +x build-gcc-deps.sh
+	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
 	
-		cp extraconfig.sh extraconfig.sh.orig
-	
-		cat >>extraconfig.sh <<-EOF
-			BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
-			GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
-			#GDB_VERSION=""
-			GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
-			LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
-			LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
-			MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
-			MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+		# Adjust sysroot and install
+		cat >>defs.sh <<-'EOF'
 			
-			MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-			MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
-			MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-			MUSL_GIT=no
-			
-			LANG_CXX=yes
-			LANG_OBJC=no
-			LANG_FORTRAN=no
-			
-			MAKEFLAGS="$MAKEFLAGS"
-			
-			# Affects the bootstrap (1st) compiler
-			GCC_BUILTIN_PREREQS=yes
-			
-			# Only affects the static cross-compilers; possibly might change
-			NO_GCC_DEPS=yes
+			buildinstall()
+			{
+				# Override only for 2nd build, non-bootstrap
+				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "${CC_PREFIX: -10: 10}" != "/bootstrap" ]; then
+					
+					# We are going to override sysroot, local prefix (and prefix)
+					
+					# We also need a final build of binutils with this corrected sysroot, so we link in the binaries for an in-tree build
+					# We do not need to build musl again, because it has no path dependencies (except for the musl-gcc wrapper and specs, which we won't require in any event)
+					
+					pushd "$MUSL_CC_BASE"/..gcc-$GCC_VERSION >/dev/null
+					
+						for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
+						do
+							# suppress existing entries
+							ln -sv "$binutilsFile" 2>/dev/null || true
+						done
+						
+						make distclean || true
+					
+					popd >/dev/null
+					
+					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
+					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build --target=$TRIPLE \
+					--with-local-prefix=="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
+					--with-sysroot="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
+			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
+			        --disable-libsanitizer \
+					--with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
+			        $GCC_CONFFLAGS
+					
+					doinstall "$1" "$2" DESTDIR="$LFS"
+					
+				else
+					build "$@"
+					doinstall "$1" "$2"
+				fi
+			}
 		EOF
+	
+		pushd extra >/dev/null
 		
-		# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
-		./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "musl-cross-" "" "$LFS_ARCHITECTURE"
+			# 1 Fix HG_ID
+			# 2 Remove deletion of share/ folder
+			# 3 Remove tarball creation
+			cp build-tarballs.sh build-tarballs.sh.orig
+			sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
+		
+			mv build-gcc-deps.sh build-gcc-deps.sh.orig
+			#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
+			#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
+			#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+			grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
+			chmod +x build-gcc-deps.sh
+	
+			cp extraconfig.sh extraconfig.sh.orig
+	
+			cat >>extraconfig.sh <<-EOF
+				BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
+				GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
+				#GDB_VERSION=""
+				GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
+				LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
+				LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
+				MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
+				MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+			
+				MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+				MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
+				MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+				MUSL_GIT=no
+			
+				LANG_CXX=yes
+				LANG_OBJC=no
+				LANG_FORTRAN=no
+			
+				MAKEFLAGS="$MAKEFLAGS"
+			
+				# Affects the bootstrap (1st) compiler
+				GCC_BUILTIN_PREREQS=yes
+			
+				# Only affects the static cross-compilers; possibly might change
+				NO_GCC_DEPS=yes
+				
+				# Added by us to defs.sh to force a chroot-local sysroot
+				SYSROOT_PREFIX_FOR_GCC="$LFS_DEPENDENCY_PREFIX_PATH"
+				LFS="$LFS"
+			EOF
+		
+			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
+			./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "musl-cross-" "" "$LFS_ARCHITECTURE"
+		
+		popd >/dev/null
+	
+	popd >/dev/null
+	
+	echo "IGNORING LDSCRIPTS FOR NOW"
+	return 0
+	
+	pushd ../install/"$LFS_ARCHITECTURE"-linux-musl"$LFS_ARCHITECTURE"-linux-musl/lib/ldscripts >/dev/null
+		
+		local ldscript
+		# Prevents any spaces in LFS being expanded as separate argv
+		local expression="$(echo -n 's:SEARCH_DIR("'${LFS}'/\(.*\)/lib\(.*\)"):SEARCH_DIR("/\1/lib\2"); SEARCH_DIR("/\1/lib"):g')"
+		for ldscript in *
+		do
+			# Fix up ldscripts SEARCH_DIR to (a) remove global locations and (b) external non-chroot paths
+			# paths starting '=' are replaced with the compiled-in SYSROOT prefix
+			cp "$ldscript" "$ldscript".bak
+			sed -i -e 's: SEARCH_DIR("=/usr/local/lib64");::g' -e 's: SEARCH_DIR("=/lib64");::g' -e 's: SEARCH_DIR("=/usr/lib64");::g' -e 's: SEARCH_DIR("=/usr/local/lib");::g' -e 's: SEARCH_DIR("=/lib");::g' -e 's: SEARCH_DIR("=/usr/lib");::g' -e "$expression" "$ldscript"
+		done
 		
 	popd >/dev/null
 }

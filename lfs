@@ -288,8 +288,6 @@ function parseCommandLine()
 
 function setPaths()
 {
-	export PATH=/sbin:/bin:/usr/sbin:/usr/bin
-	
 	essentialProgramCheck mkdir awk
 	
 	if [ ! -d "$lfsConfigPath" ]; then
