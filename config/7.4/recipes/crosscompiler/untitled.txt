@@ -1,0 +1,27 @@
+set -o errexit +o hashall
+
+version 2013-10-30
+{
+	depends musl-cross
+	
+	include checkpolicy 2.2
+	include libselinux 2.2.1
+	include libsemanage 2.2
+	include libsepol 2.2
+	include policycoreutils 2.2.2
+	include sepolgen 1.2.1
+}
+
+function install_crosscompiler_linux()
+{
+	pushdDependencyFolder
+	
+		make mrproper
+		
+		make V=2 O="$buildFolder" ARCH="$LFS_ARCHITECTURE" INSTALL_HDR_PATH=../../install/usr/include headers_install
+
+		local -r buildFolder=../"$LFS_DEPENDENCY_NAME"-build
+		mkdir -m 0755 -p "$buildFolder"
+	
+	popdDepdendencyFolder
+}

@@ -2,8 +2,10 @@ set -o errexit +o hashall
 
 version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 {
+	localPackage_crosscompiler_musl_cross_gccVersion=4.8.1
+	
 	include binutils 2.23.2
-	include gcc 4.8.1
+	include "$localPackage_crosscompiler_musl_cross_gccVersion" 4.8.1
 	include gmp 5.1.2
 	include elfutils 0.154
 	include linux 3.10.10
@@ -14,15 +16,17 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	install_binaries_in_paths "$LFS_ARCHITECTURE"-linux-musl/bin "$LFS_ARCHITECTURE"-linux-musl/"$LFS_ARCHITECTURE"-linux-musl/bin
 	
 	make_executable_binary \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/cc1 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/cc1plus \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/collect2 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/lto1 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/lto-wrapper \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/fixincl \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/fixinc.sh \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/mkheaders \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/mkinstalldirs
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1plus \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/collect2 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto-wrapper \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixincl \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixinc.sh \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkheaders \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkinstalldirs
+	
+	unset localPackage_crosscompiler_musl_cross_gccVersion
 }
 
 function install_crosscompiler_musl-cross()
