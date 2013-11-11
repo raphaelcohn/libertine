@@ -108,7 +108,8 @@ function install_crosscompiler_musl-cross()
 					# We also need a final build of binutils with this corrected sysroot, so we link in the binaries for an in-tree build
 					# We do not need to build musl again, because it has no path dependencies (except for the musl-gcc wrapper and specs, which we won't require in any event)
 					
-					pushd "$MUSL_CC_BASE"/..gcc-$GCC_VERSION >/dev/null
+					unset CDPATH
+					cd "$MUSL_CC_BASE"/..gcc-$GCC_VERSION >/dev/null
 					
 						for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
 						do
@@ -118,7 +119,7 @@ function install_crosscompiler_musl-cross()
 						
 						make distclean || true
 					
-					popd >/dev/null
+					cd - >/dev/null
 					
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
 					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build --target=$TRIPLE \
