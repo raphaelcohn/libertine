@@ -133,10 +133,11 @@ function install_crosscompiler_musl-cross()
 					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
 					# --disable-werror and --with-lib-path for embedded binutils
-					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build "$1" "$2" --target=$TRIPLE \
-					--with-local-prefix=="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
-					--with-sysroot="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE" \
-					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
+					local -r ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
+					PREFIX="$ourPrefix" build "$1" "$2" --target=$TRIPLE \
+					--with-local-prefix=="$ourPrefix" \
+					--with-build-sysroot="$ourPrefix" \
+					--with-sysroot="$PREFIX"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
 			        --disable-libsanitizer \
 					--with-lib-path="=/lib64:=/lib" \
