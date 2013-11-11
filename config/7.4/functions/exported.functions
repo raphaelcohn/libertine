@@ -660,12 +660,17 @@ function depends()
 		# Holds the last set version
 		LFS_RECIPE_VERSION["${localSourcePackageName}"]=""
 		
-		local settingsFile="$settingsPath"/"$LFS_PHASE"/"$localSourcePackageName".settings
-		if [ -f "$settingsFile" ]; then
-			local -r settingsHash="$(sha256sum "$settingsFile" | awk 'NR==1 {print $1}')"
-			LFS_RECIPE_NAME="$localSourcePackageName" source "$settingsFile"
+		local -r kConfigFile="$settingsPath"/"$LFS_PHASE"/"$localSourcePackageName".config
+		if [ -f "$kConfigFile" ]; then
+			local -r settingsHash="$(sha256sum "$kConfigFile" | awk 'NR==1 {print $1}')"
 		else
-			local -r settingsHash="0"
+			local -r settingsFile="$settingsPath"/"$LFS_PHASE"/"$localSourcePackageName".settings
+			if [ -f "$settingsFile" ]; then
+				local -r settingsHash="$(sha256sum "$settingsFile" | awk 'NR==1 {print $1}')"
+				LFS_RECIPE_NAME="$localSourcePackageName" source "$settingsFile"
+			else
+				local -r settingsHash="0"
+			fi
 		fi
 		
 		local includeFile="$includesPath"/"$localSourcePackageName".include

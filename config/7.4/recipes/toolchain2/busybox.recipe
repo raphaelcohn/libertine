@@ -7,11 +7,36 @@ version 1.21.1
 
 function install_crosscompiler_busybox()
 {
+	local -r kConfigFile=
+	
 	pushdDependencyFolder
 
 		make defconfig
-	
-		make menuconfig
+		
+		declare -A busyboxConfiguration
+		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="xxxx"
+		busyboxConfiguration["CONFIG_SYSROOT"]="xxxx"
+		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I<libselinux-include-path>"
+		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L<libselinux-lib-path>"
+		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
+		busyboxConfiguration["CONFIG_FIRST_SYSTEM_ID"]="100"
+		busyboxConfiguration["CONFIG_LAST_SYSTEM_ID"]="999"
+		busyboxConfiguration["CONFIG_DEFAULT_MODULES_DIR"]="/lib/modules"
+		busyboxConfiguration["CONFIG_FEATURE_CROND_DIR"]="/var/spool/cron"
+		busyboxConfiguration["CONFIG_IFUPDOWN_IFSTATE_PATH"]="/var/run/ifstate"
+		busyboxConfiguration["CONFIG_DHCPD_LEASES_FILE"]="/var/lib/misc/udhcpd.leases"
+		busyboxConfiguration["CONFIG_UDHCPC_DEFAULT_SCRIPT"]="/usr/share/udhcpc/default.script"
+		
+		cp "$LFS_DEPENDENCY_PACKAGE_PATH"/config .config
+		
+		local key
+		local value
+		for key in "${!busyboxConfiguration["@"]}"
+		do
+			value="${busyboxConfiguration[""$key""]}"
+			sed -i -e 's^'${key}'=.*$;'${key}'="'${value}'";g' .config
+		done
+		
 	
 		# prefix to the cross compile tools
 		#CROSS_COMPILE=arm-linux-uclibcgnueabi-

@@ -126,6 +126,7 @@ function install_crosscompiler_musl-cross()
 					PREFIX="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" build "$1" "$2" --target=$TRIPLE \
 					--with-local-prefix=="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
 					--with-sysroot="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE" \
+					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
 			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
 			        --disable-libsanitizer \
 					--with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \

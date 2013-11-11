@@ -231,7 +231,12 @@ function dependencyToPath()
 	if [ "$LFS_DEPENDENCY_INCLUDE_HASH" != "0" ]; then
 		cp "$includesPath"/"$LFS_DEPENDENCY_NAME".include "$absoluteCompletePath"/include
 	fi
-	if [ "$LFS_DEPENDENCY_SETTINGS_HASH" != "0" ]; then
+
+	if [ -f "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".config ]; then
+		cp "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".config "$absoluteCompletePath"/config
+	fi
+
+	if [ -f "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".settings ]; then
 		cp "$settingsPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".settings "$absoluteCompletePath"/settings
 	fi
 }
