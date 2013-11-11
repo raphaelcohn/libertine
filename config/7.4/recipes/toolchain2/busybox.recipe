@@ -14,8 +14,8 @@ function install_crosscompiler_busybox()
 		make defconfig
 		
 		declare -A busyboxConfiguration
-		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="xxxx"
-		busyboxConfiguration["CONFIG_SYSROOT"]="xxxx"
+		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_ARCHITECTURE"-linux-musl-
+		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_ARCHITECTURE"-linux-musl
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I<libselinux-include-path>"
 		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L<libselinux-lib-path>"
 		busyboxConfiguration["CONFIG_PREFIX"]="./_install"

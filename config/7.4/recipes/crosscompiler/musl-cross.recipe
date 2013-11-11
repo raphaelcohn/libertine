@@ -14,15 +14,15 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	install_binaries_in_paths "$LFS_ARCHITECTURE"-linux-musl/bin "$LFS_ARCHITECTURE"-linux-musl/"$LFS_ARCHITECTURE"-linux-musl/bin
 	
 	make_executable_binary \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/cc1 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/cc1plus \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/collect2 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto1 \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/lto-wrapper \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/fixincl \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/fixinc.sh \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/mkheaders \
-		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"/install-tools/mkinstalldirs
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/cc1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/cc1plus \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/collect2 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/lto1 \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/lto-wrapper \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/fixincl \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/fixinc.sh \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/mkheaders \
+		"$LFS_ARCHITECTURE"-linux-musl/libexec/gcc/"$LFS_ARCHITECTURE"-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/install-tools/mkinstalldirs
 }
 
 function install_crosscompiler_musl-cross()
@@ -207,7 +207,7 @@ function install_crosscompiler_musl-cross()
 	echo "IGNORING LDSCRIPTS FOR NOW"
 	return 0
 	
-	pushd ../install/"$LFS_ARCHITECTURE"-linux-musl"$LFS_ARCHITECTURE"-linux-musl/lib/ldscripts >/dev/null
+	pushd ../install/"$LFS_ARCHITECTURE"-linux-musl/"$LFS_ARCHITECTURE"-linux-musl/lib/ldscripts >/dev/null
 		
 		local ldscript
 		# Prevents any spaces in LFS being expanded as separate argv
