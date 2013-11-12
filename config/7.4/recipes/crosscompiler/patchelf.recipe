@@ -3,6 +3,8 @@ set -o errexit +o hashall
 version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
 {
 	depends musl-cross
+	
+	install_binaries_in_paths bin
 }
 
 function install_crosscompiler_patchelf()
@@ -11,12 +13,6 @@ function install_crosscompiler_patchelf()
 	
 		# relies on autoreconf
 		./bootstrap.sh
-		
-		echo $PATH 1>&2
-		which gcc 1>&2
-		which g++ 1>&2
-		which toolchain2-gcc 1>&2
-		which toolchain2-g++ 1>&2
 		
 		CC="$LFS_toolchain2_CC" \
 		CXX="$LFS_toolchain2_CXX" \

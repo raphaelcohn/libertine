@@ -25,6 +25,8 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixinc.sh \
 		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkheaders \
 		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkinstalldirs
+		"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib/libc.so \
+		"$LFS_TRIPLE"/"$LFS_TRIPLE"/bin
 	
 	unset localPackage_crosscompiler_musl_cross_gccVersion
 }
@@ -368,7 +370,58 @@ function install_crosscompiler_musl-cross()
 	
 	EOF
 	
+	# Not currently used, but will be
+	local -r incdir=INCLUDE_DIR
+	local -r libdir=LIB_DIR
+	local -r ldso=LDSO_PATH
+	cat >../install/"$LFS_TRIPLE"/lib/gcc/x86_64-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/musl.specs <<-EOF
+		%rename cpp_options old_cpp_options
+
+		*cpp_options:
+		-nostdinc -isystem $incdir -isystem include%s %(old_cpp_options)
+
+		*cc1:
+		%(cc1_cpu) -nostdinc -isystem $incdir -isystem include%s
+
+		*link_libgcc:
+		-L$libdir -L .%s
+
+		*libgcc:
+		libgcc.a%s %:if-exists(libgcc_eh.a%s)
+
+		*startfile:
+		%{!shared: $libdir/%{pie:S}crt1.o} $libdir/crti.o %{shared|pie:crtbeginS.o%s;:crtbegin.o%s}
+
+		*endfile:
+		%{shared|pie:crtendS.o%s;:crtend.o%s} $libdir/crtn.o
+
+		*link:
+		-dynamic-linker $ldso -nostdlib %{shared:-shared} %{static:-static} %{rdynamic:-export-dynamic}
+
+		*esp_link:
+
+
+		*esp_options:
+
+
+		*esp_cpp_options:
+		
+		
+	EOF
+	
+	
+	# Ensure the dynamic linker library exists
+	pushd ../install/"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib >/dev/null
+	
+		chmod +x libc.so
+		ln -s libc.so ld-musl-"$LFS_ARCHITECTURE".so.1
+		
+	popd >/dev/null
+	
 	pushd ../install/"$LFS_TRIPLE"/bin >/dev/null
+		
+		# creates ldd
+		ln -s ../"$LFS_TRIPLE"/lib/libc.so ldd
 		
 		local -r allArgs='$@'
 		
