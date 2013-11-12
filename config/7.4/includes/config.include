@@ -1,0 +1,9 @@
+set -o errexit +o hashall
+
+# Latest releases are at http://git.savannah.gnu.org/gitweb/?p=config.git;a=shortlog;h=refs/heads/master
+# They change quite rapidly (weekly / monthly); the link can be updated
+# Original URL: http://git.savannah.gnu.org/gitweb/?p=config.git;a=snapshot;sf=tgz;h=5e4de70bb0064d974a848fbe3a445d5dafaf7b48
+# Rearranged for sanity: http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p=config.git;h=5e4de70bb0064d974a848fbe3a445d5dafaf7b48
+
+# Revolting URL
+source_package SAVANNAH "$LFS_SOURCE_PACKAGE_NAME".git';h='"$LFS_SOURCE_PACKAGE_VERSION" MD5:d294f5d4666e4ccb585c3e3e1bf8e067,SHA1:427ae071452740908274a12b5e91d0985ba6ec75,SHA256:66a63848cea0584f705fc90102237cb009f4c024f36ade560d9b21cf7f73433d,SHA512:401308192c089857d986585634ef3affc85e343db32cc34996ff8cff11b49f5ad6463d5c2f3579d86677f282309e1f63b299b0027c5e3712e74d86c54e88ff2e gzip "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION:0:7}"

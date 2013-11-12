@@ -49,6 +49,7 @@ mirror  MUSL     http://www.musl-libc.org/
 mirror  BUSYBOX  http://www.busybox.net/
 mirror  SELINUX  http://userspace.selinuxproject.org/releases/
 mirror  AMD      'http://developer.amd.com/amd-license-agreement/?f='
+mirror  SAVANNAH 'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html

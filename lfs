@@ -354,7 +354,7 @@ function setPaths()
 	
 	readonly settingsPath="$distributionConfigPath"/settings
 	if [ ! -d "$settingsPath" ]; then
-		exitError "settings file $settingsPath does not exist or is not a directory"
+		exitError "settings path $settingsPath does not exist or is not a directory"
 	fi
 	
 	if [ ! -d "$lfsPath" ]; then

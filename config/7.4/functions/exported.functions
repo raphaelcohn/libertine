@@ -1349,6 +1349,43 @@ function crosscompilerInstallPackagePrototype()
 
 function toolchain2InstallPackagePrototype()
 {
+	if [ -d config ]; then
+		local dependencyFolder
+		for dependencyFolder in *
+		do
+			if [ "$dependencyFolder" = "config" ]; then
+				continue
+			fi
+		
+			if [ ! -d "$dependencyFolder" ]; then
+				continue
+			fi
+		
+			# Update autotools malarkey
+			local configFolder
+			local configFile
+			for configFolder in . support
+			do
+				for configFile in config.sub configfsf.sub
+				do
+					if [ -e "$configFolder"/"$configFile" ]; then
+						mv "$configFile" "$configFile".orig
+						cp ../config/config.sub "$configFolder"/"$configFile"
+						chmod +x "$configFolder"/"$configFile"
+					fi
+				done
+				for configFile in config.guess
+				do
+					if [ -e "$configFolder"/"$configFile" ]; then
+						mv "$configFile" "$configFile".orig
+						cp ../config/config.guess "$configFolder"/"$configFile"
+						chmod +x "$configFolder"/"$configFile"
+					fi
+				done
+			done
+		done
+	fi
+		
 	pushdDependencyFolder
 		
 		CC="$LFS_toolchain2_CC" \
