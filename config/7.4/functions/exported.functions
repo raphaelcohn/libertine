@@ -1333,6 +1333,9 @@ function fixUpAutoToolsConfig()
 			if [ "$dependencyFolder" = "config" ]; then
 				continue
 			fi
+			if [ "${dependencyFolder:0:7}" = "config-" ]; then
+				continue
+			fi
 		
 			if [ ! -d "$dependencyFolder" ]; then
 				continue
