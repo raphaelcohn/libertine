@@ -660,8 +660,11 @@ function installPackagePathBinariesToPath()
 			targetBinary="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"/"$binary"
 			
 			if [ -e "$targetBinary" ]; then
+				
+				# It looks like 
+				
 				chattr -ai "$targetBinary" 2>/dev/null || true
-				rm -rf -- "$targetBinary"
+				unlink "$targetBinary"
 			fi
 
 			ln -s "$sourceBinary" "$targetBinary"
