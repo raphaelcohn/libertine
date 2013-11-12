@@ -1,0 +1,6 @@
+set -o errexit +o hashall
+
+# Evil. Uses a POST
+# curl --data-ascii 'amd_developer_central_nonce=bb2917a5f9&_wp_http_referer=%2Famd-license-agreement%2F%3Ff%3Dx86_open64-4.5.2.1-1.src.tar.bz2&f=eDg2X29wZW42NC00LjUuMi4xLTEuc3JjLnRhci5iejI%3D' 'http://developer.amd.com/amd-license-agreement/?f=x86_open64-4.5.2.1-1.src.tar.bz2'
+
+LFS_DOWNLOAD_POST="amd_developer_central_nonce=bb2917a5f9&_wp_http_referer=%2Famd-license-agreement%2F%3Ff%3Dx86_open64-${LFS_SOURCE_PACKAGE_VERSION}.src.tar.bz2&f=eDg2X29wZW42NC00LjUuMi4xLTEuc3JjLnRhci5iejI%3D" source_package AMD x86_open64-"$LFS_SOURCE_PACKAGE_VERSION".tar.bz2 MD5:9369e2635362932980e2d397ffb7b8cc

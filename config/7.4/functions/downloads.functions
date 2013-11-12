@@ -15,7 +15,7 @@ function downloadCertificateAuthorities()
 	local certificateAuthorityName
 	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
-		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}"
+		downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "${certificateAuthorities_Post["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}"
 	done
 }
 
@@ -24,7 +24,7 @@ function downloadSignatures()
 	local -i index
 	for index in ${!signatures_Mirror[@]}
 	do
-		downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "yes" ""
+		downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "yes" ""
 	done
 }
 
@@ -33,7 +33,7 @@ function downloadKeyrings()
 	local -i index
 	for index in ${!keyrings_Mirror[@]}
 	do
-		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$keyNumber]}" "no" "${keyrings_Hashes[$index]}"
+		downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$index]}" "${keyrings_Post[$index]}" "no" "${keyrings_Hashes[$index]}"
 	done
 }
 
@@ -42,7 +42,7 @@ function downloadKeys()
 	local -i index
 	for index in ${!keys_Mirror[@]}
 	do
-		downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "yes" "${keys_Hashes[$index]}"
+		downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "${keys_Post[$index]}" "yes" "${keys_Hashes[$index]}"
 	done
 }
 
@@ -51,7 +51,7 @@ function downloadSources()
 	local -i index
 	for index in ${!sourcePackages_Mirror[@]}
 	do
-		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "no" "${sourcePackages_Hashes[$index]}"
+		downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_Post[$index]}" "no" "${sourcePackages_Hashes[$index]}"
 	done
 }
 
@@ -60,6 +60,6 @@ function downloadPatches()
 	local -i index
 	for index in ${!patches_Mirror[@]}
 	do
-		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "no" "${patches_Hashes[$index]}"
+		downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "${patches_Post[$index]}" "no" "${patches_Hashes[$index]}"
 	done
 }

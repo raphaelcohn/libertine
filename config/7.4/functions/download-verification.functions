@@ -24,8 +24,8 @@ function linkOrCopyFile()
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrorNames logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -ne 8 ]; then
-		exitError "Needs 8 arguments"
+	if [ $# -ne 9 ]; then
+		exitError "Needs 9 arguments"
 	fi
 	
 	local -r downloadName="$1"
@@ -34,8 +34,9 @@ function downloadFileAndCheckHash()
 	local -r toPath="$4"
 	local -r fileName="$5"
 	local -r decompressionOption="$6"
-	local -r hashesMayBeEmpty="$7"
-	local -r hashes="$8"
+	local -r postData="$7"
+	local -r hashesMayBeEmpty="$8"
+	local -r hashes="$9"
 	
 	local -r url="${mirrors_Url["${mirrorName}"]}${relativePath}"
 	local -i exitCode
@@ -115,8 +116,15 @@ function downloadFileAndCheckHash()
 			local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthorityBundle" "--cert-type" "$certType")
 		fi
 		
+		if [ -z "$postData" ]; then
+			local -ar postOption=("--get")
+		else
+			local -ar postOption=("--data-ascii" "$postData")
+		fi
+		
 		set +e
 		curl --fail --silent --show-error \
+		"${postOption[@]}" \
 		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 "${certificateAuthorityOption[@]}" \

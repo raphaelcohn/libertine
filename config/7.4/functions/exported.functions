@@ -16,18 +16,40 @@ declare_for_chroot -a signatures_Mirror
 declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
 declare_for_chroot -a signatures_Compression
+declare_for_chroot -a signatures_Post
 
 declare_for_chroot -a keyrings_Mirror
 declare_for_chroot -a keyrings_RelativePath
 declare_for_chroot -a keyrings_FileName
 declare_for_chroot -a keyrings_Hashes
 declare_for_chroot -a keyrings_Compression
+declare_for_chroot -a keyrings_Post
 
 declare_for_chroot -a keys_Mirror
 declare_for_chroot -a keys_RelativePath
 declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
+declare_for_chroot -a keys_Post
+
+declare_for_chroot -a sourcePackages_Name
+declare_for_chroot -a sourcePackages_Version
+declare_for_chroot -a sourcePackages_Mirror
+declare_for_chroot -a sourcePackages_RelativePath
+declare_for_chroot -a sourcePackages_Hashes
+declare_for_chroot -a sourcePackages_FileName
+declare_for_chroot -a sourcePackages_Compression
+declare_for_chroot -a sourcePackages_Post
+declare_for_chroot -a sourcePackages_ExtractedTarballFolder
+declare_for_chroot -a sourcePackages_IsTarbomb
+
+declare_for_chroot -a patches_Mirror
+declare_for_chroot -a patches_RelativePath
+declare_for_chroot -a patches_FileName
+declare_for_chroot -a patches_Hashes
+declare_for_chroot -a patches_Compression
+declare_for_chroot -a patches_Post
+declare_for_chroot -ai patches_SourcePackageIndex
 
 declare_for_chroot -A dependency_Phase
 declare_for_chroot -A dependency_Name
@@ -51,23 +73,6 @@ declare_for_chroot -A dependency_IncludeIndices
 declare_for_chroot -a includes_DependencyKey
 declare_for_chroot -a includes_Name
 declare_for_chroot -a includes_Version
-
-declare_for_chroot -a sourcePackages_Name
-declare_for_chroot -a sourcePackages_Version
-declare_for_chroot -a sourcePackages_Mirror
-declare_for_chroot -a sourcePackages_RelativePath
-declare_for_chroot -a sourcePackages_Hashes
-declare_for_chroot -a sourcePackages_FileName
-declare_for_chroot -a sourcePackages_Compression
-declare_for_chroot -a sourcePackages_ExtractedTarballFolder
-declare_for_chroot -a sourcePackages_IsTarbomb
-
-declare_for_chroot -a patches_Mirror
-declare_for_chroot -a patches_RelativePath
-declare_for_chroot -a patches_FileName
-declare_for_chroot -a patches_Hashes
-declare_for_chroot -a patches_Compression
-declare_for_chroot -ai patches_SourcePackageIndex
 
 # Since this file is source'd inside a function, the declare builtin defaults to making variables local!
 declare -ig nextSystemUid=-1
@@ -163,6 +168,7 @@ function signature()
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
 				signatures_FileName[$index]="$hashSignatureFileName"
 				signatures_Compression[$index]=""
+				signatures_Post[$index]="$LFS_DOWNLOAD_POST"
 				
 				case "$hashName" in
 					HKP|HKP_UNCOMPRESSED)
@@ -209,6 +215,7 @@ function keyring()
 	keyrings_FileName+=("$ourFileName")
 	keyrings_Hashes+=("${ourHashes//,/ }")
 	keyrings_Compression+=("")
+	keyrings_Post+=("$LFS_DOWNLOAD_POST")
 	
 	signature "$ourMirror" "$ourRelativePath" "${keyrings_Hashes[$index]}"
 }
@@ -252,6 +259,7 @@ function key()
 	keys_FileName+=("$ourFileName")
 	keys_Hashes+=("${ourHashes//,/ }")
 	keys_Compression+=("")
+	keys_Post+=("$LFS_DOWNLOAD_POST")
 	
 	signature "$ourMirror" "$ourRelativePath" "${keys_Hashes[$index]}"
 }
@@ -468,6 +476,7 @@ function source_package()
 	sourcePackages_RelativePath+=("$ourRelativePath")
 	sourcePackages_Hashes+=("${ourHashes//,/ }")
 	sourcePackages_Compression+=("$ourCompression")
+	sourcePackages_Post+=("$LFS_DOWNLOAD_POST")
 	sourcePackages_FileName+=("$ourFileName")
 	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
 	sourcePackages_IsTarbomb+=("$isTarbomb")
@@ -535,6 +544,7 @@ function source_patch()
 	patches_RelativePath+=("$ourRelativePath")
 	patches_Hashes+=("${ourHashes//,/ }")
 	patches_Compression+=("")
+	patches_Post+=("$LFS_DOWNLOAD_POST")
 	patches_SourcePackageIndex+=($sourcePackageIndex)
 	
 	if [ -z "$existingPatchIndices" ]; then

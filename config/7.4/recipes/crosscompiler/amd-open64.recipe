@@ -1,0 +1,15 @@
+set -o errexit +o hashall
+
+version 20131030
+{
+	depends musl-cross
+}
+
+function install_crosscompiler_amd-open64()
+{
+	pushdDependencyFolder
+	
+		:
+	
+	popdDepdendencyFolder
+}
