@@ -6,4 +6,4 @@ set -o errexit +o hashall
 # Rearranged for sanity: http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p=config.git;h=5e4de70bb0064d974a848fbe3a445d5dafaf7b48
 
 # Revolting URL
-source_package SAVANNAH "$LFS_SOURCE_PACKAGE_NAME".git';h='"$LFS_SOURCE_PACKAGE_VERSION" NO_DIGESTS_BECAUSE_VALUE_IS_UNIQUE_PER_DOWNLOAD gzip "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION:0:7}"
+source_package SAVANNAH "$LFS_SOURCE_PACKAGE_NAME".git';h='"$LFS_SOURCE_PACKAGE_VERSION" NO_DIGESTS_BECAUSE_VALUE_IS_UNIQUE_PER_DOWNLOAD "$LFS_SOURCE_PACKAGE_NAME"-"${LFS_SOURCE_PACKAGE_VERSION:0:7}" gzip
