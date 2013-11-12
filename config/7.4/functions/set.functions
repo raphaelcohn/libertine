@@ -88,6 +88,6 @@ function setCFlags()
 	declare_for_chroot CFLAGS
 	declare_for_chroot CXXFLAGS
 	
-	CFLAGS="-march=${LFS_CPU} -O2 -pipe -D_FORTIFY_SOURCE=2"
+	CFLAGS="-march=${LFS_CPU} -O2 -fno-omit-frame-pointer -pipe -D_FORTIFY_SOURCE=2"
 	CXXFLAGS="$CFLAGS"
 }

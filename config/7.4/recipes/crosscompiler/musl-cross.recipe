@@ -376,9 +376,6 @@ function install_crosscompiler_musl-cross()
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )
 		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
-		
-		# doesn't exist
-		# rm cc
 		cat >toolchain2-gcc <<-EOF
 			#!/bin/sh
 			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
@@ -386,7 +383,6 @@ function install_crosscompiler_musl-cross()
 		ln toolchain2-gcc cc
 		chmod +x toolchain2-gcc
 		
-		rm c++
 		cat >toolchain2-g++ <<-EOF
 			#!/bin/sh
 			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
