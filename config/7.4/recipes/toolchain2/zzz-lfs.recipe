@@ -4,7 +4,6 @@ version 0
 {
 	depends busybox
 	depends ncurses
-	depends bash
 	depends file
 	depends gettext
 	depends m4
