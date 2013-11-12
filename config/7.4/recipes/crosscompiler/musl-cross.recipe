@@ -369,7 +369,7 @@ function install_crosscompiler_musl-cross()
 	
 	EOF
 	
-	pushd ../install/"$LFS_TRIPLE"/"$LFS_TRIPLE"/bin >/dev/null
+	pushd ../install/"$LFS_TRIPLE"/bin >/dev/null
 		
 		local -r allArgs='$@'
 		
