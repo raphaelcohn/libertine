@@ -172,6 +172,10 @@ function downloadFileAndCheckHash()
 		IFS=':' read -r -d$'\n' hashName hashValue hashSignatureFileName <<<"$hashNameAndValue"
 		case "$hashName" in
 			
+			NO_DIGESTS_BECAUSE_VALUE_IS_UNIQUE_PER_DOWNLOAD)
+				hasHash=0
+			;;
+			
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
 				hashProgram=${hashName,,}sum
 				hasHash=0
