@@ -9,7 +9,7 @@ version 4.2
 function install_crosscompiler_bash()
 {
 	local -r oldMAKEFLAGS="$MAKEFLAGS"
-	export MAKEFLAGS=""
+	export MAKEFLAGS="-j1"
 	crosscompilerInstallPackagePrototype --without-bash-malloc --disable-nls
 	export MAKEFLAGS="$MAKEFLAGS"
 }
