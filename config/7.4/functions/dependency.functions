@@ -639,7 +639,7 @@ function installPackagePathBinariesToPath()
 		return 0
 	fi
 
-	chattr -ai "$LFS_DEPENDENCY_BINPATH_PATH" || true
+	chattr -R -ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
 	
 	pushd "$LFS_DEPENDENCY_BINPATH_PATH" >/dev/null
 
@@ -660,7 +660,7 @@ function installPackagePathBinariesToPath()
 			targetBinary="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"/"$binary"
 			
 			if [ -e "$targetBinary" ]; then
-				chattr -ai "$targetBinary" || true
+				chattr -ai "$targetBinary" 2>/dev/null || true
 				rm -rf -- "$targetBinary"
 			fi
 
@@ -669,7 +669,7 @@ function installPackagePathBinariesToPath()
 	
 	popd >/dev/null
 
-	chattr +ai "$LFS_DEPENDENCY_BINPATH_PATH" || true
+	chattr +ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
 }
 
 # Locks down /source, /log, etc
