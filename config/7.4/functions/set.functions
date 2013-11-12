@@ -5,6 +5,7 @@ function doSets()
 	setLocale
 	setArchitectures
 	setMakeFlags
+	setCFlags
 }
 
 function setLocale()
@@ -20,27 +21,33 @@ function setArchitectures()
 	
 	# Or gcc -dumpmachine | sed 's/-.*//'
 	# Or uname -m
-	
+
+	# LFS_CPU is used for -march=LFS_CPU
 	case "$(echo $MACHTYPE | awk -v FS=- '{print $1}')" in
 		
 		i386|i486|i586|i686)
 			LFS_ARCHITECTURE=i386
+			LFS_CPU=native
 		;;
 		
 		x86_64)
 			LFS_ARCHITECTURE=x86_64
+			LFS_CPU=bdver2
 		;;
 		
 		arm*)
 			LFS_ARCHITECTURE=arm
+			LFS_CPU=native
 		;;
 		
 		mips*)
 			LFS_ARCHITECTURE=mips
+			LFS_CPU=native
 		;;
 		
 		powerpc* | ppc*)
 			LFS_ARCHITECTURE=powerpc
+			LFS_CPU=native
 		;;
 		
 		*)
@@ -53,6 +60,10 @@ function setArchitectures()
 	# Four-component style
 	LFS_TARGET="$LFS_ARCHITECTURE"-lfs-linux-gnu
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TARGET')
+	
+	# Triple
+	LFS_TRIPLE="$LFS_ARCHITECTURE"-linux-musl
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TRIPLE')
 }
 
 function setMakeFlags()
@@ -67,4 +78,16 @@ function setMakeFlags()
 	
 	declare_for_chroot -x MAKEFLAGS
 	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug=bijm"
+}
+
+function setCFlags()
+{
+	# Also, https://wiki.ubuntu.com/Security/Features
+	
+	# Advice taken from https://wiki.gentoo.org/wiki/GCC_optimization and http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
+	declare_for_chroot CFLAGS
+	declare_for_chroot CXXFLAGS
+	
+	CFLAGS="-march=${LFS_CPU} -O2 -pipe -D_FORTIFY_SOURCE=2"
+	CXXFLAGS="$CFLAGS"
 }
