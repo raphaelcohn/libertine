@@ -365,7 +365,6 @@ function install_crosscompiler_musl-cross()
 
 		*link_command:
 		%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:    %(linker) %{fuse-linker-plugin:    %e-fuse-linker-plugin is not supported in this configuration}%{flto|flto=*:%<fcompare-debug*}     %{flto} %{flto=*} %l %{pie:-pie} %{fuse-ld=*:-fuse-ld=%*}    %X %{o*} %{e*} %{N} %{n} %{r}    %{s} %{t} %{u*} %{z} %{Z} %{!nostdlib:%{!nostartfiles:%S}}    %{static:} %{L*} %(mfwrap) %(link_libgcc) %{!nostdlib:%{!nodefaultlibs:%{fsanitize=address:%{!shared:libasan_preinit%O%s} %{static-libasan:%{!shared:-Bstatic --whole-archive -lasan --no-whole-archive -Bdynamic}}%{!static-libasan:-lasan}}     %{fsanitize=thread:%{static-libtsan:%{!shared:-Bstatic --whole-archive -ltsan --no-whole-archive -Bdynamic}}%{!static-libtsan:-ltsan}}}} %o    %{fopenmp|ftree-parallelize-loops=*:%:include(libgomp.spec)%(link_gomp)}    %{fgnu-tm:%:include(libitm.spec)%(link_itm)}    %(mflib)  %{fsplit-stack: --wrap=pthread_create}    %{fprofile-arcs|fprofile-generate*|coverage:-lgcov} %{!nostdlib:%{!nodefaultlibs:%{fsanitize=address: %{static-libasan:-ldl -lpthread}    %{static:%ecannot specify -static with -fsanitize=address}    %{fsanitize=thread:%e-fsanitize=address is incompatible with -fsanitize=thread}}    %{fsanitize=thread: %{static-libtsan:-ldl -lpthread}    %{!pie:%{!shared:%e-fsanitize=thread linking must be done with -pie or -shared}}}}}     %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}}    %{!nostdlib:%{!nostartfiles:%E}} %{T*} }}}}}}
-
 	
 	EOF
 	
