@@ -1319,6 +1319,14 @@ function dependencyPath()
 function fixUpAutoToolsConfig()
 {
 	if [ -d config ]; then
+		
+		pushd config >/dev/null
+			local -r configSubFile="$(pwd)"/config.sub
+			local -r configGuessFile="$(pwd)"/config.guess
+			chmod +x "$configSubFile"
+			chmod +x "$configGuessFile"
+		popd >/dev/null
+		
 		local dependencyFolder
 		for dependencyFolder in *
 		do
@@ -1329,29 +1337,35 @@ function fixUpAutoToolsConfig()
 			if [ ! -d "$dependencyFolder" ]; then
 				continue
 			fi
-		
-			# Update autotools malarkey
-			local configFolder
-			local configFile
-			for configFolder in . support
-			do
-				for configFile in config.sub configfsf.sub
+			
+			pushd "$dependencyFolder" >/dev/null
+			
+				# Update autotools malarkey
+				local configFolder
+				local configFile
+				for configFolder in . support
 				do
-					if [ -e "$configFolder"/"$configFile" ]; then
-						mv "$configFile" "$configFile".orig
-						cp ../config/config.sub "$configFolder"/"$configFile"
-						chmod +x "$configFolder"/"$configFile"
-					fi
+					pushd "$configFolder" >/dev/null
+					
+						for configFile in config.sub configfsf.sub
+						do
+							if [ -f "$configFile" ]; then
+								mv "$configFile" "$configFile".orig
+								ln "$configSubFile" "$configFile"
+							fi
+						done
+						for configFile in config.guess
+						do
+							if [ -f "$configFile" ]; then
+								mv "$configFile" "$configFile".orig
+								ln "$configGuessFile" "$configFile"
+							fi
+						done
+						
+					popd >/dev/null
 				done
-				for configFile in config.guess
-				do
-					if [ -e "$configFolder"/"$configFile" ]; then
-						mv "$configFile" "$configFile".orig
-						cp ../config/config.guess "$configFolder"/"$configFile"
-						chmod +x "$configFolder"/"$configFile"
-					fi
-				done
-			done
+			
+				popd >/dev/null
 		done
 	fi
 }
