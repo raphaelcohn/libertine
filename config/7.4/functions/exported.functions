@@ -1335,6 +1335,7 @@ function crosscompilerInstallPackagePrototype()
 		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
 		CXXFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
 		./configure \
+		--build="$LFS_TRIPLE" \
 		--host="$LFS_TRIPLE" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		$@
