@@ -432,14 +432,12 @@ function install_crosscompiler_musl-cross()
 			#!/bin/sh
 			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
 		EOF
-		ln toolchain2-gcc cc
 		chmod +x toolchain2-gcc
 		
 		cat >toolchain2-g++ <<-EOF
 			#!/bin/sh
 			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
 		EOF
-		ln toolchain2-g++ c++
 		chmod +x toolchain2-g++
 		
 	popd >/dev/null

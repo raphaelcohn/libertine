@@ -8,6 +8,4 @@ version 4.2
 function install_toolchain2_bash()
 {
 	toolchain2InstallPackagePrototype --without-bash-malloc
-	
-	#ln -sv bash /"$LFS_TOOLS"/bin/sh
 }
