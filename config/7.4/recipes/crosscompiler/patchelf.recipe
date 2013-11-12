@@ -9,29 +9,12 @@ version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
 
 function install_crosscompiler_patchelf()
 {
-	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
-	# ? -Wl,-z,relro,-z,now ?
-	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
-	# -fpic -pie  - smaller, faster, might not work
-	# -fPIC -pie
-	# -Wl,-rpath,$(DEFAULT_LIB_INSTALL_PATH)  - specify runtime ld search path
 	pushdDependencyFolder
 	
 		# relies on autoreconf
 		./bootstrap.sh
 		
-		CC="$LFS_toolchain2_CC" \
-		CXX="$LFS_toolchain2_CXX" \
-		CFLAGS="-static -Wl,-Bstatic -static-libgcc $CFLAGS" \
-		CXXFLAGS="-static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
-		./configure \
-		--host="$LFS_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		--disable-dependency-tracking
-		
-		make
-		
-		make DESTDIR="$LFS" install
-		
 	popdDepdendencyFolder
+	
+	crosscompilerInstallPackagePrototype --disable-dependency-tracking
 }

@@ -2,10 +2,10 @@ set -o errexit +o hashall
 
 version 4.2
 {
-	:
+	depends musl-cross
 }
 
-function install_toolchain2_bash()
+function install_crosscompiler_bash()
 {
 	toolchain2InstallPackagePrototype --without-bash-malloc
 }
