@@ -1389,6 +1389,10 @@ function crosscompilerInstallPackagePrototype()
 	
 	pushdDependencyFolder
 		
+		echo "----" 1>&2
+		echo $(pwd) 1>&2
+		echo "----" 1>&2
+		
 		CC="$LFS_toolchain2_CC" \
 		CXX="$LFS_toolchain2_CXX" \
 		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
