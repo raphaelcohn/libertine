@@ -1316,38 +1316,7 @@ function dependencyPath()
 	done
 }
 
-function crosscompilerInstallPackagePrototype()
-{
-	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
-	# ? -Wl,-z,relro,-z,now ? only for executables / shared libs
-	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
-	# -fpic -pie  - smaller, faster, might not work
-	# -fPIC -pie
-	# -Wl,-rpath,$(DEFAULT_LIB_INSTALL_PATH)  - specify runtime ld search path - shouldn't it be '=' ?
-	# -Wl,--dynamic-linker=file  set name of dynamic linker eg /lib/blah !
-	# ??? -Wl,-pie
-	# -rpath vs -rpath-link : normally, use -rpath, except when sysroot is wrong - then set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix)
-	
-	pushdDependencyFolder
-		
-		CC="$LFS_toolchain2_CC" \
-		CXX="$LFS_toolchain2_CXX" \
-		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
-		CXXFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
-		./configure \
-		--build="$LFS_TRIPLE" \
-		--host="$LFS_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		$@
-		
-		make
-		
-		make DESTDIR="$LFS" install
-		
-	popdDepdendencyFolder
-}
-
-function toolchain2InstallPackagePrototype()
+function fixUpAutoToolsConfig()
 {
 	if [ -d config ]; then
 		local dependencyFolder
@@ -1385,7 +1354,45 @@ function toolchain2InstallPackagePrototype()
 			done
 		done
 	fi
+}
+
+function crosscompilerInstallPackagePrototype()
+{
+	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
+	# ? -Wl,-z,relro,-z,now ? only for executables / shared libs
+	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
+	# -fpic -pie  - smaller, faster, might not work
+	# -fPIC -pie
+	# -Wl,-rpath,$(DEFAULT_LIB_INSTALL_PATH)  - specify runtime ld search path - shouldn't it be '=' ?
+	# -Wl,--dynamic-linker=file  set name of dynamic linker eg /lib/blah !
+	# ??? -Wl,-pie
+	# -rpath vs -rpath-link : normally, use -rpath, except when sysroot is wrong - then set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix)
+	
+	fixUpAutoToolsConfig
+	
+	pushdDependencyFolder
 		
+		CC="$LFS_toolchain2_CC" \
+		CXX="$LFS_toolchain2_CXX" \
+		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
+		CXXFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
+		./configure \
+		--build="$LFS_TRIPLE" \
+		--host="$LFS_TRIPLE" \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+		$@
+		
+		make
+		
+		make DESTDIR="$LFS" install
+		
+	popdDepdendencyFolder
+}
+
+function toolchain2InstallPackagePrototype()
+{
+	fixUpAutoToolsConfig
+	
 	pushdDependencyFolder
 		
 		CC="$LFS_toolchain2_CC" \
