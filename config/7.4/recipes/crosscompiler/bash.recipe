@@ -8,5 +8,5 @@ version 4.2
 
 function install_crosscompiler_bash()
 {
-	crosscompilerInstallPackagePrototype --without-bash-malloc
+	crosscompilerInstallPackagePrototype --without-bash-malloc --disable-nls
 }
