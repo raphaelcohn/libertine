@@ -1412,6 +1412,7 @@ function makeWrapper()
 	LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
 	CXX="$cxxCompiler" \
 	LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
+	LDFLAGS="-static"
 	make "$@"
 }
 
