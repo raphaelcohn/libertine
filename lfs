@@ -598,7 +598,7 @@ function removeAnyFailedPackagesFromPreviousRuns()
 										continue
 									fi
 									
-									chattr -R -ai "$dependencyHashes" 2>/dev/null
+									chattr -R -ai "$dependencyHashes" 2>/dev/null || true
 									rm -rf "$dependencyHashes"
 									if [ -L current ]; then
 										if [ ! -e "$(readlink current)" ]; then
