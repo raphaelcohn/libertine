@@ -17,5 +17,5 @@ function hashDownload()
 }
 
 trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
-hashDownload
+hashDownload "$1"
 runOnTrap
