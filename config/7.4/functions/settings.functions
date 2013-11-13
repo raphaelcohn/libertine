@@ -1,6 +1,6 @@
 set -o errexit +o hashall
 
-declare_for_chroot -a settings_string
+declare_for_chroot -A settings_string
 function setting_string
 {
 	if [ $# -ne 2 ]; then
@@ -11,7 +11,7 @@ function setting_string
 	settings_string[$1]="$2"
 }
 
-declare_for_chroot -ai settings_integer
+declare_for_chroot -Ai settings_integer
 function setting_integer
 {
 	if [ $# -ne 2 ]; then
@@ -21,7 +21,7 @@ function setting_integer
 	settings_integer[$1]=$2
 }
 
-declare_for_chroot -ai settings_binary
+declare_for_chroot -Ai settings_binary
 function setting_binary
 {
 	if [ $# -ne 2 ]; then
