@@ -543,7 +543,7 @@ function removeAnyFailedPackagesFromPreviousRuns()
 	local dependencyVersion
 	local dependencyHashes
 	
-	pushd "$$optPath" >/dev/null
+	pushd "$optPath" >/dev/null
 		for phaseFolder in *
 		do
 			if [ ! -e "$phaseFolder" ]; then
