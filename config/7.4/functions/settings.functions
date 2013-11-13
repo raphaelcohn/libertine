@@ -7,7 +7,7 @@ function setting_string
 		exitError "Needs 2 arguments"
 	fi
 	
-	settings_string["${1}"]="$2"
+	settings_string["$1"]="$2"
 }
 
 declare_for_chroot -ai settings_integer
@@ -17,7 +17,7 @@ function setting_integer
 		exitError "Needs 2 arguments"
 	fi
 	
-	settings_integer["${1}"]=$2
+	settings_integer["$1"]=$2
 }
 
 declare_for_chroot -ai settings_binary
@@ -33,7 +33,7 @@ function setting_binary
 		exitError "binary value for $1 must be 0 (false) or 1 (true), not $2"
 	fi
 	
-	settings_binary["${1}"]=$2
+	settings_binary["$1"]=$2
 }
 
 # Use I18NPATH for -i and --prefix
