@@ -156,11 +156,11 @@ function dependencyToPath()
 		name="${dependency_Name["$dependency"]}"
 		dependencyRelativePaths["$name"]="${dependency_RelativePath["$dependency"]}"
 	done
-	
+
+	set -x
 	cp "$dependenciesFileUnsorted" /tmp/deps
 	
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
-	set -x
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
 	
 	cp $dependenciesFileSorted /tmp/sorted.a
