@@ -106,6 +106,9 @@ function executeFunctionUnderSudo()
 		$functionToExecute
 	EOF
 	
+	cp "$continutationBinaryForSudo" /tmp/abcd
+	ls -la "$continutationBinaryForSudo"
+	
 	# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} PATH="$PATH" /bin/bash "$continutationBinaryForSudo"
 	
