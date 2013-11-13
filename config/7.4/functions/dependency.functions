@@ -143,6 +143,7 @@ function dependencyToPath()
 	
 	
 	# Find and hash dependencies
+	set -x
 	addFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
 	addFileToRemoveOnExit
@@ -157,7 +158,6 @@ function dependencyToPath()
 		dependencyRelativePaths["$name"]="${dependency_RelativePath["$dependency"]}"
 	done
 
-	set -x
 	cp "$dependenciesFileUnsorted" /tmp/deps
 	
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
