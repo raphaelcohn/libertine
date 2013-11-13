@@ -143,7 +143,6 @@ function dependencyToPath()
 	
 	
 	# Find and hash dependencies
-	set -x
 	temporaryFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
 	temporaryFileToRemoveOnExit
@@ -157,17 +156,9 @@ function dependencyToPath()
 		name="${dependency_Name["$dependency"]}"
 		dependencyRelativePaths["$name"]="${dependency_RelativePath["$dependency"]}"
 	done
-
-	cp "$dependenciesFileUnsorted" /tmp/deps
-	
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	
-	cp $dependenciesFileSorted /tmp/sorted.a
 	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
-	
-	cp $dependenciesFileSorted /tmp/sorted.b
-	set +x
 	
 	
 	local -r recipeVersion="$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_SETTINGS_HASH"-"$dependenciesHash"
@@ -234,7 +225,9 @@ function dependencyToPath()
 	local dependencyPath
 	for dependencyName in "${!dependencyRelativePaths[@]}"
 	do
-		ln -s "${dependencyRelativePaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"/../../../../../"${dependencyRelativePaths["$dependencyName"]}"
+		ln -s ../../../../../"${dependencyRelativePaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
+		echo "$absoluteDependenciesPath"/"$dependencyName"
+		exit 50
 	done
 	
 	cp "$recipesPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".recipe "$absoluteCompletePath"/recipe
