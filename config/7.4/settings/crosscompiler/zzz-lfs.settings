@@ -5,4 +5,5 @@ setting_string LFS_AUTOTOOLS_CONFIG_VERSION "5e4de70bb0064d974a848fbe3a445d5dafa
 setting_string LFS_AUTOTOOLS_GNULIB_VERSION "43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42"
 
 echo "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+echo "${settings_string[LFS_AUTOTOOLS_GNULIB_VERSION]}"
 exit 50
