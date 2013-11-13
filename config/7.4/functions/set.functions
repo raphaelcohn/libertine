@@ -85,6 +85,7 @@ function setCFlags()
 	# PIE / PIC checks http://blog.fpmurphy.com/2008/06/position-independent-executables.html
 	
 	# Also, https://wiki.ubuntu.com/Security/Features
+	# https://wiki.debian.org/Hardening
 
 	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
 	# ? -Wl,-z,relro,-z,now ? only for executables / shared libs
