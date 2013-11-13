@@ -16,7 +16,7 @@ function install_crosscompiler_linux()
 {
 	pushdDependencyFolder
 	
-		:
+		crosscompilerInstallPackagePrototype
 	
 	popdDepdendencyFolder
 }

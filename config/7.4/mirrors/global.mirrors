@@ -6,10 +6,10 @@ set -o errexit +o hashall
 # Some URLs are trully hideous (unnecessarily so; these are just file locations which should NEVER change), and do nothing to encourage the sense that CAs act with transparency
 # Comodo web pages for CAs: https://support.comodo.com/index.php?_m=downloads&_a=view&parentcategoryid=1&pcid=30&nav=0,30
 mirror  SKS       https://sks-keyservers.net/
-mirror  COMODO    'https://support.comodo.com/index.php?_m=downloads&_a=downloadfile&downloaditemid='
+mirror  COMODO   'https://support.comodo.com/index.php?_m=downloads&_a=downloadfile&downloaditemid='
 mirror  GEOTRUST  https://www.geotrust.com/resources/root_certificates/certificates/
 mirror  STARTSSL  https://www.startssl.com/certs/
-mirror  GODADDY   'https://certs.godaddy.com/anonymous/repository.pki?actionMethod=anonymous%2Frepository.xhtml%3Arepository.streamFile%28%27%27%29&cid=597348&streamfilename='
+mirror  GODADDY  'https://certs.godaddy.com/anonymous/repository.pki?actionMethod=anonymous%2Frepository.xhtml%3Arepository.streamFile%28%27%27%29&cid=597348&streamfilename='
 mirror  DIGICERT  https://www.digicert.com/CACerts/
 
 # File names based on those in Debian, which may symlink to Mozilla's CA bundle (Debian uses .pem; Mozilla uses .crt for PEM, althought .crt is often DER)
@@ -36,20 +36,21 @@ mirror  GITHUB       https://codeload.github.com/                               
 mirror  FEDORA       https://fedorahosted.org/releases/                                            GeoTrustGlobal
 
 # Insecure
-mirror  PATCHES  http://www.linuxfromscratch.org/patches/lfs/development/
-mirror  PERL     http://www.cpan.org/src/
-mirror  BZIP     http://www.bzip.org/
-mirror  XZ       http://tukaani.org/
-mirror  FILE     ftp://ftp.astron.com/pub/
-mirror  MPFR     http://www.mpfr.org/
-mirror  GMP      ftp://ftp.gmplib.org/pub/
-mirror  MPC      http://www.multiprecision.org/mpc/download/
-mirror  ZLIB     http://www.zlib.net/
-mirror  MUSL     http://www.musl-libc.org/
-mirror  BUSYBOX  http://www.busybox.net/
-mirror  SELINUX  http://userspace.selinuxproject.org/releases/
-mirror  AMD      'http://developer.amd.com/amd-license-agreement/?f='
-mirror  SAVANNAH 'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
+mirror  PATCHES    http://www.linuxfromscratch.org/patches/lfs/development/
+mirror  PERL       http://www.cpan.org/src/
+mirror  BZIP       http://www.bzip.org/
+mirror  XZ         http://tukaani.org/
+mirror  FILE       ftp://ftp.astron.com/pub/
+mirror  MPFR       http://www.mpfr.org/
+mirror  GMP        ftp://ftp.gmplib.org/pub/
+mirror  MPC        http://www.multiprecision.org/mpc/download/
+mirror  ZLIB       http://www.zlib.net/
+mirror  MUSL       http://www.musl-libc.org/
+mirror  BUSYBOX    http://www.busybox.net/
+mirror  SELINUX    http://userspace.selinuxproject.org/releases/
+mirror  AMD       'http://developer.amd.com/amd-license-agreement/?f='
+mirror  SAVANNAH  'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
+mirror  LINUX_PAM  http://linux-pam.org/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html

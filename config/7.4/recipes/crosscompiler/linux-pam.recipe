@@ -4,19 +4,17 @@ version 20131030
 {
 	depends musl-cross
 	
-	#include checkpolicy 2.2
-	include linux-pam 2.2.1
-	#include libsemanage 2.2
-	#include libsepol 2.2
-	#include policycoreutils 2.2.2
-	#include sepolgen 1.2.1
+	include linux-pam 1.1.8
+	
+	setSetuidBinaries sbin/unix_chkpwd
+	install_binaries_in_paths sbin
 }
 
 function install_crosscompiler_linux()
 {
 	pushdDependencyFolder
-	
-		:
+
+		crosscompilerInstallPackagePrototype --disable-nis
 	
 	popdDepdendencyFolder
 }
