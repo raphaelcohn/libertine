@@ -4,7 +4,7 @@ version 1.1.8
 {
 	depends musl-cross
 	
-	setSetuidBinaries sbin/unix_chkpwd
+	make_setuid_binary sbin/unix_chkpwd
 	install_binaries_in_paths sbin
 }
 
