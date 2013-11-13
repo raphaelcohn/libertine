@@ -84,7 +84,7 @@ function executeFunctionUnderSudo()
 	cat >"$continutationBinaryForSudo" <<-EOF
 		#!/bin/bash -
 		set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
-		
+		set -x
 		$(replicateBashFunctionsAndGlobalVariables)
 		
 		LFS='$LFS'
