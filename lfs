@@ -469,8 +469,10 @@ function installPackage()
 					if [ -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
 						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
 						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME".a 2>/dev/null || true
 						if [ $count -eq 0 ]; then
 							ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME".b 2>/dev/null || true
 						fi
 					else
 						if [ -d "$lfsExtractsPath"/"$LFS_SOURCE_PACKAGE_MIRROR"/"$LFS_SOURCE_PACKAGE_RELATIVE_PATH".decompressed ]; then
@@ -481,8 +483,10 @@ function installPackage()
 
 						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
 						ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME.c" 2>/dev/null || true
 						if [ $count -eq 0 ]; then
 							ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME".d 2>/dev/null || true
 						fi
 					fi
 					
