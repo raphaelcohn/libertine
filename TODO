@@ -1,3 +1,46 @@
+
+Other 'core' things
+	? libpam (may as well, as then we have a standalone busybox we can use for normal use, too)
+	2nd busybox (suid-only)
+		
+	make
+	m4
+	ncurses
+	file
+	gettext (limited)
+	texinfo
+	sudo
+		? libpam
+		? KRB5 (if intended to re-use)
+		? openldap
+	? perl
+	
+	Next up things, run as static
+		openssl
+			WHY? Essential
+			libz
+			MIT KRB 5
+		stunnel
+			WHY? Allows https for built in busybox http server
+			openssl
+		openssh
+		dropbear
+		curl
+			libmetalink
+			libssh2
+			MIT / Heimal KRB5
+			Certs
+			libidn
+			(openldap libs)
+		? wget
+	
+	Other things, not static
+		dnsmasq
+			WHY? A better DNS+DHCP (not sure about tftp) server than busybox - interesting choice in tftpd impl, too
+
+
+
+
 * Signatures ending in .asc or .gpg
 * curlrc files for most options (allowing customisation)
 * better download location (outside of the chroot) with support for mirrors, ie so we can ship a files-only, CD-like set

@@ -1,0 +1,22 @@
+#!/bin/bash -
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+
+readonly tempFile="$(mktemp -t hashes)"
+
+function runOnTrap()
+{
+	rm -rf "$tempFile"
+}
+
+function hashDownload()
+{
+	curl "$1" >"$tempFile"
+	echo -n MD5:$(md5sum "$tempFile" | awk '{print $1}')
+	echo -n ,SHA1:$(sha1sum "$tempFile" | awk '{print $1}')
+	echo -n ,SHA256:$(sha256sum "$tempFile" | awk '{print $1}')
+	echo ,SHA512:$(sha512sum "$tempFile" | awk '{print $1}')
+}
+
+trap runOnTrap 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
+hashDownload
+runOnTrap

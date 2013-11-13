@@ -1,0 +1,4 @@
+set -o errexit +o hashall
+
+source_package LINUX_PAM library/Linux-PAM-"$LFS_SOURCE_PACKAGE_VERSION".tar.bz2 MD5:3fb927c7c33022f1c327f14a81c0d4b0
+source_package LINUX_PAM documentation/Linux-PAM-"$LFS_SOURCE_PACKAGE_VERSION"-docs.tar.bz2 MD5:3fb927c7c33022f1c327f14a81c0d4b0

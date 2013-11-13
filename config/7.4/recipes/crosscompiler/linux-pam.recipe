@@ -5,7 +5,7 @@ version 20131030
 	depends musl-cross
 	
 	#include checkpolicy 2.2
-	include libselinux 2.2.1
+	include linux-pam 2.2.1
 	#include libsemanage 2.2
 	#include libsepol 2.2
 	#include policycoreutils 2.2.2

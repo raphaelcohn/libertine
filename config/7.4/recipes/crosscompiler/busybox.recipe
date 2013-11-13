@@ -2,25 +2,23 @@ set -o errexit +o hashall
 
 version 1.21.1
 {
-	:
+	depends musl-cross
+	depends libpam
+	depends selinux
 }
 
 function install_crosscompiler_busybox()
 {
-	local -r kConfigFile=
-	
 	pushdDependencyFolder
-
-		make defconfig
 		
 		declare -A busyboxConfiguration
 		# "$LFS_TRIPLE"-like
 		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]=""
 		# $LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS
-		busyboxConfiguration["CONFIG_SYSROOT"]=""
+		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I<libselinux-include-path>"
 		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L<libselinux-lib-path>"
-		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
+		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
 		busyboxConfiguration["CONFIG_FIRST_SYSTEM_ID"]="100"
 		busyboxConfiguration["CONFIG_LAST_SYSTEM_ID"]="999"
 		busyboxConfiguration["CONFIG_DEFAULT_MODULES_DIR"]="/lib/modules"
@@ -28,6 +26,7 @@ function install_crosscompiler_busybox()
 		busyboxConfiguration["CONFIG_IFUPDOWN_IFSTATE_PATH"]="/var/run/ifstate"
 		busyboxConfiguration["CONFIG_DHCPD_LEASES_FILE"]="/var/lib/misc/udhcpd.leases"
 		busyboxConfiguration["CONFIG_UDHCPC_DEFAULT_SCRIPT"]="/usr/share/udhcpc/default.script"
+		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
 		
 		cp "$LFS_DEPENDENCY_PACKAGE_PATH"/config .config
 		
@@ -39,7 +38,10 @@ function install_crosscompiler_busybox()
 			sed -i -e 's^'${key}'=.*$;'${key}'="'${value}'";g' .config
 		done
 	
-		LDFLAGS="--static" make
+		# Doesn't create docs
+		make busybox
+		
+		make install
 	
 	popdDependencyFolder
 }
