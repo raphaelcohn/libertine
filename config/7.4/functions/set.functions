@@ -82,6 +82,8 @@ function setMakeFlags()
 
 function setCFlags()
 {
+	# PIE / PIC checks http://blog.fpmurphy.com/2008/06/position-independent-executables.html
+	
 	# Also, https://wiki.ubuntu.com/Security/Features
 
 	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
@@ -99,9 +101,11 @@ function setCFlags()
 	
 	LFS_CFLAGS_HARDENING="-D_FORTIFY_SOURCE=2"
 	
-	LFS_LDFLAGS_OPTIMISATION="-Wl,--strip-debug"
+	LFS_LDFLAGS_OPTIMISATION="-Wl,--hash-style=gnu -Wl,--strip-debug"
 	
-	LFS_LDFLAGS_HARDENING="-Wl,-z,relro,-z,now"
+	# -Wl,--no-copy-dt-needed-entries is believed to now be default
+	# -Wl,--as-needed MAY cause problems - for packages, see https://wiki.debian.org/ToolChain/DSOLinking#Only_link_with_needed_libraries  and other misc stuff https://wiki.ubuntu.com/ToolChain/CompilerFlags?action=show&redirect=CompilerFlags
+	LFS_LDFLAGS_HARDENING="-Wl,-z,relro,-z,now -Wl,--no-copy-dt-needed-entries -Wl,--as-needed"
 	
 	LFS_LDFLAGS_STATIC="-static -Wl,-Bstatic -static-libgcc -static-libstdc++"
 	

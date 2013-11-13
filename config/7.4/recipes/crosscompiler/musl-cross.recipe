@@ -166,7 +166,7 @@ function install_crosscompiler_musl-cross()
 				fi
 			}
 		EOF
-	
+		
 		pushd extra >/dev/null
 		
 			# 1 Fix HG_ID
@@ -217,10 +217,10 @@ function install_crosscompiler_musl-cross()
 				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
 				
 				# Added by us for the final install to harden and optimise the compiler
-				LFS_CFLAGS="$CFLAGS $LFS_LDFLAGS_STATIC"
-				LFS_CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD $LFS_LDFLAGS_STATIC"
-				LFS_CXXFLAGS="$CXXFLAGS $LFS_LDFLAGS_STATIC"
-				LFS_CXXFLAGS_FOR_BUILD="$CXXFLAGS_FOR_BUILD $LFS_LDFLAGS_STATIC"
+				LFS_CFLAGS="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC"
+				LFS_CFLAGS_FOR_BUILD="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC"
+				LFS_CXXFLAGS="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC"
+				LFS_CXXFLAGS_FOR_BUILD="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC"
 			EOF
 		
 			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
@@ -261,25 +261,25 @@ function install_crosscompiler_musl-cross()
 		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
 		cat >external-crosscompiler-gcc <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
+			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
 		EOF
 		chmod +x external-crosscompiler-gcc
 		
 		cat >external-crosscompiler-g++ <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
+			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
 		EOF
 		chmod +x external-crosscompiler-g++
 		
 		cat >external-gcc <<-EOF
 			#!/bin/sh
-			gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
+			gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
 		EOF
 		chmod +x external-gcc
 		
 		cat >external-g++ <<-EOF
 			#!/bin/sh
-			g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
+			g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
 		EOF
 		chmod +x external-g++
 		
