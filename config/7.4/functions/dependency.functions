@@ -542,7 +542,7 @@ function installBinariesToPackagePath()
 		# Allows a per-file option, eg for binaries inside /lib folders
 		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
 			
-			pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries"/.. >/dev/null
+			pushd "$(purebash_dirname "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries")" >/dev/null
 				
 				binary="$(purebash_basename "$relativeLocationOfBinaries")"
 				
