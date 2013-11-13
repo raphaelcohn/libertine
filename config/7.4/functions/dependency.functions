@@ -226,8 +226,6 @@ function dependencyToPath()
 	for dependencyName in "${!dependencyRelativePaths[@]}"
 	do
 		ln -s ../../../../../"${dependencyRelativePaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
-		echo "$absoluteDependenciesPath"/"$dependencyName"
-		exit 50
 	done
 	
 	cp "$recipesPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".recipe "$absoluteCompletePath"/recipe
