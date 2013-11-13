@@ -535,6 +535,104 @@ function installPackage()
 	progressMessageSucceeded
 }
 
+function removeAnyFailedPackagesFromPreviousRuns()
+{
+	local optPath="$LFS"/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
+	local phaseFolder
+	local dependencyName
+	local dependencyVersion
+	local dependencyHashes
+	
+	pushd "$$optPath" >/dev/null
+		for phaseFolder in *
+		do
+			if [ ! -e "$phaseFolder" ]; then
+				continue
+			fi
+			
+			if [ ! -d "$phaseFolder" ]; then
+				continue
+			fi
+			
+			pushd "$phaseFolder" >/dev/null
+				for dependencyName in *
+				do
+					if [ ! -e "$dependencyName" ]; then
+						continue
+					fi
+		
+					if [ ! -d "$dependencyName" ]; then
+						continue
+					fi
+					
+					pushd "$dependencyName" >/dev/null
+						for dependencyVersion in *
+						do
+							if [ ! -e "$dependencyVersion" ]; then
+								continue
+							fi
+							
+							if [ "$dependencyVersion" = "current" ]; then
+								if [ ! -e "$(readlink current)" ]; then
+									rm -f current
+									continue
+								fi
+							fi
+		
+							if [ ! -d "$dependencyVersion" ]; then
+								continue
+							fi
+					
+							pushd "$dependencyVersion" >/dev/null
+								for dependencyHashes in *
+								do
+									if [ ! -e "$dependencyHashes" ]; then
+										continue
+									fi
+		
+									if [ ! -d "$dependencyHashes" ]; then
+										continue
+									fi
+									
+									if [ -f "$dependencyHashes"/installed ]; then
+										continue
+									fi
+									
+									chattr -R -ai "$dependencyHashes" 2>/dev/null
+									rm -rf "$dependencyHashes"
+									if [ -L current ]; then
+										if [ ! -e "$(readlink current)" ]; then
+											rm -f current
+										fi
+									fi
+									if [ -L recipe-settings-dependencies ]; then
+										if [ ! -e "$(readlink recipe-settings-dependencies)" ]; then
+											rm -f recipe-settings-dependencies
+										fi
+									fi
+									
+								done
+							popd  >/dev/null
+							
+							if [ "$dependencyVersion" = "current" ]; then
+								if [ ! -e "$(readlink current)" ]; then
+									rm -f current
+									continue
+								fi
+							fi
+							
+						done
+					popd  >/dev/null
+					
+				done
+			popd  >/dev/null
+			
+		done
+	popd  >/dev/null
+	
+	find "$optPath" -depth -mindepth 1 -maxdepth 4 -type d -empty -delete
+}
+
 function calculateDependencyPaths()
 {
 	for LFS_PHASE in crosscompiler toolchain2 system
@@ -818,6 +916,8 @@ function main()
 	doDownloads
 	
 	installEssentialFolderStructure
+	
+	removeAnyFailedPackagesFromPreviousRuns
 	
 	calculateDependencyPaths
 	

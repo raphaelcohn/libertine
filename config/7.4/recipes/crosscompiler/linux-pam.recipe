@@ -10,11 +10,5 @@ version 1.1.8
 
 function install_crosscompiler_linux-pam()
 {
-	pwd 2>&1
-	
-	pushd linux-pam >/dev/null
-
-		crosscompilerInstallPackagePrototype --disable-nis
-	
-	popd >/dev/null
+	crosscompilerInstallPackagePrototype --disable-nis
 }
