@@ -3,7 +3,7 @@ set -o errexit +o hashall
 version 1.21.1
 {
 	depends musl-cross
-	depends libpam
+	depends linux-pam
 	depends selinux
 }
 
