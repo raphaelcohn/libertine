@@ -241,6 +241,9 @@ function install_crosscompiler_musl-cross()
 		
 	popd >/dev/null
 	
+	# Remove musl-cross reverse symlinks
+	rm -rf ../install/"$LFS_TRIPLE"/bin/"$LFS_ARCHITECTURE"-musl-*
+	
 	# Create non-crosscompiler
 	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/gcc
 	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-g++ "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/g++
