@@ -162,12 +162,12 @@ function dependencyToPath()
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	set -x
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
-	set +x
 	
 	cp $dependenciesFileSorted /tmp/sorted.a
 	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
 	
 	cp $dependenciesFileSorted /tmp/sorted.b
+	set +x
 	
 	
 	local -r recipeVersion="$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_SETTINGS_HASH"-"$dependenciesHash"
