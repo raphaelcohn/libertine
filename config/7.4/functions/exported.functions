@@ -1373,6 +1373,56 @@ function fixUpAutoToolsConfig()
 	fi
 }
 
+function configurePackagePrototype()
+{
+	if [ $# -eq 0 ]; then
+		local -r space=""
+	else
+		local -r space=" "
+	fi
+	
+	fixUpAutoToolsConfig
+	
+	pushdDependencyFolder
+		
+		
+		
+		
+	echo "${CFLAGS_FOR_BUILD}${space}$@" 1>&2
+		
+		
+		
+		
+		CC="toolchain2-gcc" \
+		CFLAGS="${CFLAGS}${space}$@" \
+		CFLAGS_FOR_BUILD="${CFLAGS_FOR_BUILD}${space}$@" \
+		CXX="toolchain2-g++" \
+		CXXFLAGS="${CXXFLAGS}${space}$@" \
+		CXXFLAGS_FOR_BUILD="${CXXFLAGS_FOR_BUILD}${space}$@" \
+		./configure \
+		--build="$LFS_TRIPLE" \
+		--host="$LFS_TRIPLE" \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
+		$@
+		
+	popdDepdendencyFolder
+}
+
+function makePackagePrototype()
+{
+	pushdDependencyFolder
+		
+		make
+		
+		if [ -z "$LFS" ]; then
+			make install
+		else
+			make DESTDIR="$LFS" install
+		fi
+		
+	popdDepdendencyFolder
+}
+
 function crosscompilerInstallPackagePrototype()
 {
 	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
@@ -1385,49 +1435,20 @@ function crosscompilerInstallPackagePrototype()
 	# ??? -Wl,-pie
 	# -rpath vs -rpath-link : normally, use -rpath, except when sysroot is wrong - then set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix)
 	
+	configurePackagePrototype $LFS_LDFLAGS_STATIC
+	
 	fixUpAutoToolsConfig
 	
-	pushdDependencyFolder
-		
-		CC="$LFS_toolchain2_CC" \
-		CXX="$LFS_toolchain2_CXX" \
-		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
-		CXXFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
-		  CFLAGS_FOR_BUILD="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc $CFLAGS" \
-		CXXFLAGS_FOR_BUILD="-Wl,--strip-debug -Wl,-z,relro,-z,now -static -Wl,-Bstatic -static-libgcc -static-libstdc++ $CFLAGS" \
-		./configure \
-		--build="$LFS_TRIPLE" \
-		--host="$LFS_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		$@
-		
-		make
-		
-		make DESTDIR="$LFS" install
-		
-	popdDepdendencyFolder
+	makePackagePrototype
 }
 
 function toolchain2InstallPackagePrototype()
 {
+	configurePackagePrototype
+	
 	fixUpAutoToolsConfig
 	
-	pushdDependencyFolder
-		
-		CC="$LFS_toolchain2_CC" \
-		CXX="$LFS_toolchain2_CXX" \
-		  CFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now $CFLAGS" \
-		CXXFLAGS="-Wl,--strip-debug -Wl,-z,relro,-z,now $CFLAGS" \
-		./configure \
-		--host="$LFS_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		$@
-		
-		make
-		
-		make DESTDIR="$LFS" install
-		
-	popdDepdendencyFolder
+	makePackagePrototype
 }
 
 function pushdDependencyFolder()

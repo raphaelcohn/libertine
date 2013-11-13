@@ -101,6 +101,10 @@ function install_crosscompiler_musl-cross()
 	
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
 	
+		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+		cp patches/gcc-"$gccVersion"-musl.diff patches/gcc-"$gccVersion"-musl.diff.orig
+		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${TRIPLE}/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
+	
 		# Adjust sysroot and install
 		cat >>defs.sh <<-'EOF'
 			
@@ -135,7 +139,11 @@ function install_crosscompiler_musl-cross()
 					echo ---- 1>&2
 					
 					export CFLAGS="$LFS_CFLAGS"
+					export CFLAGS_FOR_BUILD="$LFS_CFLAGS_FOR_BUILD"
 					export CXXFLAGS="$LFS_CXXFLAGS"
+					export CXXFLAGS_FOR_BUILD="$LFS_CXXFLAGS_FOR_BUILD"
+					
+					# we really ought to patch the source to replace /lib/ld-musl- with our installed location!
 					
 					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
@@ -209,8 +217,12 @@ function install_crosscompiler_musl-cross()
 				LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
 				LFS="$LFS"
 				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
-				LFS_CFLAGS="$CFLAGS"
-				LFS_CXXFLAGS="$CXXFLAGS"
+				
+				# Added by us for the final install to harden and optimise the compiler
+				LFS_CFLAGS="$CFLAGS $LFS_LDFLAGS_STATIC"
+				LFS_CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD $LFS_LDFLAGS_STATIC"
+				LFS_CXXFLAGS="$CXXFLAGS $LFS_LDFLAGS_STATIC"
+				LFS_CXXFLAGS_FOR_BUILD="$CXXFLAGS_FOR_BUILD $LFS_LDFLAGS_STATIC"
 			EOF
 		
 			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad

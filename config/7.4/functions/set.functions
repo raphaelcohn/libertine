@@ -84,10 +84,24 @@ function setCFlags()
 {
 	# Also, https://wiki.ubuntu.com/Security/Features
 	
+	LFS_CFLAGS_OPTIMISATION="-march=${LFS_CPU} -O2 -fno-omit-frame-pointer -pipe"
+	
+	LFS_CFLAGS_HARDENING="-D_FORTIFY_SOURCE=2"
+	
+	LFS_LDFLAGS_OPTIMISATION="-Wl,--strip-debug"
+	
+	LFS_LDFLAGS_HARDENING="-Wl,-z,relro,-z,now"
+	
+	LFS_LDFLAGS_STATIC="-static -Wl,-Bstatic -static-libgcc -static-libstdc++"
+	
 	# Advice taken from https://wiki.gentoo.org/wiki/GCC_optimization and http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
 	declare_for_chroot CFLAGS
-	declare_for_chroot CXXFLAGS
+	declare_for_chroot CFLAGS_FOR_BUILD
+	CFLAGS="$LFS_CFLAGS_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
+	CFLAGS_FOR_BUILD="$CFLAGS"
 	
-	CFLAGS="-march=${LFS_CPU} -O2 -fno-omit-frame-pointer -pipe -D_FORTIFY_SOURCE=2"
+	declare_for_chroot CXXFLAGS
+	declare_for_chroot CXXFLAGS_FOR_BUILD
 	CXXFLAGS="$CFLAGS"
+	CXXFLAGS_FOR_BUILD="$CXXFLAGS"
 }

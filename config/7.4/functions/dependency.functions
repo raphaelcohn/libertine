@@ -343,9 +343,6 @@ function prepareMuslCrossPath()
 	LFS_DEPENDENCY_SOURCE_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/source
 	LFS_DEPENDENCY_LOG_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/log
 	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
-	
-	LFS_toolchain2_CC="toolchain2-gcc"
-	LFS_toolchain2_CXX="toolchain2-g++"
 }
 
 # Should remove SUID / GUID
@@ -670,10 +667,10 @@ function installPackagePathBinariesToPath()
 				
 				currentBinary="$(readlink "$targetBinary")"
 				if [ "$currentBinary" != "$sourceBinary" ]; then
-					exitError "Should not have changed"
+					exitError "sourceBinary $sourceBinary should not have changed from $currentBinary for zzz-lfs binpath $binary"
 				fi
 			else
-				exitError "targetBinary $targetBinary is not a symlink"
+				exitError "targetBinary $targetBinary is not a symlink for zzz-lfs binpath $binary"
 			fi
 		done
 	
