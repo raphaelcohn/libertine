@@ -11,5 +11,24 @@ version 1.1.8
 
 function install_crosscompiler_linux-pam()
 {
-	crosscompilerInstallPackagePrototype --disable-nis
+	# pkgconfig, libprelude?
+	crosscompilerInstallPackagePrototype \
+		--enable-static \
+		--disable-dependency-tracking \
+		--enable-static-modules \
+			--enable-pie \
+		--disable-prelude \
+		--enable-pamlocking \
+		--enable-read-both-confs \
+		--disable-db \
+		--disable-nis \
+			--disable-selinux \
+		--disable-regenerate-docu \
+			--with-pic \
+		--with-gnu-ld \
+		--without-mailspool \
+		--without-xauth \
+	    --without-xml-catalog \
+		--without-libiconv-prefix \
+		--without-libintl-prefix
 }
