@@ -103,8 +103,8 @@ function install_crosscompiler_musl-cross()
 	
 		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
 		cp patches/gcc-"$gccVersion"-musl.diff patches/gcc-"$gccVersion"-musl.diff.orig
-		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${TRIPLE}/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
-	
+		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TRIPLE}/${LFS_TRIPLE}/lib/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
+		
 		# Adjust sysroot and install
 		cat >>defs.sh <<-'EOF'
 			
@@ -142,8 +142,6 @@ function install_crosscompiler_musl-cross()
 					export CFLAGS_FOR_BUILD="$LFS_CFLAGS_FOR_BUILD"
 					export CXXFLAGS="$LFS_CXXFLAGS"
 					export CXXFLAGS_FOR_BUILD="$LFS_CXXFLAGS_FOR_BUILD"
-					
-					# we really ought to patch the source to replace /lib/ld-musl- with our installed location!
 					
 					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
@@ -232,195 +230,8 @@ function install_crosscompiler_musl-cross()
 	
 	popd >/dev/null
 	
-	# Create an override specs file to make gcc a little happier
-	# obtained by -dumpspecs when the specs file didn't exist
-	# fully intended for this to evolve into everything required
-	cat >../install/"$LFS_TRIPLE"/lib/gcc/x86_64-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/specs <<-EOF
-		*asm:
-		%{m32:--32}  %{m32|mx32:;:--64}  %{mx32:--x32}  %{!mno-sse2avx:%{mavx:-msse2avx}} %{msse2avx:%{!mavx:-msse2avx}}
-
-		*asm_debug:
-		%{!g0:%{gstabs*:--gstabs}%{!gstabs*:%{g*:--gdwarf2}}} %{fdebug-prefix-map=*:--debug-prefix-map %*}
-
-		*asm_final:
-		%{gsplit-dwarf: 
-		       objcopy --extract-dwo 	 %{c:%{o*:%*}%{!o*:%b%O}}%{!c:%U%O} 	 %{c:%{o*:%:replace-extension(%{o*:%*} .dwo)}%{!o*:%b.dwo}}%{!c:%b.dwo} 
-		       objcopy --strip-dwo 	 %{c:%{o*:%*}%{!o*:%b%O}}%{!c:%U%O}     }
-
-		*asm_options:
-		%{-target-help:%:print-asm-header()} %{v} %{w:-W} %{I*} %a %Y %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}
-
-		*invoke_as:
-		%{!fwpa:   %{fcompare-debug=*|fdump-final-insns=*:%:compare-debug-dump-opt()}   %{!S:-o %|.s |
-		 as %(asm_options) %m.s %A }  }
-
-		*cpp:
-		%{posix:-D_POSIX_SOURCE} %{pthread:-D_REENTRANT}
-
-		*cpp_options:
-		%(cpp_unique_options) %1 %{m*} %{std*&ansi&trigraphs} %{W*&pedantic*} %{w} %{f*} %{g*:%{!g0:%{g*} %{!fno-working-directory:-fworking-directory}}} %{O*} %{undef} %{save-temps*:-fpch-preprocess}
-
-		*cpp_debug_options:
-		%{d*}
-
-		*cpp_unique_options:
-		%{!Q:-quiet} %{nostdinc*} %{C} %{CC} %{v} %{I*&F*} %{P} %I %{MD:-MD %{!o:%b.d}%{o*:%.d%*}} %{MMD:-MMD %{!o:%b.d}%{o*:%.d%*}} %{M} %{MM} %{MF*} %{MG} %{MP} %{MQ*} %{MT*} %{!E:%{!M:%{!MM:%{!MT:%{!MQ:%{MD|MMD:%{o*:-MQ %*}}}}}}} %{remap} %{g3|ggdb3|gstabs3|gcoff3|gxcoff3|gvms3:-dD} %{!iplugindir*:%{fplugin*:%:find-plugindir()}} %{H} %C %{D*&U*&A*} %{i*} %Z %i %{fmudflap:-D_MUDFLAP -include mf-runtime.h} %{fmudflapth:-D_MUDFLAP -D_MUDFLAPTH -include mf-runtime.h} %{E|M|MM:%W{o*}}
-
-		*trad_capable_cpp:
-		cc1 -E %{traditional|traditional-cpp:-traditional-cpp}
-
-		*cc1:
-		%{!mandroid|tno-android-cc:%(cc1_cpu) %{profile:-p};:%(cc1_cpu) %{profile:-p} %{!mglibc:%{!muclibc:%{!mbionic: -mbionic}}} %{!fno-pic:%{!fno-PIC:%{!fpic:%{!fPIC: -fPIC}}}}}
-
-		*cc1_options:
-		%{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}} %{!iplugindir*:%{fplugin*:%:find-plugindir()}} %1 %{!Q:-quiet} %{!dumpbase:-dumpbase %B} %{d*} %{m*} %{aux-info*} %{fcompare-debug-second:%:compare-debug-auxbase-opt(%b)}  %{!fcompare-debug-second:%{c|S:%{o*:-auxbase-strip %*}%{!o*:-auxbase %b}}}%{!c:%{!S:-auxbase %b}}  %{g*} %{O*} %{W*&pedantic*} %{w} %{std*&ansi&trigraphs} %{v:-version} %{pg:-p} %{p} %{f*} %{undef} %{Qn:-fno-ident} %{Qy:} %{-help:--help} %{-target-help:--target-help} %{-version:--version} %{-help=*:--help=%*} %{!fsyntax-only:%{S:%W{o*}%{!o*:-o %b.s}}} %{fsyntax-only:-o %j} %{-param*} %{fmudflap|fmudflapth:-fno-builtin -fno-merge-constants} %{coverage:-fprofile-arcs -ftest-coverage}
-
-		*cc1plus:
-
-
-		*link_gcc_c_sequence:
-		%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}
-
-		*link_ssp:
-		%{fstack-protector:}
-
-		*endfile:
-		%{!mandroid|tno-android-ld:%{Ofast|ffast-math|funsafe-math-optimizations:crtfastmath.o%s}    %{mpc32:crtprec32.o%s}    %{mpc64:crtprec64.o%s}    %{mpc80:crtprec80.o%s} %{shared|pie:crtendS.o%s;:crtend.o%s} crtn.o%s;:%{Ofast|ffast-math|funsafe-math-optimizations:crtfastmath.o%s}    %{mpc32:crtprec32.o%s}    %{mpc64:crtprec64.o%s}    %{mpc80:crtprec80.o%s} %{shared: crtend_so%O%s;: crtend_android%O%s}}
-
-		*link:
-		%{!static:--eh-frame-hdr} %{!mandroid|tno-android-ld:%{m32|mx32:;:-m elf_x86_64}                    %{m32:-m elf_i386}                    %{mx32:-m elf32_x86_64}   %{shared:-shared}   %{!shared:     %{!static:       %{rdynamic:-export-dynamic}       %{m32:-dynamic-linker %{mglibc:/lib/ld-linux.so.2;:%{muclibc:/lib/ld-uClibc.so.0;:%{mbionic:/system/bin/linker;:/lib/ld-musl-i386.so.1}}}}       %{m32|mx32:;:-dynamic-linker %{mglibc:/lib64/ld-linux-x86-64.so.2;:%{muclibc:/lib/ld64-uClibc.so.0;:%{mbionic:/system/bin/linker64;:/lib/ld-musl-x86_64.so.1}}}}       %{mx32:-dynamic-linker %{mglibc:/libx32/ld-linux-x32.so.2;:%{muclibc:/lib/ldx32-uClibc.so.0;:%{mbionic:/system/bin/linkerx32;:/lib/ld-musl-x32.so.1}}}}}     %{static:-static}};:%{m32|mx32:;:-m elf_x86_64}                    %{m32:-m elf_i386}                    %{mx32:-m elf32_x86_64}   %{shared:-shared}   %{!shared:     %{!static:       %{rdynamic:-export-dynamic}       %{m32:-dynamic-linker %{mglibc:/lib/ld-linux.so.2;:%{muclibc:/lib/ld-uClibc.so.0;:%{mbionic:/system/bin/linker;:/lib/ld-musl-i386.so.1}}}}       %{m32|mx32:;:-dynamic-linker %{mglibc:/lib64/ld-linux-x86-64.so.2;:%{muclibc:/lib/ld64-uClibc.so.0;:%{mbionic:/system/bin/linker64;:/lib/ld-musl-x86_64.so.1}}}}       %{mx32:-dynamic-linker %{mglibc:/libx32/ld-linux-x32.so.2;:%{muclibc:/lib/ldx32-uClibc.so.0;:%{mbionic:/system/bin/linkerx32;:/lib/ld-musl-x32.so.1}}}}}     %{static:-static}} %{shared: -Bsymbolic}}
-
-		*lib:
-		%{!mandroid|tno-android-ld:%{pthread:-lpthread}    %{shared:-lc}    %{!shared:%{mieee-fp:-lieee} %{profile:-lc_p}%{!profile:-lc}};:%{pthread:-lpthread}    %{shared:-lc}    %{!shared:%{mieee-fp:-lieee} %{profile:-lc_p}%{!profile:-lc}} %{!static: -ldl}}
-
-		*mfwrap:
-		 %{static: %{fmudflap|fmudflapth:  --wrap=malloc --wrap=free --wrap=calloc --wrap=realloc --wrap=mmap --wrap=mmap64 --wrap=munmap --wrap=alloca} %{fmudflapth: --wrap=pthread_create}} %{fmudflap|fmudflapth: --wrap=main}
-
-		*mflib:
-		%{fmudflap|fmudflapth: -export-dynamic}
-
-		*link_gomp:
-
-
-		*libgcc:
-		%{static|static-libgcc:-lgcc -lgcc_eh}%{!static:%{!static-libgcc:%{!shared-libgcc:-lgcc --as-needed -lgcc_s --no-as-needed}%{shared-libgcc:-lgcc_s%{!shared: -lgcc}}}}
-
-		*startfile:
-		%{!mandroid|tno-android-ld:%{!shared: %{pg|p|profile:gcrt1.o%s;pie:Scrt1.o%s;:crt1.o%s}}    crti.o%s %{static:crtbeginT.o%s;shared|pie:crtbeginS.o%s;:crtbegin.o%s};:%{shared: crtbegin_so%O%s;:  %{static: crtbegin_static%O%s;: crtbegin_dynamic%O%s}}}
-
-		*cross_compile:
-		1
-
-		*version:
-		4.8.1
-
-		*multilib:
-		. !m64 !m32;.:../lib64 m64 !m32;.:../lib !m64 m32;
-
-		*multilib_defaults:
-		m64
-
-		*multilib_extra:
-
-
-		*multilib_matches:
-		m64 m64;m32 m32;
-
-		*multilib_exclusions:
-
-
-		*multilib_options:
-		m64/m32
-
-		*multilib_reuse:
-
-
-		*linker:
-		collect2
-
-		*linker_plugin_file:
-
-
-		*lto_wrapper:
-
-
-		*lto_gcc:
-
-
-		*link_libgcc:
-		%D
-
-		*md_exec_prefix:
-
-
-		*md_startfile_prefix:
-
-
-		*md_startfile_prefix_1:
-
-
-		*startfile_prefix_spec:
-
-
-		*sysroot_spec:
-		--sysroot=%R
-
-		*sysroot_suffix_spec:
-
-
-		*sysroot_hdrs_suffix_spec:
-
-
-		*self_spec:
-
-
-		*cc1_cpu:
-		%{march=native:%>march=native %:local_cpu_detect(arch)   %{!mtune=*:%>mtune=native %:local_cpu_detect(tune)}} %{mtune=native:%>mtune=native %:local_cpu_detect(tune)}
-
-		*link_command:
-		%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:    %(linker) %{fuse-linker-plugin:    %e-fuse-linker-plugin is not supported in this configuration}%{flto|flto=*:%<fcompare-debug*}     %{flto} %{flto=*} %l %{pie:-pie} %{fuse-ld=*:-fuse-ld=%*}    %X %{o*} %{e*} %{N} %{n} %{r}    %{s} %{t} %{u*} %{z} %{Z} %{!nostdlib:%{!nostartfiles:%S}}    %{static:} %{L*} %(mfwrap) %(link_libgcc) %{!nostdlib:%{!nodefaultlibs:%{fsanitize=address:%{!shared:libasan_preinit%O%s} %{static-libasan:%{!shared:-Bstatic --whole-archive -lasan --no-whole-archive -Bdynamic}}%{!static-libasan:-lasan}}     %{fsanitize=thread:%{static-libtsan:%{!shared:-Bstatic --whole-archive -ltsan --no-whole-archive -Bdynamic}}%{!static-libtsan:-ltsan}}}} %o    %{fopenmp|ftree-parallelize-loops=*:%:include(libgomp.spec)%(link_gomp)}    %{fgnu-tm:%:include(libitm.spec)%(link_itm)}    %(mflib)  %{fsplit-stack: --wrap=pthread_create}    %{fprofile-arcs|fprofile-generate*|coverage:-lgcov} %{!nostdlib:%{!nodefaultlibs:%{fsanitize=address: %{static-libasan:-ldl -lpthread}    %{static:%ecannot specify -static with -fsanitize=address}    %{fsanitize=thread:%e-fsanitize=address is incompatible with -fsanitize=thread}}    %{fsanitize=thread: %{static-libtsan:-ldl -lpthread}    %{!pie:%{!shared:%e-fsanitize=thread linking must be done with -pie or -shared}}}}}     %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}}    %{!nostdlib:%{!nostartfiles:%E}} %{T*} }}}}}}
-	
-	EOF
-	
-	# Not currently used, but will be
-	local -r incdir=INCLUDE_DIR
-	local -r libdir=LIB_DIR
-	local -r ldso=LDSO_PATH
-	cat >../install/"$LFS_TRIPLE"/lib/gcc/x86_64-linux-musl/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/musl.specs <<-EOF
-		%rename cpp_options old_cpp_options
-
-		*cpp_options:
-		-nostdinc -isystem $incdir -isystem include%s %(old_cpp_options)
-
-		*cc1:
-		%(cc1_cpu) -nostdinc -isystem $incdir -isystem include%s
-
-		*link_libgcc:
-		-L$libdir -L .%s
-
-		*libgcc:
-		libgcc.a%s %:if-exists(libgcc_eh.a%s)
-
-		*startfile:
-		%{!shared: $libdir/%{pie:S}crt1.o} $libdir/crti.o %{shared|pie:crtbeginS.o%s;:crtbegin.o%s}
-
-		*endfile:
-		%{shared|pie:crtendS.o%s;:crtend.o%s} $libdir/crtn.o
-
-		*link:
-		-dynamic-linker $ldso -nostdlib %{shared:-shared} %{static:-static} %{rdynamic:-export-dynamic}
-
-		*esp_link:
-
-
-		*esp_options:
-
-
-		*esp_cpp_options:
-		
-		
-	EOF
-	
+	# Convert "$LFS_TRIPLE"-gcc -dumpspecs to this file, doing any substitutions (eg --sysroot=%R), to make the logic work internally
+	# ../install/"$LFS_TRIPLE"/lib/gcc/"$LFS_TRIPLE"/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/specs
 	
 	# Ensure the dynamic linker library exists
 	pushd ../install/"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib >/dev/null
@@ -430,27 +241,61 @@ function install_crosscompiler_musl-cross()
 		
 	popd >/dev/null
 	
+	# Create non-crosscompiler
+	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/gcc
+	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-g++ "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/g++
+	
 	pushd ../install/"$LFS_TRIPLE"/bin >/dev/null
 		
 		# creates ldd
 		ln -s ../"$LFS_TRIPLE"/lib/libc.so ldd
 		
+		# Create wrapper scripts for compilers
+		
 		local -r allArgs='$@'
+		local -r extraRuntimeCFlags="$LFS_CFLAGS_RUNTIME"
+		local -r extraRuntimeCXXFlags="$LFS_CXXFLAGS_RUNTIME"
 		
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )
 		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
-		cat >toolchain2-gcc <<-EOF
+		cat >external-crosscompiler-gcc <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
+			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
 		EOF
-		chmod +x toolchain2-gcc
+		chmod +x external-crosscompiler-gcc
 		
-		cat >toolchain2-g++ <<-EOF
+		cat >external-crosscompiler-g++ <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" "$allArgs"
+			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
 		EOF
-		chmod +x toolchain2-g++
+		chmod +x external-crosscompiler-g++
+		
+		cat >external-gcc <<-EOF
+			#!/bin/sh
+			gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
+		EOF
+		chmod +x external-gcc
+		
+		cat >external-g++ <<-EOF
+			#!/bin/sh
+			g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
+		EOF
+		chmod +x external-g++
+		
+		cat >cc <<-EOF
+			#!/bin/sh
+			gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $extraRuntimeCFlags "$allArgs"
+		EOF
+		chmod +x cc
+		
+		# c++ is hard link to g++
+		rm -f c++
+		cat >c++ <<-EOF
+			#!/bin/sh
+			g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $extraRuntimeCXXFlags "$allArgs"
+		EOF
+		chmod +x c++
 		
 	popd >/dev/null
 	

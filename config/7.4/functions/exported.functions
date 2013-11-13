@@ -1375,30 +1375,22 @@ function fixUpAutoToolsConfig()
 
 function configurePackagePrototype()
 {
-	if [ $# -eq 0 ]; then
-		local -r space=""
-	else
-		local -r space=" "
-	fi
+	local -r cCompiler="$1"
+	local -r cxxCompiler="$2"
+	shift 2
 	
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
 		
-		
-		
-		
-	echo "${CFLAGS_FOR_BUILD}${space}$@" 1>&2
-		
-		
-		
-		
-		CC="toolchain2-gcc" \
-		CFLAGS="${CFLAGS}${space}$@" \
-		CFLAGS_FOR_BUILD="${CFLAGS_FOR_BUILD}${space}$@" \
-		CXX="toolchain2-g++" \
-		CXXFLAGS="${CXXFLAGS}${space}$@" \
-		CXXFLAGS_FOR_BUILD="${CXXFLAGS_FOR_BUILD}${space}$@" \
+		#CFLAGS="$CFLAGS" \
+		#CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD" \
+		#CXXFLAGS="$CXXFLAGS" \
+		#CXXFLAGS_FOR_BUILD="$CXXFLAGS_FOR_BUILD" \
+		CC="$cCompiler" \
+		LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
+		CXX="$cxxCompiler" \
+		LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
 		./configure \
 		--build="$LFS_TRIPLE" \
 		--host="$LFS_TRIPLE" \
@@ -1408,16 +1400,25 @@ function configurePackagePrototype()
 	popdDepdendencyFolder
 }
 
+function makeWrapper()
+{
+	CC="$cCompiler" \
+	LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
+	CXX="$cxxCompiler" \
+	LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
+	make "$@"
+}
+
 function makePackagePrototype()
 {
 	pushdDependencyFolder
 		
-		make
+		makeWrapper
 		
 		if [ -z "$LFS" ]; then
-			make install
+			makeWrapper install
 		else
-			make DESTDIR="$LFS" install
+			makeWrapper DESTDIR="$LFS" install
 		fi
 		
 	popdDepdendencyFolder
@@ -1425,30 +1426,16 @@ function makePackagePrototype()
 
 function crosscompilerInstallPackagePrototype()
 {
-	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
-	# ? -Wl,-z,relro,-z,now ? only for executables / shared libs
-	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
-	# -fpic -pie  - smaller, faster, might not work
-	# -fPIC -pie
-	# -Wl,-rpath,$(DEFAULT_LIB_INSTALL_PATH)  - specify runtime ld search path - shouldn't it be '=' ?
-	# -Wl,--dynamic-linker=file  set name of dynamic linker eg /lib/blah !
-	# ??? -Wl,-pie
-	# -rpath vs -rpath-link : normally, use -rpath, except when sysroot is wrong - then set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix)
+	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ "$@"
 	
-	configurePackagePrototype $LFS_LDFLAGS_STATIC
-	
-	fixUpAutoToolsConfig
-	
-	makePackagePrototype
+	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
 }
 
 function toolchain2InstallPackagePrototype()
 {
-	configurePackagePrototype
+	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ "$@"
 	
-	fixUpAutoToolsConfig
-	
-	makePackagePrototype
+	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
 }
 
 function pushdDependencyFolder()
