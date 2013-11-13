@@ -12,7 +12,7 @@ version 20131030
 	#include sepolgen 1.2.1
 }
 
-function install_crosscompiler_linux()
+function install_crosscompiler_selinux()
 {
 	pushdDependencyFolder
 	
