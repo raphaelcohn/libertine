@@ -62,6 +62,7 @@ declare_for_chroot -A dependency_SourcePackageIndices
 declare_for_chroot -A dependency_PatchIndices
 declare_for_chroot -A dependency_Dependencies
 declare_for_chroot -A dependency_Path
+declare_for_chroot -A dependency_RelativePath
 declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
 declare_for_chroot -A dependency_BinaryInstallPaths
@@ -583,6 +584,7 @@ function version()
 	dependency_PatchIndices["$DependencyKey"]=""
 	dependency_Dependencies["$DependencyKey"]=""
 	dependency_Path["$DependencyKey"]=""
+	dependency_RelativePath["$DependencyKey"]=""
 	dependency_RecipeSettingsDependencies["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
 	dependency_BinaryInstallPaths["$DependencyKey"]=""

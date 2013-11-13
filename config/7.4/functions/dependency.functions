@@ -145,16 +145,25 @@ function dependencyToPath()
 	# Find and hash dependencies
 	addFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
-	local dependency
-	declare -A dependencyPaths=()
-	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
-	do
-		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
-		local name="${dependency_Name["$dependency"]}"
-		dependencyPaths["$name"]="${dependency_Path["$dependency"]}"
-	done
 	addFileToRemoveOnExit
 	local -r dependenciesFileSorted="$TMP_FILE"
+	local dependency
+	local name
+	declare -A dependencyRelativePaths=()
+	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
+	do
+		set -x
+		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
+		name="${dependency_Name["$dependency"]}"
+		dependencyRelativePaths["$name"]="${dependency_RelativePath["$dependency"]}"
+		set +x
+		
+		cp "$dependenciesFileUnsorted" /tmp/deps
+		cat /tmp/deps
+		
+		exit 50
+		
+	done
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
 	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
@@ -166,6 +175,7 @@ function dependencyToPath()
 	local -r absoluteCompletePath="${LFS}${relativeCompletePath}"
 	
 	dependency_Path["$LFS_DEPENDENCY_KEY"]="$relativeCompletePath"
+	dependency_RelativePath["$LFS_DEPENDENCY_KEY"]="$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$recipeVersion"
 	dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]="$recipeVersion"
 	
 	if [ -f "$absoluteCompletePath"/installed ]; then
@@ -214,7 +224,7 @@ function dependencyToPath()
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/* 1>/dev/null 2>/dev/null || true
 	
 	
-	mv "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
+	cp "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
 	chmod 0400 "$absoluteCompletePath"/dependencies.list
 	
@@ -222,9 +232,9 @@ function dependencyToPath()
 	mkdir -m 0755 -p "$absoluteDependenciesPath"
 	local dependencyName
 	local dependencyPath
-	for dependencyName in "${!dependencyPaths[@]}"
+	for dependencyName in "${!dependencyRelativePaths[@]}"
 	do
-		ln -s "${dependencyPaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"
+		ln -s "${dependencyRelativePaths["$dependencyName"]}" "$absoluteDependenciesPath"/"$dependencyName"/../../../../../"${dependencyRelativePaths["$dependencyName"]}"
 	done
 	
 	cp "$recipesPath"/"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME".recipe "$absoluteCompletePath"/recipe
@@ -276,6 +286,7 @@ function prepareZzzLfsPath()
 	fi
 
 	LFS_DEPENDENCY_PATH_ZZZ="${dependency_Path["$LFS_DEPENDENCY_KEY_ZZZ"]}"
+	LFS_DEPENDENCY_RELATIVE_PATH_ZZZ="${dependency_RelativePath["$LFS_DEPENDENCY_KEY_ZZZ"]}"
 	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES_ZZZ="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY_ZZZ"]}"
 	LFS_DEPENDENCY_PREFIX_PATH_ZZZ="$LFS_DEPENDENCY_PATH"/install
 	
@@ -324,6 +335,7 @@ function prepareMuslCrossPath()
 	fi
 
 	LFS_DEPENDENCY_PATH_MUSL_CROSS="${dependency_Path["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
+	LFS_DEPENDENCY_RELATIVE_PATH_MUSL_CROSS="${dependency_RelativePath["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
 	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES_MUSL_CROSS="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY_MUSL_CROSS"]}"
 	LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PATH"/install
 	
