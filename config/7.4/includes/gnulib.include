@@ -1,8 +1,8 @@
 set -o errexit +o hashall
 
-# See http://git.savannah.gnu.org/gitweb/?p=config.git
-# Original URL: http://git.savannah.gnu.org/gitweb/?p=config.git;a=snapshot;sf=tgz;h=5e4de70bb0064d974a848fbe3a445d5dafaf7b48
-# Rearranged for sanity: http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p=config.git;h=5e4de70bb0064d974a848fbe3a445d5dafaf7b48
+# See http://git.savannah.gnu.org/gitweb/?p=gnulib.git
+# Original URL: http://git.savannah.gnu.org/gitweb/?p=gnulib.git;a=snapshot;h=43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42;sf=tgz
+# Rearranged for sanity: http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p=gnulib.git;h=43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42
 
 # Revolting URL
 # Hashes not supported as the generated tar.gz differs every time
