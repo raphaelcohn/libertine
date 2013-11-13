@@ -13,6 +13,7 @@ function install_crosscompiler_linux-pam()
 {
 	# pkgconfig, libprelude?
 	crosscompilerInstallPackagePrototype \
+		--disable-shared \
 		--enable-static \
 		--disable-dependency-tracking \
 		--enable-static-modules \
@@ -24,7 +25,7 @@ function install_crosscompiler_linux-pam()
 		--disable-nis \
 			--disable-selinux \
 		--disable-regenerate-docu \
-			--with-pic \
+			--without-pic \
 		--with-gnu-ld \
 		--without-mailspool \
 		--without-xauth \
