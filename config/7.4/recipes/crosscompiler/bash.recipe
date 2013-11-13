@@ -5,7 +5,7 @@ version 4.2
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	install_binaries_in_paths "$LFS_TRIPLE"/bin/bash
+	install_binaries_in_paths bin/bash
 }
 
 function install_crosscompiler_bash()
