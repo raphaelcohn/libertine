@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 1.4.16
 {
-	depends busybox
+	:
 }
 
 function install_toolchain2_m4()

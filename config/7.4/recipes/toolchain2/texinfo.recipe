@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 5.1
 {
-	depends busybox
+	:
 }
 
 function install_toolchain2_texinfo()
