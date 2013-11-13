@@ -1348,8 +1348,12 @@ function fixUpAutoToolsConfig()
 				# Update autotools malarkey
 				local configFolder
 				local configFile
-				for configFolder in . support
+				for configFolder in . support build-aux
 				do
+					if [ ! -d "$configFolder" ]; then
+						continue
+					fi
+					
 					pushd "$configFolder" >/dev/null
 					
 						for configFile in config.sub configfsf.sub
