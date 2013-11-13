@@ -144,9 +144,9 @@ function dependencyToPath()
 	
 	# Find and hash dependencies
 	set -x
-	addFileToRemoveOnExit
+	temporaryFileToRemoveOnExit
 	local -r dependenciesFileUnsorted="$TMP_FILE"
-	addFileToRemoveOnExit
+	temporaryFileToRemoveOnExit
 	local -r dependenciesFileSorted="$TMP_FILE"
 	local dependency
 	local name
