@@ -14563,7 +14563,7 @@ linux                                    800200
 linux-base                               800201
 linux-container                          800202
 linux-crashdump                          800203
-linux-doc                                800204
+linux-pam                                800204
 linux-firmware                           800205
 linux-firmware-nonfree                   800206
 linux-igd                                800207
