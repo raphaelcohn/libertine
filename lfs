@@ -563,6 +563,13 @@ function installPackages()
 	LFS_PHASE="$1"
 	
 	prepareZzzLfsPath
+	
+	if [ -f "$LFS_DEPENDENCY_INSTALLED_PATH_ZZZ" ]; then
+		progressMessage "All dependencies for phase $LFS_PHASE installed"
+		progressMessageSucceeded
+		return 0
+	fi
+	
 	prepareMuslCrossPath
 	
 	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}

@@ -638,7 +638,8 @@ function installPackagePathBinariesToPath()
 	if [ "$LFS_DEPENDENCY_BINPATH_PATH" = "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ" ]; then
 		return 0
 	fi
-
+	
+	# Why is it sealed? Recipes not changed, but something never finished installing?
 	chattr -R -ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
 	
 	pushd "$LFS_DEPENDENCY_BINPATH_PATH" >/dev/null
@@ -646,6 +647,7 @@ function installPackagePathBinariesToPath()
 		local binary
 		local sourceBinary
 		local targetBinary
+		local currentBinary
 		for binary in *
 		do
 			if [ ! -e "$binary" ]; then
@@ -659,20 +661,25 @@ function installPackagePathBinariesToPath()
 			sourceBinary=../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/binpath/"$binary"
 			targetBinary="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"/"$binary"
 			
-			if [ -e "$targetBinary" ]; then
-				
-				# It looks like 
-				
-				chattr -ai "$targetBinary" 2>/dev/null || true
-				unlink "$targetBinary"
+			if [ ! -e "$targetBinary" ]; then
+				ln -s "$sourceBinary" "$targetBinary"
+				continue
 			fi
-
-			ln -s "$sourceBinary" "$targetBinary"
+			
+			if [ -L "$targetBinary" ]; then
+				
+				currentBinary="$(readlink "$targetBinary")"
+				if [ "$currentBinary" != "$sourceBinary" ]; then
+					exitError "Should not have changed"
+				fi
+			else
+				exitError "targetBinary $targetBinary is not a symlink"
+			fi
 		done
 	
 	popd >/dev/null
 
-	chattr +ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
+	chattr -R +ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
 }
 
 # Locks down /source, /log, etc
