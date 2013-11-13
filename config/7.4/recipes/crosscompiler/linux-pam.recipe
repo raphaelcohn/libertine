@@ -10,9 +10,9 @@ version 1.1.8
 
 function install_crosscompiler_linux-pam()
 {
-	pushdDependencyFolder
+	pushd Linux-PAM >/dev/null
 
 		crosscompilerInstallPackagePrototype --disable-nis
 	
-	popdDepdendencyFolder
+	popd >/dev/null
 }
