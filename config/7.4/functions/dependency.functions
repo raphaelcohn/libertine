@@ -152,22 +152,18 @@ function dependencyToPath()
 	declare -A dependencyRelativePaths=()
 	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
 	do
-		set -x
 		printf '%s\0' "${dependency_Path["$dependency"]}" >>"$dependenciesFileUnsorted"
 		name="${dependency_Name["$dependency"]}"
 		dependencyRelativePaths["$name"]="${dependency_RelativePath["$dependency"]}"
-		set +x
-		
-		cp "$dependenciesFileUnsorted" /tmp/deps
-		cat /tmp/deps
-		
-		exit 50
-		
 	done
+	
+	cp "$dependenciesFileUnsorted" /tmp/deps
+	
 	# --stable and LC_ALL=C to ensure a consistent sort order before hashing
 	LC_ALL=C sort --key=1 --stable --zero-terminated "$dependenciesFileUnsorted" >"$dependenciesFileSorted"
 	local -r dependenciesHash="$(sha256sum "$dependenciesFileSorted" | awk 'NR==1 {print $1}')"
 	
+	cp $dependenciesFileSorted /tmp/sorted
 	
 	
 	local -r recipeVersion="$LFS_DEPENDENCY_RECIPE_HASH"-"$LFS_DEPENDENCY_SETTINGS_HASH"-"$dependenciesHash"
