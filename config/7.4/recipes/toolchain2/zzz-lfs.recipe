@@ -2,7 +2,6 @@ set -o errexit +o hashall
 
 version 0
 {
-	depends busybox
 	depends ncurses
 	depends file
 	depends gettext
