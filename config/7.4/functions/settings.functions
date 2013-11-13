@@ -6,7 +6,8 @@ function setting_string
 	if [ $# -ne 2 ]; then
 		exitError "Needs 2 arguments"
 	fi
-	
+	echo $1
+	echo $2
 	settings_string[$1]="$2"
 }
 
