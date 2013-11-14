@@ -17,7 +17,7 @@ function install_crosscompiler_linux-pam()
 		--enable-static \
 		--disable-dependency-tracking \
 		--enable-static-modules \
-			--enable-pie \
+		--disable-pie \
 		--disable-prelude \
 		--enable-pamlocking \
 		--enable-read-both-confs \

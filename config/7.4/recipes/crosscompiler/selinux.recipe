@@ -14,7 +14,5 @@ version 20131030
 
 function install_crosscompiler_selinux()
 {
-	wrong
-	
 	crosscompilerInstallPackagePrototype
 }
