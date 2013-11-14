@@ -284,10 +284,10 @@ function install_crosscompiler_musl-cross()
 		# Create wrapper scripts for compilers
 		
 		local -r allArgs='$@'
-		local -r preCFlags="$LFS_CFLAGS_PRE"
-		local -r preCXXFlags="$LFS_CXXFLAGS_PRE"
-		local -r postCFlags="$LFS_CFLAGS_POST"
-		local -r postCXXFlags="$LFS_CXXFLAGS_POST"
+		local -r preCFlags='$LFS_CFLAGS_PRE'
+		local -r preCXXFlags='$LFS_CXXFLAGS_PRE'
+		local -r postCFlags='$LFS_CFLAGS_POST'
+		local -r postCXXFlags='$LFS_CXXFLAGS_POST'
 		
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )
