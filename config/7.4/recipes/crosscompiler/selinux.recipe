@@ -7,12 +7,13 @@ version 20131030
 	#include checkpolicy 2.2
 	include libselinux 2.2.1
 	#include libsemanage 2.2
-	#include libsepol 2.2
+	include libsepol 2.2
 	#include policycoreutils 2.2.2
 	#include sepolgen 1.2.1
 }
 
 function install_crosscompiler_selinux()
 {
+	# libselinux depends on libsepol
 	crosscompilerInstallPackagePrototype
 }
