@@ -1389,22 +1389,20 @@ function configurePackagePrototype()
 	
 	pushdDependencyFolder
 		
-		#CFLAGS="$CFLAGS" \
-		#CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD" \
-		#CXXFLAGS="$CXXFLAGS" \
-		#CXXFLAGS_FOR_BUILD="$CXXFLAGS_FOR_BUILD" \
-		CC="$cCompiler" \
-		LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
-		CXX="$cxxCompiler" \
-		LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
-		AR="$LFS_TRIPLE"-ar \
-		AS="$LFS_TRIPLE"-ar \
-		NM="$LFS_TRIPLE"-nm \
-		RANLIB="$LFS_TRIPLE"-ranlib \
-		OBJDUMP="$LFS_TRIPLE"-objdump \
-		LD="$LFS_TRIPLE"-ld \
-		STRIP="$LFS_TRIPLE"-strip \
 		./configure \
+			CC="$cCompiler" \
+			LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
+			LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
+			CXX="$cxxCompiler" \
+			LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
+			LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
+			AR="$LFS_TRIPLE"-ar \
+			AS="$LFS_TRIPLE"-ar \
+			NM="$LFS_TRIPLE"-nm \
+			RANLIB="$LFS_TRIPLE"-ranlib \
+			OBJDUMP="$LFS_TRIPLE"-objdump \
+			LD="$LFS_TRIPLE"-ld \
+			STRIP="$LFS_TRIPLE"-strip \
 		--build="$LFS_TRIPLE" \
 		--host="$LFS_TRIPLE" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
@@ -1418,19 +1416,22 @@ function makeWrapper()
 	local -r cCompiler="$1"
 	local -r cxxCompiler="$2"
 	shift 2
-	
-	CC="$cCompiler" \
-	LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
-	CXX="$cxxCompiler" \
-	LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
-	AR="$LFS_TRIPLE"-ar \
-	AS="$LFS_TRIPLE"-ar \
-	NM="$LFS_TRIPLE"-nm \
-	RANLIB="$LFS_TRIPLE"-ranlib \
-	OBJDUMP="$LFS_TRIPLE"-objdump \
-	LD="$LFS_TRIPLE"-ld \
-	STRIP="$LFS_TRIPLE"-strip \
-	make "$@"
+
+	LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
+	LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
+	LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
+	LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
+	make 
+		CC="$cCompiler" \
+		CXX="$cxxCompiler" \
+		AR="$LFS_TRIPLE"-ar \
+		AS="$LFS_TRIPLE"-ar \
+		NM="$LFS_TRIPLE"-nm \
+		RANLIB="$LFS_TRIPLE"-ranlib \
+		OBJDUMP="$LFS_TRIPLE"-objdump \
+		LD="$LFS_TRIPLE"-ld \
+		STRIP="$LFS_TRIPLE"-strip \
+	"$@"
 }
 
 function makePackagePrototype()

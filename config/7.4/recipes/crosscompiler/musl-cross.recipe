@@ -13,7 +13,35 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include mpfr 3.1.2
 	include musl 0.9.14
 	
-	install_binaries_in_paths "$LFS_TRIPLE"/bin
+	install_binaries_in_paths \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-addr2line \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ar \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-as \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-c++filt \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-elfedit \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-g++ \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcc \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcov \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gprof \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ld \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-nm \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-objcopy \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-objdump \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ranlib \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-readelf \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-size \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-strings \
+		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-strip \
+		"$LFS_TRIPLE"/bin/g++ \
+		"$LFS_TRIPLE"/bin/gcc \
+		"$LFS_TRIPLE"/bin/external-crosscompiler-gcc \
+		"$LFS_TRIPLE"/bin/external-crosscompiler-g++ \
+		"$LFS_TRIPLE"/bin/internal-crosscompiler-gcc \
+		"$LFS_TRIPLE"/bin/internal-crosscompiler-g++ \
+		"$LFS_TRIPLE"/bin/external-gcc \
+		"$LFS_TRIPLE"/bin/external-g++ \
+		"$LFS_TRIPLE"/bin/internal-gcc \
+		"$LFS_TRIPLE"/bin/internal-g++ \
 	
 	make_executable_binary \
 		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1 \
@@ -256,49 +284,61 @@ function install_crosscompiler_musl-cross()
 		# Create wrapper scripts for compilers
 		
 		local -r allArgs='$@'
-		local -r extraRuntimeCFlags="$LFS_CFLAGS_RUNTIME"
-		local -r extraRuntimeCXXFlags="$LFS_CXXFLAGS_RUNTIME"
+		local -r extraPreCFlags="$LFS_CFLAGS_PRE"
+		local -r extraPreCXXFlags="$LFS_CXXFLAGS_PRE"
+		local -r extraPostCFlags="$LFS_CFLAGS_POST"
+		local -r extraPostCXXFlags="$LFS_CXXFLAGS_POST"
 		
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )
 		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
 		cat >external-crosscompiler-gcc <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
+			exec "$LFS_TRIPLE"-gcc -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-crosscompiler-gcc
 		
 		cat >external-crosscompiler-g++ <<-EOF
 			#!/bin/sh
-			"$LFS_TRIPLE"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
+			exec "$LFS_TRIPLE"-g++ -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCXXFlags
 		EOF
 		chmod +x external-crosscompiler-g++
 		
+		cat >internal-crosscompiler-gcc <<-EOF
+			#!/bin/sh
+			exec "$LFS_TRIPLE"-gcc -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
+		EOF
+		chmod +x internal-crosscompiler-gcc
+		
+		cat >internal-crosscompiler-g++ <<-EOF
+			#!/bin/sh
+			exec "$LFS_TRIPLE"-g++ -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
+		EOF
+		chmod +x internal-crosscompiler-g++
+		
 		cat >external-gcc <<-EOF
 			#!/bin/sh
-			gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCFlags "$allArgs"
+			exec gcc -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-gcc
 		
 		cat >external-g++ <<-EOF
 			#!/bin/sh
-			g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_STATIC $extraRuntimeCXXFlags "$allArgs"
+			exec g++ -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-g++
 		
-		cat >cc <<-EOF
+		cat >internal-gcc <<-EOF
 			#!/bin/sh
-			gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CFLAGS $extraRuntimeCFlags "$allArgs"
+			exec gcc -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $preCFlags "$allArgs" $postCFlags
 		EOF
-		chmod +x cc
+		chmod +x internal-gcc
 		
-		# c++ is hard link to g++
-		rm -f c++
-		cat >c++ <<-EOF
+		cat >internal-g++ <<-EOF
 			#!/bin/sh
-			g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $CXXFLAGS $extraRuntimeCXXFlags "$allArgs"
+			exec g++ -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $preCXXFlags "$allArgs" $postCFlags
 		EOF
-		chmod +x c++
+		chmod +x internal-g++
 		
 	popd >/dev/null
 	

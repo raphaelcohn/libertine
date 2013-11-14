@@ -12,6 +12,7 @@ version 20131030
 	#include sepolgen 1.2.1
 }
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=214465
 function install_crosscompiler_selinux()
 {
 	pushd libsepol >/dev/null
