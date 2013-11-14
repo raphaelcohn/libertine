@@ -1397,6 +1397,13 @@ function configurePackagePrototype()
 		LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
 		CXX="$cxxCompiler" \
 		LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
+		AR="$LFS_TRIPLE"-ar \
+		AS="$LFS_TRIPLE"-ar \
+		NM="$LFS_TRIPLE"-nm \
+		RANLIB="$LFS_TRIPLE"-ranlib \
+		OBJDUMP="$LFS_TRIPLE"-objdump \
+		LD="$LFS_TRIPLE"-ld \
+		STRIP="$LFS_TRIPLE"-strip \
 		./configure \
 		--build="$LFS_TRIPLE" \
 		--host="$LFS_TRIPLE" \
@@ -1411,7 +1418,14 @@ function makeWrapper()
 	CC="$cCompiler" \
 	LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
 	CXX="$cxxCompiler" \
-	LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME"
+	LFS_CXXFLAGS_RUNTIME="$LFS_CXXFLAGS_RUNTIME" \
+	AR="$LFS_TRIPLE"-ar \
+	AS="$LFS_TRIPLE"-ar \
+	NM="$LFS_TRIPLE"-nm \
+	RANLIB="$LFS_TRIPLE"-ranlib \
+	OBJDUMP="$LFS_TRIPLE"-objdump \
+	LD="$LFS_TRIPLE"-ld \
+	STRIP="$LFS_TRIPLE"-strip \
 	make "$@"
 }
 
