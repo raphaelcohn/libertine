@@ -14,6 +14,19 @@ version 20131030
 
 function install_crosscompiler_selinux()
 {
-	# libselinux depends on libsepol
-	crosscompilerInstallPackagePrototype
+	pushd libsepol >/dev/null
+	
+		makeWrapper "$1" "$2" PREFIX="$LFS_DEPENDENCY_PREFIX_PATH"/usr
+	
+		makeWrapper "$1" "$2" DESTDIR="$LFS" install
+	
+	popd  >/dev/null
+	
+	pushd libselinux >/dev/null
+	
+		makeWrapper "$1" "$2" PREFIX="$LFS_DEPENDENCY_PREFIX_PATH"/usr
+	
+		makeWrapper "$1" "$2" DESTDIR="$LFS" install
+	
+	popd  >/dev/null
 }

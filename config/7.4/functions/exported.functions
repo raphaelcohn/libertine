@@ -1415,6 +1415,10 @@ function configurePackagePrototype()
 
 function makeWrapper()
 {
+	local -r cCompiler="$1"
+	local -r cxxCompiler="$2"
+	shift 2
+	
 	CC="$cCompiler" \
 	LFS_CFLAGS_RUNTIME="$LFS_CFLAGS_RUNTIME" \
 	CXX="$cxxCompiler" \
@@ -1433,12 +1437,12 @@ function makePackagePrototype()
 {
 	pushdDependencyFolder
 		
-		makeWrapper
+		makeWrapper "$1" "$2"
 		
 		if [ -z "$LFS" ]; then
-			makeWrapper install
+			makeWrapper "$1" "$2" install
 		else
-			makeWrapper DESTDIR="$LFS" install
+			makeWrapper "$1" "$2" DESTDIR="$LFS" install
 		fi
 		
 	popdDepdendencyFolder
