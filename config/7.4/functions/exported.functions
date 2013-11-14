@@ -1388,14 +1388,14 @@ function configurePackagePrototype()
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
-		
+
+		LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
+		LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
+		LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
+		LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
 		./configure \
 			CC="$cCompiler" \
-			LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
-			LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
 			CXX="$cxxCompiler" \
-			LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
-			LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
 			AR="$LFS_TRIPLE"-ar \
 			AS="$LFS_TRIPLE"-ar \
 			NM="$LFS_TRIPLE"-nm \
