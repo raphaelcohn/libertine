@@ -5,7 +5,7 @@ version 2013d
 	# TODO: Releases may be made as little as 5 days apart!
 	source_package IANA time-zones/repository/releases/"${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.gz.asc "${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}" gzip tarbomb
 	
-	#depends glibc
+	depends zzz-directories
 
 	verifyStringSetting LFS_TIMEZONE_POSIXRULES
 	verifyStringSetting LFS_TIMEZONE_TARGET
