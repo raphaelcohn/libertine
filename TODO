@@ -88,13 +88,6 @@ Package managers
 	* Not everything is listed, of course
 
 
-* Redeployment because of patching
-	* Keep diffs after every package installed, so we can re-install from a snapshot point if dependencies unchanged
-		* Would require us to run earlyPathCommands before each package
-	* Apply rsync diffs / generate a diff to push to a remote machine
-		* The problem with this is sending the diffs to change root, etc, over the network
-	* Keep a local cache of sources
-	* Keep the toolchain back up outside of the root
 
 * Security
 	* PaX / grsecurity

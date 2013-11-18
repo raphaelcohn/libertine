@@ -833,25 +833,6 @@ function runSystemInstallationLogic()
 	progressMessageSucceeded
 }
 
-function renderEarlyPathCommands()
-{
-	local -i index
-	for (( index=0; index != ${#earlyPathCommands[@]}; index++ ))
-	do
-		eval ${earlyPathCommands[$index]}
-	done
-}
-
-function renderLatePathCommands()
-{
-	# reverse order because of the append and immutable commands
-	local -i index
-	for (( index=${#latePathCommands[@]}-1; index != -1; index-- ))
-	do
-		eval ${latePathCommands[$index]}
-	done
-}
-
 function sourceFunctions()
 {
 	local fileToSource
@@ -901,11 +882,7 @@ function main()
 	
 	createOrUseBackUpToolchain
 	
-	runSystemInstallationLogic renderEarlyPathCommands
-	
 	chrootToEnvironment
-	
-	runSystemInstallationLogic renderLatePathCommands
 }
 
 main "$@"
