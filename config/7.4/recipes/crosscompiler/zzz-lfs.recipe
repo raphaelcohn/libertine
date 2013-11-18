@@ -11,5 +11,40 @@ version 0
 
 function install_crosscompiler_zzz-lfs()
 {
-	:	
+	local item
+	
+	# /bin /etc /lib /lib32 /lib64 /usr
+		for item in bin etc lib lib32 lib64 usr
+		do
+			folder="$LFS"/"$item"
+		
+			mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$item"
+		done
+	
+	# /usr/* in pivot
+		# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
+		for item in X11R6 bin include lib lib32 lib64 libexec sbin src
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
+		done
+	
+		for item in doc info locale man misc terminfo zoneinfo dict sgml xml
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/"$item"
+		done
+	
+		for item in man1 man2 man3 man4 man5 man6 man7 man8
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$item"
+		done
+	
+		for item in man doc info
+		do
+			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item"
+			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
+		done
+	
+	# /etc/* set up
+		mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/etc/opt
+		ln -s /proc/self/mounts "$LFS_DEPENDENCY_INSTALL_PATH"/etc/mtab	
 }

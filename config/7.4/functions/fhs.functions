@@ -84,8 +84,8 @@ function installEssentialFolderStructure()
 			fi
 		done
 	
-	# /tmp & /var/tmp
-		for item in tmp var/tmp
+	# /tmp /var/tmp /run/lock (the latter will probably end up being hidden by a mount point, but needs to exist for /var/lock)
+		for item in tmp var/tmp run/lock
 		do
 			folder="$LFS"/"$item"
 			if [ -d "$folder" ]; then
@@ -96,8 +96,8 @@ function installEssentialFolderStructure()
 			fi
 		done
 	
-	# /opt defaults (not used by us but for completeness)
-		for item in bin doc include info lib man
+	# /opt defaults (not used by us except for lfs but here for completeness)
+		for item in bin doc include info lib lfs man
 		do
 			folder="$LFS"/opt/"$item"
 			if [ -d "$folder" ]; then
@@ -123,11 +123,11 @@ function installEssentialFolderStructure()
 		ln -s ../run "$LFS"/var/run
 		ln -s ../run/lock "$LFS"/var/lock
 	
-	# /srv (special case by us)
-		ln -s var/srv "$LFS"/srv
-	
-	# /home (special case by us)
-		ln -s var/home "$LFS"/home
+	# /home /srv
+		for item in home srv
+		do
+			ln -s var/"$item" "$LFS"/"$item"
+		done
 	
 	# /root
 	folder="$LFS"/root
@@ -139,47 +139,19 @@ function installEssentialFolderStructure()
 	fi
 	
 
-	# Install a single, pivotable symlink - needs to be done LAST in zzz-lfs!!!
+	# Install a single, pivotable symlink so we can change over all paths in one atomic transistion
 	local pivotSymlink="$LFS"/mnt/lfs-pivot
 	ln -s "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ" "$pivotSymlink"
-	# TODO: CREATE usr/*, etc in zzz-lfs
-	for item in bin etc lib lib32 lib64 usr
+	
+	# Reference folders inside pivot
+	for item in bin etc lib lib32 lib64 sbin usr
 	do
 		folder="$LFS"/"$item"
-		
-		mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$item"
 		
 		if [ ! -L "$folder" ]; then
 			ln -s mnt/lfs-pivot/"$item" "$folder"
 		fi
 	done
-	
-	# /usr in pivot
-		# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
-		for item in X11R6 bin include lib lib32 lib64 libexec sbin src
-		do
-			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
-		done
-	
-		for item in doc info locale man misc terminfo zoneinfo dict sgml xml
-		do
-			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/"$item"
-		done
-	
-		for item in man1 man2 man3 man4 man5 man6 man7 man8
-		do
-			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$item"
-		done
-	
-		for item in man doc info
-		do
-			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item"
-			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
-		done
-	
-	# /etc set up
-		mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/etc/opt
-		ln -s /proc/self/mounts "$LFS_DEPENDENCY_INSTALL_PATH"/etc/mtab
 }
 
 # We do nothing
