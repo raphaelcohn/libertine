@@ -1182,21 +1182,26 @@ function makeWrapper()
 
 function makePackagePrototype()
 {
+	pushdDependencyFolder
+		
+		makePackageInsideDependencyFolder "$@"
+		
+	popdDepdendencyFolder
+}
+
+function makePackageInsideDependencyFolder()
+{
 	local -r cCompiler="$1"
 	local -r cxxCompiler="$2"
 	shift 2
+		
+	makeWrapper "$cCompiler" "$cxxCompiler" "$@"
 	
-	pushdDependencyFolder
-		
-		makeWrapper "$cCompiler" "$cxxCompiler" "$@"
-		
-		if [ -z "$LFS" ]; then
-			makeWrapper "$cCompiler" "$cxxCompiler" "$@" install
-		else
-			makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
-		fi
-		
-	popdDepdendencyFolder
+	if [ -z "$LFS" ]; then
+		makeWrapper "$cCompiler" "$cxxCompiler" "$@" install
+	else
+		makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
+	fi
 }
 
 function pushdDependencyFolder()
