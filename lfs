@@ -635,8 +635,6 @@ function installPackages()
 {
 	LFS_PHASE="$1"
 	
-	prepareZzzLfsPath
-	
 	if [ -f "$LFS_DEPENDENCY_INSTALLED_PATH_ZZZ" ]; then
 		progressMessage "All dependencies for phase $LFS_PHASE installed"
 		progressMessageSucceeded
@@ -874,13 +872,13 @@ function main()
 	
 	doDownloads
 	
-	installEssentialFolderStructure
-	
-	exit 50
-	
 	removeAnyFailedPackagesFromPreviousRuns
 	
 	calculateDependencyPaths
+	
+	LFS_PHASE="system" prepareZzzLfsPath
+	
+	installEssentialFolderStructure
 	
 	createOrUseBackUpToolchain
 	
