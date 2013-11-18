@@ -1191,6 +1191,7 @@ function makePackagePrototype()
 	
 	pushdDependencyFolder
 		
+	set -x
 		makeWrapper "$cCompiler" "$cxxCompiler" "$@"
 		
 		if [ -z "$LFS" ]; then
@@ -1198,7 +1199,7 @@ function makePackagePrototype()
 		else
 			makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
 		fi
-		
+	set +x	
 	popdDepdendencyFolder
 }
 
