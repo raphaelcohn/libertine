@@ -57,7 +57,7 @@ function verifyMachineSettings()
 	verifyStringSetting LFS_DISTRIBUTION_CODENAME
 	verifyStringSetting LFS_DISTRIBUTION_DESCRIPTION
 	
-	verifyStringSetting verifyStringSetting
+	verifyStringSetting LFS_INCLUSIVE_SYSTEM_UID
 	verifyStringSetting LFS_INCLUSIVE_SYSTEM_GID
 	verifyStringSetting LFS_INCLUSIVE_USER_UID
 	verifyStringSetting LFS_INCLUSIVE_USER_GID
