@@ -1151,7 +1151,7 @@ function configurePackagePrototype()
 		--build="$LFS_TARGET" \
 		--host="$LFS_TARGET" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		$@
+		"$@"
 		
 	popdDepdendencyFolder
 }
@@ -1166,7 +1166,7 @@ function makeWrapper()
 	LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
 	LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
 	LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
-	make 
+	make \
 		CC="$cCompiler" \
 		CXX="$cxxCompiler" \
 		AR="$LFS_TARGET"-ar \
@@ -1180,7 +1180,8 @@ function makeWrapper()
 		CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
 		CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
 		LDFLAGS="$LFS_MAKE_LDFLAGS" \
-		LIBS="$LFS_MAKE_LIBS" $@
+		LIBS="$LFS_MAKE_LIBS" \
+	"$@"
 }
 
 function makePackagePrototype()
@@ -1191,7 +1192,6 @@ function makePackagePrototype()
 	
 	pushdDependencyFolder
 		
-	set -x
 		makeWrapper "$cCompiler" "$cxxCompiler" "$@"
 		
 		if [ -z "$LFS" ]; then
@@ -1199,7 +1199,7 @@ function makePackagePrototype()
 		else
 			makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
 		fi
-	set +x	
+		
 	popdDepdendencyFolder
 }
 
