@@ -6,8 +6,9 @@ version 2013d
 	source_package IANA time-zones/repository/releases/"${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.gz MD5:65b6818162230fc02f86f293376c73df,HKP:62AA7E34:"${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.gz.asc "${LFS_RECIPE_NAME}${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}" gzip tarbomb
 	
 	#depends glibc
-	
-	verify_settings_system_tzdata
+
+	verifyStringSetting LFS_TIMEZONE_POSIXRULES
+	verifyStringSetting LFS_TIMEZONE_TARGET
 	
 	directory /usr/share/zoneinfo 0755 root root '' ai
 	directory /usr/share/zoneinfo/posix 0755 root root '' ai
@@ -18,12 +19,6 @@ version 2013d
 	
 	permissions_after_recursive /usr/share/zoneinfo 0755 root root '' ai 0 10 directory
 	permissions_after_recursive /usr/share/zoneinfo 0644 root root '' ai 0 10 file
-}
-
-function verify_settings_system_tzdata()
-{
-	verifyStringSetting LFS_TIMEZONE_POSIXRULES
-	verifyStringSetting LFS_TIMEZONE_TARGET
 }
 
 function install_system_tzdata()
