@@ -1200,7 +1200,7 @@ function makePackageInsideDependencyFolder()
 	if [ -z "$LFS" ]; then
 		makeWrapper "$cCompiler" "$cxxCompiler" "$@" install
 	else
-		makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
+		makeWrapper "$cCompiler" "$cxxCompiler" DESTDIR="$LFS" "$@" install
 	fi
 }
 
