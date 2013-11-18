@@ -12,7 +12,7 @@ version 1.1.8
 function install_crosscompiler_linux-pam()
 {
 	# pkgconfig, libprelude?
-	crosscompilerInstallPackagePrototype \
+	LFS_CFLAGS_PRE="$LFS_LDFLAGS_EXTERNAL" LFS_CXXFLAGS_PRE="$LFS_LDFLAGS_EXTERNAL" configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ \
 		--disable-shared \
 		--enable-static \
 		--disable-dependency-tracking \

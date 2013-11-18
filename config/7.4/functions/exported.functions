@@ -1396,15 +1396,22 @@ function configurePackagePrototype()
 		./configure \
 			CC="$cCompiler" \
 			CXX="$cxxCompiler" \
-			AR="$LFS_TRIPLE"-ar \
-			AS="$LFS_TRIPLE"-ar \
-			NM="$LFS_TRIPLE"-nm \
-			RANLIB="$LFS_TRIPLE"-ranlib \
-			OBJDUMP="$LFS_TRIPLE"-objdump \
-			LD="$LFS_TRIPLE"-ld \
-			STRIP="$LFS_TRIPLE"-strip \
-		--build="$LFS_TRIPLE" \
-		--host="$LFS_TRIPLE" \
+			AR="$LFS_TARGET"-ar \
+			AS="$LFS_TARGET"-ar \
+			NM="$LFS_TARGET"-nm \
+			RANLIB="$LFS_TARGET"-ranlib \
+			OBJDUMP="$LFS_TARGET"-objdump \
+			LD="$LFS_TARGET"-ld \
+			STRIP="$LFS_TARGET"-strip \
+			CFLAGS="$LFS_MAKE_CFLAGS" \
+			CFLAGS_FOR_BUILD="$LFS_MAKE_CFLAGS" \
+			CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
+			CXXFLAGS_FOR_BUILD="$LFS_MAKE_CFLAGS" \
+			CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
+			LDFLAGS="$LFS_MAKE_LDFLAGS" \
+			LIBS="$LFS_MAKE_LIBS" \
+		--build="$LFS_TARGET" \
+		--host="$LFS_TARGET" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		$@
 		
@@ -1424,43 +1431,38 @@ function makeWrapper()
 	make 
 		CC="$cCompiler" \
 		CXX="$cxxCompiler" \
-		AR="$LFS_TRIPLE"-ar \
-		AS="$LFS_TRIPLE"-ar \
-		NM="$LFS_TRIPLE"-nm \
-		RANLIB="$LFS_TRIPLE"-ranlib \
-		OBJDUMP="$LFS_TRIPLE"-objdump \
-		LD="$LFS_TRIPLE"-ld \
-		STRIP="$LFS_TRIPLE"-strip \
+		AR="$LFS_TARGET"-ar \
+		AS="$LFS_TARGET"-ar \
+		NM="$LFS_TARGET"-nm \
+		RANLIB="$LFS_TARGET"-ranlib \
+		OBJDUMP="$LFS_TARGET"-objdump \
+		LD="$LFS_TARGET"-ld \
+		STRIP="$LFS_TARGET"-strip \
+		CFLAGS="$LFS_MAKE_CFLAGS" \
+		CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
+		CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
+		LDFLAGS="$LFS_MAKE_LDFLAGS" \
+		LIBS="$LFS_MAKE_LIBS" \
 	"$@"
 }
 
 function makePackagePrototype()
 {
+	local -r cCompiler="$1"
+	local -r cxxCompiler="$2"
+	shift 2
+	
 	pushdDependencyFolder
 		
-		makeWrapper "$1" "$2"
+		makeWrapper "$cCompiler" "$cxxCompiler" "$@"
 		
 		if [ -z "$LFS" ]; then
-			makeWrapper "$1" "$2" install
+			makeWrapper "$cCompiler" "$cxxCompiler" "$@" install
 		else
-			makeWrapper "$1" "$2" DESTDIR="$LFS" install
+			makeWrapper "$cCompiler" "$cxxCompiler" "$@" DESTDIR="$LFS" install
 		fi
 		
 	popdDepdendencyFolder
-}
-
-function crosscompilerInstallPackagePrototype()
-{
-	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ "$@"
-	
-	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
-}
-
-function toolchain2InstallPackagePrototype()
-{
-	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ "$@"
-	
-	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
 }
 
 function pushdDependencyFolder()
@@ -1496,32 +1498,3 @@ function setLfsSourcePackageVariables()
 	LFS_SOURCE_PACKAGE_MIRROR="${sourcePackages_Mirror[$1]}"
 	LFS_SOURCE_PACKAGE_RELATIVE_PATH="${sourcePackages_RelativePath[$1]}"
 }
-
-# Perl (CPAN)
-# Python (Pip)
-# Ruby (Gem)
-# NodeJS (NPM)
-# Lua (LuaRocks,LuaDist)
-# PHP (PEAR/PECL, PEAR package manager)
-# Haskell (Cabal)
-# Go (goinstall)
-# OCaml (OPAM)
-# D (?DUB / http://code.dlang.org/)
-# Clojure (?)
-# Tcl (?)
-# R / GNU S (r-cran)
-# Mono (nuget), but not clearly great
-# Erlang - not really; uses releases, ie everything bundled up. There is rebar.
-# Java - maven sort of, but most applications are designed like Erlang - ship with their required libraries
-
-# Other possibilities
-# ttf-* font data
-# xfonts
-# CA certificates
-# ? bad ssh keys
-# locale installers
-# xmms2 plugins
-
-
-
-

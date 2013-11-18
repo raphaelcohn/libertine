@@ -75,21 +75,15 @@ function timezone_region()
 	settings_timezone_Regions+=("$timezoneRegion")
 }
 
-function setting_defaults()
+function verifySetting()
 {
-	setting_string LFS_DISTRIBUTION_ID "Linux From Scratch"
-	setting_string LFS_DISTRIBUTION_CODENAME "stormmq"
-	setting_string LFS_DISTRIBUTION_DESCRIPTION "Linux From Scratch"
-	
-	setting_integer LFS_INCLUSIVE_SYSTEM_UID 100
-	setting_integer LFS_INCLUSIVE_SYSTEM_GID 100
-	setting_integer LFS_INCLUSIVE_USER_UID 1000
-	setting_integer LFS_INCLUSIVE_USER_GID 1000
-	
-	setting_binary LFS_LOCALE_INSTALL_ALL 0
-	
-	setting_string LFS_TIMEZONE_POSIXRULES America/New_York
-	setting_string LFS_TIMEZONE_TARGET Etc/UTC
+	local -r keyToVerify="$1"
+	local key
+	for key in "${!settings_string[@]}"
+	do
+		if [ "$keyToVerify" = "$key" ]; then
+			return 0
+		fi
+	done
+	exitError "Missing essential setting $keyToVerify"
 }
-
-setting_defaults

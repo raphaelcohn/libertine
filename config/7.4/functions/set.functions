@@ -1,69 +1,8 @@
 set -o errexit +o hashall
 
-function doSets()
-{
-	setLocale
-	setArchitectures
-	setMakeFlags
-	setCFlags
-}
-
 function setLocale()
 {
 	export LC_ALL=POSIX
-}
-
-function setArchitectures()
-{
-	# MACHTYPE might be x86_64-pc-linux-gnu or i386-apple-darwin9 (CPU, company, OS [eg linux-gnu])
-	# known as 3 component and 4 component triples (such as x86_64-unknown-linux-gnu)
-	# 
-	
-	# Or gcc -dumpmachine | sed 's/-.*//'
-	# Or uname -m
-
-	# LFS_CPU is used for -march=LFS_CPU
-	case "$(echo $MACHTYPE | awk -v FS=- '{print $1}')" in
-		
-		i386|i486|i586|i686)
-			LFS_ARCHITECTURE=i386
-			LFS_CPU=native
-		;;
-		
-		x86_64)
-			LFS_ARCHITECTURE=x86_64
-			LFS_CPU=bdver2
-		;;
-		
-		arm*)
-			LFS_ARCHITECTURE=arm
-			LFS_CPU=native
-		;;
-		
-		mips*)
-			LFS_ARCHITECTURE=mips
-			LFS_CPU=native
-		;;
-		
-		powerpc* | ppc*)
-			LFS_ARCHITECTURE=powerpc
-			LFS_CPU=native
-		;;
-		
-		*)
-			exitError "Unsupported architecture in $MACHTYPE"
-		;;
-		
-	esac
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARCHITECTURE')
-	
-	# Four-component style
-	LFS_TARGET="$LFS_ARCHITECTURE"-lfs-linux-gnu
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TARGET')
-	
-	# Triple
-	LFS_TRIPLE="$LFS_ARCHITECTURE"-linux-musl
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TRIPLE')
 }
 
 function setMakeFlags()
@@ -80,40 +19,72 @@ function setMakeFlags()
 	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug"
 }
 
+function setArchitectures()
+{
+	LFS_ARCHITECTURE="${settings_string[LFS_ARCHITECTURE]}"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARCHITECTURE')
+	
+	LFS_TARGET="$LFS_ARCHITECTURE"-linux-musl
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TARGET')
+}
+
 function setCFlags()
 {
-	# PIE / PIC checks http://blog.fpmurphy.com/2008/06/position-independent-executables.html
+	# musl prefers hash-style=both
+	# disable-new-dtags forces the use DT_RPATH rather than DT_RUNPATH for rpath; musl only uses DT_RPATH
+	LFS_LDFLAGS_MUSL="-Wl,--hash-style=both -Wl,--disable-new-dtags"
 	
-	# Also, https://wiki.ubuntu.com/Security/Features
+	local -r cTuningFlags="${settings_string[LFS_CFLAGS_CPU_OPTIMISATION]}"
+	local -r cOptimisation="-O2 -fno-omit-frame-pointer -pipe"
+	if [ -n "$tuningFlags" ]; then
+		LFS_CFLAGS_OPTIMISATION="$cTuningFlags $cOptimisation"
+	else
+		LFS_CFLAGS_OPTIMISATION="$cOptimisation"
+	fi
+	
+	# NOTE: PIE / PIC checks not currently changed, as it causes problems...
+	# http://blog.fpmurphy.com/2008/06/position-independent-executables.html
+	# https://wiki.ubuntu.com/Security/Features
 	# https://wiki.debian.org/Hardening
-
-	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
-	# ? -Wl,-z,relro,-z,now ? only for executables / shared libs
-	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
-	# -fpic -pie  - smaller, faster, might not work
-	# -fPIC -pie
-	# -Wl,-rpath,$(DEFAULT_LIB_INSTALL_PATH)  - specify runtime ld search path - shouldn't it be '=' ?
-	# -Wl,--dynamic-linker=file  set name of dynamic linker eg /lib/blah !
-	# ??? -Wl,-pie
-	# -rpath vs -rpath-link : normally, use -rpath, except when sysroot is wrong - then set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix)
-	
-	
-	LFS_CFLAGS_OPTIMISATION="-march=${LFS_CPU} -O2 -fno-omit-frame-pointer -pipe"
-	
+	# musl does not currently use this value
 	LFS_CFLAGS_HARDENING="-D_FORTIFY_SOURCE=2"
 	
-	LFS_LDFLAGS_OPTIMISATION="-Wl,--hash-style=gnu -Wl,--strip-debug"
+	local -r ldOptimisationFlags="-O1"
+	local -r ldDebugFlags="${settings_string[LFS_LDFLAGS_DEBUGGING]}"
+	if [ -n "$ldDebugFlags" ]; then
+		LFS_LDFLAGS_OPTIMISATION="$ldOptimisationFlags $ldDebugFlags"
+	else
+		LFS_LDFLAGS_OPTIMISATION="$ldOptimisationFlags"
+	fi
 	
-	# -Wl,--no-copy-dt-needed-entries is believed to now be default
-	# -Wl,--as-needed MAY cause problems - for packages, see https://wiki.debian.org/ToolChain/DSOLinking#Only_link_with_needed_libraries  and other misc stuff https://wiki.ubuntu.com/ToolChain/CompilerFlags?action=show&redirect=CompilerFlags
-	LFS_LDFLAGS_HARDENING="-Wl,-z,relro,-z,now -Wl,--no-copy-dt-needed-entries -Wl,--as-needed"
+	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
+	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
+	# https://wiki.debian.org/ToolChain/DSOLinking#Only_link_with_needed_libraries
+	# https://wiki.ubuntu.com/ToolChain/CompilerFlags?action=show&redirect=CompilerFlags
+	# --as-needed MAY cause a few problems for old packages
+	# --no-copy-dt-needed-entries is believed to now be default and so is not specified
+	LFS_LDFLAGS_HARDENING="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed"
 	
-	LFS_LDFLAGS_STATIC="-static -static-libgcc -static-libstdc++ -Wl,-Bstatic"
+	# In the musl-cross recipe, we patch the musl dynamic linker to use a default path of PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib instead of /lib:/usr/local/lib:/usr/lib
+	# When running programs outside of the chroot, we need to override the location of the dynamic linker and specify the external version of the above path
+	# musl uses the following search order:-
+	# LD_PRELOAD
+	# LD_LIBRARY_PATH
+	# DT_RPATH
+	# PREFIX/x86_64-linux-musl/x86_64-linux-musl/etc/ld-musl-x86_64.path (equivalent of ld.so.conf, I suppose)
+	# Default path (changed from /lib:/usr/local/lib:/usr/lib to PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib)
+	# And, for libc.so, the location of the dynamic linker
+	# -Wl,-z,nodefaultlib seems to be ignored ?by the musl dynamic linker?
+	# Set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix).
+	LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
+	
+	#LFS_LDFLAGS_STATIC="-static -static-libgcc -static-libstdc++ -Wl,-Bstatic"
+	LFS_LDFLAGS_STATIC="-static"
 	
 	# Advice taken from https://wiki.gentoo.org/wiki/GCC_optimization and http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
 	declare_for_chroot CFLAGS
 	declare_for_chroot CFLAGS_FOR_BUILD
-	CFLAGS="$LFS_CFLAGS_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
+	CFLAGS="$LFS_CFLAGS_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
 	CFLAGS_FOR_BUILD="$CFLAGS"
 	
 	declare_for_chroot CXXFLAGS

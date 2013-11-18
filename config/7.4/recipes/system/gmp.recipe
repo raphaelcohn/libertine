@@ -1,6 +1,0 @@
-set -o errexit +o hashall
-
-version 5.1.2
-{
-	depends binutils
-}

@@ -1,5 +1,0 @@
-set -o errexit +o hashall
-
-version 1.0.1
-{
-}

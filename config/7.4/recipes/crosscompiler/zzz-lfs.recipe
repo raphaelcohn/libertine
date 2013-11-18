@@ -12,4 +12,10 @@ version 0
 function install_crosscompiler_zzz-lfs()
 {
 	:
+	
+	local folder
+	for folder in bin boot dev proc etc home lib media mnt opt root run sbin srv sys usr var usr/local usr/local/etc
+	do
+		mkdir -p -m 0755 "$LFS_DEPENDENCY_INSTALL_PATH"/"$folder"
+		
 }

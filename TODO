@@ -38,6 +38,32 @@ Other 'core' things
 		dnsmasq
 			WHY? A better DNS+DHCP (not sure about tftp) server than busybox - interesting choice in tftpd impl, too
 
+Package managers
+
+# Perl (CPAN)
+# Python (Pip)
+# Ruby (Gem)
+# NodeJS (NPM)
+# Lua (LuaRocks,LuaDist)
+# PHP (PEAR/PECL, PEAR package manager)
+# Haskell (Cabal)
+# Go (goinstall)
+# OCaml (OPAM)
+# D (?DUB / http://code.dlang.org/)
+# Clojure (?)
+# Tcl (?)
+# R / GNU S (r-cran)
+# Mono (nuget), but not clearly great
+# Erlang - not really; uses releases, ie everything bundled up. There is rebar.
+# Java - maven sort of, but most applications are designed like Erlang - ship with their required libraries
+
+# Other possibilities
+# ttf-* font data
+# xfonts
+# CA certificates
+# ? bad ssh keys
+# locale installers
+# xmms2 plugins
 
 
 

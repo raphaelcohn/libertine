@@ -11,10 +11,10 @@ function install_crosscompiler_busybox()
 	pushdDependencyFolder
 		
 		declare -A busyboxConfiguration
-		# "$LFS_TRIPLE"-like
+		# "$LFS_TARGET"-like
 		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]=""
 		# $LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS
-		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE"
+		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I<libselinux-include-path>"
 		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L<libselinux-lib-path>"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"

@@ -14,47 +14,48 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include musl 0.9.14
 	
 	install_binaries_in_paths \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-addr2line \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ar \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-as \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-c++filt \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-elfedit \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-g++ \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcc \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcov \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gprof \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ld \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-nm \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-objcopy \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-objdump \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-ranlib \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-readelf \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-size \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-strings \
-		"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-strip \
-		"$LFS_TRIPLE"/bin/g++ \
-		"$LFS_TRIPLE"/bin/gcc \
-		"$LFS_TRIPLE"/bin/external-crosscompiler-gcc \
-		"$LFS_TRIPLE"/bin/external-crosscompiler-g++ \
-		"$LFS_TRIPLE"/bin/internal-crosscompiler-gcc \
-		"$LFS_TRIPLE"/bin/internal-crosscompiler-g++ \
-		"$LFS_TRIPLE"/bin/external-gcc \
-		"$LFS_TRIPLE"/bin/external-g++ \
-		"$LFS_TRIPLE"/bin/internal-gcc \
-		"$LFS_TRIPLE"/bin/internal-g++ \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-addr2line \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-ar \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-as \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-c++filt \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-elfedit \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-g++ \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-gcc \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-gcov \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-gprof \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-ld \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-nm \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-objcopy \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-objdump \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-ranlib \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-readelf \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-size \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-strings \
+		"$LFS_TARGET"/bin/"$LFS_TARGET"-strip \
+		"$LFS_TARGET"/bin/g++ \
+		"$LFS_TARGET"/bin/gcc \
+		"$LFS_TARGET"/bin/ldd \
+		"$LFS_TARGET"/bin/external-crosscompiler-gcc \
+		"$LFS_TARGET"/bin/external-crosscompiler-g++ \
+		"$LFS_TARGET"/bin/internal-crosscompiler-gcc \
+		"$LFS_TARGET"/bin/internal-crosscompiler-g++ \
+		"$LFS_TARGET"/bin/external-gcc \
+		"$LFS_TARGET"/bin/external-g++ \
+		"$LFS_TARGET"/bin/internal-gcc \
+		"$LFS_TARGET"/bin/internal-g++ \
 	
 	make_executable_binary \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1 \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1plus \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/collect2 \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto1 \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto-wrapper \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixincl \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixinc.sh \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkheaders \
-		"$LFS_TRIPLE"/libexec/gcc/"$LFS_TRIPLE"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkinstalldirs \
-		"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib/libc.so \
-		"$LFS_TRIPLE"/"$LFS_TRIPLE"/bin
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1 \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1plus \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/collect2 \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto1 \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto-wrapper \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixincl \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixinc.sh \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkheaders \
+		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkinstalldirs \
+		"$LFS_TARGET"/"$LFS_TARGET"/lib/libc.so \
+		"$LFS_TARGET"/"$LFS_TARGET"/bin
 	
 	unset localPackage_crosscompiler_musl_cross_gccVersion
 }
@@ -127,11 +128,20 @@ function install_crosscompiler_musl-cross()
 		done
 	done
 	
+	pushd musl >/dev/null
+		
+		# replaces the default search path in ld-musl-XXX (the dynamic linker) so that we're safe from 'drop in /lib' attacks
+		sed -i -e "s;/lib:/usr/local/lib:/usr/lib;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib64:${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib;g" src/ldso/dynlink.c
+	
+	popd >/dev/null
+	
+	
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
 	
 		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
 		cp patches/gcc-"$gccVersion"-musl.diff patches/gcc-"$gccVersion"-musl.diff.orig
-		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TRIPLE}/${LFS_TRIPLE}/lib/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
+		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
+		
 		
 		# Adjust sysroot and install
 		cat >>defs.sh <<-'EOF'
@@ -258,11 +268,11 @@ function install_crosscompiler_musl-cross()
 	
 	popd >/dev/null
 	
-	# Convert "$LFS_TRIPLE"-gcc -dumpspecs to this file, doing any substitutions (eg --sysroot=%R), to make the logic work internally
-	# ../install/"$LFS_TRIPLE"/lib/gcc/"$LFS_TRIPLE"/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/specs
+	# Convert "$LFS_TARGET"-gcc -dumpspecs to this file, doing any substitutions (eg --sysroot=%R), to make the logic work internally
+	# ../install/"$LFS_TARGET"/lib/gcc/"$LFS_TARGET"/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/specs
 	
 	# Ensure the dynamic linker library exists
-	pushd ../install/"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib >/dev/null
+	pushd ../install/"$LFS_TARGET"/"$LFS_TARGET"/lib >/dev/null
 	
 		chmod +x libc.so
 		ln -s libc.so ld-musl-"$LFS_ARCHITECTURE".so.1
@@ -270,16 +280,16 @@ function install_crosscompiler_musl-cross()
 	popd >/dev/null
 	
 	# Remove musl-cross reverse symlinks
-	rm -rf ../install/"$LFS_TRIPLE"/bin/"$LFS_ARCHITECTURE"-musl-*
+	rm -rf ../install/"$LFS_TARGET"/bin/"$LFS_ARCHITECTURE"-musl-*
 	
 	# Create non-crosscompiler
-	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/gcc
-	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/"$LFS_TRIPLE"-g++ "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TRIPLE"/bin/g++
+	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/"$LFS_TARGET"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/gcc
+	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/"$LFS_TARGET"-g++ "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/g++
 	
-	pushd ../install/"$LFS_TRIPLE"/bin >/dev/null
+	pushd ../install/"$LFS_TARGET"/bin >/dev/null
 		
 		# creates ldd
-		ln -s ../"$LFS_TRIPLE"/lib/libc.so ldd
+		ln -s ../"$LFS_TARGET"/lib/libc.so ldd
 		
 		# Create wrapper scripts for compilers
 		
@@ -294,58 +304,61 @@ function install_crosscompiler_musl-cross()
 		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
 		cat >external-crosscompiler-gcc <<-EOF
 			#!/bin/sh
-			exec "$LFS_TRIPLE"-gcc -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
+			exec "$LFS_TARGET"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-crosscompiler-gcc
 		
 		cat >external-crosscompiler-g++ <<-EOF
 			#!/bin/sh
-			exec "$LFS_TRIPLE"-g++ -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCXXFlags
+			exec "$LFS_TARGET"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCXXFlags
 		EOF
 		chmod +x external-crosscompiler-g++
 		
 		cat >internal-crosscompiler-gcc <<-EOF
 			#!/bin/sh
-			exec "$LFS_TRIPLE"-gcc -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
+			exec "$LFS_TARGET"-gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x internal-crosscompiler-gcc
 		
 		cat >internal-crosscompiler-g++ <<-EOF
 			#!/bin/sh
-			exec "$LFS_TRIPLE"-g++ -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
+			exec "$LFS_TARGET"-g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x internal-crosscompiler-g++
 		
 		cat >external-gcc <<-EOF
 			#!/bin/sh
-			exec gcc -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
+			exec gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-gcc
 		
 		cat >external-g++ <<-EOF
 			#!/bin/sh
-			exec g++ -v --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
+			exec g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x external-g++
 		
 		cat >internal-gcc <<-EOF
 			#!/bin/sh
-			exec gcc -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $preCFlags "$allArgs" $postCFlags
+			exec gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x internal-gcc
 		
 		cat >internal-g++ <<-EOF
 			#!/bin/sh
-			exec g++ -v --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TRIPLE" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $preCXXFlags "$allArgs" $postCFlags
+			exec g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
 		EOF
 		chmod +x internal-g++
 		
 	popd >/dev/null
-	
+}
+
+function dead()
+{
 	echo "IGNORING LDSCRIPTS FOR NOW"
 	return 0
 	
-	pushd ../install/"$LFS_TRIPLE"/"$LFS_TRIPLE"/lib/ldscripts >/dev/null
+	pushd ../install/"$LFS_TARGET"/"$LFS_TARGET"/lib/ldscripts >/dev/null
 		
 		local ldscript
 		# Prevents any spaces in LFS being expanded as separate argv

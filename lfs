@@ -127,35 +127,16 @@ function executeWithCleanEnvironment()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} -d distribution [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-1 crosscompilerProfile] [-2 toolchain2Profile] [-o option] -- [profiles ...]
-
-Profiles
-[profiles ...] lists one or more system profiles to create. These are snippets of simplified bash
-script, that install and build from source what would be called packages on other systems.
-
-If no profile is specified, then the baseline 'lfs' profile is used.
-
-profiles are executed in the order listed. Internally, a profile may reference (source)
-another profile it depends on. This is the equivalent of package management on other
-systems. A set of profiles is intended to be version-controlled using a source control system
-such as git and so do not declare explicit version dependencies.
-
-The profiles 'crosscompiler' and 'toolchain2' are special. Implementors of profiles can assume
-that these profiles are always sourced. It is an error to specify them in the list of profiles.
-
-A profile does not have to just install packages.
-
-Profiles may be suffixed with [distribution] to target a particular distribution.
+Usage: ${ourName} [-d distribution] [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-o option] -- machine
 
 Defaults
     distribution       ${LFS_DISTRIBUTION_VERSION}
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
     mirrors            ${mirrors}
-    crosscompilerProfile  ${crosscompilerProfile}
-    toolchain2Profile  ${toolchain2Profile}
     option             See below
-    profiles           ${profiles}
+
+A machine defines machine settings in <lfsConfigPath>/settings/machine/<machine>.settings
 
 A mirror defines mirror URLs. If a mirror is 'timezone', then timezone settings used to determine the actual mirrors.
 If Etc/UTC or something similar is the timezone, then the 'language' mirrors are used. These use the LC_CTYPE,
@@ -195,17 +176,11 @@ function parseCommandLine()
 	mirrors="timezone"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('mirrors')
 	
-	crosscompilerProfile=crosscompiler
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('crosscompilerProfile')
-	
-	toolchain2Profile=toolchain2
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('toolchain2Profile')
-	
 	skipSignatureChecks="no"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipSignatureChecks')
 	
-	profiles="system"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('profiles')
+	machine="simple"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('machine')
 	
 	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
 		executeWithCleanEnvironment "$@"
@@ -238,14 +213,6 @@ function parseCommandLine()
 					mirrors="$OPTARG"
 				;;
 				
-				1)
-					crosscompilerProfile="$OPTARG"
-				;;
-				
-				2)
-					toolchain2Profile="$OPTARG"
-				;;
-				
 				o)
 					if [ -z "$OPTARG" ]; then
 						exitError "Invalid option -o requires an argument"
@@ -276,8 +243,10 @@ function parseCommandLine()
 		done
 		
 		shift $((OPTIND - 1))
-		if [ $# -ne 0 ]; then
-			profiles="$@"
+		if [ $# -eq 1 ]; then
+			machine="$1"
+		else
+			exitError "Please specify one machine"
 		fi
 		
 		if [ -z "$LFS_DISTRIBUTION_VERSION" ]; then
@@ -355,6 +324,11 @@ function setPaths()
 	readonly settingsPath="$distributionConfigPath"/settings
 	if [ ! -d "$settingsPath" ]; then
 		exitError "settings path $settingsPath does not exist or is not a directory"
+	fi
+	
+	readonly machinesPath="$settingsPath"/machines
+	if [ ! -d "$machinesPath" ]; then
+		exitError "machines path $machinesPath does not exist or is not a directory"
 	fi
 	
 	if [ ! -d "$lfsPath" ]; then
@@ -900,13 +874,17 @@ function main()
 	setPaths
 	sourceFunctions
 	
-	doSets
+	setLocale
+	setMakeFlags
 	
 	initialiseTraps
 	
 	verifyHostSystemRequirementsUsingDependencyChecks
 	
 	doInclude
+	
+	setArchitectures
+	setCFlags
 		
 	# Suspended for now, as we are using --cacert instead of --capath
 	#rehashCertificateAuthorities

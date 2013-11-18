@@ -45,149 +45,145 @@ function installEssentialFolderStructure()
 		popd >/dev/null
 	fi
 	
-	# usr/local/etc exists occasionally. Why there isn't /usr/etc isn't clear.
-	for folder in bin boot dev proc etc home lib media mnt opt root run sbin srv sys usr var usr/local usr/local/etc
+	# boot and var will in future be mount points
+	# boot is rather unpleasant
+	
+	local item
+	for item in boot dev media mnt opt proc run sys var
 	do
+		folder="$LFS"/"$item"
 		if [ -d "$folder" ]; then
 			chown 0:0 "$folder"
 			chmod 0755 "$folder"
 		else
-			mkdir -m 0775 -p "$LFS"/"$folder"
+			mkdir -m 0755 -p "$folder"
 		fi
 	done
 	
-	# Required by the kernel to boot before udevd is started
-	mknod -m 600 "$LFS"/dev/console c 5 1
-	mknod -m 666 "$LFS"/dev/null c 1 3
+	# /dev
+		folder="$LFS"/dev
+		# Required by the kernel to boot before udevd is started
+		if [ ! -c "$folder"/console ]; then
+			rm -f "$folder"/console
+			mknod -m 600 "$folder"/console c 5 1
+		fi
+		if [ ! -c "$folder"/null ]; then
+			rm -f "$folder"/null
+			mknod -m 666 "$folder"/null c 1 3
+		fi
 	
-	for folder in tmp var/tmp
+	# /media
+		for item in floppy cdrom cdrecorder zip
+		do
+			folder="$LFS"/mnt/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 0755 "$folder"
+			else
+				mkdir -m 0755 -p "$folder"
+			fi
+		done
+	
+	# /tmp & /var/tmp
+		for item in tmp var/tmp
+		do
+			folder="$LFS"/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 1775 "$folder"
+			else
+				mkdir -m 1775 -p "$folder"
+			fi
+		done
+	
+	# /opt defaults (not used by us but for completeness)
+		for item in bin doc include info lib man
+		do
+			folder="$LFS"/opt/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 0755 "$folder"
+			else
+				mkdir -m 0755 -p "$folder"
+			fi
+		done
+	
+	# /var defaults
+		# srv is our own invention
+		for item in account cache crash games home lib local log mail opt spool srv yp
+		do
+			folder="$LFS"/var/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 0755 "$folder"
+			else
+				mkdir -m 0755 -p "$folder"
+			fi
+		done
+		ln -s ../run "$LFS"/var/run
+		ln -s ../run/lock "$LFS"/var/lock
+	
+	# /srv (special case by us)
+		ln -s var/srv "$LFS"/srv
+	
+	# /home (special case by us)
+		ln -s var/home "$LFS"/home
+	
+	# /root
+	folder="$LFS"/root
+	if [ -d "$folder" ]; then
+		chown 0:0 "$folder"
+		chmod 0750 "$folder"
+	else
+		mkdir -m 0750 -p "$folder"
+	fi
+	
+
+	# Install a single, pivotable symlink - needs to be done LAST in zzz-lfs!!!
+	local pivotSymlink="$LFS"/mnt/lfs-pivot
+	ln -s "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ" "$pivotSymlink"
+	# TODO: CREATE usr/*, etc in zzz-lfs
+	for item in bin etc lib lib32 lib64 usr
 	do
-		mkdir -m 1775 -p "$LFS"/"$folder"
+		folder="$LFS"/"$item"
+		
+		mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$item"
+		
+		if [ ! -L "$folder" ]; then
+			ln -s mnt/lfs-pivot/"$item" "$folder"
+		fi
 	done
 	
-	mkdir -m 0750 -p "$LFS"/root
+	# /usr in pivot
+		# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
+		for item in X11R6 bin include lib lib32 lib64 libexec sbin src
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
+		done
 	
-	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
-	for folder in X11R6 bin include lib libexec sbin src
-	do
-		mkdir -m 0775 -p "$LFS"/usr/"$folder" "$LFS"/usr/local/"$folder"
-	done
+		for item in doc info locale man misc terminfo zoneinfo dict sgml xml
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/"$item"
+		done
 	
-	case "$LFS_ARCHITECTURE" in
-		x86_64)
-			ln -s lib "$LFS"/lib64
-			ln -s lib "$LFS"/usr/lib64
-			ln -s lib "$LFS"/usr/local/lib64
-		;;
-		x86_32)
-			ln -s lib "$LFS"/lib32
-			ln -s lib "$LFS"/usr/lib32
-			ln -s lib "$LFS"/usr/local/lib32
-		;;
-	esac
+		for item in man1 man2 man3 man4 man5 man6 man7 man8
+		do
+			mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$item" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$item"
+		done
 	
-	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
-	do
-		mkdir -m 0775 -p "$LFS"/usr/share/"$folder" "$LFS"/usr/local/share/"$folder"
-	done
+		for item in man doc info
+		do
+			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$item"
+			ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$item"
+		done
 	
-	for folder in man1 man2 man3 man4 man5 man6 man7 man8
-	do
-		mkdir -m 0775 -p "$LFS"/usr/share/man/"$folder" "$LFS"/usr/local/share/man/"$folder"
-	done
-	
-	rm -rf -- "$LFS"/var/run
-	ln -s /run "$LFS"/var/run
-	
-	rm -rf -- "$LFS"/var/lock
-	ln -s /run/lock "$LFS"/var/lock
-	
-	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron
-	for folder in account cache crash games lib local log mail opt spool tmp yp
-	do
-		rm -rf -- "$LFS"/var/"$folder"
-		ln -s /var/"$folder" "$LFS"/var/"$folder"
-	done
-	
-	for folder in man doc info
-	do
-		ln -s share/"$folder" "$LFS"/usr/"$folder"
-		ln -s share/"$folder" "$LFS"/usr/local/"$folder"
-	done
-	
-	ln -s /proc/self/mounts "$LFS"/etc/mtab
+	# /etc set up
+		mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/etc/opt
+		ln -s /proc/self/mounts "$LFS_DEPENDENCY_INSTALL_PATH"/etc/mtab
 }
 
 # We do nothing
 function installPerPackageFhs()
 {
 	:
-}
-
-function installPerPackageFhs_OLD()
-{
-	pathToRootOfChroot "$LFS_DEPENDENCY_PATH"/install
-	
-	ln -s "$PathToRoot"/dev "$LFS_DEPENDENCY_INSTALL_PATH"/dev
-	ln -s "$PathToRoot"/proc "$LFS_DEPENDENCY_INSTALL_PATH"/proc
-	ln -s "$PathToRoot"/sys "$LFS_DEPENDENCY_INSTALL_PATH"/sys
-	
-	local folder
-	for folder in bin boot etc home lib opt sbin srv usr var etc/opt usr/local
-	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/"$folder"
-	done
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0750 -p "$LFS_DEPENDENCY_INSTALL_PATH"/root
-	
-	ln -s "$PathToRoot"/media "$LFS_DEPENDENCY_INSTALL_PATH"/media
-	ln -s "$PathToRoot"/mnt "$LFS_DEPENDENCY_INSTALL_PATH"/mnt
-	ln -s "$PathToRoot"/run "$LFS_DEPENDENCY_INSTALL_PATH"/run
-	ln -s "$PathToRoot"/tmp "$LFS_DEPENDENCY_INSTALL_PATH"/tmp
-	
-	ln -s "$PathToRoot"/run "$LFS_DEPENDENCY_INSTALL_PATH"/var/run
-	ln -s "$PathToRoot"/run/lock "$LFS_DEPENDENCY_INSTALL_PATH"/var/lock
-	
-	case "$LFS_ARCHITECTURE" in
-		x86_64)
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/lib64
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/lib64
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/lib64
-		;;
-		x86_32)
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/lib32
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/lib32
-			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/lib32
-		;;
-	esac
-	
-	# libexec is a horrible idea, but it persists in some packages and it's best not to rock the boat
-	for folder in X11R6 bin include lib libexec sbin src
-	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$folder"
-	done
-	
-	for folder in doc info locale man misc terminfo zoneinfo dict sgml xml
-	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/"$folder"
-	done
-	
-	for folder in man1 man2 man3 man4 man5 man6 man7 man8
-	do
-		sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0775 -p "$LFS_DEPENDENCY_INSTALL_PATH"/usr/share/man/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/share/man/"$folder"
-	done
-	
-	# ? should we be symlinking /var/lib? what about /var/lib/hwclock,misc, /var/spool/cron, /var/lib/locate
-	for folder in account cache crash games lib local log mail opt spool tmp yp
-	do
-		ln -s "$PathToRoot"/var/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/var/"$folder"
-	done
-	
-	for folder in man doc info
-	do
-		ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/"$folder"
-		ln -s share/"$folder" "$LFS_DEPENDENCY_INSTALL_PATH"/usr/local/"$folder"
-	done
-	
-	ln -s "$PathToRoot"/proc/self/mounts "$LFS_DEPENDENCY_INSTALL_PATH"/etc/mtab
 }
