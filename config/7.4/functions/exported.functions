@@ -1147,6 +1147,7 @@ function configurePackagePrototype()
 			CXXFLAGS_FOR_BUILD="$LFS_MAKE_CFLAGS" \
 			CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
 			LDFLAGS="$LFS_MAKE_LDFLAGS" \
+			LDFLAGS_FOR_BUILD="$LFS_MAKE_LDFLAGS" \
 			LIBS="$LFS_MAKE_LIBS" \
 		--build="$LFS_TARGET" \
 		--host="$LFS_TARGET" \
@@ -1176,11 +1177,6 @@ function makeWrapper()
 		OBJDUMP="$LFS_TARGET"-objdump \
 		LD="$LFS_TARGET"-ld \
 		STRIP="$LFS_TARGET"-strip \
-		CFLAGS="$LFS_MAKE_CFLAGS" \
-		CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
-		CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
-		LDFLAGS="$LFS_MAKE_LDFLAGS" \
-		LIBS="$LFS_MAKE_LIBS" \
 	"$@"
 }
 

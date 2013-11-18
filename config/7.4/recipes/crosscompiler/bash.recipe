@@ -10,7 +10,7 @@ version 4.2
 
 function install_crosscompiler_bash()
 {
-	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ --without-bash-malloc
+	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ --without-bash-malloc --disable-net-redictions --enable-largefile --enable-static-link --with-gnu-ld --without-libiconv-prefix --with-included-gettext --without-libintl-prefix
 	
 	LFS_CFLAGS_PRE="-v $LFS_LDFLAGS_STATIC" LFS_CXXFLAGS_PRE="-v $LFS_LDFLAGS_STATIC" makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
 }

@@ -49,7 +49,7 @@ function setCFlags()
 	# musl does not currently use this value
 	LFS_CFLAGS_HARDENING="-D_FORTIFY_SOURCE=2"
 	
-	local -r ldOptimisationFlags="-O1"
+	local -r ldOptimisationFlags="-Wl,-O1"
 	local -r ldDebugFlags="${settings_string[LFS_LDFLAGS_DEBUGGING]}"
 	if [ -n "$ldDebugFlags" ]; then
 		LFS_LDFLAGS_OPTIMISATION="$ldOptimisationFlags $ldDebugFlags"
