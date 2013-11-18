@@ -36,7 +36,7 @@ function machineSettingDefaults()
 	setting_string LFS_DISTRIBUTION_CODENAME "stormmq"
 	setting_string LFS_DISTRIBUTION_DESCRIPTION "Linux From Scratch"
 
-	setting_integer LFS_INCLUSIVE_SYSTEM_UID 1000
+	setting_integer verifyStringSetting 1000
 	setting_integer LFS_INCLUSIVE_SYSTEM_GID 1000
 	setting_integer LFS_INCLUSIVE_USER_UID 10000
 	setting_integer LFS_INCLUSIVE_USER_GID 10000
@@ -44,23 +44,23 @@ function machineSettingDefaults()
 
 function verifyMachineSettings()
 {
-	verifySetting LFS_HOSTNAME simple
+	verifyStringSetting LFS_HOSTNAME simple
 	
-	verifySetting LFS_ARCHITECTURE
-	verifySetting LFS_CFLAGS_CPU_OPTIMISATION
-	verifySetting LFS_LDFLAGS_DEBUGGING
+	verifyStringSetting LFS_ARCHITECTURE
+	verifyStringSetting LFS_CFLAGS_CPU_OPTIMISATION
+	verifyStringSetting LFS_LDFLAGS_DEBUGGING
 
-	verifySetting LFS_AUTOTOOLS_CONFIG_VERSION
-	verifySetting LFS_AUTOTOOLS_GNULIB_VERSION
+	verifyStringSetting LFS_AUTOTOOLS_CONFIG_VERSION
+	verifyStringSetting LFS_AUTOTOOLS_GNULIB_VERSION
 
-	verifySetting LFS_DISTRIBUTION_ID
-	verifySetting LFS_DISTRIBUTION_CODENAME
-	verifySetting LFS_DISTRIBUTION_DESCRIPTION
+	verifyStringSetting LFS_DISTRIBUTION_ID
+	verifyStringSetting LFS_DISTRIBUTION_CODENAME
+	verifyStringSetting LFS_DISTRIBUTION_DESCRIPTION
 	
-	verifySetting LFS_INCLUSIVE_SYSTEM_UID
-	verifySetting LFS_INCLUSIVE_SYSTEM_GID
-	verifySetting LFS_INCLUSIVE_USER_UID
-	verifySetting LFS_INCLUSIVE_USER_GID
+	verifyStringSetting verifyStringSetting
+	verifyStringSetting LFS_INCLUSIVE_SYSTEM_GID
+	verifyStringSetting LFS_INCLUSIVE_USER_UID
+	verifyStringSetting LFS_INCLUSIVE_USER_GID
 }
 
 function includeMachineSettings()

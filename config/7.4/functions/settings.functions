@@ -75,7 +75,7 @@ function timezone_region()
 	settings_timezone_Regions+=("$timezoneRegion")
 }
 
-function verifySetting()
+function verifyStringSetting()
 {
 	local -r keyToVerify="$1"
 	local key
@@ -85,5 +85,31 @@ function verifySetting()
 			return 0
 		fi
 	done
-	exitError "Missing essential setting $keyToVerify"
+	exitError "Missing essential string setting $keyToVerify"
+}
+
+function verifyIntegerSetting()
+{
+	local -r keyToVerify="$1"
+	local key
+	for key in "${!settings_integer[@]}"
+	do
+		if [ "$keyToVerify" = "$key" ]; then
+			return 0
+		fi
+	done
+	exitError "Missing essential integer setting $keyToVerify"
+}
+
+function verifyBinarySetting()
+{
+	local -r keyToVerify="$1"
+	local key
+	for key in "${!settings_binary[@]}"
+	do
+		if [ "$keyToVerify" = "$key" ]; then
+			return 0
+		fi
+	done
+	exitError "Missing essential binary setting $keyToVerify"
 }

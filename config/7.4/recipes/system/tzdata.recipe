@@ -22,8 +22,8 @@ version 2013d
 
 function verify_settings_system_tzdata()
 {
-	verifySetting LFS_TIMEZONE_POSIXRULES
-	verifySetting LFS_TIMEZONE_TARGET
+	verifyStringSetting LFS_TIMEZONE_POSIXRULES
+	verifyStringSetting LFS_TIMEZONE_TARGET
 }
 
 function install_system_tzdata()
