@@ -120,13 +120,24 @@ function installEssentialFolderStructure()
 				mkdir -m 0755 -p "$folder"
 			fi
 		done
-		ln -s ../run "$LFS"/var/run
-		ln -s ../run/lock "$LFS"/var/lock
+
+		folder="$LFS"/"$item"
+		if [ ! -L "$folder" ]; then
+			ln -s ../run "$folder"
+		fi
+
+		folder="$LFS"/"$item"
+		if [ ! -L "$folder" ]; then
+			ln -s ../run/lock "$folder"
+		fi
 	
 	# /home /srv
 		for item in home srv
 		do
-			ln -s var/"$item" "$LFS"/"$item"
+			folder="$LFS"/"$item"
+			if [ ! -L "$folder" ]; then
+				ln -s var/"$item" "$folder"
+			fi
 		done
 	
 	# /root
@@ -141,7 +152,9 @@ function installEssentialFolderStructure()
 
 	# Install a single, pivotable symlink so we can change over all paths in one atomic transistion
 	local pivotSymlink="$LFS"/mnt/lfs-pivot
-	ln -s "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ" "$pivotSymlink"
+	if [ ! -L "$pivotSymlink" ]; then
+		ln -s "$LFS_DEPENDENCY_PREFIX_PATH_ZZZ" "$pivotSymlink"
+	fi
 	
 	# Reference folders inside pivot
 	for item in bin etc lib lib32 lib64 sbin usr
