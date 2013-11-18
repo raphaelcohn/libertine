@@ -1180,8 +1180,7 @@ function makeWrapper()
 		CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
 		CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
 		LDFLAGS="$LFS_MAKE_LDFLAGS" \
-		LIBS="$LFS_MAKE_LIBS" \
-	$@
+		LIBS="$LFS_MAKE_LIBS" $@
 }
 
 function makePackagePrototype()
