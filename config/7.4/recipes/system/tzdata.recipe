@@ -10,15 +10,15 @@ version 2013d
 	verifyStringSetting LFS_TIMEZONE_POSIXRULES
 	verifyStringSetting LFS_TIMEZONE_TARGET
 	
-	directory /usr/share/zoneinfo 0755 root root '' ai
-	directory /usr/share/zoneinfo/posix 0755 root root '' ai
-	directory /usr/share/zoneinfo/right 0755 root root '' ai
+	#directory /usr/share/zoneinfo 0755 root root '' ai
+	#directory /usr/share/zoneinfo/posix 0755 root root '' ai
+	#directory /usr/share/zoneinfo/right 0755 root root '' ai
 	
-	permissions_after /usr/share/zoneinfo/zone.tab 0644 root root jS ai
-	permissions_after /usr/share/zoneinfo/iso3166.tab 0644 root root jS ai
+	#permissions_after /usr/share/zoneinfo/zone.tab 0644 root root jS ai
+	#permissions_after /usr/share/zoneinfo/iso3166.tab 0644 root root jS ai
 	
-	permissions_after_recursive /usr/share/zoneinfo 0755 root root '' ai 0 10 directory
-	permissions_after_recursive /usr/share/zoneinfo 0644 root root '' ai 0 10 file
+	#permissions_after_recursive /usr/share/zoneinfo 0755 root root '' ai 0 10 directory
+	#permissions_after_recursive /usr/share/zoneinfo 0644 root root '' ai 0 10 file
 }
 
 function install_system_tzdata()
