@@ -546,10 +546,16 @@ function installBinariesToPackagePath()
 			pushd "$(purebash_dirname "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries")" >/dev/null
 				
 				binary="$(purebash_basename "$relativeLocationOfBinaries")"
+
+				if [ ! -L "$binary" ]; then
+					chattr -ai "$binary"
+				fi
 				
-				chattr -ai "$binary"
 				chmod a+x "$binary"
-				chattr +ai "$binary"
+				
+				if [ -L "$binary" ]; then
+					chattr +ai "$binary"
+				fi
 				
 				sourceBinary=../install/"$relativeLocationOfBinaries"
 				targetBinary="$LFS_DEPENDENCY_BINPATH_PATH"/"$binary"
