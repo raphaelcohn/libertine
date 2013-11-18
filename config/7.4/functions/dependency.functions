@@ -646,8 +646,8 @@ function installBinariesToPackagePath()
 
 function installPackagePathBinariesToPath()
 {
-	if [ "$LFS_DEPENDENCY_BINPATH_PATH" = "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ" ]; then
-		return 0
+	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
+		continue
 	fi
 	
 	# Why is it sealed? Recipes not changed, but something never finished installing?
@@ -670,7 +670,8 @@ function installPackagePathBinariesToPath()
 			fi
 			
 			sourceBinary=../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/binpath/"$binary"
-			targetBinary="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"/"$binary"
+			
+			targetBinary="${LFS}${LFS_DEPENDENCY_PREFIX_PATH_ZZZ}"/binpath/"$binary"
 			
 			if [ ! -e "$targetBinary" ]; then
 				ln -s "$sourceBinary" "$targetBinary"

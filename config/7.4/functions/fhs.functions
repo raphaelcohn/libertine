@@ -121,12 +121,12 @@ function installEssentialFolderStructure()
 			fi
 		done
 
-		folder="$LFS"/"$item"
+		folder="$LFS"/var/run
 		if [ ! -L "$folder" ]; then
 			ln -s ../run "$folder"
 		fi
 
-		folder="$LFS"/"$item"
+		folder="$LFS"/var/lock
 		if [ ! -L "$folder" ]; then
 			ln -s ../run/lock "$folder"
 		fi
