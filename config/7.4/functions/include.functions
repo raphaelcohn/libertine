@@ -99,6 +99,9 @@ function doInclude()
 	
 	includeMachineSettings
 	
+	setArchitectures
+	setCFlags
+	
 	includeLeafRecipe crosscompiler
 	includeLeafRecipe toolchain2
 	includeLeafRecipe system 
