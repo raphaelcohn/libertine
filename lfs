@@ -876,6 +876,8 @@ function main()
 	
 	installEssentialFolderStructure
 	
+	exit 50
+	
 	removeAnyFailedPackagesFromPreviousRuns
 	
 	calculateDependencyPaths
