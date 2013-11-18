@@ -67,7 +67,7 @@ function includeMachineSettings()
 {
 	machineSettingDefaults "$machine"
 	
-	machineSettingsFile="$machinesPath"/"$machine".setting
+	machineSettingsFile="$machinesPath"/"$machine".settings
 	if [ ! -f "$machineSettingsFile" ]; then
 		exitError "No settings file $machineSettingsFile for machine $machine"
 	fi
