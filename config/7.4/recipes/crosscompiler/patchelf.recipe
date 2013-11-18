@@ -16,7 +16,7 @@ function install_crosscompiler_patchelf()
 		
 	popdDepdendencyFolder
 
-	LFS_CFLAGS_PRE="$LFS_LDFLAGS_EXTERNAL" LFS_CXXFLAGS_PRE="$LFS_LDFLAGS_EXTERNAL" configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ --disable-dependency-tracking
+	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ --disable-dependency-tracking
 	
-	LFS_CFLAGS_PRE="-v $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_STATIC" LFS_CXXFLAGS_PRE="-v $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_STATIC" makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
+	LFS_CFLAGS_PRE="-v $LFS_LDFLAGS_STATIC" LFS_CXXFLAGS_PRE="-v $LFS_LDFLAGS_STATIC" makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++
 }

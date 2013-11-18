@@ -298,6 +298,19 @@ function install_crosscompiler_musl-cross()
 		local -r preCXXFlags='$LFS_CXXFLAGS_PRE'
 		local -r postCFlags='$LFS_CFLAGS_POST'
 		local -r postCXXFlags='$LFS_CXXFLAGS_POST'
+	
+		# In the musl-cross recipe, we patch the musl dynamic linker to use a default path of PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib instead of /lib:/usr/local/lib:/usr/lib
+		# When running programs outside of the chroot, we need to override the location of the dynamic linker and specify the external version of the above path
+		# musl uses the following search order:-
+		# LD_PRELOAD
+		# LD_LIBRARY_PATH
+		# DT_RPATH
+		# PREFIX/x86_64-linux-musl/x86_64-linux-musl/etc/ld-musl-x86_64.path (equivalent of ld.so.conf, I suppose)
+		# Default path (changed from /lib:/usr/local/lib:/usr/lib to PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib)
+		# And, for libc.so, the location of the dynamic linker
+		# -Wl,-z,nodefaultlib seems to be ignored ?by the musl dynamic linker?
+		# Set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix).
+		local -r LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
 		
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )

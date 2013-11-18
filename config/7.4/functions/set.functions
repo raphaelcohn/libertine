@@ -65,19 +65,6 @@ function setCFlags()
 	# --no-copy-dt-needed-entries is believed to now be default and so is not specified
 	LFS_LDFLAGS_HARDENING="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed"
 	
-	# In the musl-cross recipe, we patch the musl dynamic linker to use a default path of PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib instead of /lib:/usr/local/lib:/usr/lib
-	# When running programs outside of the chroot, we need to override the location of the dynamic linker and specify the external version of the above path
-	# musl uses the following search order:-
-	# LD_PRELOAD
-	# LD_LIBRARY_PATH
-	# DT_RPATH
-	# PREFIX/x86_64-linux-musl/x86_64-linux-musl/etc/ld-musl-x86_64.path (equivalent of ld.so.conf, I suppose)
-	# Default path (changed from /lib:/usr/local/lib:/usr/lib to PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib)
-	# And, for libc.so, the location of the dynamic linker
-	# -Wl,-z,nodefaultlib seems to be ignored ?by the musl dynamic linker?
-	# Set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix).
-	LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
-	
 	#LFS_LDFLAGS_STATIC="-static -static-libgcc -static-libstdc++ -Wl,-Bstatic"
 	LFS_LDFLAGS_STATIC="-static"
 	
