@@ -24,6 +24,7 @@ function install_crosscompiler_selinux()
 	pushd libselinux >/dev/null
 
 		# PROBLEM: Does not create a static archive combined with libsepol
+		export MAKEFLAGS="-j1"
 		LFS_CFLAGS_PRE="-v" LFS_CXXFLAGS_PRE="-v" makePackageInsideDependencyFolder external-crosscompiler-gcc external-crosscompiler-g++ DESTDIR="$LFS_DEPENDENCY_PREFIX_PATH"
 	
 	popd  >/dev/null
