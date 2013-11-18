@@ -302,8 +302,6 @@ function prepareZzzLfsPath()
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
-	
-	export PATH="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$PATH"
 }
 
 function prepareMuslCrossPath()
@@ -671,7 +669,7 @@ function installPackagePathBinariesToPath()
 			
 			sourceBinary=../../../../"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/binpath/"$binary"
 			
-			targetBinary="${LFS}${LFS_DEPENDENCY_PREFIX_PATH_ZZZ}"/binpath/"$binary"
+			targetBinary="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath/"$binary"
 			
 			if [ ! -e "$targetBinary" ]; then
 				ln -s "$sourceBinary" "$targetBinary"

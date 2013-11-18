@@ -666,17 +666,13 @@ function installPackages()
 
 function stripToolchainSymbolsAfterToolchain2()
 {
-	if [ "$stripToolchainSymbols" = "yes" ]; then
-		set +e
-		# Fails for /tools/lib/thread2.7.0/libthread2.7.0.so
-		find /"$LFS_TOOLS"/lib -type f \( -name '*.a' -o -name '*.o' -o \( -name '*.so*' -a ! -name '*.py' \) \) -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF|current/ {print $1}' | xargs --null strip --verbose --strip-debug
-		find /"$LFS_TOOLS"/{,s}bin -type f -executable -print0 | xargs --null file --print0 --separator ' ' | awk -v IRS=$'\0' -v ORS=$'\0' '$2 ~/ELF/ {print $1}' | xargs --null strip --verbose --strip-unneeded
-		set -e
-	fi
+	:
 }
 
 function backUpToolchain()
 {
+	return 0
+	
 	if which rsync 1>/dev/null 2>/dev/null; then
 		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
 		mkdir -m 0755 -p "$toolsBackUpPath"
@@ -694,6 +690,10 @@ function backUpToolchain()
 
 function createToolchain()
 {
+	declare_for_chroot LFS_PATH_ORIGINAL
+	LFS_PATH_ORIGINAL="$PATH"
+	
+	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
 	installPackages crosscompiler
 	installPackages toolchain2
 	

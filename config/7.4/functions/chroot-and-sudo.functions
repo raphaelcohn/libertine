@@ -94,7 +94,6 @@ function executeFunctionUnderSudo()
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
 		setLocale
 		
-		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
 		setDebugging
@@ -131,14 +130,13 @@ function chrootToEnvironment()
 		setLocale
 		
 		LFS=
-		LFS_TOOLS_PATH=/"$LFS_TOOLS"
 		
 		setDebugging
 		initialiseTraps
+	
+		export PATH="$LFS_DEPENDENCY_PATH_ZZZ"/binpath
 		installPackages system
 	EOF
-	
-	cp "$continutationBinaryForChroot" /tmp/XXXX
 	
 	mountVirtualFilesystems
 	
