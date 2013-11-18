@@ -547,13 +547,17 @@ function installBinariesToPackagePath()
 				
 				binary="$(purebash_basename "$relativeLocationOfBinaries")"
 
-				if [ ! -L "$binary" ]; then
-					chattr -ai "$binary"
-				fi
-				
-				chmod a+x "$binary"
-				
 				if [ -L "$binary" ]; then
+					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
+					if [ ! -f "$resolvedBinary" ]; then
+						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
+					fi
+					chattr -ai "$resolvedBinary"
+					chmod a+x "$resolvedBinary"
+					chattr +ai "$resolvedBinary"
+				else
+					chattr -ai "$binary"
+					chmod a+x "$binary"
 					chattr +ai "$binary"
 				fi
 				
