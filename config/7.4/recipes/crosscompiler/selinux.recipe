@@ -21,8 +21,6 @@ function install_crosscompiler_selinux()
 	
 	popd  >/dev/null
 	
-	return 50
-	
 	pushd libselinux >/dev/null
 
 		# PROBLEM: Does not create a static archive combined with libsepol
