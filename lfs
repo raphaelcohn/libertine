@@ -517,6 +517,10 @@ function removeAnyFailedPackagesFromPreviousRuns()
 	local dependencyVersion
 	local dependencyHashes
 	
+	if [ ! -d "$optPath" ]; then
+		return 0
+	fi
+	
 	pushd "$optPath" >/dev/null
 		for phaseFolder in *
 		do
