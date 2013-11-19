@@ -52,7 +52,7 @@ function install_crosscompiler_busybox()
 		local -r cCompiler=external-crosscompiler-gcc
 		local -r cxxCompiler=external-crosscompiler-g++
 		
-		makeWrapper "$cCompiler" "$cxxCompiler" busybox
+		LFS_CFLAGS_PRE=-static makeWrapper "$cCompiler" "$cxxCompiler" busybox
 		
 		makeWrapper "$cCompiler" "$cxxCompiler" install
 	
