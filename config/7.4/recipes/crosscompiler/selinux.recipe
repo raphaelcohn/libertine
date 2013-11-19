@@ -25,8 +25,6 @@ function install_crosscompiler_selinux()
 	
 	pushd libselinux >/dev/null
 		
-		local -r prceInstallPath="${LFS}$(dependencyPath pcre)"/install
-		
 		# booleans.c seems to rely on glibc's dirent.h macros
 		
 		# From http://harmattan-dev.nokia.com/docs/library/html/manpages/headers/dirent.html
@@ -102,8 +100,12 @@ function install_crosscompiler_selinux()
 		# CFLAGS="-Wall -W -Wundef -Wformat-y2k -Wformat-security -Winit-self -Wmissing-include-dirs -Wunused -Wunknown-pragmas -Wstrict-aliasing -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wlogical-op -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Winvalid-pch -Wvolatile-register-var -Wdisabled-optimization -Wbuiltin-macro-redefined -Wmudflap -Wpacked-bitfield-compat -Wsync-nand -Wattributes -Wcoverage-mismatch -Wmultichar -Wcpp -Wdeprecated-declarations -Wdiv-by-zero -Wdouble-promotion -Wendif-labels -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-zero-length -Wformat=2 -Wmultichar -Wnormalized=nfc -Woverflow -Wpointer-to-int-cast -Wpragmas -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wsuggest-attribute=pure -Wtrampolines -Wno-missing-field-initializers -Wno-sign-compare -Wjump-misses-init -Wno-format-nonliteral -Wframe-larger-than=32768 -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all --param=ssp-buffer-size=4 -fexceptions -fasynchronous-unwind-tables -fdiagnostics-show-option -funit-at-a-time -fipa-pure-const -Wno-suggest-attribute=pure -Wno-suggest-attribute=const -Wno-aggregate-return -Wno-redundant-decls" \
 		
 			# -rpath, -rpath-link
+
+	
+		local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
+		local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 		
-		LFS_CFLAGS_PRE="-I${prceInstallPath}/include -L${prceInstallPath}/lib" \
+		LFS_CFLAGS_PRE="-I${prceAbsoluteInstallPath}/include -L${prceAbsoluteInstallPath}/lib -Wl,-rpath-link=$prceAbsoluteInstallPath/lib -Wl,-rpath=$prceRelativeInstallPath/lib" \
 		makePackageInsideDependencyFolder external-crosscompiler-gcc external-crosscompiler-g++ DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH"
 	
 	popd  >/dev/null
