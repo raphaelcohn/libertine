@@ -1,10 +1,9 @@
 set -o errexit +o hashall
 
-version 4.2
+version 8.33
 {
-	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
-	
 	depends musl-cross
+	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
 	install_binaries_in_paths bin/bash
 }

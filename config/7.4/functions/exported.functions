@@ -297,7 +297,7 @@ function source_package()
 	fi
 	
 	if [ -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
-		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
+		local -r ourSourcePackageName="$LFS_RECIPE_NAME"
 		local -r ourRecipeName="$ourSourcePackageName"
 	else
 		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
@@ -316,9 +316,6 @@ function source_package()
 	local -r ourRelativePath="$2"
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
-	
-	echo z"$LFS_RECIPE_NAME" z"$LFS_SOURCE_PACKAGE_NAME" z"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}" z"$LFS_SOURCE_PACKAGE_VERSION" $ourSourcePackageName $ourRecipeVersion $ourMirror $ourRelativePath
-	
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
