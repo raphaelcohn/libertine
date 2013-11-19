@@ -163,9 +163,11 @@ function signature()
 
 	
 				if [ $originalFileRelativePath = pcre/pcre-4.2.tar.bz2 ]; then
-					echo $hashSignatureFileName
-					echo $hashSignatureRelativePath
-					exit 50
+					if [ "$hashName" = "HKP" ]; then
+						echo $hashSignatureFileName
+						echo $hashSignatureRelativePath
+						exit 50
+					fi
 				fi
 				
 				signatures_Mirror[$index]="$ourMirror"
