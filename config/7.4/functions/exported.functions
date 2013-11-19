@@ -160,15 +160,6 @@ function signature()
 					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
-
-	
-				if [ $originalFileRelativePath = pcre/pcre-4.2.tar.bz2 ]; then
-					if [ "$hashName" = "HKP" ]; then
-						echo $hashSignatureFileName
-						echo $hashSignatureRelativePath
-						exit 50
-					fi
-				fi
 				
 				signatures_Mirror[$index]="$ourMirror"
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
@@ -371,6 +362,9 @@ function source_package()
 	local -r ourRelativePath="$2"
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
+	
+	echo $ourMirror $ourRelativePath
+	
 	
 	local -r compressionExtension="${ourFileName##*.}"
 	
