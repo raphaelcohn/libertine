@@ -1163,9 +1163,9 @@ function makeWrapper()
 	local -r cxxCompiler="$2"
 	shift 2
 
-	LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
+	LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE -Wl,-verbose" \
 	LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
-	LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
+	LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE -Wl,-verbose" \
 	LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
 	make \
 		CC="$cCompiler" \
