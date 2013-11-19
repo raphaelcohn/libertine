@@ -17202,7 +17202,7 @@ pcp-import-iostat2pcp
 pcp-import-mrtg2pcp
 pcp-import-sar2pcp
 pcp-import-sheet2pcp
-pcregrep
+pcre
 pcsc-tools
 pcscada
 pcscd
