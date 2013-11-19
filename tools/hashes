@@ -9,7 +9,7 @@ function runOnTrap()
 
 function hashDownload()
 {
-	curl "$1" >"$tempFile"
+	curl -L "$1" >"$tempFile"
 	echo -n MD5:$(md5sum "$tempFile" | awk '{print $1}')
 	echo -n ,SHA1:$(sha1sum "$tempFile" | awk '{print $1}')
 	echo -n ,SHA256:$(sha256sum "$tempFile" | awk '{print $1}')
