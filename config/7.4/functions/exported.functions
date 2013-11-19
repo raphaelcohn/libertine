@@ -363,7 +363,7 @@ function source_package()
 	local -r ourHashes="$3"
 	local -r ourFileName="$(purebash_basename "$ourRelativePath")"
 	
-	echo $ourMirror $ourRelativePath
+	echo $ourSourcePackageName $ourRecipeVersion $ourMirror $ourRelativePath
 	
 	
 	local -r compressionExtension="${ourFileName##*.}"
