@@ -32,7 +32,7 @@ function install_crosscompiler_selinux()
 		# From http://harmattan-dev.nokia.com/docs/library/html/manpages/headers/dirent.html
 		mv src/booleans.c src/booleans.c.orig
 		cat >src/booleans.c <<-'EOF'
-			# Added by us
+			/* Added by us */
 			#ifdef _DIRENT_HAVE_D_NAMLEN
 			# undef _DIRENT_HAVE_D_NAMLEN
 			#endif
