@@ -149,7 +149,7 @@ function signature()
 	local hashSignatureRelativePath
 	
 	if [ $originalFileRelativePath = pcre/pcre-4.2.tar.bz2 ]; then
-		echo DDDDD
+		echo $ourHashesSpaceSeparated
 		exit 50
 	fi
 	
