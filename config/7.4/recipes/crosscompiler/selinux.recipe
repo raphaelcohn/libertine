@@ -71,24 +71,23 @@ function install_crosscompiler_selinux()
 		
 		cp src/procattr.c src/procattr.c.orig
 		patch -Np1 <<-'EOF'
-			--- lfs-temp.orig/src/procattr.c	2013-11-19 16:43:00.000000000 +0000
-			+++ lfs-temp.new/src/procattr.c	2013-11-19 16:43:40.000000000 +0000
-			@@ -24,15 +24,6 @@
+			--- old/src/procattr.c	2013-11-19 16:43:00.000000000 +0000
+			+++ new/src/procattr.c	2013-11-19 17:00:47.000000000 +0000
+			@@ -24,13 +24,9 @@
 			 static int destructor_key_initialized = 0;
 			 static __thread char destructor_initialized;
  
 			-extern void *__dso_handle __attribute__ ((__weak__, __visibility__ ("hidden")));
 			-extern int __register_atfork (void (*) (void), void (*) (void), void (*) (void), void *);
 			-
-			-static int __selinux_atfork (void (*prepare) (void), void (*parent) (void), void (*child) (void))
-			-{
+			 static int __selinux_atfork (void (*prepare) (void), void (*parent) (void), void (*child) (void))
+			 {
 			-  return __register_atfork (prepare, parent, child,
 			-                            &__dso_handle == NULL ? NULL : __dso_handle);
-			-}
-			-
+			+  return pthread_atfork (prepare, parent, child);
+			 }
+ 
 			 static pid_t gettid(void)
-			 {
-			 	return syscall(__NR_gettid);
 		EOF
 		
 		
