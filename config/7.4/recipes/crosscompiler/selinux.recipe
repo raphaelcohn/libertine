@@ -95,13 +95,15 @@ function install_crosscompiler_selinux()
 		EOF
 		cat src/setrans_client.c.orig >>src/setrans_client.c
 		
+		# fix incorrect header in matchpathcon.h
+		cp src/matchpathcon.c src/matchpathcon.c.orig
+		sed -i -e 's/#include <sys/errno.h>/#include <errno.h>/g' src/matchpathcon.c
+		cp src/selinux_check_securetty_context.c src/selinux_check_securetty_context.c.orig
+		sed -i -e 's/#include <sys/errno.h>/#include <errno.h>/g' src/selinux_check_securetty_context.c
 		
 		# -Werror removed as causes failure of compilation of booleans.c
 		# CFLAGS="-Wall -W -Wundef -Wformat-y2k -Wformat-security -Winit-self -Wmissing-include-dirs -Wunused -Wunknown-pragmas -Wstrict-aliasing -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wlogical-op -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Winvalid-pch -Wvolatile-register-var -Wdisabled-optimization -Wbuiltin-macro-redefined -Wmudflap -Wpacked-bitfield-compat -Wsync-nand -Wattributes -Wcoverage-mismatch -Wmultichar -Wcpp -Wdeprecated-declarations -Wdiv-by-zero -Wdouble-promotion -Wendif-labels -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-zero-length -Wformat=2 -Wmultichar -Wnormalized=nfc -Woverflow -Wpointer-to-int-cast -Wpragmas -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wsuggest-attribute=pure -Wtrampolines -Wno-missing-field-initializers -Wno-sign-compare -Wjump-misses-init -Wno-format-nonliteral -Wframe-larger-than=32768 -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all --param=ssp-buffer-size=4 -fexceptions -fasynchronous-unwind-tables -fdiagnostics-show-option -funit-at-a-time -fipa-pure-const -Wno-suggest-attribute=pure -Wno-suggest-attribute=const -Wno-aggregate-return -Wno-redundant-decls" \
 		
-			# -rpath, -rpath-link
-
-	
 		local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
 		local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 		
