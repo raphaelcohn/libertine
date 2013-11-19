@@ -148,6 +148,8 @@ function signature()
 	local hashSignatureFileName
 	local hashSignatureRelativePath
 	
+	echo $originalFileRelativePath
+	
 	local -i index
 	for hashNameAndValue in $ourHashesSpaceSeparated
 	do
