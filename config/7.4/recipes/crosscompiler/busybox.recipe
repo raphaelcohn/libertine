@@ -46,11 +46,15 @@ function install_crosscompiler_busybox()
 			value="${busyboxConfiguration["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'="'"$value"'";g' .config
 		done
-	
-		# Doesn't create docs
-		make busybox
 		
-		make install
+		# LFS_CFLAGS_PRE=-static make scripts_basic
+
+		local -r cCompiler=external-crosscompiler-gcc
+		local -r cxxCompiler=external-crosscompiler-g++
+		
+		makeWrapper "$cCompiler" "$cxxCompiler" busybox
+		
+		makeWrapper "$cCompiler" "$cxxCompiler" install
 	
 	popdDependencyFolder
 }

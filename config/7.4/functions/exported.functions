@@ -1148,7 +1148,7 @@ function makePackageInsideDependencyFolder()
 	local -r cCompiler="$1"
 	local -r cxxCompiler="$2"
 	shift 2
-		
+	
 	makeWrapper "$cCompiler" "$cxxCompiler" "$@"
 	
 	if [ -z "$LFS" ]; then
