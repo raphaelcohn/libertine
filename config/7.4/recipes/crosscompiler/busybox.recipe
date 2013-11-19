@@ -8,18 +8,28 @@ version 1.21.1
 
 function install_crosscompiler_busybox()
 {
+	# libselinux depends on libpcre
+	local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
+	local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
+	
+	local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
+	local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
+		
 	pushdDependencyFolder
+		
+		local -ir inclusiveUserId=${settings_integer[LFS_INCLUSIVE_USER_UID]}
+		local -ir lastSystemId=$((inclusiveUserId-1))
 		
 		declare -A busyboxConfiguration
 		# "$LFS_TARGET"-like
 		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]=""
 		# $LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS
 		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET"
-		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I<libselinux-include-path>"
-		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L<libselinux-lib-path>"
+		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include"
+		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib -lpcre -lsepol -lselinux"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
-		busyboxConfiguration["CONFIG_FIRST_SYSTEM_ID"]="100"
-		busyboxConfiguration["CONFIG_LAST_SYSTEM_ID"]="999"
+		busyboxConfiguration["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
+		busyboxConfiguration["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
 		busyboxConfiguration["CONFIG_DEFAULT_MODULES_DIR"]="/lib/modules"
 		busyboxConfiguration["CONFIG_FEATURE_CROND_DIR"]="/var/spool/cron"
 		busyboxConfiguration["CONFIG_IFUPDOWN_IFSTATE_PATH"]="/var/run/ifstate"
@@ -31,7 +41,7 @@ function install_crosscompiler_busybox()
 		
 		local key
 		local value
-		for key in "${!busyboxConfiguration["@"]}"
+		for key in "${!busyboxConfiguration[@]}"
 		do
 			value="${busyboxConfiguration[""$key""]}"
 			sed -i -e 's^'${key}'=.*$;'${key}'="'${value}'";g' .config

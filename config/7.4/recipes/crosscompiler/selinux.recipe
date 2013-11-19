@@ -11,6 +11,10 @@ version 20131030
 	include libsepol 2.2
 	#include policycoreutils 2.2.2
 	#include sepolgen 1.2.1
+	
+	# TODO: add a sbinpath, and correct permissions so they are only executable by root/root (with no other access)
+	# TODO: add a manpath
+	install_binaries_in_paths usr/bin usr/sbin
 }
 
 # libsepol depends on libselinux and libpcre; remember this when static linking (we're going to rapidly have some nasty problems)
