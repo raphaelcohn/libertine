@@ -31,7 +31,7 @@ function install_crosscompiler_selinux()
 		
 		# From http://harmattan-dev.nokia.com/docs/library/html/manpages/headers/dirent.html
 		mv src/booleans.c src/booleans.c.orig
-		cat >src/booleans.c <<-EOF
+		cat >src/booleans.c <<-'EOF'
 			# Added by us
 			#ifdef _DIRENT_HAVE_D_NAMLEN
 			# undef _DIRENT_HAVE_D_NAMLEN
@@ -70,7 +70,7 @@ function install_crosscompiler_selinux()
 		cat src/booleans.c.orig >>src/booleans.c
 		
 		cp src/procattr.c src/procattr.c.orig
-		patch -Np1 -i <<-EOF
+		patch -Np1 -i <<-'EOF'
 			--- lfs-temp.orig/src/procattr.c	2013-11-19 16:43:00.000000000 +0000
 			+++ lfs-temp.new/src/procattr.c	2013-11-19 16:43:40.000000000 +0000
 			@@ -24,15 +24,6 @@
