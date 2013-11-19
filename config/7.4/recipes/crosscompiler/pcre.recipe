@@ -55,10 +55,8 @@ function install_crosscompiler_pcre()
 		
 	popdDepdendencyFolder
 	
-	# 
-	
-	MAY NEED TO OVERRIDE CFLAGS (-g -O2)
-	
+	# CHECK CFLAGS
+		
 	# V=1 disables --silent to libtool AND makes make (sic) output command lines
 	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ V=1 LIBTOOLFLAGS="--verbose"
 }
