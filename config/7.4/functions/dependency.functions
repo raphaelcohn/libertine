@@ -382,6 +382,9 @@ function lockDownPermissions()
 				# Note, we leave C (disable copy-on-write for BTRFS), alone
 				chattr -djsStuai "$topLevelFolder"
 				
+				# Remove any ACLs (unlikely)
+				setfacl --physical --remove-all --remove-default -- "$topLevelFolder"
+				
 				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
 				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
 				if [ -x "$topLevelFolder" ]; then
@@ -424,6 +427,9 @@ function lockDownPermissions()
 				# Note we leave T, Orlov block allocation, alone
 				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chattr -DdjsStuai
 				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chattr -djsStuai
+				
+				# Remove any ACLs (unlikely)
+				setfacl --physical --recursive --remove-all --remove-default -- "$topLevelFolder"
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
 				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
