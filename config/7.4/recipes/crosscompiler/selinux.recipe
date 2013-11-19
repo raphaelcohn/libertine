@@ -26,7 +26,73 @@ function install_crosscompiler_selinux()
 	pushd libselinux >/dev/null
 		
 		local -r prceInstallPath="${LFS}$(dependencyPath pcre)"/install
+		
+		# booleans.c seems to rely on glibc's dirent.h macros
+		
+		# From http://harmattan-dev.nokia.com/docs/library/html/manpages/headers/dirent.html
+		mv src/booleans.c src/booleans.c.orig
+		cat >src/booleans.c <<-EOF
+			# Added by us
+			#ifdef _DIRENT_HAVE_D_NAMLEN
+			# undef _DIRENT_HAVE_D_NAMLEN
+			#endif
+			#ifndef _DIRENT_HAVE_D_RECLEN
+			# define _DIRENT_HAVE_D_RECLEN
+			#endif
+		
+			/* These macros extract size information from a `struct dirent *'.
+			   They may evaluate their argument multiple times, so it must not
+			   have side effects.  Each of these may involve a relatively costly
+			   call to `strlen' on some systems, so these values should be cached.
 
+			   _D_EXACT_NAMLEN (DP) returns the length of DP->d_name, not including
+			   its terminating null character.
+
+			   _D_ALLOC_NAMLEN (DP) returns a size at least (_D_EXACT_NAMLEN (DP) + 1);
+			   that is, the allocation size needed to hold the DP->d_name string.
+			   Use this macro when you don't need the exact length, just an upper bound.
+			   This macro is less likely to require calling `strlen' than _D_EXACT_NAMLEN.
+			   */
+
+			#ifdef _DIRENT_HAVE_D_NAMLEN
+			# define _D_EXACT_NAMLEN(d) ((d)->d_namlen)
+			# define _D_ALLOC_NAMLEN(d) (_D_EXACT_NAMLEN (d) + 1)
+			#else
+			# define _D_EXACT_NAMLEN(d) (strlen ((d)->d_name))
+			# ifdef _DIRENT_HAVE_D_RECLEN
+			#  define _D_ALLOC_NAMLEN(d) (((char *) (d) + (d)->d_reclen) - &(d)->d_name[0])
+			# else
+			#  define _D_ALLOC_NAMLEN(d) (sizeof (d)->d_name > 1 ? sizeof (d)->d_name : \
+			                              _D_EXACT_NAMLEN (d) + 1)
+			# endif
+			#endif
+		EOF
+		cat src/booleans.c.orig >>src/booleans.c
+		
+		cp src/procattr.c src/procattr.c.orig
+		patch -Np1 -i <<-EOF
+			--- lfs-temp.orig/src/procattr.c	2013-11-19 16:43:00.000000000 +0000
+			+++ lfs-temp.new/src/procattr.c	2013-11-19 16:43:40.000000000 +0000
+			@@ -24,15 +24,6 @@
+			 static int destructor_key_initialized = 0;
+			 static __thread char destructor_initialized;
+ 
+			-extern void *__dso_handle __attribute__ ((__weak__, __visibility__ ("hidden")));
+			-extern int __register_atfork (void (*) (void), void (*) (void), void (*) (void), void *);
+			-
+			-static int __selinux_atfork (void (*prepare) (void), void (*parent) (void), void (*child) (void))
+			-{
+			-  return __register_atfork (prepare, parent, child,
+			-                            &__dso_handle == NULL ? NULL : __dso_handle);
+			-}
+			-
+			 static pid_t gettid(void)
+			 {
+			 	return syscall(__NR_gettid);
+		EOF
+		
+		
+		
 		# -Werror removed as causes failure of compilation of booleans.c
 		LFS_CFLAGS_PRE="-I${prceInstallPath}/include -L${prceInstallPath}/lib" \
 		CFLAGS="-Wall -W -Wundef -Wformat-y2k -Wformat-security -Winit-self -Wmissing-include-dirs -Wunused -Wunknown-pragmas -Wstrict-aliasing -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wlogical-op -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Wnested-externs -Winline -Winvalid-pch -Wvolatile-register-var -Wdisabled-optimization -Wbuiltin-macro-redefined -Wmudflap -Wpacked-bitfield-compat -Wsync-nand -Wattributes -Wcoverage-mismatch -Wmultichar -Wcpp -Wdeprecated-declarations -Wdiv-by-zero -Wdouble-promotion -Wendif-labels -Wextra -Wformat-contains-nul -Wformat-extra-args -Wformat-zero-length -Wformat=2 -Wmultichar -Wnormalized=nfc -Woverflow -Wpointer-to-int-cast -Wpragmas -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wsuggest-attribute=pure -Wtrampolines -Wno-missing-field-initializers -Wno-sign-compare -Wjump-misses-init -Wno-format-nonliteral -Wframe-larger-than=32768 -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-all --param=ssp-buffer-size=4 -fexceptions -fasynchronous-unwind-tables -fdiagnostics-show-option -funit-at-a-time -fipa-pure-const -Wno-suggest-attribute=pure -Wno-suggest-attribute=const -Wno-aggregate-return -Wno-redundant-decls" \

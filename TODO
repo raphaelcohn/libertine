@@ -1,3 +1,5 @@
+https://bitbucket.org/GregorR/musl-pkgsrc-patches/wiki/Patch%20auditing
+
 
 Other 'core' things
 	? libpam (may as well, as then we have a standalone busybox we can use for normal use, too)
