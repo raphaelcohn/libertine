@@ -148,11 +148,6 @@ function signature()
 	local hashSignatureFileName
 	local hashSignatureRelativePath
 	
-	if [ $originalFileRelativePath = pcre/pcre-4.2.tar.bz2 ]; then
-		echo $ourHashesSpaceSeparated
-		exit 50
-	fi
-	
 	local -i index
 	for hashNameAndValue in $ourHashesSpaceSeparated
 	do
@@ -165,6 +160,13 @@ function signature()
 					hashSignatureFileName="$(purebash_basename "$originalFileRelativePath".sig)"
 				fi
 				hashSignatureRelativePath="$(purebash_dirname "$originalFileRelativePath")"/"$hashSignatureFileName"
+
+	
+				if [ $originalFileRelativePath = pcre/pcre-4.2.tar.bz2 ]; then
+					echo $hashSignatureFileName
+					echo $hashSignatureRelativePath
+					exit 50
+				fi
 				
 				signatures_Mirror[$index]="$ourMirror"
 				signatures_RelativePath[$index]="$hashSignatureRelativePath"
