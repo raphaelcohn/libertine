@@ -424,8 +424,6 @@ function installPackage()
 		fi
 	fi
 	
-	installPerPackageFhs
-	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
