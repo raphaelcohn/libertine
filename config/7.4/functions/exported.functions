@@ -297,7 +297,7 @@ function source_package()
 	fi
 	
 	if [ -z "$LFS_SOURCE_PACKAGE_NAME" ]; then
-		local -r ourSourcePackageName=
+		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
 		local -r ourRecipeName="$ourSourcePackageName"
 	else
 		local -r ourSourcePackageName="$LFS_SOURCE_PACKAGE_NAME"
