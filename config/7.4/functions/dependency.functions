@@ -347,13 +347,12 @@ function prepareMuslCrossPath()
 	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
 }
 
-# Should remove SUID / GUID
-# Should remove sticky bit on files
-# Should remove linux capabilities, SELinux privs, extended attributes, etc
-# May remove group execution privileges unless exceptions are listed (this is going to be at the heart of what we need)
-# We should consider a 'temporary access' group, allowing a package installer access to certain files for the duration of installation
-# Changes attributes
-# We should then run a post-process re-enabling, ie as exceptions
+# Removes SUID
+# Removes GUID
+# Removes sticky bit
+# Removes chattr, then makes files and folders unalterable
+# Removes capabilities
+# Strips symbols
 function lockDownPermissions()
 {
 	chattr -DdjsStuai "$LFS_DEPENDENCY_INSTALL_PATH"
@@ -387,7 +386,19 @@ function lockDownPermissions()
 				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
 				if [ -x "$topLevelFolder" ]; then
 					echo "Removing execute permissions from $topLevelFolder"
+				
+					# Strip unneeded symbols (don't bother if errors)
+					chmod 0666 "$topLevelFolder"
+					strip --strip-unneeded "$topLevelFolder" 1>/dev/null 2>/dev/null || true
+				else
+					# Strip debug symbols (don't bother if errors); if these are libraries, don't use --strip-unneeded
+					chmod 0666 "$topLevelFolder"
+					strip --strip-debug "$topLevelFolder" 1>/dev/null 2>/dev/null || true
 				fi
+				
+				# Remove any capabilities (unlikely); errors if no capabilities set (annoying)
+				setcap -r "$topLevelFolder" 2>/dev/null || true
+				
 				chmod 0444 "$topLevelFolder"
 				
 				# A - atime not recorded
