@@ -1071,95 +1071,96 @@ function fixUpAutoToolsConfig()
 	fi
 }
 
-function configurePackagePrototype()
+function autotoolsConfiguredMakeWrapper()
 {
-	local -r cCompiler="$1"
-	local -r cxxCompiler="$2"
-	shift 2
-	
+	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
+	PATH="$PATH" \
+	make \
+		--jobs $LFS_MAKE_JOBS \
+		--debug \
+		V=1 \
+	"$@"
+}
+
+function ordinaryMakeWrapper()
+{
+	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
+	PATH="$PATH" \
+	make \
+		--jobs $LFS_MAKE_JOBS \
+		--debug \
+		V=1 \
+		CC="$LFS_C_CROSS_COMPILE_CC" \
+		CXX="$LFS_C_CROSS_COMPILE_CXX" \
+		AR="$LFS_C_CROSS_COMPILE_AR" \
+		AS="$LFS_C_CROSS_COMPILE_AS" \
+		NM="$LFS_C_CROSS_COMPILE_NM" \
+		RANLIB="$LFS_C_CROSS_COMPILE_RANLIB" \
+		OBJDUMP="$LFS_C_CROSS_COMPILE_OBJDUMP" \
+		LD="$LFS_C_CROSS_COMPILE_LD" \
+		STRIP="$LFS_C_CROSS_COMPILE_STRIP" \
+		CPPFLAGS="$LFS_CROSS_COMPILE_CPPFLAGS" \
+		CFLAGS="$LFS_CROSS_COMPILE_CFLAGS" \
+		CXXFLAGS="$LFS_CROSS_COMPILE_CXXFLAGS" \
+		LDFLAGS="$LFS_CROSS_COMPILE_LDFLAGS" \
+	"$@"
+}
+
+function callback_empty()
+{
+	:
+}
+
+function buildUsingAutotools()
+{
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
 	
+	# LIBS="$LFS_CROSS_COMPILE_LIBS"  removed for now
+	
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		PATH="$PATH" \
-		LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE" \
-		LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
-		LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE" \
-		LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
 		./configure \
-			CC="$cCompiler" \
-			CXX="$cxxCompiler" \
-			AR="$LFS_TARGET"-ar \
-			AS="$LFS_TARGET"-ar \
-			NM="$LFS_TARGET"-nm \
-			RANLIB="$LFS_TARGET"-ranlib \
-			OBJDUMP="$LFS_TARGET"-objdump \
-			LD="$LFS_TARGET"-ld \
-			STRIP="$LFS_TARGET"-strip \
-			CFLAGS="$LFS_MAKE_CFLAGS" \
-			CFLAGS_FOR_BUILD="$LFS_MAKE_CFLAGS" \
-			CXXFLAGS="$LFS_MAKE_CXXFLAGS" \
-			CXXFLAGS_FOR_BUILD="$LFS_MAKE_CFLAGS" \
-			CPPFLAGS="$LFS_MAKE_CPPFLAGS" \
-			LDFLAGS="$LFS_MAKE_LDFLAGS" \
-			LDFLAGS_FOR_BUILD="$LFS_MAKE_LDFLAGS" \
-			LIBS="$LFS_MAKE_LIBS" \
-		--build="$LFS_TARGET" \
-		--host="$LFS_TARGET" \
+			CC_FOR_BUILD="$LFS_C_HOST_CC" \
+			CXX_FOR_BUILD="$LFS_C_HOST_CXX" \
+			CPPFLAGS_FOR_BUILD="$LFS_C_HOST_CPPFLAGS" \
+			CFLAGS_FOR_BUILD="$LFS_C_HOST_CFLAGS" \
+			CXXFLAGS_FOR_BUILD="$LFS_C_HOST_CXXFLAGS" \
+			LDFLAGS_FOR_BUILD="$LFS_C_HOST_LDFLAGS" \
+			CC="$LFS_C_CROSS_COMPILE_CC" \
+			CXX="$LFS_C_CROSS_COMPILE_CXX" \
+			AR="$LFS_C_CROSS_COMPILE_AR" \
+			AS="$LFS_C_CROSS_COMPILE_AS" \
+			NM="$LFS_C_CROSS_COMPILE_NM" \
+			RANLIB="$LFS_C_CROSS_COMPILE_RANLIB" \
+			OBJDUMP="$LFS_C_CROSS_COMPILE_OBJDUMP" \
+			LD="$LFS_C_CROSS_COMPILE_LD" \
+			STRIP="$LFS_C_CROSS_COMPILE_STRIP" \
+			CPPFLAGS="$LFS_CROSS_COMPILE_CPPFLAGS" \
+			CFLAGS="$LFS_CROSS_COMPILE_CFLAGS" \
+			CXXFLAGS="$LFS_CROSS_COMPILE_CXXFLAGS" \
+			LDFLAGS="$LFS_CROSS_COMPILE_LDFLAGS" \
+		--build="$LFS_NATIVE_TRIPLE" \
+		--host="$LFS_NATIVE_TRIPLE" \
+		--target="$LFS_FOREIGN_TRIPLE" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 		"$@"
 		
-	popdDepdendencyFolder
-}
-
-function makeWrapper()
-{
-	local -r cCompiler="$1"
-	local -r cxxCompiler="$2"
-	shift 2
-	
-	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
-	PATH="$PATH" \
-	LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE -Wl,-verbose" \
-	LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
-	LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE -Wl,-verbose" \
-	LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" \
-	make \
-		CC="$cCompiler" \
-		CXX="$cxxCompiler" \
-		AR="$LFS_TARGET"-ar \
-		AS="$LFS_TARGET"-ar \
-		NM="$LFS_TARGET"-nm \
-		RANLIB="$LFS_TARGET"-ranlib \
-		OBJDUMP="$LFS_TARGET"-objdump \
-		LD="$LFS_TARGET"-ld \
-		STRIP="$LFS_TARGET"-strip \
-	"$@"
-}
-
-function makePackagePrototype()
-{
-	pushdDependencyFolder
+		callback="$1"
+		shift 1
 		
-		makePackageInsideDependencyFolder "$@"
+		$callback
+		
+		autotoolsConfiguredMakeWrapper "$@"
+	
+		if [ -z "$LFS" ]; then
+			autotoolsConfiguredMakeWrapper "$@" install
+		else
+			autotoolsConfiguredMakeWrapper "$@" DESTDIR="$LFS" install
+		fi
 		
 	popdDepdendencyFolder
-}
-
-function makePackageInsideDependencyFolder()
-{
-	local -r cCompiler="$1"
-	local -r cxxCompiler="$2"
-	shift 2
-	
-	makeWrapper "$cCompiler" "$cxxCompiler" "$@"
-	
-	if [ -z "$LFS" ]; then
-		makeWrapper "$cCompiler" "$cxxCompiler" "$@" install
-	else
-		makeWrapper "$cCompiler" "$cxxCompiler" DESTDIR="$LFS" "$@" install
-	fi
 }
 
 function pushdDependencyFolder()

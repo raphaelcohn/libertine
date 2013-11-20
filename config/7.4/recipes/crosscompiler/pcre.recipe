@@ -10,53 +10,27 @@ version 8.33
 
 function install_crosscompiler_pcre()
 {
-	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ \
-		--with-gnu-ld \
-			--with-posix-malloc-threshold=20 \
-			--with-link-size=4 \
-			--with-match-limit=500000 \
-			--with-match-limit-recursion=500000 \
-		--disable-silent-rules \
-		--disable-dependency-tracking \
-		--enable-shared \
-		--enable-static \
-		--enable-pcre16 \
-		--enable-pcre32 \
-		--enable-jit \
-		--enable-utf \
-		--enable-unicode-properties \
-		--enable-newline-is-lf \
-		--disable-pcregrep-libz \
-		--disable-pcregrep-libbz2 \
-		--disable-pcretest-libedit \
-		--disable-pcretest-libreadline \
-		--disable-valgrind \
-		--disable-coverage
-	
-	# PCRE uses Libtool
-	# Libtool intercepts linking arguments (like -static) and 'interprets' them
-	# For instance, the standard C -static is 'removed' (but as of version 2.4.2, it leaves -static-libgcc and -static-libstdc++)
-	# and replaced with linker arguments that create a binary that is statically linked to 'libtool-known' libraries.
-	# Sort of useful if one wants a 'partially static' binary.
-	# Instead, -all-static is wanted for binaries
-	# In theory, we put this into pcretest_CFLAGS.
-	# However, this make variable is used by both CC (to compile) and Libtool (to link).
-	# Doing so means compile then fails as it's an unrecognised flag
-	# https://www.gnu.org/software/libtool/manual/html_node/Link-mode.html
-	
-	pushdDependencyFolder
-	
+	function package_crosscompiler_pcre_fixMakefileForStaticLinking()
+	{
+		# PCRE uses Libtool
+		# Libtool intercepts linking arguments (like -static) and 'interprets' them
+		# For instance, the standard C -static is 'removed' (but as of version 2.4.2, it leaves -static-libgcc and -static-libstdc++)
+		# and replaced with linker arguments that create a binary that is statically linked to 'libtool-known' libraries.
+		# Sort of useful if one wants a 'partially static' binary.
+		# Instead, -all-static is wanted for binaries
+		# In theory, we put this into pcretest_CFLAGS.
+		# However, this make variable is used by both CC (to compile) and Libtool (to link).
+		# Doing so means compile then fails as it's an unrecognised flag
+		# https://www.gnu.org/software/libtool/manual/html_node/Link-mode.html
+		# This sed ensures that the pcre* binaries are statically compiled using the libtool special flag '-all-static'
 		# Be aware that with autoconf'd make files, the Makefile will call itself. Thus if we try to do  make -f Makefile.something, we'll execute Makefile... Hence we need to edit IN PLACE
 		cp Makefile Makefile.orig
 		sed -i \
 			-e 's/--mode=link $(CCLD) $(pcretest_CFLAGS)/--mode=link $(CCLD) -all-static $(pcretest_CFLAGS)/g' \
 			-e 's/--mode=link $(CCLD) $(pcregrep_CFLAGS)/--mode=link $(CCLD) -all-static $(pcregrep_CFLAGS)/g' \
 			Makefile
-		
-	popdDepdendencyFolder
+	}
 	
-	# CHECK CFLAGS
-		
-	# V=1 disables --silent to libtool AND makes make (sic) output command lines
-	makePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ V=1 LIBTOOLFLAGS="--verbose"
+	# want to pass LIBTOOLFLAGS="--verbose" to make...
+	buildUsingAutotools package_crosscompiler_pcre_fixMakefileForStaticLinking
 }

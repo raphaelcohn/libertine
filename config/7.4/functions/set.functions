@@ -15,17 +15,22 @@ function setMakeFlags()
 		local -ir cpuCount=1
 	fi
 	
+	declare_for_chroot -i LFS_MAKE_JOBS
+	LFS_MAKE_JOBS=$((cpuCount*2))
+	
 	declare_for_chroot -x MAKEFLAGS
 	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug"
 }
 
 function setArchitectures()
 {
-	LFS_ARCHITECTURE="${settings_string[LFS_ARCHITECTURE]}"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_ARCHITECTURE')
+	LFS_NATIVE_ARCHITECTURE="${settings_string[LFS_NATIVE_ARCHITECTURE]}"
+	LFS_FOREIGN_ARCHITECTURE="${settings_string[LFS_FOREIGN_ARCHITECTURE]}"
 	
-	LFS_TARGET="$LFS_ARCHITECTURE"-linux-musl
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_TARGET')
+	LFS_NATIVE_TRIPLE="$LFS_NATIVE_ARCHITECTURE"-linux-musl
+	LFS_FOREIGN_TRIPLE="$LFS_FOREIGN_ARCHITECTURE"-linux-musl
+	
+	LFS_CROSS_COMPILER_PREFIX="$LFS_FOREIGN_ARCHITECTURE"-linux-musl-
 }
 
 function setCFlags()
@@ -33,20 +38,23 @@ function setCFlags()
 	# musl prefers hash-style=both
 	# disable-new-dtags forces the use DT_RPATH rather than DT_RUNPATH for rpath; musl only uses DT_RPATH
 	LFS_LDFLAGS_MUSL="-Wl,--hash-style=both -Wl,--disable-new-dtags"
-	
-	local -r cTuningFlags="${settings_string[LFS_CFLAGS_CPU_OPTIMISATION]}"
+
 	local -r cOptimisation="-O2 -fno-omit-frame-pointer -pipe"
-	if [ -n "$tuningFlags" ]; then
-		LFS_CFLAGS_OPTIMISATION="$cTuningFlags $cOptimisation"
+	
+	local -r cNativeTuningFlags="${settings_string[LFS_CFLAGS_NATIVE_CPU_OPTIMISATION]}"
+	if [ -z "$cNativeTuningFlags" ]; then
+		LFS_CFLAGS_NATIVE_OPTIMISATION="$cOptimisation"
 	else
-		LFS_CFLAGS_OPTIMISATION="$cOptimisation"
+		LFS_CFLAGS_NATIVE_OPTIMISATION="$cNativeTuningFlags $cOptimisation"
+	fi
+	local -r cForeignTuningFlags="${settings_string[LFS_CFLAGS_NATIVE_CPU_OPTIMISATION]}"
+	if [ -z "$cForeignTuningFlags" ]; then
+		LFS_CFLAGS_FOREIGN_OPTIMISATION="$cOptimisation"
+	else
+		LFS_CFLAGS_FOREIGN_OPTIMISATION="$cForeignTuningFlags $cOptimisation"
 	fi
 	
-	# NOTE: PIE / PIC checks not currently changed, as it causes problems...
-	# http://blog.fpmurphy.com/2008/06/position-independent-executables.html
-	# https://wiki.ubuntu.com/Security/Features
-	# https://wiki.debian.org/Hardening
-	# musl does not currently use this value
+	# musl ignores this value currently
 	LFS_CFLAGS_HARDENING="-D_FORTIFY_SOURCE=2"
 	
 	local -r ldOptimisationFlags="-Wl,-O1"
@@ -71,7 +79,7 @@ function setCFlags()
 	# Advice taken from https://wiki.gentoo.org/wiki/GCC_optimization and http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
 	declare_for_chroot CFLAGS
 	declare_for_chroot CFLAGS_FOR_BUILD
-	CFLAGS="$LFS_CFLAGS_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
+	CFLAGS="$LFS_CFLAGS_NATIVE_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
 	CFLAGS_FOR_BUILD="$CFLAGS"
 	
 	declare_for_chroot CXXFLAGS

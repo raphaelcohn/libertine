@@ -12,7 +12,7 @@ version 1.1.8
 function install_crosscompiler_linux-pam()
 {
 	# pkgconfig, libprelude?
-	configurePackagePrototype external-crosscompiler-gcc external-crosscompiler-g++ \
+	buildUsingAutotools callback_empty \
 		--disable-shared \
 		--enable-static \
 		--disable-dependency-tracking \

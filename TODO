@@ -1,5 +1,9 @@
 https://bitbucket.org/GregorR/musl-pkgsrc-patches/wiki/Patch%20auditing
 
+NATIVE == HOST
+FOREIGN == TARGET
+
+we use our own terms because we currently find the autotools, etc, definitions very broken
 
 Other 'core' things
 	? libpam (may as well, as then we have a standalone busybox we can use for normal use, too)

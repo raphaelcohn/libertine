@@ -261,8 +261,8 @@ function install_crosscompiler_musl-cross()
 				LFS_CXXFLAGS_FOR_BUILD="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING"
 			EOF
 		
-			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
-			./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "musl-cross-" "" "$LFS_ARCHITECTURE"
+			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_NATIVE_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
+			./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "musl-cross-" "" "$LFS_NATIVE_ARCHITECTURE"
 		
 		popd >/dev/null
 	
@@ -275,12 +275,12 @@ function install_crosscompiler_musl-cross()
 	pushd ../install/"$LFS_TARGET"/"$LFS_TARGET"/lib >/dev/null
 	
 		chmod +x libc.so
-		ln -s libc.so ld-musl-"$LFS_ARCHITECTURE".so.1
+		ln -s libc.so ld-musl-"$LFS_NATIVE_ARCHITECTURE".so.1
 		
 	popd >/dev/null
 	
 	# Remove musl-cross reverse symlinks
-	rm -rf ../install/"$LFS_TARGET"/bin/"$LFS_ARCHITECTURE"-musl-*
+	rm -rf ../install/"$LFS_TARGET"/bin/"$LFS_NATIVE_ARCHITECTURE"-musl-*
 	
 	# Create non-crosscompiler
 	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/"$LFS_TARGET"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/gcc
@@ -310,7 +310,7 @@ function install_crosscompiler_musl-cross()
 		# And, for libc.so, the location of the dynamic linker
 		# -Wl,-z,nodefaultlib seems to be ignored ?by the musl dynamic linker?
 		# Set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix).
-		local -r LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
+		local -r LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_NATIVE_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
 		
 		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
 		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )

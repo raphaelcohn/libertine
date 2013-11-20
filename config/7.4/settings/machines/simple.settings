@@ -1,4 +1,4 @@
 set -o errexit +o hashall
 
 # See http://gcc.gnu.org/onlinedocs/gcc/i386-and-x86_002d64-Options.html
-#setting_string LFS_CFLAGS_CPU_OPTIMISATION "-march=bdver2 -mtune=bdver2"
+#setting_string LFS_CFLAGS_NATIVE_CPU_OPTIMISATION "-march=bdver2 -mtune=bdver2"
