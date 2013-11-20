@@ -1116,6 +1116,11 @@ function makeWrapper()
 	local -r cCompiler="$1"
 	local -r cxxCompiler="$2"
 	shift 2
+	
+	echo "makeWrapper command line:" 1>&2
+	cat 1>&2 <<-EOF
+		PATH="$PATH" LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE -Wl,-verbose" LFS_CFLAGS_POST="$LFS_CFLAGS_POST" LFS_CXXFLAGS_PRE="$LFS_CXXFLAGS_PRE -Wl,-verbose" LFS_CXXFLAGS_POST="$LFS_CXXFLAGS_POST" make CC="$cCompiler" CXX="$cxxCompiler" AR="$LFS_TARGET"-ar AS="$LFS_TARGET"-ar NM="$LFS_TARGET"-nm RANLIB="$LFS_TARGET"-ranlib OBJDUMP="$LFS_TARGET"-objdump LD="$LFS_TARGET"-ld STRIP="$LFS_TARGET"-strip "$@"
+	EOF
 
 	LFS_CFLAGS_PRE="$LFS_CFLAGS_PRE -Wl,-verbose" \
 	LFS_CFLAGS_POST="$LFS_CFLAGS_POST" \
