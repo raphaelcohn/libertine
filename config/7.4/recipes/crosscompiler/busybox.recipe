@@ -52,11 +52,11 @@ function install_crosscompiler_busybox()
 		local -r cCompiler=external-crosscompiler-gcc
 		local -r cxxCompiler=external-crosscompiler-g++
 		
-		LFS_CFLAGS_PRE="-v -static" makeWrapper "$cCompiler" "$cxxCompiler" scripts_basic
+		makeWrapper "$cCompiler" "$cxxCompiler" HOSTCC="$cCompiler" HOSTCXX="$cxxCompiler" HOSTCFLAGS="-static" HOSTCXXFLAGS="-static" scripts_basic
 		
-		LFS_CFLAGS_PRE=-static makeWrapper "$cCompiler" "$cxxCompiler" busybox
+		#LFS_CFLAGS_PRE=-static makeWrapper "$cCompiler" "$cxxCompiler" busybox
 		
-		makeWrapper "$cCompiler" "$cxxCompiler" install
+		#makeWrapper "$cCompiler" "$cxxCompiler" install
 	
 	popdDependencyFolder
 }
