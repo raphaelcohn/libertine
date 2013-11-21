@@ -21,8 +21,8 @@ function install_crosscompiler_busybox()
 		local -ir lastSystemId=$((inclusiveUserId-1))
 		
 		declare -A busyboxConfiguration
-		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_CROSS_COMPILE_PREFIX"
-		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_HOST_SYSROOT"
+		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_TARGET_EXTERNAL_PREFIX"
+		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_HOST_LIB_ROOT"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include"
 		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib -lpcre -lsepol -lselinux"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
@@ -67,7 +67,7 @@ function install_crosscompiler_busybox()
 			HOSTCXX="$LFS_C_HOST_CXX" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
-			CROSS_COMPILE="$LFS_C_CROSS_COMPILE_PREFIX" \
+			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
 
 		PATH="$PATH" \
 		make \
@@ -77,7 +77,7 @@ function install_crosscompiler_busybox()
 			HOSTCXX="$LFS_C_HOST_CXX" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
-			CROSS_COMPILE="$LFS_C_CROSS_COMPILE_PREFIX" \
+			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
 		install
 	
 	popdDependencyFolder
