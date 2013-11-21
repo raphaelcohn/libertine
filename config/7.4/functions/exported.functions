@@ -1155,9 +1155,9 @@ function buildUsingAutotools()
 		autotoolsConfiguredMakeWrapper "$@"
 	
 		if [ -z "$LFS" ]; then
-			autotoolsConfiguredMakeWrapper "$@" install
+			autotoolsConfiguredMakeWrapper install
 		else
-			autotoolsConfiguredMakeWrapper "$@" DESTDIR="$LFS" install
+			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
 		fi
 		
 	popdDepdendencyFolder
