@@ -283,7 +283,7 @@ function install_crosscompiler_musl-cross()
 					
 					cd "$MUSL_CC_BASE"/../gcc-$GCC_VERSION >/dev/null
 						
-						make distclean || true
+						make clean || true
 					
 						for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
 						do
@@ -291,16 +291,16 @@ function install_crosscompiler_musl-cross()
 							ln -sv "$binutilsFile" 2>/dev/null || true
 						done
 						
-						make distclean || true
+						make clean || true
 					
 					cd - >/dev/null
 					
 					if [ "$CC_PREFIX" = "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_NATIVE_TRIPLE" ]; then
-						export CFLAGS="$LFS_NATIVE_CFLAGS"
-						export CXXFLAGS="$LFS_NATIVE_CXXFLAGS"
+						local ourCFLAGS="$LFS_NATIVE_CFLAGS"
+						local ourCXXFLAGS="$LFS_NATIVE_CXXFLAGS"
 					else
-						export CFLAGS="$LFS_FOREIGN_CFLAGS"
-						export CXXFLAGS="$LFS_FOREIGN_CXXFLAGS"
+						local ourCFLAGS="$LFS_FOREIGN_CFLAGS"
+						local ourCXXFLAGS="$LFS_FOREIGN_CXXFLAGS"
 					fi
 					
 					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
@@ -311,8 +311,8 @@ function install_crosscompiler_musl-cross()
 					local ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
 					
 					PREFIX="$ourPrefix" build "$1" "$2" \
-						CFLAGS="$CFLAGS" \
-						CXXFLAGS="$CXXFLAGS" \
+						CFLAGS="$ourCFLAGS" \
+						CXXFLAGS="$ourCXXFLAGS" \
 						--target="$TRIPLE" \
 						--with-local-prefix="$ourPrefix" \
 						--with-sysroot="$ourPrefix" \
