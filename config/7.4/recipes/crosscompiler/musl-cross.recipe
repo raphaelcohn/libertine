@@ -221,7 +221,7 @@ function install_crosscompiler_musl-cross()
 			buildinstall()
 			{
 				# symlink lib64, lib32, libx32 to lib before 1st gcc build
-				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+				if [ "$1" = "1" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
 					cd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
 						
 						mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib
@@ -271,10 +271,7 @@ function install_crosscompiler_musl-cross()
 					
 					build "$@"
 					doinstall "$1" "$2"
-				fi
-				
-				# Override only for 2nd build, gcc, non-bootstrap (final build)
-				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+				elif [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
 					
 					# We are going to override sysroot, local prefix (and prefix)
 					
