@@ -253,7 +253,7 @@ function install_crosscompiler_musl-cross()
 					
 						local patchFile=gcc-"$GCC_VERSION"-musl.diff
 						rm "$patchFile"
-						mv "$patchFile".orig "$patchFile"
+						cp "$patchFile".orig "$patchFile"
 						sed -i -e "s;/lib/ld-musl-;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib/ld-musl-;g" "$patchFile"
 						
 					cd - >/dev/null
@@ -263,7 +263,7 @@ function install_crosscompiler_musl-cross()
 					cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-"$MUSL_VERSION"/src/ldso >/dev/null
 
 						rm dynlink.c
-						mv dynlink.c.orig dynlink.c
+						cp dynlink.c.orig dynlink.c
 						# technically, we should have /lib64, but we symlink it (above)
 						sed -i -e "s;/lib:/usr/local/lib:/usr/lib;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib;g" dynlink.c
 					
