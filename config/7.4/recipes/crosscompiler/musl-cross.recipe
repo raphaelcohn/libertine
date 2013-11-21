@@ -145,69 +145,69 @@ function install_crosscompiler_musl-cross()
 	
 	popd >/dev/null
 	
-	pushd extra >/dev/null
-	
-		# 1 Fix HG_ID
-		# 2 Remove deletion of share/ folder
-		# 3 Remove tarball creation
-		cp build-tarballs.sh build-tarballs.sh.orig
-		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
-	
-		mv build-gcc-deps.sh build-gcc-deps.sh.orig
-		#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
-		#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
-		#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
-		grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
-		chmod +x build-gcc-deps.sh
-
-		cp extraconfig.sh extraconfig.sh.orig
-
-		cat >>extraconfig.sh <<-EOF
-			BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
-			GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
-			#GDB_VERSION=""
-			GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
-			LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
-			LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
-			MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
-			MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
-		
-			MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-			MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
-			MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-			MUSL_GIT=no
-		
-			LANG_CXX=yes
-			LANG_OBJC=no
-			LANG_FORTRAN=no
-		
-			# Affects the bootstrap (1st) compiler
-			GCC_BUILTIN_PREREQS=yes
-		
-			# Only affects the static cross-compilers; possibly might change
-			NO_GCC_DEPS=yes
-			
-			# Compilation optimisation (all except final cross compiler)
-			export MAKEFLAGS="--jobs $LFS_MAKE_JOBS --debug"
-			export CFLAGS="-pipe"
-			export CXXFLAGS="-pipe"
-			
-			# Added by us to defs.sh to try to force a chroot-local sysroot
-			LFS="$LFS"
-			LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
-			LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_INSTALL_PATH"
-			LFS_NATIVE_TRIPLE="$LFS_NATIVE_TRIPLE"
-			
-			# Added by us for the final install to harden and optimise the compiler
-			LFS_NATIVE_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
-			LFS_NATIVE_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
-			LFS_FOREIGN_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
-			LFS_FOREIGN_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
-		EOF
-		
-	popd >/dev/null
-	
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
+	
+		pushd extra >/dev/null
+	
+			# 1 Fix HG_ID
+			# 2 Remove deletion of share/ folder
+			# 3 Remove tarball creation
+			cp build-tarballs.sh build-tarballs.sh.orig
+			sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
+	
+			mv build-gcc-deps.sh build-gcc-deps.sh.orig
+			#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
+			#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
+			#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+			grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
+			chmod +x build-gcc-deps.sh
+
+			cp extraconfig.sh extraconfig.sh.orig
+
+			cat >>extraconfig.sh <<-EOF
+				BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
+				GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
+				#GDB_VERSION=""
+				GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
+				LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
+				LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
+				MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
+				MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+		
+				MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+				MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
+				MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+				MUSL_GIT=no
+		
+				LANG_CXX=yes
+				LANG_OBJC=no
+				LANG_FORTRAN=no
+		
+				# Affects the bootstrap (1st) compiler
+				GCC_BUILTIN_PREREQS=yes
+		
+				# Only affects the static cross-compilers; possibly might change
+				NO_GCC_DEPS=yes
+			
+				# Compilation optimisation (all except final cross compiler)
+				export MAKEFLAGS="--jobs $LFS_MAKE_JOBS --debug"
+				export CFLAGS="-pipe"
+				export CXXFLAGS="-pipe"
+			
+				# Added by us to defs.sh to try to force a chroot-local sysroot
+				LFS="$LFS"
+				LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
+				LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_INSTALL_PATH"
+				LFS_NATIVE_TRIPLE="$LFS_NATIVE_TRIPLE"
+			
+				# Added by us for the final install to harden and optimise the compiler
+				LFS_NATIVE_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+				LFS_NATIVE_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+				LFS_FOREIGN_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+				LFS_FOREIGN_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+			EOF
+		
+		popd >/dev/null
 		
 		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
 		local patchFile=patches/gcc-"$gccVersion"-musl.diff
