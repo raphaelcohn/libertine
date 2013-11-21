@@ -1152,7 +1152,7 @@ function buildUsingAutotools()
 		
 		$callback
 		
-		autotoolsConfiguredMakeWrapper "$@"
+		autotoolsConfiguredMakeWrapper
 	
 		if [ -z "$LFS" ]; then
 			autotoolsConfiguredMakeWrapper install
