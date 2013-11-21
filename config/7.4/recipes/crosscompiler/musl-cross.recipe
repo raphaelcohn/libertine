@@ -269,7 +269,8 @@ function install_crosscompiler_musl-cross()
 					
 					cd - >/dev/null
 					
-				    buildinstall '' musl-$MUSL_VERSION --enable-debug CC="$TRIPLE-gcc" $MUSL_CONFFLAGS
+					build "$@"
+					doinstall "$1" "$2"
 				fi
 				
 				# Override only for 2nd build, gcc, non-bootstrap (final build)
