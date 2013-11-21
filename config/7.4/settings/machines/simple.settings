@@ -1,4 +1,6 @@
 set -o errexit +o hashall
 
 # See http://gcc.gnu.org/onlinedocs/gcc/i386-and-x86_002d64-Options.html
-#setting_string LFS_CFLAGS_NATIVE_CPU_OPTIMISATION "-march=bdver2 -mtune=bdver2"
+# And gcc -march=native -v -E - 2>&1 <<<'' | grep "cc1" | egrep -o -e $'-m(arch|tune)=[^ "\']+' to determine best arch
+# But gcc -c -Q -march=native --help=target | grep sse  seems to infer no SSE!
+setting_string LFS_CFLAGS_FOREIGN_CPU_OPTIMISATION "-march=bdver1 -mcx16 -msahf -mno-movbe -maes -mpclmul -mpopcnt -mabm -mlwp -mfma -mfma4 -mxop -mno-bmi -mtbm -mavx -msse4.2 -msse4.1 --param l1-cache-size=16 --param l1-cache-line-size=64 --param l2-cache-size=2048 -mtune=bdver1"
