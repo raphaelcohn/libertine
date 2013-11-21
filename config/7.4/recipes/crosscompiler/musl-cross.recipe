@@ -311,8 +311,6 @@ function install_crosscompiler_musl-cross()
 					local ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
 					
 					PREFIX="$ourPrefix" build "$1" "$2" \
-						CFLAGS_FOR_BUILD="$ourCFLAGS" \
-						CXXFLAGS_FOR_BUILD="$ourCXXFLAGS" \
 						--target="$TRIPLE" \
 						--with-local-prefix="$ourPrefix" \
 						--with-sysroot="$ourPrefix" \
