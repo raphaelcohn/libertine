@@ -13,49 +13,59 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include mpfr 3.1.2
 	include musl 0.9.14
 	
-	install_binaries_in_paths \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-addr2line \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-ar \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-as \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-c++filt \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-elfedit \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-g++ \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-gcc \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-gcov \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-gprof \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-ld \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-nm \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-objcopy \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-objdump \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-ranlib \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-readelf \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-size \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-strings \
-		"$LFS_TARGET"/bin/"$LFS_TARGET"-strip \
-		"$LFS_TARGET"/bin/g++ \
-		"$LFS_TARGET"/bin/gcc \
-		"$LFS_TARGET"/bin/ldd \
-		"$LFS_TARGET"/bin/external-crosscompiler-gcc \
-		"$LFS_TARGET"/bin/external-crosscompiler-g++ \
-		"$LFS_TARGET"/bin/internal-crosscompiler-gcc \
-		"$LFS_TARGET"/bin/internal-crosscompiler-g++ \
-		"$LFS_TARGET"/bin/external-gcc \
-		"$LFS_TARGET"/bin/external-g++ \
-		"$LFS_TARGET"/bin/internal-gcc \
-		"$LFS_TARGET"/bin/internal-g++ \
+	function installPackage_crosscompiler_musl_cross_binaries()
+	{
+		local -ir installLdd=$1
+		local -r triple="$2"
 	
-	make_executable_binary \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1 \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/cc1plus \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/collect2 \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto1 \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/lto-wrapper \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixincl \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/fixinc.sh \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkheaders \
-		"$LFS_TARGET"/libexec/gcc/"$LFS_TARGET"/"$localPackage_crosscompiler_musl_cross_gccVersion"/install-tools/mkinstalldirs \
-		"$LFS_TARGET"/"$LFS_TARGET"/lib/libc.so \
-		"$LFS_TARGET"/"$LFS_TARGET"/bin
+		local -r binPath="$triple"/bin
+		local -r prefix="$binPath"/"$triple"-
+		local -r libexec="$triple"/libexec/gcc/"$triple"/"$localPackage_crosscompiler_musl_cross_gccVersion"
+	
+		install_binaries_in_paths \
+			"${prefix}"addr2line \
+			"${prefix}"ar \
+			"${prefix}"as \
+			"${prefix}"c++filt \
+			"${prefix}"elfedit \
+			"${prefix}"g++ \
+			"${prefix}"gcc \
+			"${prefix}"gcov \
+			"${prefix}"gprof \
+			"${prefix}"ld \
+			"${prefix}"nm \
+			"${prefix}"objcopy \
+			"${prefix}"objdump \
+			"${prefix}"ranlib \
+			"${prefix}"readelf \
+			"${prefix}"size \
+			"${prefix}"strings \
+			"${prefix}"strip \
+			"${prefix}"ldd
+		
+		if [ $installLdd -eq 1 ]; then
+			install_binaries_in_paths "$binPath"/ldd
+		fi
+	
+		make_executable_binary \
+			"$libexec"/cc1 \
+			"$libexec"/cc1plus \
+			"$libexec"/collect2 \
+			"$libexec"/lto1 \
+			"$libexec"/lto-wrapper \
+			"$libexec"/install-tools/fixincl \
+			"$libexec"/install-tools/fixinc.sh \
+			"$libexec"/install-tools/mkheaders \
+			"$libexec"/install-tools/mkinstalldirs \
+			"$triple"/"$triple"/lib/libc.so
+	}
+	
+	if [ "$LFS_NATIVE_TRIPLE" = "$LFS_FOREIGN_TRIPLE" ]; then
+		installPackage_crosscompiler_musl_cross_binaries 1 "$LFS_NATIVE_TRIPLE"
+	else
+		installPackage_crosscompiler_musl_cross_binaries 0 "$LFS_NATIVE_TRIPLE"
+		installPackage_crosscompiler_musl_cross_binaries 1 "$LFS_FOREIGN_TRIPLE"
+	fi
 	
 	unset localPackage_crosscompiler_musl_cross_gccVersion
 }
@@ -128,36 +138,151 @@ function install_crosscompiler_musl-cross()
 		done
 	done
 	
-	pushd musl >/dev/null
+	# Prepare a copy of this file for later default search path replacement
+	pushd musl/src/ldso >/dev/null
 		
-		# replaces the default search path in ld-musl-XXX (the dynamic linker) so that we're safe from 'drop in /lib' attacks
-		sed -i -e "s;/lib:/usr/local/lib:/usr/lib;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib64:${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib;g" src/ldso/dynlink.c
+		cp dynlink.c dynlink.c.orig
 	
 	popd >/dev/null
 	
+	pushd extra >/dev/null
+	
+		# 1 Fix HG_ID
+		# 2 Remove deletion of share/ folder
+		# 3 Remove tarball creation
+		cp build-tarballs.sh build-tarballs.sh.orig
+		sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
+	
+		mv build-gcc-deps.sh build-gcc-deps.sh.orig
+		#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
+		#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
+		#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+		grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
+		chmod +x build-gcc-deps.sh
+
+		cp extraconfig.sh extraconfig.sh.orig
+
+		cat >>extraconfig.sh <<-EOF
+			BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
+			GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
+			#GDB_VERSION=""
+			GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
+			LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
+			LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
+			MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
+			MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+		
+			MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+			MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
+			MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+			MUSL_GIT=no
+		
+			LANG_CXX=yes
+			LANG_OBJC=no
+			LANG_FORTRAN=no
+		
+			# Affects the bootstrap (1st) compiler
+			GCC_BUILTIN_PREREQS=yes
+		
+			# Only affects the static cross-compilers; possibly might change
+			NO_GCC_DEPS=yes
+			
+			# Compilation optimisation (all except final cross compiler)
+			export MAKEFLAGS="--jobs $LFS_MAKE_JOBS --debug"
+			export CFLAGS="-pipe"
+			export CXXFLAGS="-pipe"
+			
+			# Added by us to defs.sh to try to force a chroot-local sysroot
+			LFS="$LFS"
+			LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
+			LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_INSTALL_PATH"
+			LFS_NATIVE_TRIPLE="$LFS_NATIVE_TRIPLE"
+			
+			# Added by us for the final install to harden and optimise the compiler
+			LFS_NATIVE_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+			LFS_NATIVE_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+			LFS_FOREIGN_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+			LFS_FOREIGN_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+		EOF
+		
+	popd >/dev/null
 	
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
-	
-		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
-		cp patches/gcc-"$gccVersion"-musl.diff patches/gcc-"$gccVersion"-musl.diff.orig
-		sed -i -e "s;/lib/ld-musl-;${LFS_DEPENDENCY_PREFIX_PATH}/${LFS_TARGET}/${LFS_TARGET}/lib/ld-musl-;g" patches/gcc-"$gccVersion"-musl.diff
 		
+		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+		local patchFile=patches/gcc-"$gccVersion"-musl.diff
+		cp "$patchFile" "$patchFile".orig
 		
 		# Adjust sysroot and install
 		cat >>defs.sh <<-'EOF'
+		
+			unset CDPATH
 			
 			buildinstall()
 			{
+				# symlink lib64, lib32, libx32 to lib before 1st gcc build
+				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+					cd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
+						
+						mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib64
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib32
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/libx32
+						
+						mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib64
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib32
+						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/libx32
+						
+						# For completeness, even though it's not used (note $TRIPLE/$TRIPLE/usr is created by musl-cross)
+						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/usr
+						
+						# Just in case, ensures usr/local redirects
+						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/local
+						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/local
+						
+					cd - >/dev/null
+				fi
+				
+				# Override musl build for non-bootstrap to specify dynamic linker search path
+				if [ "$2" = musl-$MUSL_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+	
+					# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+					# this dynamic linker path will only work inside the chroot
+					cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-cross/patches >/dev/null
+					
+						local patchFile=gcc-"$GCC_VERSION"-musl.diff
+						rm "$patchFile"
+						mv "$patchFile".orig "$patchFile"
+						sed -i -e "s;/lib/ld-musl-;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib/ld-musl-;g" "$patchFile"
+						
+					cd - >/dev/null
+
+					# replaces the default search path in ld-musl-XXX (the dynamic linker) so that we're safe from 'drop in /lib' attacks
+					# this search path will only work inside the chroot
+					cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-"$MUSL_VERSION"/src/ldso >/dev/null
+
+						rm dynlink.c
+						mv dynlink.c.orig dynlink.c
+						# technically, we should have /lib64, but we symlink it (above)
+						sed -i -e "s;/lib:/usr/local/lib:/usr/lib;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib;g" dynlink.c
+					
+					cd - >/dev/null
+					
+				    buildinstall '' musl-$MUSL_VERSION --enable-debug CC="$TRIPLE-gcc" $MUSL_CONFFLAGS
+				fi
+				
 				# Override only for 2nd build, gcc, non-bootstrap (final build)
-				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_PREFIX_BASE"/bootstrap ]; then
+				if [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
 					
 					# We are going to override sysroot, local prefix (and prefix)
 					
 					# We also need a final build of binutils with this corrected sysroot, so we link in the binaries for an in-tree build
 					# We do not need to build musl again, because it has no path dependencies (except for the musl-gcc wrapper and specs, which we won't require in any event)
 					
-					unset CDPATH
 					cd "$MUSL_CC_BASE"/../gcc-$GCC_VERSION >/dev/null
+						
+						make distclean || true
 					
 						for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
 						do
@@ -169,31 +294,34 @@ function install_crosscompiler_musl-cross()
 					
 					cd - >/dev/null
 					
-					echo ---- 1>&2
-					echo $PATH 1>&2
-					echo $CC 1>&2
-					echo $LFS_CFLAGS 1>&2
-					echo $LFS_CXXFLAGS 1>&2
-					echo ---- 1>&2
-					
-					export CFLAGS="$LFS_CFLAGS"
-					export CFLAGS_FOR_BUILD="$LFS_CFLAGS_FOR_BUILD"
-					export CXXFLAGS="$LFS_CXXFLAGS"
-					export CXXFLAGS_FOR_BUILD="$LFS_CXXFLAGS_FOR_BUILD"
+					if [ "$CC_PREFIX" = "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_NATIVE_TRIPLE" ]; then
+						export CFLAGS="$LFS_NATIVE_CFLAGS"
+						export CXXFLAGS="$LFS_NATIVE_CXXFLAGS"
+					else
+						export CFLAGS="$LFS_FOREIGN_CFLAGS"
+						export CXXFLAGS="$LFS_FOREIGN_CXXFLAGS"
+					fi
 					
 					# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
 					# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
 					# --disable-werror and --with-lib-path for embedded binutils
+					# --with-lib-path did have =/lib64 but we now symlink =/lib64 to =/lib
 					# --sysroot seems to be ignored, and g++ is built with --with-build-sysroot !
 					local ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
-					PREFIX="$ourPrefix" build "$1" "$2" --target=$TRIPLE \
-					--with-local-prefix=="$ourPrefix" \
-					--with-sysroot="$ourPrefix" \
-					--with-build-sysroot="$PREFIX"/"$TRIPLE" \
-			        --enable-languages=$LANGUAGES --disable-multilib --disable-libmudflap \
-			        --disable-libsanitizer \
-					--with-lib-path="=/lib64:=/lib" \
-					--disable-werror \
+					
+					PREFIX="$ourPrefix" build "$1" "$2" \
+						CFLAGS="$CFLAGS" \
+						CXXFLAGS="$CXXFLAGS" \
+						--target="$TRIPLE" \
+						--with-local-prefix="$ourPrefix" \
+						--with-sysroot="$ourPrefix" \
+						--with-build-sysroot="$PREFIX"/"$TRIPLE" \
+				        --enable-languages="$LANGUAGES" \
+						--disable-multilib
+						--disable-libmudflap \
+				        --disable-libsanitizer \
+							--disable-werror \
+							--with-lib-path="=/lib" \
 			        $GCC_CONFFLAGS
 					
 					doinstall "$1" "$2" DESTDIR="$LFS"
@@ -206,183 +334,72 @@ function install_crosscompiler_musl-cross()
 		EOF
 		
 		pushd extra >/dev/null
-		
-			# 1 Fix HG_ID
-			# 2 Remove deletion of share/ folder
-			# 3 Remove tarball creation
-			cp build-tarballs.sh build-tarballs.sh.orig
-			sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
-		
-			mv build-gcc-deps.sh build-gcc-deps.sh.orig
-			#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
-			#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
-			#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
-			grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
-			chmod +x build-gcc-deps.sh
-	
-			cp extraconfig.sh extraconfig.sh.orig
-	
-			cat >>extraconfig.sh <<-EOF
-				BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
-				GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
-				#GDB_VERSION=""
-				GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
-				LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
-				LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
-				MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
-				MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
 			
-				MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-				MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
-				MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
-				MUSL_GIT=no
-			
-				LANG_CXX=yes
-				LANG_OBJC=no
-				LANG_FORTRAN=no
-			
-				MAKEFLAGS="$MAKEFLAGS"
-			
-				# Affects the bootstrap (1st) compiler
-				GCC_BUILTIN_PREREQS=yes
-			
-				# Only affects the static cross-compilers; possibly might change
-				NO_GCC_DEPS=yes
-				
-				# Added by us to defs.sh to try to force a chroot-local sysroot
-				LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
-				LFS="$LFS"
-				LFS_PREFIX_BASE="$LFS_DEPENDENCY_INSTALL_PATH"
-				
-				# Added by us for the final install to harden and optimise the compiler
-				LFS_CFLAGS="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING"
-				LFS_CFLAGS_FOR_BUILD="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING"
-				LFS_CXXFLAGS="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING"
-				LFS_CXXFLAGS_FOR_BUILD="$LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING"
-			EOF
-		
-			# gcc -dumpmachine is preferrred but uname -m / MACHTYPE should work (which is LFS_NATIVE_ARCHITECTURE); gcc -dumpmachine is usually a triple/quad
-			./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "musl-cross-" "" "$LFS_NATIVE_ARCHITECTURE"
+			if [ "$LFS_NATIVE_ARCHITECTURE" = "$LFS_FOREIGN_ARCHITECTURE" ]; then
+				./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "prefix-" "-suffix" "$LFS_NATIVE_ARCHITECTURE"
+			else
+				./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "prefix-" "-suffix" "$LFS_NATIVE_ARCHITECTURE" "$LFS_FOREIGN_ARCHITECTURE"
+			fi
 		
 		popd >/dev/null
 	
 	popd >/dev/null
 	
-	# Convert "$LFS_TARGET"-gcc -dumpspecs to this file, doing any substitutions (eg --sysroot=%R), to make the logic work internally
-	# ../install/"$LFS_TARGET"/lib/gcc/"$LFS_TARGET"/"${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"/specs
+	function package_crosscompiler_musl-cross_patchUpFileSystem()
+	{
+		local -r architecture="$1"
+		local -r triple="$2"
+		
+		pushd "$triple" >/dev/null
+		
+			# Create libc.so
+			pushd "$triple" >/dev/null
+				
+				# Remove gcc, g++, ar, ld, etc hardlinks
+				rm -rf bin/*
+			
+				pushd lib >/dev/null
+					chmod +x libc.so
+					ln -s libc.so ld-musl-"$architecture".so.1
+				popd >/dev/null
+				
+			popd >/dev/null
+			
+			pushd bin >/dev/null
+			
+				# Create ldd
+				ln -s ../"$triple"/lib/libc.so "$triple"-ldd
+				ln -s "$triple"-ldd ldd
+				
+				# Remove musl-cross reverse symlinks
+				rm -rf -- "$architecture"-musl-*
+				
+				# Remove gcc binutils
+				rm -rf -- "$triple"-gcc-ar "$triple"-gcc-nm "$triple"-gcc-ranlib
+				
+				# Remove gcc version
+				rm -rf -- "$triple"-gcc-"$gccVersion"
+				
+				# Remove ld.bfd
+				rm -rf -- "$triple"-ld.bfd
+				
+				# Remove c++
+				rm -rf -- "$triple"-c++
+				
+			popd >/dev/null
+			
+		popd >/dev/null
+	}
 	
-	# Ensure the dynamic linker library exists
-	pushd ../install/"$LFS_TARGET"/"$LFS_TARGET"/lib >/dev/null
+	pushd ../install >/dev/null
 	
-		chmod +x libc.so
-		ln -s libc.so ld-musl-"$LFS_NATIVE_ARCHITECTURE".so.1
+		# Remove bootstrap
+		rm -rf -- bootstrap
 		
-	popd >/dev/null
-	
-	# Remove musl-cross reverse symlinks
-	rm -rf ../install/"$LFS_TARGET"/bin/"$LFS_NATIVE_ARCHITECTURE"-musl-*
-	
-	# Create non-crosscompiler
-	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/"$LFS_TARGET"-gcc "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/gcc
-	ln "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/"$LFS_TARGET"-g++ "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_TARGET"/bin/g++
-	
-	pushd ../install/"$LFS_TARGET"/bin >/dev/null
-		
-		# creates ldd
-		ln -s ../"$LFS_TARGET"/lib/libc.so ldd
-		
-		# Create wrapper scripts for compilers
-		
-		local -r allArgs='$@'
-		local -r preCFlags='$LFS_CFLAGS_PRE'
-		local -r preCXXFlags='$LFS_CXXFLAGS_PRE'
-		local -r postCFlags='$LFS_CFLAGS_POST'
-		local -r postCXXFlags='$LFS_CXXFLAGS_POST'
-	
-		# In the musl-cross recipe, we patch the musl dynamic linker to use a default path of PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib instead of /lib:/usr/local/lib:/usr/lib
-		# When running programs outside of the chroot, we need to override the location of the dynamic linker and specify the external version of the above path
-		# musl uses the following search order:-
-		# LD_PRELOAD
-		# LD_LIBRARY_PATH
-		# DT_RPATH
-		# PREFIX/x86_64-linux-musl/x86_64-linux-musl/etc/ld-musl-x86_64.path (equivalent of ld.so.conf, I suppose)
-		# Default path (changed from /lib:/usr/local/lib:/usr/lib to PREFIX/$TRIPLE/$TRIPLE/lib64:PREFIX/$TRIPLE/$TRIPLE/lib)
-		# And, for libc.so, the location of the dynamic linker
-		# -Wl,-z,nodefaultlib seems to be ignored ?by the musl dynamic linker?
-		# Set -rpath to what it should be at runtime, and -rpath-link to what it should be at compile/link time (eg rpath with a prefix).
-		local -r LFS_LDFLAGS_EXTERNAL="-Wl,--dynamic-linker=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib/ld-musl-$LFS_NATIVE_ARCHITECTURE.so.1 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib64 -Wl,-rpath=$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS/$LFS_TARGET/$LFS_TARGET/lib"
-		
-		# NOTE: It is essential we link to the cross-compiler name. gcc uses the location of its binary (not symlink) to determine the location
-		# of its libexec/ (in essence, bin/gcc => bin/../libexec/gcc/ .... )
-		# and its lib (eg for specs bin/gcc => bin/../lib/gcc/x86_64-linux-musl/4.8.1/specs)
-		cat >external-crosscompiler-gcc <<-EOF
-			#!/bin/sh
-			exec "$LFS_TARGET"-gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x external-crosscompiler-gcc
-		
-		cat >external-crosscompiler-g++ <<-EOF
-			#!/bin/sh
-			exec "$LFS_TARGET"-g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCXXFlags
-		EOF
-		chmod +x external-crosscompiler-g++
-		
-		cat >internal-crosscompiler-gcc <<-EOF
-			#!/bin/sh
-			exec "$LFS_TARGET"-gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x internal-crosscompiler-gcc
-		
-		cat >internal-crosscompiler-g++ <<-EOF
-			#!/bin/sh
-			exec "$LFS_TARGET"-g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x internal-crosscompiler-g++
-		
-		cat >external-gcc <<-EOF
-			#!/bin/sh
-			exec gcc --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x external-gcc
-		
-		cat >external-g++ <<-EOF
-			#!/bin/sh
-			exec g++ --sysroot "$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_EXTERNAL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x external-g++
-		
-		cat >internal-gcc <<-EOF
-			#!/bin/sh
-			exec gcc --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x internal-gcc
-		
-		cat >internal-g++ <<-EOF
-			#!/bin/sh
-			exec g++ --sysroot "$LFS_DEPENDENCY_PREFIX_PATH_MUSL_CROSS"/"$LFS_TARGET" $LFS_CFLAGS_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $preCXXFlags "$allArgs" $postCFlags
-		EOF
-		chmod +x internal-g++
-		
-	popd >/dev/null
-}
-
-function dead()
-{
-	echo "IGNORING LDSCRIPTS FOR NOW"
-	return 0
-	
-	pushd ../install/"$LFS_TARGET"/"$LFS_TARGET"/lib/ldscripts >/dev/null
-		
-		local ldscript
-		# Prevents any spaces in LFS being expanded as separate argv
-		local expression="$(echo -n 's:SEARCH_DIR("'${LFS}'/\(.*\)/lib\(.*\)"):SEARCH_DIR("/\1/lib\2"); SEARCH_DIR("/\1/lib"):g')"
-		for ldscript in *
-		do
-			# Fix up ldscripts SEARCH_DIR to (a) remove global locations and (b) external non-chroot paths
-			# paths starting '=' are replaced with the compiled-in SYSROOT prefix
-			cp "$ldscript" "$ldscript".bak
-			sed -i -e 's: SEARCH_DIR("=/usr/local/lib64");::g' -e 's: SEARCH_DIR("=/lib64");::g' -e 's: SEARCH_DIR("=/usr/lib64");::g' -e 's: SEARCH_DIR("=/usr/local/lib");::g' -e 's: SEARCH_DIR("=/lib");::g' -e 's: SEARCH_DIR("=/usr/lib");::g' -e "$expression" "$ldscript"
-		done
+		package_crosscompiler_musl-cross_patchUpFileSystem "$LFS_NATIVE_ARCHITECTURE" "$LFS_NATIVE_TRIPLE"
+		if [ "$LFS_NATIVE_ARCHITECTURE" != "$LFS_FOREIGN_ARCHITECTURE" ]; then
+			package_crosscompiler_musl-cross_patchUpFileSystem "$LFS_FOREIGN_ARCHITECTURE" "$LFS_FOREIGN_TRIPLE"
+		fi
 		
 	popd >/dev/null
 }

@@ -69,21 +69,9 @@ function setCFlags()
 	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
 	# https://wiki.debian.org/ToolChain/DSOLinking#Only_link_with_needed_libraries
 	# https://wiki.ubuntu.com/ToolChain/CompilerFlags?action=show&redirect=CompilerFlags
+	# https://wiki.gentoo.org/wiki/GCC_optimization
+	# http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
 	# --as-needed MAY cause a few problems for old packages
 	# --no-copy-dt-needed-entries is believed to now be default and so is not specified
 	LFS_LDFLAGS_HARDENING="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed"
-	
-	#LFS_LDFLAGS_STATIC="-static -static-libgcc -static-libstdc++ -Wl,-Bstatic"
-	LFS_LDFLAGS_STATIC="-static"
-	
-	# Advice taken from https://wiki.gentoo.org/wiki/GCC_optimization and http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
-	declare_for_chroot CFLAGS
-	declare_for_chroot CFLAGS_FOR_BUILD
-	CFLAGS="$LFS_CFLAGS_NATIVE_OPTIMISATION "$LFS_CFLAGS_HARDENING" $LFS_LDFLAGS_MUSL $LFS_LDFLAGS_OPTIMISATION $LFS_LDFLAGS_HARDENING"
-	CFLAGS_FOR_BUILD="$CFLAGS"
-	
-	declare_for_chroot CXXFLAGS
-	declare_for_chroot CXXFLAGS_FOR_BUILD
-	CXXFLAGS="$CFLAGS"
-	CXXFLAGS_FOR_BUILD="$CXXFLAGS"
 }
