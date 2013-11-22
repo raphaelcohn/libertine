@@ -159,6 +159,7 @@ Last setting wins.
 
 Options are as follows:-   Default
     skip-signature-checks  ${skipSignatureChecks}
+    parallel-make          ${parallelMake}
 " 1>&2
 	exit $1
 }
@@ -178,6 +179,9 @@ function parseCommandLine()
 	
 	skipSignatureChecks="no"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipSignatureChecks')
+	
+	parallelMake="yes"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('parallelMake')
 	
 	machine="simple"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('machine')
@@ -226,6 +230,14 @@ function parseCommandLine()
 						
 						yes-skip-signature-checks)
 							skipSignatureChecks="yes"
+						;;
+						
+						no-parallel-make)
+							parallelMake="no"
+						;;
+						
+						yes-parallel-make)
+							parallelMake="yes"
 						;;
 						
 						*)

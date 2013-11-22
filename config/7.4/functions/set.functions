@@ -16,10 +16,11 @@ function setMakeFlags()
 	fi
 	
 	declare_for_chroot -i LFS_MAKE_JOBS
-	LFS_MAKE_JOBS=$((cpuCount*2))
-	
-	declare_for_chroot -x MAKEFLAGS
-	export MAKEFLAGS="--jobs $((cpuCount*2)) --debug"
+	if [ "$parallelMake" = "yes" ]; then
+		LFS_MAKE_JOBS=$((cpuCount*2))
+	else
+		LFS_MAKE_JOBS=1
+	fi
 }
 
 function setArchitectures()
