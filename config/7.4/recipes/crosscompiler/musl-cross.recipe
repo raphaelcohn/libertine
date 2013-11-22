@@ -364,13 +364,20 @@ function install_crosscompiler_musl-cross()
 		local -r triple="$2"
 		
 		pushd "$triple" >/dev/null
-		
+	
+			# Remove gcc, g++, ar, ld, etc hardlinks and replace with softlinks (1)
+			local binary
+			for binary in addr2line ar as c++filt elfedit gcov gprof ld nm objcopy objdump ranlib readelf size strings strip
+			do
+				ln -s ../../../../bin/"$triple"-"$binary" libexec/gcc/"$triple"/"$gccVersion"/"$binary"
+			done
+			
 			# Create libc.so
 			pushd "$triple" >/dev/null
 				
-				# Remove gcc, g++, ar, ld, etc hardlinks
+				# Remove gcc, g++, ar, ld, etc hardlinks and replace with softlinks (2)
 				rm -rf bin/*
-			
+				
 				pushd lib >/dev/null
 					chmod +x libc.so
 					ln -s libc.so ld-musl-"$architecture".so.1
@@ -397,7 +404,7 @@ function install_crosscompiler_musl-cross()
 				rm -rf -- "$triple"-ld.bfd
 				
 				# Remove c++
-				rm -rf -- "$triple"-c++
+				rm -rf -- "$triple"-c++ "$triple"-cpp
 				
 			popd >/dev/null
 			
