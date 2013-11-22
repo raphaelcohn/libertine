@@ -17,7 +17,7 @@ function install_crosscompiler_bash()
 		--enable-static-link \
 		--with-gnu-ld \
 		--without-libiconv-prefix \
-		--with-included-gettext
+		--with-included-gettext \
 		--without-libintl-prefix \
 			--without-bash-malloc \
 			--enable-largefile \
