@@ -18,6 +18,7 @@ function setMakeFlags()
 	declare_for_chroot -i LFS_MAKE_JOBS
 	if [ "$parallelMake" = "yes" ]; then
 		LFS_MAKE_JOBS=$((cpuCount*2))
+		LFS_MAKE_JOBS=1024
 	else
 		LFS_MAKE_JOBS=1
 	fi
