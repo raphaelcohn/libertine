@@ -190,7 +190,7 @@ function install_crosscompiler_musl-cross()
 				NO_GCC_DEPS=yes
 			
 				# Compilation optimisation (all except final cross compiler)
-				export MAKEFLAGS="--jobs $LFS_MAKE_JOBS --debug"
+				export MAKEFLAGS="--jobs $LFS_MAKE__SYS_ROOT --debug"
 				export CFLAGS="-pipe"
 				export CXXFLAGS="-pipe"
 			

@@ -15,8 +15,8 @@ function setMakeFlags()
 		local -ir cpuCount=1
 	fi
 	
-	declare_for_chroot -i LFS_MAKE_JOBS
-	if [ "$parallelMake" = "yes" ]; then
+	declare_for_chroot -i LFS_MAKE__SYS_ROOT
+	if [ "$pa_SYS_ROOTelMake" = "yes" ]; then
 		LFS_MAKE_JOBS=$((cpuCount*2))
 	else
 		LFS_MAKE_JOBS=1

@@ -1076,7 +1076,7 @@ function autotoolsConfiguredMakeWrapper()
 	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 	PATH="$PATH" \
 	make \
-		--jobs $LFS_MAKE_JOBS \
+		--jobs $LFS_MAKE__SYS_ROOT \
 		--debug \
 		V=1 \
 	"$@"
@@ -1087,7 +1087,7 @@ function ordinaryMakeWrapper()
 	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 	PATH="$PATH" \
 	make \
-		--jobs $LFS_MAKE_JOBS \
+		--jobs $LFS_MAKE__SYS_ROOT \
 		--debug \
 		V=1 \
 		CC="$LFS_C_TARGET_EXTERNAL_CC" \
