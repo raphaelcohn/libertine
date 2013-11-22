@@ -62,6 +62,7 @@ function install_crosscompiler_busybox()
 		make \
 			--jobs $LFS_MAKE__SYS_ROOT \
 			--debug \
+			--print-directory \
 			V=2 \
 			HOSTCC="$LFS_C_HOST_CC" \
 			HOSTCXX="$LFS_C_HOST_CXX" \

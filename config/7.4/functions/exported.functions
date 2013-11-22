@@ -1078,6 +1078,7 @@ function autotoolsConfiguredMakeWrapper()
 	make \
 		--jobs $LFS_MAKE_JOBS \
 		--debug \
+		--print-directory \
 		V=1 \
 	"$@"
 }
@@ -1089,6 +1090,7 @@ function ordinaryMakeWrapper()
 	make \
 		--jobs $LFS_MAKE_JOBS \
 		--debug \
+		--print-directory \
 		V=1 \
 		CC="$LFS_C_TARGET_EXTERNAL_CC" \
 		CXX="$LFS_C_TARGET_EXTERNAL_CXX" \
