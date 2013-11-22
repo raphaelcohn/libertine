@@ -209,6 +209,34 @@ function install_crosscompiler_musl-cross()
 		
 		popd >/dev/null
 		
+			
+		function symlinkLibVariantsBeforeBuilding()
+		{
+			local -r triple="$1"
+			
+			mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib64
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib32
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/libx32
+			
+			mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib64
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib32
+			ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/libx32
+			
+			# For completeness, even though it's not used (note $triple/$triple/usr is created by musl-cross)
+			ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/usr
+			
+			# Just in case, ensures usr/local redirects
+			ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/local
+			ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/local
+		}
+		
+		symlinkLibVariantsBeforeBuilding "$LFS_NATIVE_TRIPLE"
+		if [ "$LFS_NATIVE_ARCHITECTURE" != "$LFS_FOREIGN_ARCHITECTURE" ]; then
+			symlinkLibVariantsBeforeBuilding "$LFS_FOREIGN_TRIPLE"
+		fi
+		
 		# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
 		local patchFile=patches/gcc-"$gccVersion"-musl.diff
 		cp "$patchFile" "$patchFile".orig
@@ -220,33 +248,13 @@ function install_crosscompiler_musl-cross()
 			
 			buildinstall()
 			{
-				# symlink lib64, lib32, libx32 to lib before 1st gcc build
-				if [ "$1" = "1" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
-					cd "$LFS_DEPENDENCY_INSTALL_PATH" >/dev/null
-						
-						mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib64
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/lib32
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/libx32
-						
-						mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib64
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/lib32
-						ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/libx32
-						
-						# For completeness, even though it's not used (note $TRIPLE/$TRIPLE/usr is created by musl-cross)
-						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/usr
-						
-						# Just in case, ensures usr/local redirects
-						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/local
-						ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$TRIPLE/$TRIPLE/local
-						
-					cd - >/dev/null
-				fi
+				echo "XXX buildinstall XXX $1 XXX $2 XXX $TRIPLE XXX $CC_PREFIX XXX"
 				
 				# Override musl build for non-bootstrap to specify dynamic linker search path
-				if [ "$2" = musl-$MUSL_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
-	
+				if [ "$1" = '' -a "$2" = musl-$MUSL_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+
+					echo "XXX musl XXX $TRIPLE XXX"
+					
 					# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
 					# this dynamic linker path will only work inside the chroot
 					cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-cross/patches >/dev/null
@@ -271,7 +279,10 @@ function install_crosscompiler_musl-cross()
 					
 					build "$@"
 					doinstall "$1" "$2"
+					
 				elif [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+
+					echo "XXX gcc XXX"
 					
 					# We are going to override sysroot, local prefix (and prefix)
 					
@@ -325,8 +336,12 @@ function install_crosscompiler_musl-cross()
 					doinstall "$1" "$2" DESTDIR="$LFS"
 					
 				else
+
+					echo "XXX allothers XXX"
+					
 					build "$@"
 					doinstall "$1" "$2"
+					
 				fi
 			}
 		EOF
