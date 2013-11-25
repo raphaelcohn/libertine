@@ -51,7 +51,7 @@ function install_crosscompiler_busybox()
 		
 		for key in "${!busyboxConfigurationInteger[@]}"
 		do
-			value="${busyboxConfiguration["$key"]}"
+			value="${busyboxConfigurationInteger["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'='${value}';g' .config
 		done
 
