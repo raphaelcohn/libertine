@@ -66,6 +66,7 @@ declare_for_chroot -A dependency_RelativePath
 declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
 declare_for_chroot -A dependency_BinaryInstallPaths
+declare_for_chroot -A dependency_SystemBinaryInstallPaths
 declare_for_chroot -A dependency_OtherwiseExecutableBinaryInstallPaths
 declare_for_chroot -A dependency_SetuidBinaryInstallPaths
 declare_for_chroot -A dependency_SetgidBinaryInstallPaths
@@ -538,6 +539,7 @@ function version()
 	dependency_RecipeSettingsDependencies["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
 	dependency_BinaryInstallPaths["$DependencyKey"]=""
+	dependency_SystemBinaryInstallPaths["$DependencyKey"]=""
 	dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]=""
 	dependency_SetuidBinaryInstallPaths["$DependencyKey"]=""
 	dependency_SetgidBinaryInstallPaths["$DependencyKey"]=""
@@ -890,6 +892,32 @@ function install_binaries_in_paths()
 			dependency_BinaryInstallPaths["$DependencyKey"]="$binaryPath"
 		else
 			dependency_BinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
+		fi
+	done
+}
+
+function install_system_binaries_in_paths()
+{
+	if [ $# -eq 0 ]; then
+		return 0
+	fi
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local binaryPath
+	local existingPaths
+	for binaryPath in "$@"
+	do
+		if [ -z "$binaryPath" ]; then
+			continue
+		fi
+		
+		existingPaths="${dependency_SystemBinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$binaryPath"
+		else
+			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
 		fi
 	done
 }

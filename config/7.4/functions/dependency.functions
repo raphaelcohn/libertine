@@ -194,6 +194,8 @@ function dependencyToPath()
 	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/binpath
 	
+	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/sbinpath
+	
 	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/log
 	
 	
@@ -295,13 +297,16 @@ function prepareZzzLfsPath()
 	LFS_DEPENDENCY_PACKAGE_PATH_ZZZ="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_ZZZ}"
 	LFS_DEPENDENCY_INSTALL_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/install
 	LFS_DEPENDENCY_BINPATH_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/binpath
+	LFS_DEPENDENCY_SBINPATH_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/binpath
 	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/source
 	LFS_DEPENDENCY_LOG_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/log
 	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/installed
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
+	mkdir -m 0755 -p "$LFS_DEPENDENCY_SBINPATH_PATH_ZZZ"
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/bin
+	mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH_ZZZ"/sbin
 }
 
 function prepareMuslCrossPath()
@@ -342,6 +347,7 @@ function prepareMuslCrossPath()
 	LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH_MUSL_CROSS}"
 	LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/install
 	LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/binpath
+	LFS_DEPENDENCY_SBINPATH_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/sbinpath
 	LFS_DEPENDENCY_SOURCE_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/source
 	LFS_DEPENDENCY_LOG_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/log
 	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
@@ -726,6 +732,119 @@ function installBinariesToPackagePath()
 	done
 }
 
+function installSystemBinariesToPackagePath()
+{
+	local relativeLocationOfBinaries
+	local binary
+	local resolvedBinary
+	local sourceBinary
+	local targetBinary
+	for relativeLocationOfBinaries in ${dependency_SystemBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		# Allows a per-file option, eg for binaries inside /lib folders
+		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
+			
+			pushd "$(purebash_dirname "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries")" >/dev/null
+				
+				binary="$(purebash_basename "$relativeLocationOfBinaries")"
+
+				if [ -L "$binary" ]; then
+					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
+					if [ ! -f "$resolvedBinary" ]; then
+						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
+					fi
+					chattr -ai "$resolvedBinary"
+					chmod a+x "$resolvedBinary"
+					chattr +ai "$resolvedBinary"
+				else
+					chattr -ai "$binary"
+					chmod a+x "$binary"
+					chattr +ai "$binary"
+				fi
+				
+				sourceBinary=../install/"$relativeLocationOfBinaries"
+				targetBinary="$LFS_DEPENDENCY_SBINPATH_PATH"/"$binary"
+				
+				if [ -e "$targetBinary" ]; then
+					rm -rf -- "$targetBinary"
+				fi
+	
+				ln -s "$sourceBinary" "$targetBinary"
+				
+			popd >/dev/null
+			
+			continue
+		fi
+		
+		if [ ! -d "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
+			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder (symlinks are not permitted)"
+		fi
+		
+		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
+			for binary in *
+			do
+				# ie if called '*' because no files are present
+				if [ ! -e "$binary" ]; then
+					continue
+				fi
+				
+				# block device
+				if [ -b "$binary" ]; then
+					continue
+				fi
+
+				# character device
+				if [ -c "$binary" ]; then
+					continue
+				fi
+			
+				# directory
+				if [ -d "$binary" ]; then
+					continue
+				fi
+			
+				# named pipe (fifo)
+				if [ -p "$binary" ]; then
+					continue
+				fi
+			
+				# socket
+				if [ -S "$binary" ]; then
+					continue
+				fi
+			
+				# Link
+				if [ -L "$binary" ]; then
+					if ! readlink --canonicalize-existing --no-newline "$binary" 1>/dev/null 2>/dev/null; then
+						exitError "$binary in $(pwd) does not point to an extant file"
+					fi
+					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
+					if [ ! -f "$resolvedBinary" ]; then
+						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
+					fi
+					
+					chattr -ai "$resolvedBinary"
+					chmod a+x "$resolvedBinary"
+					chattr +ai "$resolvedBinary"
+				elif [ -f "$binary" ]; then
+					chattr -ai "$binary"
+					chmod a+x "$binary"
+					chattr +ai "$binary"
+				fi
+				
+				sourceBinary=../install/"$relativeLocationOfBinaries"/"$binary"
+				targetBinary="$LFS_DEPENDENCY_SBINPATH_PATH"/"$binary"
+				
+				if [ -e "$targetBinary" ]; then
+					rm -rf -- "$targetBinary"
+				fi
+	
+				ln -s "$sourceBinary" "$targetBinary"
+			done
+		popd >/dev/null
+	done
+}
+
 function installPackagePathBinariesToPath()
 {
 	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
@@ -761,7 +880,6 @@ function installPackagePathBinariesToPath()
 			fi
 			
 			if [ -L "$targetBinary" ]; then
-				
 				currentBinary="$(readlink "$targetBinary")"
 				if [ "$currentBinary" != "$sourceBinary" ]; then
 					exitError "sourceBinary $sourceBinary should not have changed from $currentBinary for zzz-lfs binpath $binary"
@@ -774,6 +892,54 @@ function installPackagePathBinariesToPath()
 	popd >/dev/null
 
 	chattr -R +ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
+}
+
+function installPackagePathSystemBinariesToPath()
+{
+	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
+		continue
+	fi
+	
+	chattr -R -ai "$LFS_DEPENDENCY_SBINPATH_PATH" 2>/dev/null || true
+	
+	pushd "$LFS_DEPENDENCY_SBINPATH_PATH" >/dev/null
+
+		local binary
+		local sourceBinary
+		local targetBinary
+		local currentBinary
+		for binary in *
+		do
+			if [ ! -e "$binary" ]; then
+				continue
+			fi
+			
+			if [ ! -L "$binary" ]; then
+				continue
+			fi
+			
+			sourceBinary=../../../../../"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/sbinpath/"$binary"
+			
+			targetBinary="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath/"$binary"
+			
+			if [ ! -e "$targetBinary" ]; then
+				ln -s "$sourceBinary" "$targetBinary"
+				continue
+			fi
+			
+			if [ -L "$targetBinary" ]; then
+				currentBinary="$(readlink "$targetBinary")"
+				if [ "$currentBinary" != "$sourceBinary" ]; then
+					exitError "sourceBinary $sourceBinary should not have changed from $currentBinary for zzz-lfs sbinpath $binary"
+				fi
+			else
+				exitError "targetBinary $targetBinary is not a symlink for zzz-lfs sbinpath $binary"
+			fi
+		done
+	
+	popd >/dev/null
+
+	chattr -R +ai "$LFS_DEPENDENCY_SBINPATH_PATH" 2>/dev/null || true
 }
 
 # Locks down /source, /log, etc

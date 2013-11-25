@@ -4,6 +4,9 @@ version 1.21.1
 {
 	depends musl-cross
 	depends selinux
+	
+	install_binaries_in_paths bin
+	install_system_binaries_in_paths sbin
 }
 
 function install_crosscompiler_busybox()
@@ -34,7 +37,7 @@ function install_crosscompiler_busybox()
 		busyboxConfiguration["CONFIG_IFUPDOWN_IFSTATE_PATH"]="/var/run/ifstate"
 		busyboxConfiguration["CONFIG_DHCPD_LEASES_FILE"]="/var/lib/misc/udhcpd.leases"
 		busyboxConfiguration["CONFIG_UDHCPC_DEFAULT_SCRIPT"]="/usr/share/udhcpc/default.script"
-		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
+		busyboxConfiguration["CONFIG_PREFIX"]="../../install"
 
 		declare -A busyboxConfigurationUnquoted
 		# We disable this because it requires GNU libc regex
