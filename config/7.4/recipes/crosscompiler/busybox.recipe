@@ -54,7 +54,7 @@ function install_crosscompiler_busybox()
 			value="${busyboxConfigurationInteger["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'='${value}';g' .config
 		done
-
+		# -Wno-cpp
 		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
 		#  - Does not seem to use TARGETCC despite using HOSTCC
 		# HOSTLDFLAGS are from the perspective of CC (not LD); they are used for linking
@@ -77,6 +77,7 @@ function install_crosscompiler_busybox()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
 		all
 
 		PATH="$PATH" \
@@ -90,6 +91,7 @@ function install_crosscompiler_busybox()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
 		install
 	
 	popdDependencyFolder
