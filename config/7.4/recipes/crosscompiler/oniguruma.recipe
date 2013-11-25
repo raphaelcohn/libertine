@@ -1,0 +1,18 @@
+set -o errexit +o hashall
+
+version 5.9.5
+{
+	depends musl-cross
+	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+}
+
+function install_crosscompiler_oniguruma()
+{
+	buildUsingAutotoolsExternal callback_empty \
+		--disable-dependency-tracking \
+		--enable-shared \
+		--enable-static \
+		--enable-fast-install \
+		--with-pic \
+		--with-gnu-ld
+}

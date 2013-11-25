@@ -4,6 +4,7 @@ version 1.21.1
 {
 	depends musl-cross
 	depends selinux
+	depends oniguruma
 }
 
 function install_crosscompiler_busybox()
@@ -12,9 +13,14 @@ function install_crosscompiler_busybox()
 	local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
 	local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 	
+	# busybox selinux functionality
 	local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
 	local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
-		
+	
+	# busybox vi regex functionality assumes gnu regex, which oniguruma provides
+	local -r onigurumaRelativeInstallPath="$(dependencyPath oniguruma)"/install
+	local -r onigurumaAbsoluteInstallPath="${LFS}${onigurumaRelativeInstallPath}"
+	
 	pushdDependencyFolder
 		
 		local -ir inclusiveUserId=${settings_integer[LFS_INCLUSIVE_USER_UID]}
@@ -24,9 +30,9 @@ function install_crosscompiler_busybox()
 		declare -A busyboxConfigurationInteger
 		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_TARGET_EXTERNAL_PREFIX"
 		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_TARGET_EXTERNAL_SYS_ROOT"
-		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include"
-		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib"
-		busyboxConfiguration["CONFIG_EXTRA_LDLIBS"]="-lpcre -lsepol -lselinux"
+		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include -I${onigurumaAbsoluteInstallPath}/include"
+		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib -L${onigurumaAbsoluteInstallPath}/lib"
+		busyboxConfiguration["CONFIG_EXTRA_LDLIBS"]="-lpcre -lsepol -lselinux -lonig"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
 		busyboxConfiguration["CONFIG_DEFAULT_MODULES_DIR"]="/lib/modules"
 		busyboxConfiguration["CONFIG_FEATURE_CROND_DIR"]="/var/spool/cron"
