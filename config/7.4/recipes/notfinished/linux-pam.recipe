@@ -12,7 +12,7 @@ version 1.1.8
 function install_crosscompiler_linux-pam()
 {
 	# pkgconfig, libprelude?
-	buildUsingAutotools callback_empty \
+	buildUsingAutotoolsExternal callback_empty \
 		--disable-shared \
 		--enable-static \
 		--disable-dependency-tracking \

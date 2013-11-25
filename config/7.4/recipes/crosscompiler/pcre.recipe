@@ -32,5 +32,5 @@ function install_crosscompiler_pcre()
 	}
 	
 	# want to pass LIBTOOLFLAGS="--verbose" to make...
-	buildUsingAutotools package_crosscompiler_pcre_fixMakefileForStaticLinking
+	buildUsingAutotoolsExternal package_crosscompiler_pcre_fixMakefileForStaticLinking
 }

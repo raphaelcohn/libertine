@@ -411,8 +411,8 @@ function installPackage()
 	local -r installer_unversioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
 	
 	local -r logPathPrefix="$LFS_DEPENDENCY_LOG_PATH"
-	local -r installStdOutLogFile="$LFS_DEPENDENCY_LOG_PATH"/install.stdout.log
-	local -r installStdErrLogFile="$LFS_DEPENDENCY_LOG_PATH"/install.stderr.log
+	local -r installStdOutLogFile="$LFS_DEPENDENCY_LOG_PATH"/out
+	local -r installStdErrLogFile="$LFS_DEPENDENCY_LOG_PATH"/err
 	local -i exitCode
 	
 	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
@@ -438,7 +438,7 @@ function installPackage()
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/install.*.log"
+		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/*"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$installStdOutLogFile"

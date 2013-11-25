@@ -24,7 +24,7 @@ function install_crosscompiler_selinux()
 	pushd libsepol >/dev/null
 		
 		# In this MAKEFILE, LDFLAGS is actually respected but is as -Wl, style (ie passed via gcc)
-		ordinaryMakeWrapper DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
+		buildUsingMakeExternal DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
 	
 	popd  >/dev/null
 	
@@ -114,7 +114,7 @@ function install_crosscompiler_selinux()
 
 		LFS_CROSS_COMPILE_CFLAGS="$LFS_CROSS_COMPILE_CFLAGS -I${prceAbsoluteInstallPath}/include" \
 		LFS_CROSS_COMPILE_LDFLAGS="$LFS_CROSS_COMPILE_LDFLAGS -L${prceAbsoluteInstallPath}/lib -Wl,-rpath-link=$prceAbsoluteInstallPath/lib -Wl,-rpath=$prceRelativeInstallPath/lib" \
-			ordinaryMakeWrapper DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
+			buildUsingMakeExternal DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
 	
 	popd  >/dev/null
 }

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo x86_64-linux-musl-gcc "$@" >>/tmp/args
+
+for argument in "$@"
+do
+        if [ "${argument##*.}" = "c" ]; then
+			rm -rf /tmp/"$argument"
+			cp "$argument" /tmp/"$argument"
+		fi
+done
+
+exec x86_64-linux-musl-gcc -v "$@"
