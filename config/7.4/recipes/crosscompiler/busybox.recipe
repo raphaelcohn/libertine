@@ -77,7 +77,7 @@ function install_crosscompiler_busybox()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
-			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp" \
 		all
 
 		PATH="$PATH" \
@@ -91,7 +91,7 @@ function install_crosscompiler_busybox()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
-			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp" \
 		install
 	
 	popdDependencyFolder
