@@ -69,8 +69,10 @@ function install_crosscompiler_busybox()
 			cp ifconfig.c ifconfig.c.orig
 			sed -i -e 's;^#include <net/if_slip.h>;#include <linux/if_slip.h>;g' ifconfig.c
 			
-			cp iplink.c iplink.c.orig
-			sed -i -e 's;^#include <net/if_packet.h>;d' iplink.c
+			pushd libiproute >/dev/null
+				cp iplink.c iplink.c.orig
+				sed -i -e 's;^#include <net/if_packet.h>;d' iplink.c
+			popd >/dev/null
 			
 			cp tcpudp.c tcpudp.c.orig
 			sed -i -e 's;^#include <linux/netfilter_ipv4.h>;d' tcpudp.c
