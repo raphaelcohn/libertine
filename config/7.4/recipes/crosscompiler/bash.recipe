@@ -13,7 +13,7 @@ function install_crosscompiler_bash()
 	# YACC
 	# YFLAGS !
 	
-	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS $LFS_C_TARGET_EXTERNAL_CFLAGS_STATIC" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS $LFS_C_TARGET_EXTERNAL_CXXFLAGS_STATIC" buildUsingAutotoolsExternal callback_empty \
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
 		--enable-static-link \
 		--with-gnu-ld \
 		--without-libiconv-prefix \
