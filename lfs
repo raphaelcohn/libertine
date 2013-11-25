@@ -451,10 +451,13 @@ function installPackage()
 					setLfsSourcePackageVariables $index
 			
 					if [ -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
-						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						if [ ! -L "$LFS_SOURCE_PACKAGE_NAME" ]; then
+							ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						fi
 						if [ $count -eq 0 ]; then
-							ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							if [ ! -L "$LFS_DEPENDENCY_NAME" ]; then
+								ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							fi
 						fi
 					else
 						if [ -d "$lfsExtractsPath"/"$LFS_SOURCE_PACKAGE_MIRROR"/"$LFS_SOURCE_PACKAGE_RELATIVE_PATH".decompressed ]; then
@@ -462,11 +465,15 @@ function installPackage()
 						else
 							tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB"
 						fi
-
-						# May fail because the names are the same, there's more than one file, $LFS_SOURCE_PACKAGE_NAME is $LFS_DEPENDENCY_NAME etc. Done for convenience
-						ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						
+						if [ ! -L "$LFS_SOURCE_PACKAGE_NAME" ]; then
+							ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
+						fi
+						
 						if [ $count -eq 0 ]; then
-							ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							if [ ! -L "$LFS_DEPENDENCY_NAME" ]; then
+								ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
+							fi
 						fi
 					fi
 					
