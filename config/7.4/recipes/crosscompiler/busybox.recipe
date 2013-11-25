@@ -64,16 +64,19 @@ function install_crosscompiler_busybox()
 			sed -i -e 's;^'${key}'=.*$;'${key}'='${value}';g' .config
 		done
 		
-		# We use oniguruma to provide gnu regexes, as these are missing from musl libc
-		pushd editors >/dev/null
-			cp vi.c vi.c.orig
-			#sed -i -e 's;^# include <regex.h>;# include <oniggnu.h>\n# include <regex.h>;g' vi.c
+		# Bugs in use of std C and linux headers
+		pushd networking >/dev/null
+			cp ifconfig.c ifconfig.c.orig
+			sed -i -e 's;^#include <net/if_slip.h>;#include <linux/if_slip.h>;g' ifconfig.c
+			
+			cp iplink.c iplink.c.orig
+			sed -i -e 's;^#include <net/if_packet.h>;d' iplink.c
+			
+			cp tcpudp.c tcpudp.c.orig
+			sed -i -e 's;^#include <linux/netfilter_ipv4.h>;d' tcpudp.c
 		popd >/dev/null
 		
-		
-		# -Wno-cpp suppresses errors about redirections in std c lib headers
-		
-		
+		# We also use -Wno-cpp to suppress errors about redirections in std c lib headers
 		
 		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
 		#  - Does not seem to use TARGETCC despite using HOSTCC
