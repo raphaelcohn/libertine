@@ -4,7 +4,6 @@ version 1.21.1
 {
 	depends musl-cross
 	depends selinux
-	depends oniguruma
 }
 
 function install_crosscompiler_busybox()
@@ -27,7 +26,7 @@ function install_crosscompiler_busybox()
 		local -ir lastSystemId=$((inclusiveUserId-1))
 		
 		declare -A busyboxConfiguration
-		declare -A busyboxConfigurationInteger
+		declare -A busyboxConfigurationUnquoted
 		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_TARGET_EXTERNAL_PREFIX"
 		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_TARGET_EXTERNAL_SYS_ROOT"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include -I${onigurumaAbsoluteInstallPath}/include"
@@ -41,9 +40,11 @@ function install_crosscompiler_busybox()
 		busyboxConfiguration["CONFIG_UDHCPC_DEFAULT_SCRIPT"]="/usr/share/udhcpc/default.script"
 		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
 
-		declare -A busyboxConfigurationInteger
-		busyboxConfigurationInteger["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
-		busyboxConfigurationInteger["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
+		declare -A busyboxConfigurationUnquoted
+		# We disable this because it requires GNU libc regex
+		busyboxConfigurationUnquoted["CONFIG_FEATURE_VI_REGEX_SEARCH"]="n"
+		busyboxConfigurationUnquoted["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
+		busyboxConfigurationUnquoted["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
 		
 		cp "$LFS_DEPENDENCY_PACKAGE_PATH"/config .config
 		
@@ -55,16 +56,16 @@ function install_crosscompiler_busybox()
 			sed -i -e 's;^'${key}'=.*$;'${key}'="'"$value"'";g' .config
 		done
 		
-		for key in "${!busyboxConfigurationInteger[@]}"
+		for key in "${!busyboxConfigurationUnquoted[@]}"
 		do
-			value="${busyboxConfigurationInteger["$key"]}"
+			value="${busyboxConfigurationUnquoted["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'='${value}';g' .config
 		done
 		
 		# We use oniguruma to provide gnu regexes, as these are missing from musl libc
 		pushd editors >/dev/null
 			cp vi.c vi.c.orig
-			sed -i -e 's;^# include <regex.h>;# include <oniggnu.h>\n# include <onigposix.h>;g' vi.c
+			#sed -i -e 's;^# include <regex.h>;# include <oniggnu.h>\n# include <regex.h>;g' vi.c
 		popd >/dev/null
 		
 		
@@ -83,7 +84,7 @@ function install_crosscompiler_busybox()
 		#  - _xxx are specific targets, eg _conf and _conf.o 
 		PATH="$PATH" \
 		make \
-			--jobs 1 \
+			--jobs $LFS_MAKE_JOBS \
 			--debug \
 			--print-directory \
 			V=2 \
@@ -108,7 +109,7 @@ function install_crosscompiler_busybox()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
-			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp ${busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]}" \
 		install
 	
 	popdDependencyFolder
