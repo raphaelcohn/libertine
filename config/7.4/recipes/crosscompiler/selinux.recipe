@@ -112,8 +112,8 @@ function install_crosscompiler_selinux()
 		local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
 		local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 
-		LFS_CROSS_COMPILE_CFLAGS="$LFS_CROSS_COMPILE_CFLAGS -I${prceAbsoluteInstallPath}/include" \
-		LFS_CROSS_COMPILE_LDFLAGS="$LFS_CROSS_COMPILE_LDFLAGS -L${prceAbsoluteInstallPath}/lib -Wl,-rpath-link=$prceAbsoluteInstallPath/lib -Wl,-rpath=$prceRelativeInstallPath/lib" \
+		LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -I${prceAbsoluteInstallPath}/include" \
+		LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${prceAbsoluteInstallPath}/lib -Wl,-rpath-link=$prceAbsoluteInstallPath/lib -Wl,-rpath=$prceRelativeInstallPath/lib" \
 			buildUsingMakeExternal DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
 	
 	popd  >/dev/null

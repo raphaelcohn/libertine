@@ -30,8 +30,6 @@ function setArchitectures()
 	
 	LFS_NATIVE_TRIPLE="$LFS_NATIVE_ARCHITECTURE"-linux-musl
 	LFS_FOREIGN_TRIPLE="$LFS_FOREIGN_ARCHITECTURE"-linux-musl
-	
-	LFS_CROSS_COMPILER_PREFIX="$LFS_FOREIGN_ARCHITECTURE"-linux-musl-
 }
 
 function setCFlags()

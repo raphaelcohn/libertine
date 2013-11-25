@@ -1125,8 +1125,6 @@ function buildUsingAutotoolsExternal()
 	
 	pushdDependencyFolder
 	
-	# LIBS="$LFS_CROSS_COMPILE_LIBS"  removed for now
-	
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		PATH="$PATH" \
 		./configure \
