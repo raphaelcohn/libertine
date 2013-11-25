@@ -39,8 +39,6 @@ function install_crosscompiler_busybox()
 		busyboxConfiguration["CONFIG_DHCPD_LEASES_FILE"]="/var/lib/misc/udhcpd.leases"
 		busyboxConfiguration["CONFIG_UDHCPC_DEFAULT_SCRIPT"]="/usr/share/udhcpc/default.script"
 		busyboxConfiguration["CONFIG_PREFIX"]="./_install"
-		# musl does not support rpc/rpc.h
-		busyboxConfiguration["CONFIG_FEATURE_INETD_RPC"]="n"
 
 		declare -A busyboxConfigurationUnquoted
 		# We disable this because it requires GNU libc regex
@@ -49,6 +47,8 @@ function install_crosscompiler_busybox()
 		busyboxConfigurationUnquoted["CONFIG_EXTRA_COMPAT"]="n"
 		busyboxConfigurationUnquoted["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
 		busyboxConfigurationUnquoted["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
+		# musl does not support rpc/rpc.h
+		busyboxConfigurationUnquoted["CONFIG_FEATURE_INETD_RPC"]="n"
 		
 		cp "$LFS_DEPENDENCY_PACKAGE_PATH"/config .config
 		
