@@ -60,7 +60,18 @@ function install_crosscompiler_busybox()
 			value="${busyboxConfigurationInteger["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'='${value}';g' .config
 		done
-		# -Wno-cpp
+		
+		# We use oniguruma to provide gnu regexes, as these are missing from musl libc
+		pushd editors >/dev/null
+			cp vi.c vi.c.orig
+			sed -i -e 's;^# include <regex.h>;# include <onigposix.h>\n# include <oniggnu.h>;g' vi.c
+		popd >/dev/null
+		
+		
+		# -Wno-cpp suppresses errors about redirections in std c lib headers
+		
+		
+		
 		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
 		#  - Does not seem to use TARGETCC despite using HOSTCC
 		# HOSTLDFLAGS are from the perspective of CC (not LD); they are used for linking
