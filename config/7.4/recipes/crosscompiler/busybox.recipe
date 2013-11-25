@@ -71,11 +71,11 @@ function install_crosscompiler_busybox()
 			
 			pushd libiproute >/dev/null
 				cp iplink.c iplink.c.orig
-				sed -i -e ';^#include <net/if_packet.h>;d' iplink.c
+				sed -i -e '/^#include <net\/if_packet.h>/d' iplink.c
 			popd >/dev/null
 			
 			cp tcpudp.c tcpudp.c.orig
-			sed -i -e ';^#include <linux/netfilter_ipv4.h>;d' tcpudp.c
+			sed -i -e '/^#include <linux\/netfilter_ipv4.h>/d' tcpudp.c
 		popd >/dev/null
 		
 		# We also use -Wno-cpp to suppress errors about redirections in std c lib headers

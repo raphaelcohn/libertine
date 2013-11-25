@@ -438,7 +438,7 @@ function installPackage()
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/*"
+		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/err and out"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$installStdOutLogFile"
