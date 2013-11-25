@@ -21,10 +21,11 @@ function install_crosscompiler_busybox()
 		local -ir lastSystemId=$((inclusiveUserId-1))
 		
 		declare -A busyboxConfiguration
-		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_TARGET_INTERNAL_PREFIX"
-		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_TARGET_INTERNAL_SYS_ROOT"
+		busyboxConfiguration["CONFIG_CROSS_COMPILER_PREFIX"]="$LFS_C_TARGET_EXTERNAL_PREFIX"
+		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_TARGET_EXTERNAL_SYS_ROOT"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include"
-		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib -lpcre -lsepol -lselinux"
+		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib"
+		busyboxConfiguration["CONFIG_EXTRA_LDLIBS"]="-lpcre -lsepol -lselinux"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
 		busyboxConfiguration["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
 		busyboxConfiguration["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
@@ -45,37 +46,30 @@ function install_crosscompiler_busybox()
 			sed -i -e 's;^'${key}'=.*$;'${key}'="'"$value"'";g' .config
 		done
 		
-		
-		
-		
-		# bootstrap is a native compiler, but dynamically linked
-		# the first $TRIPLE is a native compiler, but statically linked
-		# we specify gcc / g++ from the first triple
-		which gcc 1>&2
-		which g++ 1>&2
-		
-		
-		
-		
-		# CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP, PKG_CONFIG (not used) should all be (a) on the path and (b) start with $CROSS_COMPILE and (c) deduced
+		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
+		# Does not seem to use TARGETCC
+		# LD is sometimes actually CC, which could be nasty!
+		# Also HOST_EXTRACFLAGS, HOST_EXTRACXXFLAGS, HOST_EXTRACFLAGS_xxx, HOST_EXTRACXXFLAGS_xxx, HOST_LOADLIBES, HOST_LOADLIBES_xxx, HOST_LDFLAGS, HOST_LLD
 		PATH="$PATH" \
 		make \
-			--jobs $LFS_MAKE__SYS_ROOT \
+			--jobs $LFS_MAKE_JOBS \
 			--debug \
 			--print-directory \
 			V=2 \
 			HOSTCC="$LFS_C_HOST_CC" \
 			HOSTCXX="$LFS_C_HOST_CXX" \
+			HOSTLD="$LFS_C_HOST_LD" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
-			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
+			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX"
 
 		PATH="$PATH" \
 		make \
-			--jobs $LFS_MAKE__SYS_ROOT \
+			--jobs $LFS_MAKE_JOBS \
 			V=2 \
 			HOSTCC="$LFS_C_HOST_CC" \
 			HOSTCXX="$LFS_C_HOST_CXX" \
+			HOSTLD="$LFS_C_HOST_LD" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
