@@ -64,7 +64,7 @@ function install_crosscompiler_busybox()
 		# We use oniguruma to provide gnu regexes, as these are missing from musl libc
 		pushd editors >/dev/null
 			cp vi.c vi.c.orig
-			sed -i -e 's;^# include <regex.h>;# include <onigposix.h>\n# include <oniggnu.h>;g' vi.c
+			sed -i -e 's;^# include <regex.h>;# include <oniggnu.h>\n# include <onigposix.h>;g' vi.c
 		popd >/dev/null
 		
 		
