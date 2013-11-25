@@ -1150,11 +1150,11 @@ function buildUsingAutotoolsExternal()
 			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
 			CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS" \
 			LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS" \
+		"$@" \
 		--build="$LFS_NATIVE_TRIPLE" \
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_FOREIGN_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		"$@"
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"
 		
 		$callback
 		

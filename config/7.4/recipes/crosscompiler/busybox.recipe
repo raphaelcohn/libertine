@@ -45,11 +45,16 @@ function install_crosscompiler_busybox()
 			value="${busyboxConfiguration["$key"]}"
 			sed -i -e 's;^'${key}'=.*$;'${key}'="'"$value"'";g' .config
 		done
-		
+
 		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
-		# Does not seem to use TARGETCC
-		# LD is sometimes actually CC, which could be nasty!
-		# Also HOST_EXTRACFLAGS, HOST_EXTRACXXFLAGS, HOST_EXTRACFLAGS_xxx, HOST_EXTRACXXFLAGS_xxx, HOST_LOADLIBES, HOST_LOADLIBES_xxx, HOST_LDFLAGS, HOST_LLD
+		#  - Does not seem to use TARGETCC despite using HOSTCC
+		# HOSTLDFLAGS are from the perspective of CC (not LD); they are used for linking
+		#  - Busybox, based on the Linux Kconfig system, does not re-use CFLAGS (or CXXFLAGS) when linking to create host executables
+		#  - LD is actually CC or CXX
+		#  - HOSTLDFLAGS may be used with either CC or CXX when linking
+		#  - HOST_LOADLIBES is used for libraries to link, eg -ldl, and comes AFTER the object list (which is very sane)
+		#  - Also HOST_EXTRACFLAGS, HOST_EXTRACXXFLAGS, HOST_EXTRACFLAGS_xxx, HOST_EXTRACXXFLAGS_xxx, HOST_LOADLIBES, HOST_LOADLIBES_xxx, HOST_LDFLAGS, HOST_LLD
+		#  - _xxx are specific targets, eg _conf and _conf.o 
 		PATH="$PATH" \
 		make \
 			--jobs $LFS_MAKE_JOBS \
@@ -61,6 +66,7 @@ function install_crosscompiler_busybox()
 			HOSTLD="$LFS_C_HOST_LD" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
+			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX"
 
 		PATH="$PATH" \
@@ -72,6 +78,7 @@ function install_crosscompiler_busybox()
 			HOSTLD="$LFS_C_HOST_LD" \
 			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
+			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
 		install
 	
