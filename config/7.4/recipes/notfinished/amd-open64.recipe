@@ -11,5 +11,5 @@ function install_crosscompiler_amd-open64()
 	
 		:
 	
-	popdDepdendencyFolder
+	popdDepdencyFolder
 }
