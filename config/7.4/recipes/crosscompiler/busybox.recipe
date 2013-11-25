@@ -67,7 +67,7 @@ function install_crosscompiler_busybox()
 		# Bugs in use of std C and linux headers
 		pushd networking >/dev/null
 			cp ifconfig.c ifconfig.c.orig
-			sed -i -e 's;^#include <net/if_slip.h>;#include <linux/if_slip.h>;g' ifconfig.c
+			sed -i -e 's;^# include <net/if_slip.h>;# include <linux/if_slip.h>;g' ifconfig.c
 			
 			pushd libiproute >/dev/null
 				cp iplink.c iplink.c.orig
@@ -76,6 +76,12 @@ function install_crosscompiler_busybox()
 			
 			cp tcpudp.c tcpudp.c.orig
 			sed -i -e '/^#include <linux\/netfilter_ipv4.h>/d' tcpudp.c
+			
+			# Not needed, as linux/mii.h includes ethtool.h
+			cp ifplugd.c ifplugd.c.orig
+			#sed -i -e '/^#include <linux\/ethtool.h>/d' ifplugd.c
+			sed -i -e '/^# include <net\/ethernet.h>/d' ifplugd.c
+			
 		popd >/dev/null
 		
 		# We also use -Wno-cpp to suppress errors about redirections in std c lib headers
