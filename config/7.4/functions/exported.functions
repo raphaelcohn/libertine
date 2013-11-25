@@ -1166,7 +1166,7 @@ function buildUsingAutotoolsExternal()
 			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
 		fi
 		
-	popdDepdencyFolder
+	popdDependencyFolder
 }
 
 function pushdDependencyFolder()
@@ -1174,7 +1174,7 @@ function pushdDependencyFolder()
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
 }
 
-function popdDepdencyFolder()
+function popdDependencyFolder()
 {
 	popd >/dev/null
 }
