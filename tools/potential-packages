@@ -12074,8 +12074,6 @@ libomxil-bellagio0-components-videosrc
 libomxil-bellagio0-components-vorbis
 libomxil-bellagio0-components-xvideo
 libomxil-components
-libonig
-libonig2
 liboobs-1
 liboobs-1-5
 liboop
@@ -16690,6 +16688,7 @@ oneko
 oneliner-el
 onesixtyone
 onetime
+oniguruma
 onscripter
 ontv
 oolite
