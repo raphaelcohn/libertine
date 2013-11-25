@@ -27,7 +27,7 @@ function install_crosscompiler_busybox()
 		busyboxConfiguration["CONFIG_SYSROOT"]="$LFS_C_TARGET_EXTERNAL_SYS_ROOT"
 		busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]="-I${selinuxAbsoluteInstallPath}/usr/include"
 		busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]="-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib"
-		busyboxConfiguration["CONFIG_EXTRA_LDLIBS"]="-pcre sepol selinux"
+		busyboxConfiguration["CONFIG_EXTRA_LDLIBS"]="pcre sepol selinux"
 		busyboxConfiguration["CONFIG_PREFIX"]="$LFS_DEPENDENCY_INSTALL_PATH"
 		busyboxConfiguration["CONFIG_DEFAULT_MODULES_DIR"]="/lib/modules"
 		busyboxConfiguration["CONFIG_FEATURE_CROND_DIR"]="/var/spool/cron"
