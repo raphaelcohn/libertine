@@ -43,6 +43,8 @@ function install_crosscompiler_busybox()
 		declare -A busyboxConfigurationUnquoted
 		# We disable this because it requires GNU libc regex
 		busyboxConfigurationUnquoted["CONFIG_FEATURE_VI_REGEX_SEARCH"]="n"
+		# We disable this because it makes grep.c (and not yet, awk.c) use GNU regex
+		busyboxConfigurationUnquoted["CONFIG_EXTRA_COMPAT"]="n"
 		busyboxConfigurationUnquoted["CONFIG_FIRST_SYSTEM_ID"]="${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}"
 		busyboxConfigurationUnquoted["CONFIG_LAST_SYSTEM_ID"]="$lastSystemId"
 		
