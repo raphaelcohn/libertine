@@ -51,7 +51,7 @@ mirror  SELINUX    http://userspace.selinuxproject.org/releases/
 mirror  AMD       'http://developer.amd.com/amd-license-agreement/?f='
 mirror  SAVANNAH  'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
 mirror  LINUX_PAM  http://linux-pam.org/
-mirror  ONIGURUMA  http://www.geocities.jp/kosako3/oniguruma/archive/onig-5.9.5.tar.gz
+mirror  ONIGURUMA  http://www.geocities.jp/kosako3/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
