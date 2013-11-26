@@ -163,18 +163,11 @@ function package_crosscompiler_busybox_build()
 		mkdir -m 0755 -p "$prefix"/"$subfolder"
 		mv ./busybox "$prefix"/"$subfolder"/busybox-"$variety"
 	
-		local binaryPath
-		local path
-		local file
-		while IFS= read -r -d $'\n' binaryPath
+		local binary
+		while IFS= read -r -d $'\n' binary
 		do
-			path="$(purebase_dirname "$binaryPath")"
-			if [ "$path" != /"$subfolder" ]; then
-				exitError "$binaryPath does not match $subfolder"
-			fi
-			file="$(purebase_basename "$binaryPath")"
-			ln -s busybox-"$variety" "$prefix"/"$subfolder"/"$file"
-		done < <("$prefix"/"$subfolder"/busybox-"$variety" --list-all)
+			ln -s busybox-"$variety" "$prefix"/"$subfolder"/"$binary"
+		done < <("$prefix"/"$subfolder"/busybox-"$variety" --list)
 		
 	popdDependencyFolder
 }
