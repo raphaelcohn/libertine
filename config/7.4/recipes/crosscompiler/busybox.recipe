@@ -26,6 +26,9 @@ function install_crosscompiler_busybox()
 	local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
 	local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
 	
+	echo $prceRelativeInstallPath $selinuxRelativeInstallPath
+	exit 50
+	
 	# UID and GID
 	local -ir inclusiveUserId=${settings_integer[LFS_INCLUSIVE_USER_UID]}
 	local -ir lastSystemId=$((inclusiveUserId-1))
