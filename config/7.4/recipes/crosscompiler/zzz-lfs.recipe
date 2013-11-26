@@ -6,7 +6,10 @@ version 0
 {
 	depends patchelf
 	depends bash
-	depends busybox
+	depends busybox-suid
+	depends busybox-iputils
+	depends busybox-bin
+	depends busybox-sbin
 }
 
 function install_crosscompiler_zzz-lfs()

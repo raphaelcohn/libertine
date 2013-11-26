@@ -1,0 +1,14 @@
+set -o errexit +o hashall
+
+version 1.21.1
+{
+	include busybox 1.21.1
+	depends busybox-suid
+	
+	install_binaries_in_paths bin
+}
+
+function install_crosscompiler_busybox-bin()
+{
+	package_crosscompiler_busybox_build "bin" bin
+}
