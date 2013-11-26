@@ -63,9 +63,9 @@ function install_crosscompiler_busybox()
 		local value
 		
 		local -a sedExpressions=()
-		for key in "${!package_crosscompiler_busybox_busyboxConfigurationUnquoted[@]}"
+		for key in "${!package_crosscompiler_busybox_currentBusyboxConfiguration[@]}"
 		do
-			value="${package_crosscompiler_busybox_busyboxConfigurationUnquoted["$key"]}"
+			value="${package_crosscompiler_busybox_currentBusyboxConfiguration["$key"]}"
 		
 			# Remove any existing commented key-value (for clarity) or key-value
 			sedExpressions+=('-e' '/^# '${key}'=.*$/d')
