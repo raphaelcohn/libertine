@@ -1435,10 +1435,10 @@ burgerspace                              166800
 burn                                     166900
 burp                                     167000
 bustle                                   167100
-busybox                                  167200
-busybox-initramfs                        167201
-busybox-static                           167202
-busybox-syslogd                          167203
+busybox-suid                             167200
+busybox-sbin                             167201
+busybox-bin                              167202
+busybox-iputils                          167203
 buthead                                  167300
 buxon                                    167400
 buzztard                                 167500

@@ -1435,10 +1435,10 @@ burgerspace
 burn
 burp
 bustle
-busybox
-busybox-initramfs
-busybox-static
-busybox-syslogd
+busybox-suid
+busybox-sbin
+busybox-bin
+busybox-iputils
 buthead
 buxon
 buzztard
