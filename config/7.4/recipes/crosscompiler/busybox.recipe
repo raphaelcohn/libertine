@@ -6,10 +6,7 @@ version 1.21.1
 	depends selinux
 	
 	make_setuid_binary "suid/busybox-suid"
-	# https://wiki.archlinux.org/index.php/Using_File_Capabilities_Instead_Of_Setuid
-	make_capabilities_binary "capabilities/busybox-capabilities" "cap_net_raw+ep"
-	
-	setcap cap_net_raw+ep /usr/bin/ping
+	make_capabilities_binary "iputils/busybox-iputils" "cap_net_raw+ep"
 	
 	install_binaries_in_paths suid capabilities bin
 	install_system_binaries_in_paths sbin
@@ -209,7 +206,7 @@ function install_crosscompiler_busybox()
 		package_crosscompiler_busybox_build "suid" y n n n
 		
 		# Suid maybe build (to allow file system capabilities to be used instead)
-		package_crosscompiler_busybox_build "capabilities" n y n n
+		package_crosscompiler_busybox_build "iputils" n y n n
 		
 		# System binaries build
 		package_crosscompiler_busybox_build "sbin" n n y n
