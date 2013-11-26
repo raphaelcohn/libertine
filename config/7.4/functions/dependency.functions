@@ -170,7 +170,7 @@ function dependencyToPath()
 	
 	
 	
-	if [ -f "$absoluteCompletePath"/installed ]; then
+	if [ -f "$absoluteCompletePath"/finished ]; then
 		return 0
 	fi
 	
@@ -300,7 +300,7 @@ function prepareZzzLfsPath()
 	LFS_DEPENDENCY_SBINPATH_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/binpath
 	LFS_DEPENDENCY_SOURCE_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/source
 	LFS_DEPENDENCY_LOG_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/log
-	LFS_DEPENDENCY_INSTALLED_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/installed
+	LFS_DEPENDENCY_FINISHED_PATH_ZZZ="$LFS_DEPENDENCY_PACKAGE_PATH_ZZZ"/finished
 	
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
 	mkdir -m 0755 -p "$LFS_DEPENDENCY_SBINPATH_PATH_ZZZ"
@@ -350,7 +350,7 @@ function prepareMuslCrossPath()
 	LFS_DEPENDENCY_SBINPATH_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/sbinpath
 	LFS_DEPENDENCY_SOURCE_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/source
 	LFS_DEPENDENCY_LOG_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/log
-	LFS_DEPENDENCY_INSTALLED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/installed
+	LFS_DEPENDENCY_FINISHED_PATH_MUSL_CROSS="$LFS_DEPENDENCY_PACKAGE_PATH_MUSL_CROSS"/finished
 	
 	# Not supported yet:-
 	# AFLAGS, YFLAGS (Yacc)
@@ -565,6 +565,30 @@ function setSetgidBinaries()
 		
 		chattr -ai "$binary"
 		chmod g+s "$binary"
+		chattr +ai "$binary"
+	done
+}
+
+function setCapabilityBinaries()
+{
+	local uniqueValue
+	local relativeBinaryPath
+	local capability
+	local binary
+	for uniqueValue in ${dependency_CapabilitiesBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		relativeBinaryPath="${uniqueValue%.*}"
+		capability="${uniqueValue#*.}"
+		
+		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
+			
+		if [ ! -f "$binary" ]; then
+			exitError "Path $binary is not a file"
+		fi
+		
+		chattr -ai "$binary"
+		chmod +x "$binary"
+		setcap "$capability" "$binary"
 		chattr +ai "$binary"
 	done
 }
@@ -942,7 +966,6 @@ function installPackagePathSystemBinariesToPath()
 	chattr -R +ai "$LFS_DEPENDENCY_SBINPATH_PATH" 2>/dev/null || true
 }
 
-# Locks down /source, /log, etc
 function lockDownPackage()
 {
 	local file
@@ -957,6 +980,10 @@ function lockDownPackage()
 			fi
 			
 			if [ "$file" = "install" ]; then
+				continue
+			fi
+			
+			if [ "$file" = "source" ]; then
 				continue
 			fi
 			

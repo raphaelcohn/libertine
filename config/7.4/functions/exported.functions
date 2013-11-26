@@ -70,6 +70,7 @@ declare_for_chroot -A dependency_SystemBinaryInstallPaths
 declare_for_chroot -A dependency_OtherwiseExecutableBinaryInstallPaths
 declare_for_chroot -A dependency_SetuidBinaryInstallPaths
 declare_for_chroot -A dependency_SetgidBinaryInstallPaths
+declare_for_chroot -A dependency_CapabilitiesBinaryInstallPaths
 declare_for_chroot -A dependency_IncludeIndices
 
 declare_for_chroot -a includes_DependencyKey
@@ -543,6 +544,7 @@ function version()
 	dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]=""
 	dependency_SetuidBinaryInstallPaths["$DependencyKey"]=""
 	dependency_SetgidBinaryInstallPaths["$DependencyKey"]=""
+	dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]=""
 	dependency_IncludeIndices["$DependencyKey"]=""
 	
 	if [ "$LFS_RECIPE_INCLUDE_HASH" != "0" ]; then
@@ -998,6 +1000,26 @@ function make_setgid_binary()
 			dependency_SetgidBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
 		fi
 	done
+}
+
+function make_capabilities_binary()
+{
+	if [ $# -ne 2 ]; then
+		exitError "2 args, file path and the capabilities to set"
+	fi
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local -r binaryPath="$1"
+	local -r capabilities="$2"
+	local -r uniqueValue="${binaryPath}.${capabilities}"
+	local existingPaths="${dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]}"
+	if [ -z "$existingPaths" ]; then
+		dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$uniqueValue"
+	else
+		dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$existingPaths $uniqueValue"
+	fi
 }
 
 function include_mirror()
