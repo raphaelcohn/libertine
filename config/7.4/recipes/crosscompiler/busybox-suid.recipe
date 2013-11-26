@@ -158,7 +158,7 @@ function package_crosscompiler_busybox_build()
 			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
 			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
-			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp ${busyboxConfiguration["CONFIG_EXTRA_CFLAGS"]} ${busyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]}" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp ${package_crosscompiler_busybox_currentBusyboxConfiguration["CONFIG_EXTRA_CFLAGS"]} ${package_crosscompiler_busybox_currentBusyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]} -v" \
 		all
 	
 		mkdir -m 0755 -p "$prefix"/"$subfolder"
