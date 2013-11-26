@@ -103,6 +103,7 @@ function package_crosscompiler_busybox_build()
 			V=2 \
 			distclean
 	
+		unset package_crosscompiler_busybox_currentBusyboxConfiguration
 		declare -Ag package_crosscompiler_busybox_currentBusyboxConfiguration=()
 	
 		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter CROSS_COMPILER_PREFIX "$LFS_C_TARGET_EXTERNAL_PREFIX"
