@@ -161,7 +161,7 @@ function package_crosscompiler_busybox_build()
 		all
 	
 		mkdir -m 0755 -p "$prefix"/"$subfolder"
-		mv ./busybox "$prefix"/
+		mv ./busybox "$prefix"/"$subfolder"/busybox-"$variety"
 	
 		local binaryPath
 		local path
