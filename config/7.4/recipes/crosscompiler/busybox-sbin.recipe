@@ -19,11 +19,11 @@ function install_crosscompiler_busybox-sbin()
 		# busybox selinux functionality
 		local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
 		local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
-	}
 	
-	package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_CFLAGS "-I${selinuxAbsoluteInstallPath}/usr/include"
-	package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_LDFLAGS "-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib"
-	package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_LDLIBS "pcre sepol selinux"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_CFLAGS "-I${selinuxAbsoluteInstallPath}/usr/include"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_LDFLAGS "-L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter EXTRA_LDLIBS "pcre sepol selinux"
+	}
 	
 	package_crosscompiler_busybox_build "sbin" sbin package_crosscompiler_busybox_sbin_callback
 }
