@@ -174,7 +174,7 @@ function package_crosscompiler_busybox_build()
 			fi
 			file="$(purebase_basename "$binaryPath")"
 			ln -s busybox-"$variety" "$prefix"/"$subfolder"/"$file"
-		done < <("$prefix"/busybox-"$variety" --list-all)
+		done < <("$prefix"/"$subfolder"/busybox-"$variety" --list-all)
 		
 	popdDependencyFolder
 }
