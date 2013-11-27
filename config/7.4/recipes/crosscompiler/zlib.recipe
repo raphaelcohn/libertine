@@ -9,7 +9,25 @@ version 1.2.8
 
 function install_crosscompiler_zlib()
 {
-	buildUsingAutotoolsExternal callback_empty
+	pushdDependencyFolder
+		
+		PATH="$PATH" \
+		CC="$LFS_C_TARGET_EXTERNAL_CC" \
+		CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
+		AR="$LFS_C_TARGET_EXTERNAL_AR" \
+		RANLIB="$LFS_C_TARGET_EXTERNAL_RANLIB" \
+		NM="$LFS_C_TARGET_EXTERNAL_NM" \
+		./configure \
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"
+			--64
+		
+		$callback
+		
+		autotoolsConfiguredMakeWrapper
+		
+		autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
+		
+	popdDependencyFolder
 	
 	mv -v /usr/lib/libz.so.* /lib
 	ln -sfv ../../lib/libz.so.1.2.8 /usr/lib/libz.so
