@@ -546,7 +546,7 @@ function _setPropertyOnFiles()
 	for uniqueValue in "$@"
 	do
 		relativeFilePath="${uniqueValue%.*}"
-		value="${uniqueValue#*.}"
+		value="${uniqueValue:${relativeFilePathy}+1}"
 		file="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeFilePath"
 		
 		if [ -L "$file" ]; then
