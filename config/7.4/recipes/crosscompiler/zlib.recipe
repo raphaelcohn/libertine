@@ -4,12 +4,12 @@ version 1.2.8
 {
 	source_package ZLIB "$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.xz MD5:28f1205d8dd2001f26fec1e8c2cebe37
 	
-	depends linux
+	depends musl-cross
 }
 
-function install_system_zlib()
+function install_crosscompiler_zlib()
 {
-	toolchain2InstallPackagePrototype --prefix=/usr
+	buildUsingAutotoolsExternal callback_empty
 	
 	mv -v /usr/lib/libz.so.* /lib
 	ln -sfv ../../lib/libz.so.1.2.8 /usr/lib/libz.so

@@ -3,14 +3,78 @@ set -o errexit +o hashall
 version 1.8.8
 {
 	depends musl-cross
+	depends zlib
+	depends selinux
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	setuid_binaries sbin sudo
-	install_system_binaries sbin sudo
+	setuid_binaries bin sudo sudoedit
+	install_binaries bin sudo sudoedit sudoreplay
+	install_system_binaries sbin visudo
 }
 
 function install_crosscompiler_sudo()
 {
-	adasdadasd
-	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty
+	local -r zlibRelativeInstallPath="$(dependencyPath pcre)"/install
+	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
+		
+	krb5?
+	OPIE
+	PAM
+	S/KEY
+	
+	mkdir -m 0755 -p "$LFS"/var/lib/sudo
+	mkdir -m 0755 -p "$LFS"/var/log/sudo/io
+	
+	# Do we want to use sendmail?
+	
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
+--enable-zlib="$zlibAbsoluteInstallPath" \
+--with-incpath=DIR \
+--with-libpath=DIR \
+--with-libraries=LIBRARY \
+--with-opie=DIR \
+--with-SecurID=DIR \
+--with-skey=DIR \
+--with-editor=[PATH TO VI]:[PATH TO ED] \
+		--with-secure-path[=PATH]
+		--with-sendmail=no
+--with-timedir=/var/lib/sudo \
+--enable-pie \
+--disable-shared \
+--disable-root-mailer \
+--disable-nls \
+--with-selinux \
+--disable-admin-flag \
+--with-linux-audit \
+--with-man \
+--with-netsvc=no \
+--with-nsswitch=no \
+--without-AFS \
+--with-pam \
+--enable-shadow \
+--disable-sia \
+--enable-gss-krb5-ccache-name \
+--disable-path-info \
+--enable-noargs-shell \
+--with-badpri=warning \
+--with-goodpri=info \
+--with-ignore-dot \
+--with-iologdir=/var/log/sudo/io \
+--without-lecture \
+--with-logfac=authpriv \
+--with-logging=syslog \
+--with-logpath=/var/log/sudo/sudo.log \
+--with-long-otp-prompt \
+--without-mail-if-no-user \
+--without-mail-if-no-host \
+--without-mail-if-noperms \
+--with-mailto="admin@stormmq.com" \
+--with-password-timeout=0 \
+--with-passwd-tries=3 \
+--with-sudoers-mode=0440
+--with-sudoers-uid=0 \
+--with-sudoers-gid=0 \
+--with-timeout=5 \
+--without-tty-tickets \
+--with-umask=0022 \
 }
