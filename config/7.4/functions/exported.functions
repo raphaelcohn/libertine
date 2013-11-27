@@ -933,7 +933,7 @@ function _binaryPermissionBits()
 	do
 		combination="${parentPath}/${path}.${value}"
 		
-		existingPaths="${dependency_PermissionBitsPaths["$DependencyKey"]}"
+		existingPaths="${dependency_BinaryPermissionBitsPaths["$DependencyKey"]}"
 		if [ -z "$existingPaths" ]; then
 			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$combination"
 		else
