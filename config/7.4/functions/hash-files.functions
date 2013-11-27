@@ -38,6 +38,7 @@ function readHashesLine()
 
 function recordHashes()
 {
+	set -x
 	local -r prefix="$1"
 	local -r path="$2"
 	
@@ -73,6 +74,11 @@ function recordHashes()
 			recordHashUnknown
 		fi
 	done < <(find "$topLevelFolder" -print0 | LC_ALL=C sort -k 1 -z)
+	set +x
+	
+	chown 0:0 "$hashesFile"
+	chmod 0400 "$hashesFile"
+	chattr +ai "$hashesFile"
 }
 
 # birthTime %W seems to not be known for most files (outputs 0)

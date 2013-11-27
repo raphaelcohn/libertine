@@ -17,12 +17,25 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	{
 		local -ir installLdd=$1
 		local -r triple="$2"
-	
-		local -r binPath="$triple"/bin
-		local -r prefix="$binPath"/"$triple"-
+		local -r prefix="$triple"-
 		local -r libexec="$triple"/libexec/gcc/"$triple"/"$localPackage_crosscompiler_musl_cross_gccVersion"
 	
-		install_binaries_in_paths \
+		executable_binaries "$libexec" \
+			cc1 \
+			cc1plus \
+			collect2 \
+			lto1 \
+			lto-wrapper \
+			install-tools/fixincl \
+			install-tools/fixinc.sh \
+			install-tools/mkheaders \
+			install-tools/mkinstalldirs
+		
+		executable_binaries "$triple"/"$triple"/lib libc.so
+
+		local -r binPath="$triple"/bin
+		
+		install_binaries "$binPath" \
 			"${prefix}"addr2line \
 			"${prefix}"ar \
 			"${prefix}"as \
@@ -44,20 +57,8 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 			"${prefix}"ldd
 		
 		if [ $installLdd -eq 1 ]; then
-			install_binaries_in_paths "$binPath"/ldd
+			install_binaries "$binPath" ldd
 		fi
-	
-		make_executable_binary \
-			"$libexec"/cc1 \
-			"$libexec"/cc1plus \
-			"$libexec"/collect2 \
-			"$libexec"/lto1 \
-			"$libexec"/lto-wrapper \
-			"$libexec"/install-tools/fixincl \
-			"$libexec"/install-tools/fixinc.sh \
-			"$libexec"/install-tools/mkheaders \
-			"$libexec"/install-tools/mkinstalldirs \
-			"$triple"/"$triple"/lib/libc.so
 	}
 	
 	if [ "$LFS_NATIVE_TRIPLE" = "$LFS_FOREIGN_TRIPLE" ]; then

@@ -402,8 +402,8 @@ function installPackage()
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		progressMessage "Skipping phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 		
-		installPackagePathBinariesToPath
-		installPackagePathSystemBinariesToPath
+		linkBinariesToPath
+		linkSystemBinariesToPath
 		
 		progressMessageSucceeded
 		return 0
@@ -509,14 +509,13 @@ function installPackage()
 				executeFunctionUnderSudo $installer
 				
 				lockDownPermissions
-				setOtherExecutableBinaries
-				setSetuidBinaries
-				setSetgidBinaries
+				setUidGidOnPaths
+				setBinaryPermissionBits
 				setCapabilityBinaries
 				installBinariesToPackagePath
 				installSystemBinariesToPackagePath
-				installPackagePathBinariesToPath
-				installPackagePathSystemBinariesToPath
+				linkBinariesToPath
+				linkSystemBinariesToPath
 				
 				recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/source
 				recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install

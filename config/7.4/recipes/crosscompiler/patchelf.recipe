@@ -4,7 +4,7 @@ version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
 {
 	depends musl-cross
 	
-	install_binaries_in_paths bin
+	install_binaries bin patchelf
 }
 
 function install_crosscompiler_patchelf()

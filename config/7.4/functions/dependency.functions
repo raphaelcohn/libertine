@@ -533,437 +533,138 @@ function lockDownPermissions()
 	chattr +Aai "$LFS_DEPENDENCY_INSTALL_PATH"
 }
 
-function setSetuidBinaries()
+function _setPropertyOnFiles()
 {
-	local relativeBinaryPath
-	local binary
-	for relativeBinaryPath in ${dependency_SetuidBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	local -r settingCommand="$1"
+	shift 1
+	
+	local uniqueValue
+	local relativeFilePath
+	local value
+	local file
+	local resolvedFile
+	for uniqueValue in "$@"
 	do
-		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
-			
-		if [ ! -f "$binary" ]; then
-			exitError "Path $binary is not a file"
+		relativeFilePath="${uniqueValue%.*}"
+		value="${uniqueValue#*.}"
+		file="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeFilePath"
+		
+		if [ -L "$file" ]; then
+			resolvedFile="$(readlink -f "$file")"
+		else
+			resolvedFile="$file"
 		fi
 		
-		chattr -ai "$binary"
-		chmod u+s "$binary"
-		chattr +ai "$binary"
+		chattr -ai "$resolvedFile"
+		$settingCommand "$value" "$resolvedFile"
+		chattr +ai "$resolvedFile"
 	done
 }
 
-function setSetgidBinaries()
+function setUidGidOnPaths()
 {
-	local relativeBinaryPath
-	local binary
-	for relativeBinaryPath in ${dependency_SetgidBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
-	do
-		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
-			
-		if [ ! -f "$binary" ]; then
-			exitError "Path $binary is not a file"
-		fi
-		
-		chattr -ai "$binary"
-		chmod g+s "$binary"
-		chattr +ai "$binary"
-	done
+	_setPropertyOnFiles chown ${dependency_UidGidPaths["$LFS_DEPENDENCY_KEY"]}
+}
+
+function setBinaryPermissionBits()
+{
+	_setPropertyOnFiles chmod ${dependency_OtherwiseExecutableBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 }
 
 function setCapabilityBinaries()
 {
-	local uniqueValue
-	local relativeBinaryPath
-	local capability
-	local binary
-	for uniqueValue in ${dependency_CapabilitiesBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
-	do
-		relativeBinaryPath="${uniqueValue%.*}"
-		capability="${uniqueValue#*.}"
-		
-		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
-			
-		if [ ! -f "$binary" ]; then
-			exitError "Path $binary is not a file"
-		fi
-		
-		chattr -ai "$binary"
-		chmod +x "$binary"
-		setcap "$capability" "$binary"
-		chattr +ai "$binary"
-	done
+	_setPropertyOnFiles setcap ${dependency_CapabilitiesBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 }
 
-function setOtherExecutableBinaries()
+function _installBinaries()
 {
+	local -r destinationPath="$1"
+	local -r permissions="$2"
+	local -r makeRoot="$3"
+	shift 1
+	
 	local relativeBinaryPath
 	local binary
-	local file
-	local resolvedBinary
-	for relativeBinaryPath in ${dependency_OtherwiseExecutableBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	local resolvedFile
+	for relativeBinaryPath in "$@"
 	do
 		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
 		
-		if [ -f "$binary" ]; then
-			chattr -ai "$binary"
-			chmod a+x "$binary"
-			chattr +ai "$binary"
-			
-			continue
+		if [ -L "$file" ]; then
+			resolvedFile="$(readlink -f "$binary")"
+		elif [ -f "$file" ]; then
+			resolvedFile="$binary"
+		else
+			exitError "Path $binary is not a file or does not exist"
 		fi
 		
-		if [ ! -d "$binary" ]; then
-			exitError "Path $binary is not a file or directory"
+		chattr -ai "$resolvedFile"
+		chmod "$permissions" "$resolvedFile"
+		if [ "$makeRoot" = "y" ]; then
+			chown 0:0 "$resolvedFile"
 		fi
-		
-		pushd "$binary" >/dev/null
-			for file in *
-			do
-				if [ ! -e "$file" ]; then
-					continue
-				elif [ -L "$file" ]; then
-					if ! readlink --canonicalize-existing --no-newline "$file" 1>/dev/null 2>/dev/null; then
-						exitError "$file in $(pwd) does not point to an extant file"
-					fi
-					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$file")"
-					if [ ! -f "$resolvedBinary" ]; then
-						exitError "$file in $(pwd) points to something ($resolvedBinary) that is not a file"
-					fi
-					
-					chattr -ai "$resolvedBinary"
-					chmod a+x "$resolvedBinary"
-					chattr +ai "$resolvedBinary"
-				elif [ -f "$file" ]; then
-					chattr -ai "$file"
-					chmod a+x "$file"
-					chattr +ai "$file"
-				fi
-			done
-		popd >/dev/null
-		
+		chattr +ai "$resolvedFile"
+		ln -s ../install/"$relativeBinaryPath" "$destinationPath"/"$(purebash_basename "$relativeBinaryPath")"
 	done
 }
 
 function installBinariesToPackagePath()
 {
-	local relativeLocationOfBinaries
-	local binary
-	local resolvedBinary
-	local sourceBinary
-	local targetBinary
-	for relativeLocationOfBinaries in ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
-	do
-		# Allows a per-file option, eg for binaries inside /lib folders
-		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
-			
-			pushd "$(purebash_dirname "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries")" >/dev/null
-				
-				binary="$(purebash_basename "$relativeLocationOfBinaries")"
-
-				if [ -L "$binary" ]; then
-					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
-					if [ ! -f "$resolvedBinary" ]; then
-						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
-					fi
-					chattr -ai "$resolvedBinary"
-					chmod a+x "$resolvedBinary"
-					chattr +ai "$resolvedBinary"
-				else
-					chattr -ai "$binary"
-					chmod a+x "$binary"
-					chattr +ai "$binary"
-				fi
-				
-				sourceBinary=../install/"$relativeLocationOfBinaries"
-				targetBinary="$LFS_DEPENDENCY_BINPATH_PATH"/"$binary"
-				
-				if [ -e "$targetBinary" ]; then
-					rm -rf -- "$targetBinary"
-				fi
-	
-				ln -s "$sourceBinary" "$targetBinary"
-				
-			popd >/dev/null
-			
-			continue
-		fi
-		
-		if [ ! -d "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
-			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder (symlinks are not permitted)"
-		fi
-		
-		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
-			for binary in *
-			do
-				# ie if called '*' because no files are present
-				if [ ! -e "$binary" ]; then
-					continue
-				fi
-				
-				# block device
-				if [ -b "$binary" ]; then
-					continue
-				fi
-
-				# character device
-				if [ -c "$binary" ]; then
-					continue
-				fi
-			
-				# directory
-				if [ -d "$binary" ]; then
-					continue
-				fi
-			
-				# named pipe (fifo)
-				if [ -p "$binary" ]; then
-					continue
-				fi
-			
-				# socket
-				if [ -S "$binary" ]; then
-					continue
-				fi
-			
-				# Link
-				if [ -L "$binary" ]; then
-					if ! readlink --canonicalize-existing --no-newline "$binary" 1>/dev/null 2>/dev/null; then
-						exitError "$binary in $(pwd) does not point to an extant file"
-					fi
-					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
-					if [ ! -f "$resolvedBinary" ]; then
-						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
-					fi
-					
-					chattr -ai "$resolvedBinary"
-					chmod a+x "$resolvedBinary"
-					chattr +ai "$resolvedBinary"
-				elif [ -f "$binary" ]; then
-					chattr -ai "$binary"
-					chmod a+x "$binary"
-					chattr +ai "$binary"
-				fi
-				
-				sourceBinary=../install/"$relativeLocationOfBinaries"/"$binary"
-				targetBinary="$LFS_DEPENDENCY_BINPATH_PATH"/"$binary"
-				
-				if [ -e "$targetBinary" ]; then
-					rm -rf -- "$targetBinary"
-				fi
-	
-				ln -s "$sourceBinary" "$targetBinary"
-			done
-		popd >/dev/null
-	done
+	_installBinaries "$LFS_DEPENDENCY_BINPATH_PATH" a+x n ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 }
 
 function installSystemBinariesToPackagePath()
 {
-	local relativeLocationOfBinaries
-	local binary
-	local resolvedBinary
-	local sourceBinary
-	local targetBinary
-	for relativeLocationOfBinaries in ${dependency_SystemBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
-	do
-		# Allows a per-file option, eg for binaries inside /lib folders
-		if [ -f "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
-			
-			pushd "$(purebash_dirname "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries")" >/dev/null
-				
-				binary="$(purebash_basename "$relativeLocationOfBinaries")"
-
-				if [ -L "$binary" ]; then
-					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
-					if [ ! -f "$resolvedBinary" ]; then
-						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
-					fi
-					chattr -ai "$resolvedBinary"
-					chmod a+x "$resolvedBinary"
-					chattr +ai "$resolvedBinary"
-				else
-					chattr -ai "$binary"
-					chmod a+x "$binary"
-					chattr +ai "$binary"
-				fi
-				
-				sourceBinary=../install/"$relativeLocationOfBinaries"
-				targetBinary="$LFS_DEPENDENCY_SBINPATH_PATH"/"$binary"
-				
-				if [ -e "$targetBinary" ]; then
-					rm -rf -- "$targetBinary"
-				fi
+	_installBinaries "$LFS_DEPENDENCY_SBINPATH_PATH" u+x,g+x,o-rwx y ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	
-				ln -s "$sourceBinary" "$targetBinary"
-				
-			popd >/dev/null
-			
-			continue
-		fi
-		
-		if [ ! -d "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" ]; then
-			exitError "Path $LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries is neither a file or folder (symlinks are not permitted)"
-		fi
-		
-		pushd "$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeLocationOfBinaries" >/dev/null
-			for binary in *
-			do
-				# ie if called '*' because no files are present
+	# Lock down sbinpath so only root can list contents
+	chattr -ai "$LFS_DEPENDENCY_SBINPATH_PATH"
+	chown 0:0 "$LFS_DEPENDENCY_SBINPATH_PATH"
+	chmod 0770 "$LFS_DEPENDENCY_SBINPATH_PATH"
+	chattr +ai "$LFS_DEPENDENCY_SBINPATH_PATH"
+}
+
+function _linkBinariesPath()
+{
+	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
+		return 0
+	fi
+	
+	# eg blah/install/binpath
+	local -r destinationPath="$1"
+	local -r originFolder="$(purebash_basename "$destinationPath")"
+	
+	pushd "$destinationPath" >/dev/null
+	
+		local binary
+		local targetBinary
+		for binary in *
+		do
+			if [ ! -L "$binary" ]; then
 				if [ ! -e "$binary" ]; then
 					continue
 				fi
-				
-				# block device
-				if [ -b "$binary" ]; then
-					continue
-				fi
-
-				# character device
-				if [ -c "$binary" ]; then
-					continue
-				fi
-			
-				# directory
-				if [ -d "$binary" ]; then
-					continue
-				fi
-			
-				# named pipe (fifo)
-				if [ -p "$binary" ]; then
-					continue
-				fi
-			
-				# socket
-				if [ -S "$binary" ]; then
-					continue
-				fi
-			
-				# Link
-				if [ -L "$binary" ]; then
-					if ! readlink --canonicalize-existing --no-newline "$binary" 1>/dev/null 2>/dev/null; then
-						exitError "$binary in $(pwd) does not point to an extant file"
-					fi
-					resolvedBinary="$(readlink --canonicalize-existing --no-newline "$binary")"
-					if [ ! -f "$resolvedBinary" ]; then
-						exitError "$binary in $(pwd) points to something ($resolvedBinary) that is not a file"
-					fi
-					
-					chattr -ai "$resolvedBinary"
-					chmod a+x "$resolvedBinary"
-					chattr +ai "$resolvedBinary"
-				elif [ -f "$binary" ]; then
-					chattr -ai "$binary"
-					chmod a+x "$binary"
-					chattr +ai "$binary"
-				fi
-				
-				sourceBinary=../install/"$relativeLocationOfBinaries"/"$binary"
-				targetBinary="$LFS_DEPENDENCY_SBINPATH_PATH"/"$binary"
-				
-				if [ -e "$targetBinary" ]; then
-					rm -rf -- "$targetBinary"
-				fi
-	
-				ln -s "$sourceBinary" "$targetBinary"
-			done
-		popd >/dev/null
-	done
-}
-
-function installPackagePathBinariesToPath()
-{
-	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
-		continue
-	fi
-	
-	# Why is it sealed? Recipes not changed, but something never finished installing?
-	chattr -R -ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
-	
-	pushd "$LFS_DEPENDENCY_BINPATH_PATH" >/dev/null
-
-		local binary
-		local sourceBinary
-		local targetBinary
-		local currentBinary
-		for binary in *
-		do
-			if [ ! -e "$binary" ]; then
-				continue
+				exitError "Non-symlink binary $binary in $destinationPath"
 			fi
 			
-			if [ ! -L "$binary" ]; then
-				continue
-			fi
-			
-			sourceBinary=../../../../../"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/binpath/"$binary"
-			
-			targetBinary="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath/"$binary"
-			
-			if [ ! -e "$targetBinary" ]; then
-				ln -s "$sourceBinary" "$targetBinary"
-				continue
-			fi
-			
-			if [ -L "$targetBinary" ]; then
-				currentBinary="$(readlink "$targetBinary")"
-				if [ "$currentBinary" != "$sourceBinary" ]; then
-					exitError "sourceBinary $sourceBinary should not have changed from $currentBinary for zzz-lfs binpath $binary"
-				fi
-			else
-				exitError "targetBinary $targetBinary is not a symlink for zzz-lfs binpath $binary"
-			fi
+			targetBinary="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/$originFolder/"$binary"
+			rm -rf -- "$targetBinary"
+			ln -s ../../../../../"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/$originFolder/"$binary" "$targetBinary"
 		done
 	
 	popd >/dev/null
-
-	chattr -R +ai "$LFS_DEPENDENCY_BINPATH_PATH" 2>/dev/null || true
+	
+	chattr +ai "$destinationPath"
 }
 
-function installPackagePathSystemBinariesToPath()
+function linkBinariesToPath()
 {
-	if [ "$LFS_DEPENDENCY_NAME" = 'zzz-lfs' ]; then
-		continue
-	fi
-	
-	chattr -R -ai "$LFS_DEPENDENCY_SBINPATH_PATH" 2>/dev/null || true
-	
-	pushd "$LFS_DEPENDENCY_SBINPATH_PATH" >/dev/null
+	_linkBinariesPath "$LFS_DEPENDENCY_BINPATH_PATH"
+}
 
-		local binary
-		local sourceBinary
-		local targetBinary
-		local currentBinary
-		for binary in *
-		do
-			if [ ! -e "$binary" ]; then
-				continue
-			fi
-			
-			if [ ! -L "$binary" ]; then
-				continue
-			fi
-			
-			sourceBinary=../../../../../"$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES"/sbinpath/"$binary"
-			
-			targetBinary="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath/"$binary"
-			
-			if [ ! -e "$targetBinary" ]; then
-				ln -s "$sourceBinary" "$targetBinary"
-				continue
-			fi
-			
-			if [ -L "$targetBinary" ]; then
-				currentBinary="$(readlink "$targetBinary")"
-				if [ "$currentBinary" != "$sourceBinary" ]; then
-					exitError "sourceBinary $sourceBinary should not have changed from $currentBinary for zzz-lfs sbinpath $binary"
-				fi
-			else
-				exitError "targetBinary $targetBinary is not a symlink for zzz-lfs sbinpath $binary"
-			fi
-		done
-	
-	popd >/dev/null
-
-	chattr -R +ai "$LFS_DEPENDENCY_SBINPATH_PATH" 2>/dev/null || true
+function linkSystemBinariesToPath()
+{
+	_linkBinariesPath "$LFS_DEPENDENCY_SBINPATH_PATH"
 }
 
 function lockDownPackage()
@@ -975,15 +676,11 @@ function lockDownPackage()
 		for file in *
 		do
 			# No files
-			if [ ! -e "$file" ]; then
+			if [  ]; then
 				continue
 			fi
 			
-			if [ "$file" = "install" ]; then
-				continue
-			fi
-			
-			if [ "$file" = "source" ]; then
+			if [ ! -e "$file" -o "$file" = "install" -o "$file" = "source" -o "$file" = "binpath" -o "$file" = "sbinpath" ]; then
 				continue
 			fi
 			

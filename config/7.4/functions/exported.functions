@@ -65,12 +65,11 @@ declare_for_chroot -A dependency_Path
 declare_for_chroot -A dependency_RelativePath
 declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
+declare_for_chroot -A dependency_UidGidPaths
+declare_for_chroot -A dependency_BinaryPermissionBitsPaths
+declare_for_chroot -A dependency_CapabilitiesBinaryInstallPaths
 declare_for_chroot -A dependency_BinaryInstallPaths
 declare_for_chroot -A dependency_SystemBinaryInstallPaths
-declare_for_chroot -A dependency_OtherwiseExecutableBinaryInstallPaths
-declare_for_chroot -A dependency_SetuidBinaryInstallPaths
-declare_for_chroot -A dependency_SetgidBinaryInstallPaths
-declare_for_chroot -A dependency_CapabilitiesBinaryInstallPaths
 declare_for_chroot -A dependency_IncludeIndices
 
 declare_for_chroot -a includes_DependencyKey
@@ -539,12 +538,11 @@ function version()
 	dependency_RelativePath["$DependencyKey"]=""
 	dependency_RecipeSettingsDependencies["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
+	dependency_UidGidPaths["$DependencyKey"]=""
+	dependency_BinaryPermissionBitsPaths["$DependencyKey"]=""
+	dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]=""
 	dependency_BinaryInstallPaths["$DependencyKey"]=""
 	dependency_SystemBinaryInstallPaths["$DependencyKey"]=""
-	dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]=""
-	dependency_SetuidBinaryInstallPaths["$DependencyKey"]=""
-	dependency_SetgidBinaryInstallPaths["$DependencyKey"]=""
-	dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]=""
 	dependency_IncludeIndices["$DependencyKey"]=""
 	
 	if [ "$LFS_RECIPE_INCLUDE_HASH" != "0" ]; then
@@ -872,22 +870,134 @@ function user()
 	LFS_LAST_GID=$gid
 }
 
-function install_binaries_in_paths()
+function _binaryPermissionBits()
 {
-	if [ $# -eq 0 ]; then
-		return 0
-	fi
+	local -r parentPath="$1"
+	shift 1
 	
 	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
 	
+	local path
+	local value
+	local relativePath
+	local uniqueValue
+	local existingPaths
+	while [ $# -ne 0 ]
+	do
+		path="$1"
+		value="$2"
+		shift 2
+		
+		relativePath="$parentPath"/"$path"
+		uniqueValue="${relativePath}.${value}"
+		
+		existingPaths="${dependency_PermissionBitsPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$uniqueValue"
+		else
+			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$existingPaths $uniqueValue"
+		fi
+	done
+}
+
+function executable_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits "$parentPath" a+x "$@"
+}
+
+function setuid_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits "$parentPath" u+s "$@"
+}
+
+function setgid_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits "$parentPath" g+s "$@"
+}
+
+function uidgid_paths()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local path
+	local value
+	local relativePath
+	local uniqueValue
+	local existingPaths
+	while [ $# -ne 0 ]
+	do
+		path="$1"
+		value="$2"
+		shift 2
+		
+		relativePath="$parentPath"/"$path"
+		uniqueValue="${relativePath}.${value}"
+		
+		existingPaths="${dependency_UidGidPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_UidGidPaths["$DependencyKey"]="$uniqueValue"
+		else
+			dependency_UidGidPaths["$DependencyKey"]="$existingPaths $uniqueValue"
+		fi
+	done
+}
+
+function capabilities_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local path
+	local value
+	local relativePath
+	local uniqueValue
+	local existingPaths
+	while [ $# -ne 0 ]
+	do
+		path="$1"
+		value="$2"
+		shift 2
+		
+		relativePath="$parentPath"/"$path"
+		uniqueValue="${relativePath}.${value}"
+		
+		existingPaths="${dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$uniqueValue"
+		else
+			dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$existingPaths $uniqueValue"
+		fi
+	done
+}
+
+function install_binaries()
+{
+	local -r relativeBinaryPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local binary
 	local binaryPath
 	local existingPaths
-	for binaryPath in "$@"
+	for binary in "$@"
 	do
-		if [ -z "$binaryPath" ]; then
-			continue
-		fi
+		binaryPath="$relativeBinaryPath"/"$binary"
 		
 		existingPaths="${dependency_BinaryInstallPaths["$DependencyKey"]}"
 		if [ -z "$existingPaths" ]; then
@@ -898,22 +1008,20 @@ function install_binaries_in_paths()
 	done
 }
 
-function install_system_binaries_in_paths()
+function install_system_binaries()
 {
-	if [ $# -eq 0 ]; then
-		return 0
-	fi
+	local -r relativeBinaryPath="$1"
+	shift 1
 	
 	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
 	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
 	
+	local binary
 	local binaryPath
 	local existingPaths
-	for binaryPath in "$@"
+	for binary in "$@"
 	do
-		if [ -z "$binaryPath" ]; then
-			continue
-		fi
+		binaryPath="$relativeBinaryPath"/"$binary"
 		
 		existingPaths="${dependency_SystemBinaryInstallPaths["$DependencyKey"]}"
 		if [ -z "$existingPaths" ]; then
@@ -922,104 +1030,6 @@ function install_system_binaries_in_paths()
 			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
 		fi
 	done
-}
-
-function make_executable_binary()
-{
-	if [ $# -eq 0 ]; then
-		return 0
-	fi
-	
-	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
-	
-	local binaryPath
-	local existingPaths
-	for binaryPath in "$@"
-	do
-		if [ -z "$binaryPath" ]; then
-			continue
-		fi
-		
-		existingPaths="${dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]}"
-		if [ -z "$existingPaths" ]; then
-			dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]="$binaryPath"
-		else
-			dependency_OtherwiseExecutableBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
-		fi
-	done
-}
-
-function make_setuid_binary()
-{
-	if [ $# -eq 0 ]; then
-		return 0
-	fi
-	
-	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
-	
-	local binaryPath
-	local existingPaths
-	for binaryPath in "$@"
-	do
-		if [ -z "$binaryPath" ]; then
-			continue
-		fi
-		
-		existingPaths="${dependency_SetuidBinaryInstallPaths["$DependencyKey"]}"
-		if [ -z "$existingPaths" ]; then
-			dependency_SetuidBinaryInstallPaths["$DependencyKey"]="$binaryPath"
-		else
-			dependency_SetuidBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
-		fi
-	done
-}
-
-function make_setgid_binary()
-{
-	if [ $# -eq 0 ]; then
-		return 0
-	fi
-	
-	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
-	
-	local binaryPath
-	local existingPaths
-	for binaryPath in "$@"
-	do
-		if [ -z "$binaryPath" ]; then
-			continue
-		fi
-		
-		existingPaths="${dependency_SetgidBinaryInstallPaths["$DependencyKey"]}"
-		if [ -z "$existingPaths" ]; then
-			dependency_SetgidBinaryInstallPaths["$DependencyKey"]="$binaryPath"
-		else
-			dependency_SetgidBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
-		fi
-	done
-}
-
-function make_capabilities_binary()
-{
-	if [ $# -ne 2 ]; then
-		exitError "2 args, file path and the capabilities to set"
-	fi
-	
-	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
-	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
-	
-	local -r binaryPath="$1"
-	local -r capabilities="$2"
-	local -r uniqueValue="${binaryPath}.${capabilities}"
-	local existingPaths="${dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]}"
-	if [ -z "$existingPaths" ]; then
-		dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$uniqueValue"
-	else
-		dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$existingPaths $uniqueValue"
-	fi
 }
 
 function include_mirror()

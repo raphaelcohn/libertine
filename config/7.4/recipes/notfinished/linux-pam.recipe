@@ -5,8 +5,8 @@ version 1.1.8
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	make_setuid_binary sbin/unix_chkpwd
-	install_binaries_in_paths sbin
+	setuid_binaries sbin unix_chkpwd
+	install_system_binaries sbin unix_chkpwd
 }
 
 function install_crosscompiler_linux-pam()

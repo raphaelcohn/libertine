@@ -7,8 +7,8 @@ version 1.21.1
 	depends musl-cross
 	depends selinux
 	
-	make_setuid_binary "bin/busybox-suid"
-	install_binaries_in_paths bin
+	setuid_binaries bin busybox-suid
+	install_binaries bin
 }
 
 # Note: applets.h is generated
@@ -163,7 +163,6 @@ function package_crosscompiler_busybox_build()
 		#  ${package_crosscompiler_busybox_currentBusyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]}
 		mkdir -m 0755 -p "$prefix"/"$subfolder"
 		mv ./busybox "$prefix"/"$subfolder"/busybox-"$variety"
-		chmod +x "$prefix"/"$subfolder"/busybox-"$variety"
 	
 		local binary
 		while IFS= read -r -d $'\n' binary
