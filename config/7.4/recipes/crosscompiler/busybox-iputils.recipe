@@ -6,7 +6,11 @@ version 1.21.1
 	depends busybox-suid
 	
 	capabilities_binaries cap_net_raw+ep bin busybox-iputils
-	install_binaries bin
+	install_binaries bin \
+		ping \
+		ping6 \
+		traceroute \
+		traceroute6
 }
 
 function install_crosscompiler_busybox-iputils()

@@ -9,6 +9,11 @@ version 1.21.1
 	
 	setuid_binaries bin busybox-suid
 	install_binaries bin
+		crontab \
+		login \
+		su \
+		vlock \
+		wall
 }
 
 # Note: applets.h is generated
