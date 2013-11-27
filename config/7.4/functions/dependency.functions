@@ -615,7 +615,7 @@ function installBinariesToPackagePath()
 
 function installSystemBinariesToPackagePath()
 {
-	_installBinaries "$LFS_DEPENDENCY_SBINPATH_PATH" u+x,g+x,o-rwx y ${dependency_BinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	_installBinaries "$LFS_DEPENDENCY_SBINPATH_PATH" u+x,g+x,o-rwx y ${dependency_SystemBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	
 	# Lock down sbinpath so only root can list contents
 	chattr -ai "$LFS_DEPENDENCY_SBINPATH_PATH"
