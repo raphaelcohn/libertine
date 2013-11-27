@@ -76,5 +76,5 @@ function install_crosscompiler_sudo()
 --with-sudoers-gid=0 \
 --with-timeout=5 \
 --without-tty-tickets \
---with-umask=0022 \
+--with-umask=0022
 }
