@@ -568,7 +568,7 @@ function setUidGidOnPaths()
 
 function setBinaryPermissionBits()
 {
-	_setPropertyOnFiles chmod ${dependency_OtherwiseExecutableBinaryInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	_setPropertyOnFiles chmod ${dependency_BinaryPermissionBitsPaths["$LFS_DEPENDENCY_KEY"]}
 }
 
 function setCapabilityBinaries()
