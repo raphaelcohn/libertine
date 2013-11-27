@@ -107,8 +107,8 @@ function install_crosscompiler_musl-cross()
 	fi
 	
 	# Replace gcc's shipped zlib with our version
-	rm -rf -- gcc-"$gccVersion"/zlib
-	ln -s ../zlib-"$zlibVersion" gcc-"$gccVersion"/zlib
+	mv gcc-"$gccVersion"/zlib  gcc-"$gccVersion"/zlib.orig
+	mv zlib-"$zlibVersion" gcc-"$gccVersion"/zlib
 	
 	local dependency
 	local -i index
