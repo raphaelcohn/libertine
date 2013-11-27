@@ -944,9 +944,12 @@ function _binaryPermissionBits()
 
 function executable_binaries()
 {
+	set -x
 	local -r parentPath="$1"
 	shift 1
 	_binaryPermissionBits "$parentPath" a+x "$@"
+	
+	exit 50
 }
 
 function setuid_binaries()

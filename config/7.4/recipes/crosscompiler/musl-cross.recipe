@@ -25,11 +25,13 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 			cc1plus \
 			collect2 \
 			lto1 \
-			lto-wrapper \
-			install-tools/fixincl \
-			install-tools/fixinc.sh \
-			install-tools/mkheaders \
-			install-tools/mkinstalldirs
+			lto-wrapper
+		
+		executable_binaries "$libexec"/install-tools \
+			fixincl \
+			fixinc.sh \
+			mkheaders \
+			mkinstalldirs
 		
 		executable_binaries "$triple"/"$triple"/lib libc.so
 
@@ -40,6 +42,7 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 			"${prefix}"ar \
 			"${prefix}"as \
 			"${prefix}"c++filt \
+			"${prefix}"cpp \
 			"${prefix}"elfedit \
 			"${prefix}"g++ \
 			"${prefix}"gcc \
