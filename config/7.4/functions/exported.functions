@@ -872,8 +872,8 @@ function user()
 
 function uidgid_paths()
 {
-	local -r parentPath="$1"
-	local -r value="$2"
+	local -r value="$1"
+	local -r parentPath="$2"
 	shift 2
 	
 	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
@@ -896,8 +896,8 @@ function uidgid_paths()
 
 function capabilities_binaries()
 {
-	local -r parentPath="$1"
-	local -r value="$2"
+	local -r value="$1"
+	local -r parentPath="$2"
 	shift 2
 	
 	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
@@ -923,8 +923,8 @@ function capabilities_binaries()
 
 function _binaryPermissionBits()
 {
-	local -r parentPath="$1"
-	local -r value="$2"
+	local -r value="$1"
+	local -r parentPath="$2"
 	shift 2
 	
 	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
@@ -951,21 +951,21 @@ function executable_binaries()
 {
 	local -r parentPath="$1"
 	shift 1
-	_binaryPermissionBits "$parentPath" a+x "$@"
+	_binaryPermissionBits a+x "$parentPath" "$@"
 }
 
 function setuid_binaries()
 {
 	local -r parentPath="$1"
 	shift 1
-	_binaryPermissionBits "$parentPath" u+s "$@"
+	_binaryPermissionBits u+s "$parentPath" "$@"
 }
 
 function setgid_binaries()
 {
 	local -r parentPath="$1"
 	shift 1
-	_binaryPermissionBits "$parentPath" g+s "$@"
+	_binaryPermissionBits g+s "$parentPath" "$@"
 }
 
 function install_binaries()
