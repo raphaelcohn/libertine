@@ -1,0 +1,16 @@
+set -o errexit +o hashall
+
+version 1.8.8
+{
+	depends musl-cross
+	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+	
+	setuid_binaries sbin sudo
+	install_system_binaries sbin sudo
+}
+
+function install_crosscompiler_sudo()
+{
+	adasdadasd
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty
+}
