@@ -10,6 +10,7 @@ version 0
 	depends busybox-iputils
 	depends busybox-bin
 	depends busybox-sbin
+	depends sudo
 }
 
 function install_crosscompiler_zzz-lfs()
