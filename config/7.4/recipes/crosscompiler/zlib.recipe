@@ -1,15 +1,19 @@
 set -o errexit +o hashall
 
 version 1.2.8
-{
-	source_package ZLIB "$LFS_RECIPE_NAME"-"${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}".tar.xz MD5:28f1205d8dd2001f26fec1e8c2cebe37
-	
+{	
 	depends musl-cross
 }
 
 function install_crosscompiler_zlib()
 {
 	pushdDependencyFolder
+		
+		if [ "$LFS_FOREIGN_ARCHITECTURE" = "x86_64" ]; then
+			local -r extraOpts=--64
+		else
+			local -r extraOpts=""
+		fi
 		
 		PATH="$PATH" \
 		CC="$LFS_C_TARGET_EXTERNAL_CC" \
@@ -18,8 +22,7 @@ function install_crosscompiler_zlib()
 		RANLIB="$LFS_C_TARGET_EXTERNAL_RANLIB" \
 		NM="$LFS_C_TARGET_EXTERNAL_NM" \
 		./configure \
-			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-			--64
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" $extraOpts
 		
 		$callback
 		
@@ -28,7 +31,4 @@ function install_crosscompiler_zlib()
 		autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
 		
 	popdDependencyFolder
-	
-	mv -v /usr/lib/libz.so.* /lib
-	ln -sfv ../../lib/libz.so.1.2.8 /usr/lib/libz.so
 }

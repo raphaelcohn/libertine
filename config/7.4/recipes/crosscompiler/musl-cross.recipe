@@ -12,6 +12,7 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include mpc 1.0.1
 	include mpfr 3.1.2
 	include musl 0.9.14
+	include zlib 1.2.8
 	
 	function installPackage_crosscompiler_musl_cross_binaries()
 	{
@@ -77,18 +78,36 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 function install_crosscompiler_musl-cross()
 {
 	local gccVersion=""
+	local zlibVersion=""
 	for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 	do
 		setLfsSourcePackageVariables $index
-		if [ "$LFS_SOURCE_PACKAGE_NAME" = "gcc" ]; then
-			gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
-			break
-		fi
+		case "$LFS_SOURCE_PACKAGE_NAME"
+			gcc)
+				gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
+			;;
+			
+			zlib)
+				zlibVersion="$LFS_SOURCE_PACKAGE_VERSION"
+			;;
+			
+			*)
+			
+			;;
+		esac
 	done
 	
 	if [ -z "$gccVersion" ]; then
 		exitError "No gcc version"
 	fi
+	
+	if [ -z "$zlibVersion" ]; then
+		exitError "No zlib version"
+	fi
+	
+	# Replace gcc's shipped zlib with our version
+	rm -rf -- gcc-"$gccVersion"/zlib
+	ln -s ../zlib-"$zlibVersion" gcc-"$gccVersion"/zlib
 	
 	local dependency
 	local -i index
