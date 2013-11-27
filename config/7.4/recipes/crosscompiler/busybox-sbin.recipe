@@ -124,7 +124,7 @@ version 1.21.1
 		ubirsvol \
 		ubiupdatevol \
 		udhcpc \
-		udhcpc6
+		udhcpc6 \
 		udpsvd \
 		vconfig \
 		watchdog
