@@ -17,10 +17,10 @@ function install_crosscompiler_sudo()
 	local -r zlibRelativeInstallPath="$(dependencyPath pcre)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
 		
-	krb5?
-	OPIE
-	PAM
-	S/KEY
+	#krb5
+	#OPIE
+	#PAM
+	#S/KEY
 	
 	mkdir -m 0755 -p "$LFS"/var/lib/sudo
 	mkdir -m 0755 -p "$LFS"/var/log/sudo/io
