@@ -8,7 +8,7 @@ version 1.21.1
 	depends selinux
 	
 	setuid_binaries bin busybox-suid
-	install_binaries bin
+	install_binaries bin \
 		crontab \
 		login \
 		su \
