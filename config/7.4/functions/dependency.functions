@@ -581,7 +581,7 @@ function _installBinaries()
 	local -r destinationPath="$1"
 	local -r permissions="$2"
 	local -r makeRoot="$3"
-	shift 1
+	shift 3
 	
 	local relativeBinaryPath
 	local binary
