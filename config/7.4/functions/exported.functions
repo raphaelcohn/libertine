@@ -916,6 +916,9 @@ function capabilities_binaries()
 			dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$existingPaths $combination"
 		fi
 	done
+	
+	echo "${dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]}"
+	exit 50
 }
 
 function _binaryPermissionBits()
