@@ -110,6 +110,7 @@ function install_crosscompiler_musl-cross()
 	mv gcc-"$gccVersion"/zlib  gcc-"$gccVersion"/zlib.orig
 	mv zlib-"$zlibVersion" gcc-"$gccVersion"/zlib
 	cp -f gcc-"$gccVersion"/zlib.orig/configure gcc-"$gccVersion"/zlib/configure
+	cp -f gcc-"$gccVersion"/zlib.orig/Makefile.in gcc-"$gccVersion"/zlib/Makefile.in
 	cp gcc-"$gccVersion"/zlib.orig/configure.ac gcc-"$gccVersion"/zlib
 	cp gcc-"$gccVersion"/zlib.orig/acinclude.m4 gcc-"$gccVersion"/zlib
 	cp gcc-"$gccVersion"/zlib.orig/aclocal.m4 gcc-"$gccVersion"/zlib
