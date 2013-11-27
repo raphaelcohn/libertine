@@ -590,9 +590,9 @@ function _installBinaries()
 	do
 		binary="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeBinaryPath"
 		
-		if [ -L "$file" ]; then
+		if [ -L "$binary" ]; then
 			resolvedFile="$(readlink -f "$binary")"
-		elif [ -f "$file" ]; then
+		elif [ -f "$binary" ]; then
 			resolvedFile="$binary"
 		else
 			exitError "Path $binary is not a file or does not exist"
