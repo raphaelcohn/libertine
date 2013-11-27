@@ -940,6 +940,8 @@ function _binaryPermissionBits()
 			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$existingPaths $combination"
 		fi
 	done
+	
+	echo ${dependency_BinaryPermissionBitsPaths["$DependencyKey"]}
 }
 
 function executable_binaries()
