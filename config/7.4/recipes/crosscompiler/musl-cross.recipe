@@ -82,7 +82,8 @@ function install_crosscompiler_musl-cross()
 	for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 	do
 		setLfsSourcePackageVariables $index
-		case "$LFS_SOURCE_PACKAGE_NAME"
+		case "$LFS_SOURCE_PACKAGE_NAME" in
+			
 			gcc)
 				gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
 			;;
