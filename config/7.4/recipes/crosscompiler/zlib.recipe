@@ -18,7 +18,7 @@ function install_crosscompiler_zlib()
 		RANLIB="$LFS_C_TARGET_EXTERNAL_RANLIB" \
 		NM="$LFS_C_TARGET_EXTERNAL_NM" \
 		./configure \
-			--prefix="$LFS_DEPENDENCY_PREFIX_PATH"
+			--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
 			--64
 		
 		$callback
