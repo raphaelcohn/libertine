@@ -115,8 +115,12 @@ function recordHashFile()
 	IFS=' ' read -r -d $'\n' version chattr file < <(lsattr -v "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r acl="${initialAcl:0:-1}"
+	if [ -n "$initialAcl" ]; then
+		# strips a trailing ' '
+		local -r acl="${initialAcl:0:-1}"
+	else
+		local -r acl=""
+	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
 	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
@@ -144,13 +148,21 @@ function recordHashFolder()
 	IFS=' ' read -r -d $'\n' version chattr file < <(lsattr -d -v "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r acl="${initialAcl:0:-1}"
+	if [ -n "$initialAcl" ]; then
+		# strips a trailing ' '
+		local -r acl="${initialAcl:0:-1}"
+	else
+		local -r acl=""
+	fi
 	
 	# Only directories have default acl
 	local -r initialDefaultAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --default -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r defaultAcl="${initialDefaultAcl:0:-1}"
+	if [ -n "$initialDefaultAcl" ]; then
+		# strips a trailing ' '
+		local -r defaultAcl="${initialDefaultAcl:0:-1}"
+	else
+		local -r defaultAcl=""
+	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
 	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
@@ -167,8 +179,12 @@ function recordHashDevice()
 	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z %t:%T" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r acl="${initialAcl:0:-1}"
+	if [ -n "$initialAcl" ]; then
+		# strips a trailing ' '
+		local -r acl="${initialAcl:0:-1}"
+	else
+		local -r acl=""
+	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
 	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
@@ -183,8 +199,12 @@ function recordHashNamedPipe()
 	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r acl="${initialAcl:0:-1}"
+	if [ -n "$initialAcl" ]; then
+		# strips a trailing ' '
+		local -r acl="${initialAcl:0:-1}"
+	else
+		local -r acl=""
+	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
 	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
@@ -198,13 +218,17 @@ function recordHashSocket()
 	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
-	# strips a trailing ' '
-	local -r acl="${initialAcl:0:-1}"
+	if [ -n "$initialAcl" ]; then
+		# strips a trailing ' '
+		local -r acl="${initialAcl:0:-1}"
+	else
+		local -r acl=""
+	fi
 	
 	recordHashLine p "$uid" "$gid" "$mode" "$mtime" "$ctime" '' '' '' "$acl" '' '' '' '' '' '' '' ''
 }
 
 function recordHashUnknown()
 {
-	recordHashLine X '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' ''
+	exitError "Unknown file type $fileObject"
 }
