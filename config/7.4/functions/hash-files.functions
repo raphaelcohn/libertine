@@ -43,6 +43,7 @@ function recordHashes()
 	
 	local -r topLevelFolder="${1}{$2}"
 	if [ ! -d "$topLevelFolder" ]; then
+		echo "WHOOPS"
 		exit 50
 		return 0
 	fi
