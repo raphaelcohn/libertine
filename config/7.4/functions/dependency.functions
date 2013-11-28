@@ -556,9 +556,9 @@ function stripUnneeded()
 {
 	# Are we in the chroot/qemu/vm or not?
 	if [ -n "$LFS" ]; then
-		local -r ourStrip=${LFS_C_HOST_PREFIX}strip
+		local -r ourStrip="$LFS_NATIVE_TRIPLE"/bin/${LFS_C_HOST_PREFIX}strip
 	else
-		local -r ourStrip=${LFS_C_TARGET_INTERNAL_PREFIX}strip
+		local -r ourStrip="$LFS_FOREIGN_TRIPLE"/bin/${LFS_C_TARGET_INTERNAL_PREFIX}strip
 	fi
 	
 	local relativeFilePath
@@ -575,7 +575,10 @@ function stripUnneeded()
 		fi
 		
 		chattr -ai "$resolvedFile"
-		$LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS/$ourStrip --strip-unneeded "$resolvedFile"
+		
+		install/"$LFS_NATIVE_TRIPLE"/bin/
+		
+		"$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$ourStrip" --strip-unneeded "$resolvedFile"
 		chattr +ai "$resolvedFile"
 	done
 }

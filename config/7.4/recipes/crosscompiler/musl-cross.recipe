@@ -343,7 +343,7 @@ function install_crosscompiler_musl-cross()
 			
 		# No longer create reverse symlinks
 		cp build.sh build.sh.orig
-		sed -e '/# make backwards-named compilers for easier cross-compiling/,+8d' build.sh
+		sed -i -e '/# make backwards-named compilers for easier cross-compiling/,+8d' build.sh
 	
 		pushd extra >/dev/null
 	
@@ -522,7 +522,7 @@ function install_crosscompiler_musl-cross()
 						--with-local-prefix="$ourPrefix" \
 						--with-sysroot="$ourPrefix" \
 						--with-build-sysroot="$PREFIX"/"$TRIPLE" \
-				        --enable-languages="$LANGUAGES" \
+				        --enable-languages="${LANGUAGES},java" \
 						--disable-multilib \
 						--disable-libmudflap \
 				        --disable-libsanitizer \
