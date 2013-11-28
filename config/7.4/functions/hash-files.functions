@@ -41,7 +41,7 @@ function recordHashes()
 	local -r prefix="$1"
 	local -r path="$2"
 	
-	local -r topLevelFolder="${1}{$2}"
+	local -r topLevelFolder="${1}${2}"
 	if [ ! -d "$topLevelFolder" ]; then
 		echo "WHOOPS" $topLevelFolder
 		exit 50
