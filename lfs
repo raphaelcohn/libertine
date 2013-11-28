@@ -515,7 +515,6 @@ function installPackage()
 				linkBinariesToPath
 				linkSystemBinariesToPath
 				
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/source
 				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install
 				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath
 				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath
