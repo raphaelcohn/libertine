@@ -103,7 +103,7 @@ function recordHashSymlink()
 function recordHashFile()
 {
 	local uid gid mode mtime ctime size
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z %s" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z %s" "$fileObject")
 	
 	local -r meta="$(file --brief --keep-going --no-dereference --uncompress "$fileObject")"
 	
@@ -135,7 +135,7 @@ function recordHashFolder()
 {
 	# Whilst directories do have a size, it's very much a function of the file system
 	local uid gid mode mtime ctime
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z" "$fileObject")
 	
 	# it might be useful to record entry count, less . and .. as 'meta', or perhaps an ignore-rule
 	
@@ -172,7 +172,7 @@ function recordHashDevice()
 	
 	# Whilst directories do have a size, it's very much a function of the file system
 	local uid gid mode mtime ctime meta
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z %t:%T" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z %t:%T" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
 	if [ -n "$initialAcl" ]; then
@@ -192,7 +192,7 @@ function recordHashNamedPipe()
 {
 	# Whilst directories do have a size, it's very much a function of the file system
 	local uid gid mode mtime ctime
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
 	if [ -n "$initialAcl" ]; then
@@ -211,7 +211,7 @@ function recordHashNamedPipe()
 function recordHashSocket()
 {
 	local uid gid mode mtime ctime
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z" "$fileObject")
 	
 	local -r initialAcl="$(getfacl --absolute-names --omit-header --physical --numeric --no-effective --skip-base --access -- "$fileObject" | grep -v -E '^(user|group|other)::' | grep -v '^$' | tr '\n' ' ')"
 	if [ -n "$initialAcl" ]; then
