@@ -509,8 +509,8 @@ function installPackage()
 				executeFunctionUnderSudo $installer
 
 				removeUnwanted
-				lockDownPermissions
 				stripUnneeded
+				lockDownPermissions
 				setUidGidOnPaths
 				setBinaryPermissionBits
 				setCapabilityBinaries
