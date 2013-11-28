@@ -400,12 +400,8 @@ function installPackage()
 	LFS_DEPENDENCY_FINISHED_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/finished
 	
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
-		progressMessage "Skipping phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
-		
 		linkBinariesToPath
 		linkSystemBinariesToPath
-		
-		progressMessageSucceeded
 		return 0
 	fi
 	
