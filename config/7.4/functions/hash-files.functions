@@ -53,7 +53,7 @@ function recordHashes()
 	local -r hashesFile="$topLevelFolder".hashes
 	local -ir prefixLength=${#prefix}
 	
-	recordHashLine "$hashesFile" File Type Uid Gid Mode MTime CTime Meta Version Chattr Acl DefaultAcl Selinux Capabilities Size MD5 SHA1 SHA256 SHA512
+	recordHashLine Type Uid Gid Mode MTime CTime Meta Version Chattr Acl DefaultAcl Selinux Capabilities Size MD5 SHA1 SHA256 SHA512
 	
 	local fileObject
 	while IFS= read -r -d $'\0' fileObject
