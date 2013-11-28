@@ -52,8 +52,10 @@ function recordHashes()
 	recordHashLine Type Uid Gid Mode MTime CTime Meta Version Chattr Acl DefaultAcl Selinux Capabilities Size MD5 SHA1 SHA256 SHA512
 	
 	local fileObject
-	while IFS= read -r -d $'\0' fileObject
+	find "$topLevelFolder" -print0 | LC_ALL=C sort -k 1 -z | while IFS= read -r -d $'\0' fileObject
 	do
+		echo "$fileObject"
+		
 		# symlinks first as all other tests cause de-referencing of symlinks
 		if [ -h "$fileObject" ]; then
 			recordHashSymlink
@@ -72,7 +74,7 @@ function recordHashes()
 		else
 			recordHashUnknown
 		fi
-	done < <(find "$topLevelFolder" -print0)
+	done
 	
 	chown 0:0 "$hashesFile"
 	chmod 0400 "$hashesFile"
