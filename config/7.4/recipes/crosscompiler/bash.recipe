@@ -5,6 +5,8 @@ version 4.2
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
+	remove_resources bin bash-bug
+	
 	install_binaries bin bash
 }
 

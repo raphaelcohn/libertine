@@ -533,6 +533,54 @@ function lockDownPermissions()
 	chattr +Aai "$LFS_DEPENDENCY_INSTALL_PATH"
 }
 
+function removeUnwanted()
+{
+	local relativeFilePath
+	local file
+	local resolvedFile
+	for relativeFilePath in ${dependency_RemoveResourcePaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		file="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeFilePath"
+		
+		if [ -L "$file" ]; then
+			resolvedFile="$(readlink -f "$file")"
+		else
+			resolvedFile="$file"
+		fi
+		
+		chattr -ai "$file" 2>/dev/null
+		rm -r "$file"
+	done
+}
+
+function stripUnneeded()
+{
+	# Are we in the chroot/qemu/vm or not?
+	if [ -n "$LFS" ]; then
+		local -r ourStrip=${LFS_C_HOST_PREFIX}strip
+	else
+		local -r ourStrip=${LFS_C_TARGET_INTERNAL_PREFIX}strip
+	fi
+	
+	local relativeFilePath
+	local file
+	local resolvedFile
+	for relativeFilePath in ${dependency_BinaryStripPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		file="$LFS_DEPENDENCY_INSTALL_PATH"/"$relativeFilePath"
+		
+		if [ -L "$file" ]; then
+			resolvedFile="$(readlink -f "$file")"
+		else
+			resolvedFile="$file"
+		fi
+		
+		chattr -ai "$resolvedFile"
+		$LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS/$ourStrip --strip-unneeded "$resolvedFile"
+		chattr +ai "$resolvedFile"
+	done
+}
+
 function _setPropertyOnFiles()
 {
 	local -r settingCommand="$1"

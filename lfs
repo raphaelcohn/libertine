@@ -509,6 +509,8 @@ function installPackage()
 				executeFunctionUnderSudo $installer
 				
 				lockDownPermissions
+				removeUnwanted
+				stripUnneeded
 				setUidGidOnPaths
 				setBinaryPermissionBits
 				setCapabilityBinaries
@@ -664,10 +666,8 @@ function calculateDependencyPaths()
 function installPackages()
 {
 	LFS_PHASE="$1"
-	
-	if [ "$LFS_PHASE" = "crosscompiler" ]; then
-		prepareMuslCrossPath
-	fi
+
+	prepareMuslCrossPath
 	
 	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
 	do

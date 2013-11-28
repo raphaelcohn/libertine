@@ -65,6 +65,9 @@ declare_for_chroot -A dependency_Path
 declare_for_chroot -A dependency_RelativePath
 declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
+declare_for_chroot -A dependency_RemoveResourcePaths
+declare_for_chroot -A dependency_CompileResourcePaths
+declare_for_chroot -A dependency_BinaryStripPaths
 declare_for_chroot -A dependency_UidGidPaths
 declare_for_chroot -A dependency_BinaryPermissionBitsPaths
 declare_for_chroot -A dependency_CapabilitiesBinaryInstallPaths
@@ -538,6 +541,9 @@ function version()
 	dependency_RelativePath["$DependencyKey"]=""
 	dependency_RecipeSettingsDependencies["$DependencyKey"]=""
 	dependency_SkipInstall["$DependencyKey"]="0"
+	dependency_RemoveResourcePaths["$DependencyKey"]=""
+	dependency_CompileResourcePaths["$DependencyKey"]=""
+	dependency_BinaryStripPaths["$DependencyKey"]=""
 	dependency_UidGidPaths["$DependencyKey"]=""
 	dependency_BinaryPermissionBitsPaths["$DependencyKey"]=""
 	dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]=""
@@ -870,6 +876,78 @@ function user()
 	LFS_LAST_GID=$gid
 }
 
+function remove_unwanted()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_RemoveResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_RemoveResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_RemoveResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function compile_resources()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_CompileResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_CompileResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_CompileResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function strip_unneeded()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_BinaryStripPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryStripPaths["$DependencyKey"]="$filePath"
+		else
+			dependency_BinaryStripPaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
 function uidgid_paths()
 {
 	local -r value="$1"
@@ -881,6 +959,7 @@ function uidgid_paths()
 	
 	local path
 	local combination
+	local existingPaths
 	for path in "$@"
 	do
 		combination="${parentPath}/${path}.${value}"
@@ -905,6 +984,7 @@ function capabilities_binaries()
 	
 	local path
 	local combination
+	local existingPaths
 	for path in "$@"
 	do
 		combination="${parentPath}/${path}.${value}"
@@ -929,6 +1009,7 @@ function _binaryPermissionBits()
 	
 	local path
 	local combination
+	local existingPaths
 	for path in "$@"
 	do
 		combination="${parentPath}/${path}.${value}"

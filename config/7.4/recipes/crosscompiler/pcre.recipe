@@ -6,7 +6,45 @@ version 8.33
 	depends zlib
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	install_binaries bin pcregrep pcretest
+	remove_unwanted bin pcre-config
+	
+	remove_unwanted share doc/pcre
+	
+	strip_unneeded bin \
+		pcregrep \
+		pcretest \
+		pcre-config
+	
+	strip_unneeded lib \
+		libpcre.a \
+		libpcre.so \
+		libpcre16.a \
+		libpcre16.so \
+		libpcre32.a \
+		libpcre32.so \
+		libpcrecpp.a \
+		libpcrecpp.so \
+		libpcreposix.a \
+		libpcreposix.so
+	
+	compile_resources . include
+	
+	compile_resources lib \
+		libpcre.a \
+		libpcre.la \
+		libpcre16.a \
+		libpcre16.la \
+		libpcre32.a \
+		libpcre32.la \
+		libpcrecpp.a \
+		libpcrecpp.la \
+		libpcreposix.a \
+		libpcreposix.la \
+		pkgconfig
+	
+	install_binaries bin \
+		pcregrep
+		pcretest
 }
 
 function install_crosscompiler_pcre()
@@ -32,10 +70,12 @@ function install_crosscompiler_pcre()
 			Makefile
 	}
 	
+	# libbz2; libreadline & libedit
+	
 	local -r zlibRelativeInstallPath="$(dependencyPath zlib)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
 	
-	# --enable-libbz2, too (as well as )
+	# --enable-libbz2, too (as well as --enable-pcretest-libedit  and  --enable-pcretest-libreadline)
 	
 	LFS_C_TARGET_EXTERNAL_CPPFLAGS="$LFS_C_TARGET_EXTERNAL_CPPFLAGS -I${zlibAbsoluteInstallPath}/include" \
 	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${zlibAbsoluteInstallPath}/lib" \
