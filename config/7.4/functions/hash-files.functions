@@ -72,7 +72,7 @@ function recordHashes()
 		else
 			recordHashUnknown
 		fi
-	done < <(find "$topLevelFolder" -print0 | LC_ALL=C sort -k 1 -z)
+	done < <(find "$topLevelFolder" -print0)
 	
 	chown 0:0 "$hashesFile"
 	chmod 0400 "$hashesFile"
