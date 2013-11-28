@@ -526,7 +526,7 @@ function install_crosscompiler_musl-cross()
 						--disable-multilib \
 						--disable-libmudflap \
 				        --disable-libsanitizer \
-						--disable-nls
+						--disable-nls \
 							--disable-werror \
 							--with-lib-path="=/lib" \
 			        $GCC_CONFFLAGS
