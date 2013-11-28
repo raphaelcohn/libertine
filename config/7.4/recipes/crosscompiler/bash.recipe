@@ -5,19 +5,21 @@ version 4.2
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	remove_resources bin bash-bug
+	remove_unwanted bin bashbug
+	
+	remove_unwanted share/man/man1 bashbug.1
+	
+	strip_unneeded bin bash
 	
 	install_binaries bin bash
 }
 
 function install_crosscompiler_bash()
 {
-	# YACC
-	# YFLAGS !
-	
 	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
 		--enable-static-link \
 		--with-gnu-ld \
+		--disable-nls \
 		--without-libiconv-prefix \
 		--with-included-gettext \
 		--without-libintl-prefix \

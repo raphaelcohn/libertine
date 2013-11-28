@@ -3,7 +3,9 @@ set -o errexit +o hashall
 version 1.21.1
 {
 	include busybox 1.21.1
-	depends busybox-suid
+	depends musl-cross
+
+	strip_unneeded bin busybox-bin
 	
 	install_binaries bin \
 		[ \

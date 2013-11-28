@@ -3,6 +3,16 @@ set -o errexit +o hashall
 version 1.2.8
 {	
 	depends musl-cross
+	
+	strip_unneeded lib \
+		libz.a \
+		libz.so
+	
+	compile_resources . include
+	
+	compile_resources lib \
+		libz.a \
+		pkgconfig
 }
 
 function install_crosscompiler_zlib()

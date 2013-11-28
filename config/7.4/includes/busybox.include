@@ -6,3 +6,165 @@ key BUSYBOX ~vda/vda_pubkey.gpg MD5:06cdc5b4d3f02998aa7d151c2d319932,SHA1:fe47bc
 #KEYFILE:vda_pubkey.gpg:"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION".tar.bz2.sign
 
 source_package BUSYBOX downloads/"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION".tar.bz2 MD5:795394f83903b5eec6567d51eebb417e,SHA1:9244187d8d30447e165c694e89f4731c1705a53b,SHA256:cd5be0912ec856110ae12c76c3ec9cd5cba1df45b5a9da2b095b8284d1481303,SHA512:b1dd626e1c111214ebd9b933ce2465c943fd8a0a515b6962a31f3a76276ff7992c21b7f96eeb9baeb861a5e734689054e6df5dd6414c753c37084e2d705810e1
+
+# Note: applets.h is generated
+# This code is not perfect, includes redundancy and could be fooled by mistakes
+# grep -F IF_ include/applets.h | sed -e 's;/\*;;g' -e 's;\*/;;g' -e 's;//;;g' -e 's;^ ;;g' -e 's; $;;g' -e 's;^IF_.*(;;g' -e 's;))$;;g' -e 's;, ; ;g' -e 's;^ *;;g' | awk 'NF == 3 {print $1,$2,$3 }; NF == 5 {print $1,$3,$4}' | sed -e 's;BB_SUID_;;g' -e 's;BB_DIR_;;g' -e 's;USR_;;g' | awk '{print $3,"/" tolower($2),$1}' | sort --reverse --unique
+
+function install_crosscompiler_busybox-suid()
+{
+	package_crosscompiler_busybox_build "suid" bin
+}
+
+function package_crosscompiler_busybox_patchSource()
+{
+	# Bugs in use of std C and linux headers
+	pushd networking >/dev/null
+		cp ifconfig.c ifconfig.c.orig
+		sed -i -e 's;^# include <net/if_slip.h>;# include <linux/if_slip.h>;g' ifconfig.c
+		
+		pushd libiproute >/dev/null
+			cp iplink.c iplink.c.orig
+			sed -i -e '/^#include <net\/if_packet.h>/d' iplink.c
+		popd >/dev/null
+		
+		cp tcpudp.c tcpudp.c.orig
+		sed -i -e '/^#include <linux\/netfilter_ipv4.h>/d' tcpudp.c
+		
+		# Double-include of ethhdr
+		cp ifplugd.c ifplugd.c.orig
+		sed -i -e '/^# include <net\/ethernet.h>/d' ifplugd.c
+		
+	popd >/dev/null
+}
+
+function package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter()
+{
+	local -r key=CONFIG_"$1"
+	local -r unquotedValue="$2"
+	
+	local -r quotedValue='"'${unquotedValue}'"'
+	package_crosscompiler_busybox_currentBusyboxConfiguration["$key"]="$quotedValue"
+}
+
+function package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter()
+{
+	local -r key=CONFIG_"$1"
+	local -r unquotedValue="$2"
+	package_crosscompiler_busybox_currentBusyboxConfiguration["$key"]="$unquotedValue"
+}
+
+function package_crosscompiler_busybox_writeNewConfig()
+{
+	rm -rf .config
+	
+	local key
+	local value
+	
+	local -a sedExpressions=()
+	for key in "${!package_crosscompiler_busybox_currentBusyboxConfiguration[@]}"
+	do
+		value="${package_crosscompiler_busybox_currentBusyboxConfiguration["$key"]}"
+	
+		# Remove any existing commented key-value (for clarity) or key-value
+		sedExpressions+=('-e' '/^# '${key}'=.*$/d')
+		sedExpressions+=('-e' '/^'${key}'=.*$/d')
+		
+		echo "${key}=${value}" >>.config
+	done
+
+	sed "${sedExpressions[@]}" "$LFS_DEPENDENCY_PACKAGE_PATH"/config >>.config
+}
+
+function package_crosscompiler_busybox_build()
+{
+	pushdDependencyFolder
+	
+		local -r variety="$1"
+		local -r subfolder="$2"
+	
+		package_crosscompiler_busybox_patchSource
+	
+		local -r prefix=../../install
+
+		# UID and GID
+		local -ir inclusiveUserId=${settings_integer[LFS_INCLUSIVE_USER_UID]}
+		local -ir lastSystemId=$((inclusiveUserId-1))
+	
+		PATH="$PATH" \
+		make \
+			--jobs $LFS_MAKE_JOBS \
+			--debug \
+			--print-directory \
+			V=2 \
+			distclean
+	
+		unset package_crosscompiler_busybox_currentBusyboxConfiguration
+		declare -Ag package_crosscompiler_busybox_currentBusyboxConfiguration=()
+	
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter CROSS_COMPILER_PREFIX "$LFS_C_TARGET_EXTERNAL_PREFIX"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter SYSROOT "$LFS_C_TARGET_EXTERNAL_SYS_ROOT"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter DEFAULT_MODULES_DIR "/lib/modules"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter DEFAULT_DEPMOD_FILE "modules.dep"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter FEATURE_CROND_DIR "/var/spool/cron"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter IFUPDOWN_IFSTATE_PATH "/var/run/ifstate"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter DHCPD_LEASES_FILE "/var/lib/misc/udhcpd.leases"
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter UDHCPC_DEFAULT_SCRIPT "/usr/share/udhcpc/default.script"
+	
+		# We disable this because it requires GNU libc regex
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter FEATURE_VI_REGEX_SEARCH n
+		# We disable this because it makes grep.c (and not yet, awk.c) use GNU regex
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter EXTRA_COMPAT n
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter FIRST_SYSTEM_ID ${settings_integer[LFS_INCLUSIVE_SYSTEM_UID]}
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter LAST_SYSTEM_ID $lastSystemId
+		# musl does not support rpc/rpc.h
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter FEATURE_HAVE_RPC n
+		package_crosscompiler_busybox_setUnquotedBusyboxConfigurationParameter FEATURE_INETD_RPC n
+	
+		package_crosscompiler_busybox_setQuotedBusyboxConfigurationParameter PREFIX "$prefix"
+		
+		if [ $# -eq 3 ]; then
+			local -r callback="$3"
+			$callback
+		fi	
+
+		package_crosscompiler_busybox_writeNewConfig
+	
+		# We also use -Wno-cpp to suppress errors about redirections in std c lib headers
+	
+		# Setting CROSS_COMPILE means AS, CC, LD, CPP, AR, NM, STRIP, OBJCOPY, OBJDUMP and PKG_CONFIG are all set to ${CROSS_COMPILE}PROGNAME, and so should be on the path
+		#  - Does not seem to use TARGETCC despite using HOSTCC
+		# HOSTLDFLAGS are from the perspective of CC (not LD); they are used for linking
+		#  - Busybox, based on the Linux Kconfig system, does not re-use CFLAGS (or CXXFLAGS) when linking to create host executables
+		#  - LD is actually CC or CXX
+		#  - HOSTLDFLAGS may be used with either CC or CXX when linking
+		#  - HOST_LOADLIBES is used for libraries to link, eg -ldl, and comes AFTER the object list (which is very sane)
+		#  - Also HOST_EXTRACFLAGS, HOST_EXTRACXXFLAGS, HOST_EXTRACFLAGS_xxx, HOST_EXTRACXXFLAGS_xxx, HOST_LOADLIBES, HOST_LOADLIBES_xxx, HOST_LDFLAGS, HOST_LLD
+		#  - _xxx are specific targets, eg _conf and _conf.o
+		PATH="$PATH" \
+		make \
+			--jobs $LFS_MAKE_JOBS \
+			--debug \
+			--print-directory \
+			V=2 \
+			HOSTCC="$LFS_C_HOST_CC" \
+			HOSTCXX="$LFS_C_HOST_CXX" \
+			HOSTLD="$LFS_C_HOST_LD" \
+			HOSTCFLAGS="$LFS_C_HOST_CFLAGS" \
+			HOSTCXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
+			HOSTLDFLAGS="$LFS_C_HOST_CFLAGS" \
+			CROSS_COMPILE="$LFS_C_TARGET_EXTERNAL_PREFIX" \
+			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -Wno-cpp -v ${package_crosscompiler_busybox_currentBusyboxConfiguration["CONFIG_EXTRA_CFLAGS"]}" \
+		all
+		#  ${package_crosscompiler_busybox_currentBusyboxConfiguration["CONFIG_EXTRA_LDFLAGS"]}
+		mkdir -m 0755 -p "$prefix"/"$subfolder"
+		mv ./busybox "$prefix"/"$subfolder"/busybox-"$variety"
+	
+		local binary
+		while IFS= read -r -d $'\n' binary
+		do
+			ln -s busybox-"$variety" "$prefix"/"$subfolder"/"$binary"
+		done < <("$prefix"/"$subfolder"/busybox-"$variety" --list)
+		
+	popdDependencyFolder
+}

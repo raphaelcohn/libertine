@@ -14,13 +14,176 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include musl 0.9.14
 	include zlib 1.2.8
 	
+	remove_unwanted . bootstrap
+	
 	function installPackage_crosscompiler_musl_cross_binaries()
 	{
 		local -ir installLdd=$1
 		local -r triple="$2"
 		local -r prefix="$triple"-
+		local -r lib="$triple"/lib/gcc/"$triple"/"$localPackage_crosscompiler_musl_cross_gccVersion"
 		local -r libexec="$triple"/libexec/gcc/"$triple"/"$localPackage_crosscompiler_musl_cross_gccVersion"
-	
+		
+		remove_unwanted "$triple"/bin \
+			${prefix}gcc-ar \
+			${prefix}gcc-nm \
+			${prefix}gcc-ranlib \
+			${prefix}gcc-"$gccVersion" \
+			${prefix}ld.bfd \
+			${prefix}c++
+		
+		remove_unwanted "$triple" \
+			extraconfig.sh \
+			info.txt
+		
+		remove_unwanted "$lib"/install-tools/include README
+		
+		remove_unwanted "$triple"/share \
+			gcc-"$localPackage_crosscompiler_musl_cross_gccVersion"
+		
+		remove_unwanted "$triple"/man/man1 \
+			${prefix}dlltool.1 \
+			${prefix}nlmconv.1 \
+			${prefix}windmc.1 \
+			${prefix}windres.1
+		
+		remove_unwanted "$triple"/"$triple"/lib \
+			libstdc++.so.6.0.18-gdb.py
+		
+		if [ "$LFS_FOREIGN_ARCHITECTURE" = "x86_64" ]; then
+			remove_unwanted "$triple"/"$triple"/lib/ldscripts \
+				elf32_x86_64.x \
+				elf32_x86_64.xbn \
+				elf32_x86_64.xc \
+				elf32_x86_64.xd \
+				elf32_x86_64.xdc \
+				elf32_x86_64.xdw \
+				elf32_x86_64.xn \
+				elf32_x86_64.xr \
+				elf32_x86_64.xs \
+				elf32_x86_64.xsc \
+				elf32_x86_64.xsw \
+				elf32_x86_64.xu \
+				elf32_x86_64.xw \
+				elf_i386.x \
+				elf_i386.xbn \
+				elf_i386.xc \
+				elf_i386.xd \
+				elf_i386.xdc \
+				elf_i386.xdw \
+				elf_i386.xn \
+				elf_i386.xr \
+				elf_i386.xs \
+				elf_i386.xsc \
+				elf_i386.xsw \
+				elf_i386.xu \
+				elf_i386.xw \
+				elf_k1om.x \
+				elf_k1om.xbn \
+				elf_k1om.xc \
+				elf_k1om.xd \
+				elf_k1om.xdc \
+				elf_k1om.xdw \
+				elf_k1om.xn \
+				elf_k1om.xr \
+				elf_k1om.xs \
+				elf_k1om.xsc \
+				elf_k1om.xsw \
+				elf_k1om.xu \
+				elf_k1om.xw \
+				elf_l1om.x \
+				elf_l1om.xbn \
+				elf_l1om.xc \
+				elf_l1om.xd \
+				elf_l1om.xdc \
+				elf_l1om.xdw \
+				elf_l1om.xn \
+				elf_l1om.xr \
+				elf_l1om.xs \
+				elf_l1om.xsc \
+				elf_l1om.xsw \
+				elf_l1om.xu \
+				elf_l1om.xw \
+				i386linux.x \
+				i386linux.xbn \
+				i386linux.xn \
+				i386linux.xr \
+				i386linux.xu
+		fi
+		
+		strip_unneeded "$triple"/lib libiberty.a
+		
+		strip_unneeded "$lib" \
+			libgcc.a \
+			libgcc_eh.a \
+			libgcov.a
+		
+		strip_unneeded "$libexec" \
+			cc1 \
+			cc1plus \
+			collect2 \
+			lto1 \
+			lto-wrapper \
+			install-tools/fixincl
+		
+		strip_unneeded "$triple"/"$triple"/lib \
+			libc.a \
+			libc.so \
+			libatomic.a \
+			libatomic.so \
+			libgcc_s.so \
+			libgomp.a \
+			libgomp.so \
+			libitm.a \
+			libitm.so \
+			libquadmath.a \
+			libquadmath.so \
+			libssp.a \
+			libssp.so \
+			libssp_nonshared.a \
+			libstdc++.a \
+			libstdc++.so \
+			libsupc++.a
+		
+		compile_resources "$triple" include
+		compile_resources "$triple"/lib \
+			libiberty.a \
+			gcc/"$triple" "$localPackage_crosscompiler_musl_cross_gccVersion"
+		compile_resources "$triple"/"$triple" include
+		compile_resources "$triple"/"$triple"/lib \
+			ldscripts \
+			crt1.o \
+			crti.o \
+			crtn.o \
+			libatomic.a \
+			libatomic.la \
+			libc.a \
+			libcrypt.a \
+			libdl.a \
+			libgomp.a \
+			libgomp.la \
+			libgomp.spec \
+			libitm.a \
+			libitm.la \
+			libitm.spec \
+			libm.a \
+			libpthread.a \
+			libquadmath.a \
+			libquadmath.la \
+			libresolv.a \
+			librt.a \
+			libssp.a \
+			libssp.la \
+			libssp_nonshared.a \
+			libssp_nonshared.la \
+			libstdc++.a \
+			libstdc++.la \
+			libsupc++.a \
+			libsupc++.la \
+			libutil.a \
+			libxnet.a \
+			Scrt1.o
+		
 		executable_binaries "$libexec" \
 			cc1 \
 			cc1plus \
@@ -192,6 +355,10 @@ function install_crosscompiler_musl-cross()
 			#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
 			grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
 			chmod +x build-gcc-deps.sh
+			
+			# No longer create reverse symlinks
+			cp build.sh build.sh.orig
+			sed -e '/# make backwards-named compilers for easier cross-compiling/,+8d' build.sh
 
 			cp extraconfig.sh extraconfig.sh.orig
 
@@ -239,7 +406,6 @@ function install_crosscompiler_musl-cross()
 			EOF
 		
 		popd >/dev/null
-		
 			
 		function symlinkLibVariantsBeforeBuilding()
 		{
@@ -360,6 +526,7 @@ function install_crosscompiler_musl-cross()
 						--disable-multilib \
 						--disable-libmudflap \
 				        --disable-libsanitizer \
+						--disable-nls
 							--disable-werror \
 							--with-lib-path="=/lib" \
 			        $GCC_CONFFLAGS
@@ -422,30 +589,12 @@ function install_crosscompiler_musl-cross()
 				ln -s ../"$triple"/lib/libc.so "$triple"-ldd
 				ln -s "$triple"-ldd ldd
 				
-				# Remove musl-cross reverse symlinks
-				rm -rf -- "$architecture"-musl-*
-				
-				# Remove gcc binutils
-				rm -rf -- "$triple"-gcc-ar "$triple"-gcc-nm "$triple"-gcc-ranlib
-				
-				# Remove gcc version
-				rm -rf -- "$triple"-gcc-"$gccVersion"
-				
-				# Remove ld.bfd
-				rm -rf -- "$triple"-ld.bfd
-				
-				# Remove c++
-				rm -rf -- "$triple"-c++
-				
 			popd >/dev/null
 			
 		popd >/dev/null
 	}
 	
 	pushd ../install >/dev/null
-	
-		# Remove bootstrap
-		rm -rf -- bootstrap
 		
 		package_crosscompiler_musl-cross_patchUpFileSystem "$LFS_NATIVE_ARCHITECTURE" "$LFS_NATIVE_TRIPLE"
 		if [ "$LFS_NATIVE_ARCHITECTURE" != "$LFS_FOREIGN_ARCHITECTURE" ]; then
