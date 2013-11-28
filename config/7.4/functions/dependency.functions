@@ -575,9 +575,6 @@ function stripUnneeded()
 		fi
 		
 		chattr -ai "$resolvedFile"
-		
-		install/"$LFS_NATIVE_TRIPLE"/bin/
-		
 		"$LFS_DEPENDENCY_INSTALL_PATH_MUSL_CROSS"/"$ourStrip" --strip-unneeded "$resolvedFile"
 		chattr +ai "$resolvedFile"
 	done
