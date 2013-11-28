@@ -43,12 +43,8 @@ function recordHashes()
 	
 	local -r topLevelFolder="${1}${2}"
 	if [ ! -d "$topLevelFolder" ]; then
-		echo "WHOOPS" $topLevelFolder
-		exit 50
 		return 0
 	fi
-	
-	set -x
 	
 	local -r hashesFile="$topLevelFolder".hashes
 	local -ir prefixLength=${#prefix}
