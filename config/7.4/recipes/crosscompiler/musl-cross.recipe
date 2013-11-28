@@ -39,7 +39,8 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 		remove_unwanted "$lib"/install-tools/include README
 		
 		remove_unwanted "$triple"/share \
-			gcc-"$localPackage_crosscompiler_musl_cross_gccVersion"
+			gcc-"$localPackage_crosscompiler_musl_cross_gccVersion" \
+			locale
 		
 		remove_unwanted "$triple"/man/man1 \
 			${prefix}dlltool.1 \
@@ -47,8 +48,7 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 			${prefix}windmc.1 \
 			${prefix}windres.1
 		
-		remove_unwanted "$triple"/"$triple"/lib \
-			libstdc++.so.6.0.18-gdb.py
+		remove_unwanted "$triple"/"$triple"/lib libstdc++.so.6.0.18-gdb.py
 		
 		if [ "$LFS_FOREIGN_ARCHITECTURE" = "x86_64" ]; then
 			remove_unwanted "$triple"/"$triple"/lib/ldscripts \

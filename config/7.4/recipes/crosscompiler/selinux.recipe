@@ -11,6 +11,30 @@ version 20131030
 	include libsepol 2.2
 	#include policycoreutils 2.2.2
 	#include sepolgen 1.2.1
+	
+	remove_unwanted usr/bin chkcon
+	remove_unwanted usr/share/man8 chkcon.8
+	
+	strip_unneeded lib \
+		libsepol.so \
+		libselinux.so
+	
+	#strip_unneeded usr/bin chkcon
+	
+	strip_unneeded usr/lib \
+		libsepol.a \
+		libsepol.so \
+		libselinux.a \
+		libselinux.so
+	
+	compile_resources usr/include \
+		sepol \
+		selinux
+	
+	compile_resources usr/lib \
+		libsepol.a \
+		libselinux.a \
+		pkgconfig
 }
 
 # libsepol depends on libselinux and libpcre; remember this when static linking (we're going to rapidly have some nasty problems)
@@ -110,4 +134,11 @@ function install_crosscompiler_selinux()
 			buildUsingMakeExternal DESTDIR="$LFS_DEPENDENCY_INSTALL_PATH" install
 	
 	popd  >/dev/null
+	
+	pushd ../install/lib >/dev/null
+
+		ln -s libsepol.so.1 libsepol.so
+		ln -s libselinux.so.1 libselinux.so
+	
+	popd >/dev/null
 }
