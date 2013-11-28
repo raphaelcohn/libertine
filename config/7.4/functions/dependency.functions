@@ -547,9 +547,8 @@ function removeUnwanted()
 		else
 			resolvedFile="$file"
 		fi
-		
-		chattr -ai "$file" 2>/dev/null
-		rm -r "$file"
+
+		rm -rf "$resolvedFile"
 	done
 }
 
