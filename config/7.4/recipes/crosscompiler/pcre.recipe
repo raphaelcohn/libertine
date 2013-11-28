@@ -11,8 +11,6 @@ version 8.33
 
 function install_crosscompiler_pcre()
 {
-	xxxxxx
-	
 	function package_crosscompiler_pcre_fixMakefileForStaticLinking()
 	{
 		# PCRE uses Libtool
@@ -34,9 +32,26 @@ function install_crosscompiler_pcre()
 			Makefile
 	}
 	
-	local -r zlibRelativeInstallPath="$(dependencyPath pcre)"/install
+	local -r zlibRelativeInstallPath="$(dependencyPath zlib)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
 	
-	# want to pass LIBTOOLFLAGS="--verbose" to make...
-	buildUsingAutotoolsExternal package_crosscompiler_pcre_fixMakefileForStaticLinking adasdasdasdasdasdasdasdasd=zlib
+	# --enable-libbz2, too (as well as )
+	
+	LFS_C_TARGET_EXTERNAL_CPPFLAGS="$LFS_C_TARGET_EXTERNAL_CPPFLAGS -I${zlibAbsoluteInstallPath}/include" \
+	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${zlibAbsoluteInstallPath}/lib" \
+	buildUsingAutotoolsExternal package_crosscompiler_pcre_fixMakefileForStaticLinking \
+		--disable-silent-rules \
+		--enable-pcregrep-libz \
+		--disable-dependency-tracking \
+		--enable-shared \
+		--enable-static \
+		--enable-fast-install \
+		--enable-pcre16 \
+		--enable-pcre32 \
+		--enable-jit \
+		--enable-unicode-properties \
+		--enable-newline-is-lf \
+		--enable-pcregrep-libz \
+			--with-pic \
+			--with-gnu-ld
 }
