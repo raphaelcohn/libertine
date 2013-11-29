@@ -273,7 +273,8 @@ function install_crosscompiler_musl-cross()
 	pushd gcc-"$gccVersion" >/dev/null
 
 		mv zlib zlib.orig
-		ln -s ../zlib-"$zlibVersion" zlib
+		# Can't use a symlink because gcc walks the path .. and ../.. to find things!
+		mv ../zlib-"$zlibVersion" zlib
 		cp -f zlib.orig/configure zlib/configure
 		cp -f zlib.orig/Makefile.in zlib/Makefile.in
 		cp zlib.orig/configure.ac zlib
