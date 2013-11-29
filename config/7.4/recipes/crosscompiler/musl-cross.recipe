@@ -7,7 +7,7 @@ version 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	include binutils 2.23.2
 	include gcc "$localPackage_crosscompiler_musl_cross_gccVersion"
 	include gmp 5.1.2
-	include elfutils 0.154
+	#include elfutils 0.154
 	include linux 3.10.10
 	include mpc 1.0.1
 	include mpfr 3.1.2
@@ -292,7 +292,7 @@ function install_crosscompiler_musl-cross()
 	local withoutCompressionExtension
 	local newCompressionExtension
 	local withNewCompressionExtension
-	for dependency in binutils gcc gmp elfutils linux mpfr mpc musl
+	for dependency in binutils gcc gmp linux mpfr mpc musl
 	do
 		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 		do
@@ -373,7 +373,7 @@ function install_crosscompiler_musl-cross()
 				GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
 				#GDB_VERSION=""
 				GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
-				LIBELF_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["elfutils"]}"
+				LIBELF_VERSION="N/A"
 				LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
 				MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
 				MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
