@@ -139,8 +139,6 @@ function continueInstallUnderSudo()
 		$(replicateBashFunctionsAndGlobalVariables)
 		
 		LFS='$LFS'
-	echo $LFS
-	exit 50
 	EOF
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
 		setLocale
