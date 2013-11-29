@@ -735,6 +735,10 @@ function installPackages()
 	
 	loopOverDependenciesInPhase writeToMakeFile
 	
+	pushd "$makeFolder" >/dev/null
+		make Makefile
+	popd >/dev/null
+	
 	#loopOverDependenciesInPhase installPackage
 }
 
