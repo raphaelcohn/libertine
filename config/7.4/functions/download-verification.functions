@@ -447,7 +447,7 @@ function extractFileForSignatureTest()
 }
 
 function tarExtract()
-{
+{	
 	if [ $# -ne 4 ]; then
 		exitError "Not enough arguments"
 	fi
@@ -455,6 +455,9 @@ function tarExtract()
 	local -r tarballFolder="$2"
 	local -r tarballCompression="$3"
 	local -r isTarbomb="$4"
+	
+	SECONDS=0
+	informationMessage "TASK: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tar ball $tarball"
 	
 	rm -rf -- "$tarballFolder"
 	
@@ -488,4 +491,5 @@ function tarExtract()
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		popd >/dev/null
 	fi
+	informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tar ball $tarball ($SECONDS seconds)"
 }

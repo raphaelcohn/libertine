@@ -685,13 +685,13 @@ function extractAndPatchAllPackageSources()
 {
 	# We run the tar extraction in parallel, nothing else (waits of wait don't work very well)
 	SECONDS=0
-	informationMessage "TASK: Extracting"
+	informationMessage "TASK: Extracting packages"
 	for LFS_PHASE in crosscompiler toolchain2 system
 	do
 		loopOverDependenciesInPhase extractPackageSources
 	done
 	wait
-	informationMessage "PASS: Extracting"
+	informationMessage "PASS: Extracting packages ($SECONDS seconds)"
 	
 	loopOverDependenciesInAllPhasesAsynchronously patchPackageSources
 }
