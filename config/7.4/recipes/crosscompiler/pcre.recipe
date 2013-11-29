@@ -63,10 +63,8 @@ function install_crosscompiler_pcre()
 		# This sed ensures that the pcre* binaries are statically compiled using the libtool special flag '-all-static'
 		# Be aware that with autoconf'd make files, the Makefile will call itself. Thus if we try to do  make -f Makefile.something, we'll execute Makefile... Hence we need to edit IN PLACE
 		cp Makefile Makefile.orig
-		sed -i \
-			-e 's/--mode=link $(CCLD) $(pcretest_CFLAGS)/--mode=link $(CCLD) -all-static $(pcretest_CFLAGS)/g' \
-			-e 's/--mode=link $(CCLD) $(pcregrep_CFLAGS)/--mode=link $(CCLD) -all-static $(pcregrep_CFLAGS)/g' \
-			Makefile
+		sed -i -e 's/--mode=link $(CCLD) $(pcretest_CFLAGS)/--mode=link $(CCLD) -all-static $(pcretest_CFLAGS)/g' Makefile
+		sed -i -e 's/--mode=link $(CCLD) $(pcregrep_CFLAGS)/--mode=link $(CCLD) -all-static $(pcregrep_CFLAGS)/g' Makefile
 	}
 	
 	# libbz2; libreadline & libedit
