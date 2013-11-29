@@ -96,15 +96,17 @@ function downloadFileAndCheckHash()
 	# Extracts file path - currently only used by linux package / HKP_UNCOMPRESSED
 	local -r extractsFilePath="$lfsExtractsPath"/"$mirrorName"/"$relativePath".decompressed
 	local -r extractsFolderPath="$(purebash_dirname "$extractsFilePath")"
-	
+
+	SECONDS=0
 	if [ -f "$extractsFilePath" ]; then
-		informationMessage "PASS: Using cached extracted $downloadName $url at $extractsFilePath"
+		informationMessage "TASK: Using cached extracted $downloadName $url at $extractsFilePath"
+		informationMessage "PASS: Using cached extracted $downloadName $url at $extractsFilePath ($SECONDS seconds)"
 	elif [ -f "$downloadFilePath" ]; then
 		informationMessage "TASK: Copying from cache $downloadName $url at $extractsFilePath"
 		rm -rf -- "$extractsFilePath"
 		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 		
-		informationMessage "PASS: Copying from cache $downloadName $url at $extractsFilePath"
+		informationMessage "PASS: Copying from cache $downloadName $url at $extractsFilePath ($SECONDS seconds)"
 	else
 		informationMessage "TASK: Downloading $downloadName $url to $mirrorName/$relativePath"
 		
@@ -183,7 +185,7 @@ function downloadFileAndCheckHash()
 			informationMessage "FAIL: Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
-			informationMessage "PASS: Downloading $downloadName $url to $mirrorName/$relativePath"
+			informationMessage "PASS: Downloading $downloadName $url to $mirrorName/$relativePath ($SECONDS seconds)"
 		fi
 	fi
 	
@@ -196,7 +198,8 @@ function downloadFileAndCheckHash()
 	if [ "$skipSignatureChecks" = "yes" ]; then
 		return 0
 	fi
-
+	
+	SECONDS=0
 	informationMessage "TASK: Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
@@ -290,7 +293,7 @@ function downloadFileAndCheckHash()
 		exit 1
 	fi
 
-	informationMessage "PASS: Verifying $downloadName $url hashes of $downloadFilePath"
+	informationMessage "PASS: Verifying $downloadName $url hashes of $downloadFilePath ($SECONDS seconds)"
 }
 
 function gpgVerifySignatureUsingKey()
