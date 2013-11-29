@@ -33,8 +33,7 @@ function removeLastTrapHandler()
 
 function installationFailedTrapHandler()
 {
-	set +x
-	progressMessageFailed "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
+	informationMessage "$INSTALLATION_FAILED_MESSAGE" 1>&6 2>&7
 }
 
 function removeFilesOnExit()
