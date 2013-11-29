@@ -703,7 +703,7 @@ function writeToMakeFile()
 		
 		cat >>"$makeFile" <<-EOF
 			$LFS_DEPENDENCY_KEY: $makeDependencies
-			    echo Skipping "$LFS_DEPENDENCY_NAME"
+			    @echo Skipping "$LFS_DEPENDENCY_NAME"
 		EOF
 		return 0
 	fi
