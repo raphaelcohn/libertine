@@ -735,7 +735,7 @@ function installPackages()
 	loopOverDependenciesInPhase writeToMakeFile
 
 	cp "$makeFile" /tmp/Makefile
-	MAKEFLAGS="-j $LFS_MAKE_JOBS -d -o line" make "$makeFile"
+	make -j $LFS_MAKE_JOBS -d -o line -f "$makeFile" all
 	
 	exit 50
 }
