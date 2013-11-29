@@ -1,5 +1,47 @@
 set -o errexit +o hashall
 
+function doDownloads()
+{
+	# Download certificate authorities in parallel
+	local certificateAuthorityName
+	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
+	do
+		( downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "${certificateAuthorities_Post["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}" ) &
+	done
+	wait
+	
+	# Download signatures, keyrings and keys in parallel
+	local -i index
+	for index in ${!signatures_Mirror[@]}
+	do
+		( downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "yes" "" ) &
+	done
+	local -i index
+	for index in ${!keyrings_Mirror[@]}
+	do
+		( downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$index]}" "${keyrings_Post[$index]}" "no" "${keyrings_Hashes[$index]}" ) &
+	done
+	local -i index
+	for index in ${!keys_Mirror[@]}
+	do
+		( downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "${keys_Post[$index]}" "yes" "${keys_Hashes[$index]}" ) &
+	done
+	wait
+	
+	# Download packages and patches in parallel
+	local -i index
+	for index in ${!sourcePackages_Mirror[@]}
+	do
+		( downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_Post[$index]}" "no" "${sourcePackages_Hashes[$index]}" ) &
+	done
+	local -i index
+	for index in ${!patches_Mirror[@]}
+	do
+		( downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "${patches_Post[$index]}" "no" "${patches_Hashes[$index]}" ) &
+	done
+	wait
+}
+
 function linkOrCopyFile()
 {
 	local -r mirrorName="$1"
@@ -56,16 +98,15 @@ function downloadFileAndCheckHash()
 	local -r extractsFolderPath="$(purebash_dirname "$extractsFilePath")"
 	
 	if [ -f "$extractsFilePath" ]; then
-		progressMessage "Using cached extracted $downloadName $url at $extractsFilePath"
-		progressMessageSucceeded
+		informationMessage "PASSED: Using cached extracted $downloadName $url at $extractsFilePath"
 	elif [ -f "$downloadFilePath" ]; then
+		informationMessage "STARTED: Copying from cache $downloadName $url at $extractsFilePath"
 		rm -rf -- "$extractsFilePath"
 		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 		
-		progressMessage "Using cached $downloadName $url at $downloadFilePath"
-		progressMessageSucceeded
+		informationMessage "PASSED: Copying from cache $downloadName $url at $extractsFilePath"
 	else
-		progressMessage "Downloading $downloadName $url to $mirrorName/$relativePath"
+		informationMessage "STARTED: Downloading $downloadName $url to $mirrorName/$relativePath"
 		
 		rm -rf -- "$downloadFilePath"
 		rm -rf -- "$extractsFilePath"
@@ -139,10 +180,10 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			progressMessageFailed "download $downloadName failed, check logs $downloadsLogsPath/$fileName.*.log"
+			informationMessage "FAILED: Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
-			progressMessageSucceeded
+			informationMessage "PASSED: Downloading $downloadName $url to $mirrorName/$relativePath"
 		fi
 	fi
 	
@@ -155,8 +196,8 @@ function downloadFileAndCheckHash()
 	if [ "$skipSignatureChecks" = "yes" ]; then
 		return 0
 	fi
-	
-	progressMessage "Verifying $downloadName $url hashes of $downloadFilePath"
+
+	informationMessage "STARTED: Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
 	local hashName
@@ -180,7 +221,8 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$downloadFolderPath" "$downloadFileName" "$hashProgram" "$hashValue"; then
-					progressMessageFailed "$hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log"
+					informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath $hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log)"
+					exit 1
 				fi
 			;;
 			
@@ -196,19 +238,22 @@ function downloadFileAndCheckHash()
 				case "$hashName" in
 					KEYRING)
 						if ! verifyKeyringSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
+							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							exit 1
 						fi
 					;;
 			
 					KEYFILE)
 						if ! verifyKeyFileSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
+							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							exit 1
 						fi
 					;;
 			
 					HKP)
 						if ! verifyHkpSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							progressMessageFailed "$progressMessage"
+							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							exit 1
 						fi
 					;;
 			
@@ -223,7 +268,8 @@ function downloadFileAndCheckHash()
 						fi
 						
 						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_basename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
-							progressMessageFailed "$progressMessage"
+							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							exit 1
 						fi
 					;;
 				esac
@@ -232,14 +278,16 @@ function downloadFileAndCheckHash()
 			
 			
 			*)
-				exitError "Unsupported hash algorithm $hashName for $toPath/$fileName"
+				informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath (Unsupported hash algorithm $hashName for $toPath/$fileName)"
+				exit 1
 			;;
 			
 		esac
 	done
 	
 	if [ $hasHash -ne 0 ]; then
-		progressMessageFailed "no hash algorithms specified"
+		informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
+		exit 1
 	fi
 	
 	progressMessageSucceeded

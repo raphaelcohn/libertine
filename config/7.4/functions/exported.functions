@@ -96,6 +96,11 @@ declare_for_chroot -a users_Shell
 declare_for_chroot -a users_Uid
 declare_for_chroot -a users_Gid
 
+function informationMessage()
+{
+	echo "$ourName: $1"
+}
+
 function progressMessage()
 {
 	if [ $# -ne 1 ]; then
