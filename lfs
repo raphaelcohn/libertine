@@ -792,8 +792,6 @@ function main()
 	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
 	installPackages crosscompiler
 	installPackages toolchain2
-	
-	chrootToEnvironment
 }
 
 main "$@"
