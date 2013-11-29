@@ -476,58 +476,6 @@ function patchPackageSources()
 	informationMessage "PASS: Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 }
 
-function installPackage()
-{
-	setDependencyPathValues
-	
-	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
-		linkBinariesToPath
-		linkSystemBinariesToPath
-		return 0
-	fi
-	
-	SECONDS=0
-	informationMessage "TASK: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
-	
-	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
-		
-		INSTALLATION_FAILED_MESSAGE="FAIL: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
-		addInstallationFailedTrapHandler
-		
-			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
-			exec 7>&2 2>"$LFS_DEPENDENCY_LOG_ERR"
-				
-				continueInstallUnderSudo $LFS_DEPENDENCY_INSTALLER
-
-				removeUnwanted
-				stripUnneeded
-				lockDownPermissions
-				setUidGidOnPaths
-				setBinaryPermissionBits
-				setCapabilityBinaries
-				installBinariesToPackagePath
-				installSystemBinariesToPackagePath
-				linkBinariesToPath
-				linkSystemBinariesToPath
-				
-				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install ) &
-				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath ) &
-				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
-				wait
-				
-			exec 1>&6 6>&-
-			exec 2>&7 7>&-
-			
-		removeLastTrapHandler
-		
-	popd >/dev/null
-	
-	touch "$LFS_DEPENDENCY_FINISHED_PATH"
-	lockDownPackage 1>>"$LFS_DEPENDENCY_LOG_OUT" 2>>"$LFS_DEPENDENCY_LOG_ERR"
-	
-	informationMessage "PASS: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
-}
-
 function removeAnyFailedPackagesFromPreviousRuns()
 {
 	local optPath="$LFS"/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
@@ -670,7 +618,6 @@ function calculateDependencyPaths()
 
 function extractAndPatchAllPackageSources()
 {
-	# We run the tar extraction in parallel, nothing else (waits of wait don't work very well)
 	SECONDS=0
 	informationMessage "TASK: Extracting packages"
 	for LFS_PHASE in crosscompiler toolchain2 system
@@ -730,11 +677,8 @@ function installPackages()
 	EOF
 	
 	loopOverDependenciesInPhase writeToMakeFile
-
-	cp "$makeFile" /tmp/Makefile
-	make -j $LFS_MAKE_JOBS -d -r -R -w -f "$makeFile" all
 	
-	exit 50
+	make -j $LFS_MAKE_JOBS -k -s -r -R -w -f "$makeFile" all
 }
 
 function sourceFunctions()

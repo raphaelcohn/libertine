@@ -269,8 +269,6 @@ function install_crosscompiler_musl-cross()
 		exitError "No zlib version"
 	fi
 	
-	echo $(pwd)
-	
 	# Replace gcc's shipped zlib with our version
 	pushd gcc-"$gccVersion" >/dev/null
 
