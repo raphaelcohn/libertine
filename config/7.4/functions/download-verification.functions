@@ -289,8 +289,8 @@ function downloadFileAndCheckHash()
 		informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
 		exit 1
 	fi
-	
-	progressMessageSucceeded
+
+	informationMessage "PASSED: Verifying $downloadName $url hashes of $downloadFilePath"
 }
 
 function gpgVerifySignatureUsingKey()
