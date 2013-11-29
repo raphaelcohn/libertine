@@ -650,14 +650,14 @@ function writeToMakeFile()
 		
 		cat >>"$makeFile" <<-EOF
 			$LFS_DEPENDENCY_KEY: $makeDependencies
-			    @echo Skipping "$LFS_DEPENDENCY_NAME"
+			    echo Skipping "$LFS_DEPENDENCY_NAME"
 		EOF
 		return 0
 	fi
 	
 	createInstallScriptForMakefile
 	echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-	printf '\t@%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
+	printf '\t%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
 }
 
 function installPackages()
@@ -681,7 +681,7 @@ function installPackages()
 	SECONDS=0
 	informationMessage "TASK: Phase $LFS_PHASE"
 	
-		if ! make -j $LFS_MAKE_JOBS -k -s -r -R -f "$makeFile" all 2>/dev/null; then
+		if ! make -j $LFS_MAKE_JOBS -k -r -R -f "$makeFile" all 2>/dev/null; then
 			informationMessage "FAIL: Phase $LFS_PHASE"
 			exit 1
 		fi
