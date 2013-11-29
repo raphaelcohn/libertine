@@ -647,11 +647,9 @@ function writeToMakeFile()
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		linkBinariesToPath
 		linkSystemBinariesToPath
-		
-		cat >>"$makeFile" <<-EOF
-			$LFS_DEPENDENCY_KEY: $makeDependencies
-			    echo Skipping "$LFS_DEPENDENCY_NAME"
-		EOF
+
+		echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
+		printf '\t%s\n\n' "echo Skipping $LFS_DEPENDENCY_NAME 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
 		return 0
 	fi
 	
