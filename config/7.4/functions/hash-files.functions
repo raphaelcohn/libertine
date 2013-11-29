@@ -87,12 +87,12 @@ function recordHashes()
 function recordHashSymlink()
 {
 	local uid gid mode mtime ctime size
-	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat --format "%u %g %a %Y %Z %s" "$fileObject")
+	IFS=' ' read -r -d $'\n' uid gid mode size < <(stat -c "%u %g %a %Y %Z %s" "$fileObject")
 	
-	local -r meta="$(readlink --no-newline "$fileObject")"
+	local -r meta="$(readlink -n "$fileObject")"
 		
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
-	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
+	local -r selinux="$(stat -c '%C' "$fileObject" 2>/dev/null || true)"
 	
 	local -r md5="$(echo -n "$meta" | md5sum | awk 'NR==1 {print $1}')"
 	local -r sha1="$(echo -n "$meta" | sha1sum | awk 'NR==1 {print $1}')"
@@ -121,7 +121,7 @@ function recordHashFile()
 	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
-	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
+	local -r selinux="$(stat -c '%C' "$fileObject" 2>/dev/null || true)"
 	
 	local -r capabilities="$(getcap "$fileObject" | awk '{print $3}')"
 	
@@ -163,7 +163,7 @@ function recordHashFolder()
 	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
-	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
+	local -r selinux="$(stat -c '%C' "$fileObject" 2>/dev/null || true)"
 	
 	recordHashLine d "$uid" "$gid" "$mode" "$mtime" "$ctime" '' "$version" "$chattr" "$acl" "$defaultAcl" "$selinux" '' "$size" '' '' '' ''
 }
@@ -185,7 +185,7 @@ function recordHashDevice()
 	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
-	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
+	local -r selinux="$(stat -c '%C' "$fileObject" 2>/dev/null || true)"
 	
 	recordHashLine "$fileType" "$uid" "$gid" "$mode" "$mtime" "$ctime" "$meta" '' '' "$acl" '' "$selinux" '' '' '' '' '' ''
 }
@@ -205,7 +205,7 @@ function recordHashNamedPipe()
 	fi
 	
 	# selinux uses %C, seems to be hard to get; if unknown or unsupported, '?' is returned
-	local -r selinux="$(stat --printf '%C' "$fileObject" 2>/dev/null || true)"
+	local -r selinux="$(stat -c '%C' "$fileObject" 2>/dev/null || true)"
 		
 	recordHashLine p "$uid" "$gid" "$mode" "$mtime" "$ctime" '' '' '' "$acl" '' "$selinux" '' '' '' '' '' ''
 }

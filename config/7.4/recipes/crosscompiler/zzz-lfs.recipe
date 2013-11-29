@@ -4,13 +4,13 @@ keyring GNU gnu-keyring.gpg MD5:ea2df5cf03e548e657bbcc2b8e1c1552,SHA1:f764ebb3f7
 
 version 0
 {
+	depends busybox-bin
+	depends busybox-sbin
+	depends busybox-suid
+	depends busybox-iputils
 	depends patchelf
 	depends oniguruma
 	depends bash
-	depends busybox-suid
-	depends busybox-iputils
-	depends busybox-bin
-	depends busybox-sbin
 	depends sudo
 }
 

@@ -4,6 +4,20 @@ version 5.9.5
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+	
+	remove_unwanted bin onig-config
+	remove_unwanted . bin
+	
+	strip_unneeded lib \
+		libonig.a \
+		libonig.so
+	
+	compile_resources . include
+	
+	compile_resources lib \
+		libonig.a \
+		libonig.la \
+		pkgconfig
 }
 
 function install_crosscompiler_oniguruma()
