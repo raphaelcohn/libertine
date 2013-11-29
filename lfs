@@ -497,9 +497,9 @@ function installPackage()
 				linkBinariesToPath
 				linkSystemBinariesToPath
 				
-				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install ) &
-				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath ) &
-				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
+				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install ) &
+				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath ) &
+				( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
 				wait
 				
 			exec 1>&6 6>&-
