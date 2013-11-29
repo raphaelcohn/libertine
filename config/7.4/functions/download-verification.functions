@@ -98,15 +98,15 @@ function downloadFileAndCheckHash()
 	local -r extractsFolderPath="$(purebash_dirname "$extractsFilePath")"
 	
 	if [ -f "$extractsFilePath" ]; then
-		informationMessage "PASSED: Using cached extracted $downloadName $url at $extractsFilePath"
+		informationMessage "PASS: Using cached extracted $downloadName $url at $extractsFilePath"
 	elif [ -f "$downloadFilePath" ]; then
-		informationMessage "STARTED: Copying from cache $downloadName $url at $extractsFilePath"
+		informationMessage "TASK: Copying from cache $downloadName $url at $extractsFilePath"
 		rm -rf -- "$extractsFilePath"
 		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 		
-		informationMessage "PASSED: Copying from cache $downloadName $url at $extractsFilePath"
+		informationMessage "PASS: Copying from cache $downloadName $url at $extractsFilePath"
 	else
-		informationMessage "STARTED: Downloading $downloadName $url to $mirrorName/$relativePath"
+		informationMessage "TASK: Downloading $downloadName $url to $mirrorName/$relativePath"
 		
 		rm -rf -- "$downloadFilePath"
 		rm -rf -- "$extractsFilePath"
@@ -180,10 +180,10 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			informationMessage "FAILED: Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
+			informationMessage "FAIL: Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
-			informationMessage "PASSED: Downloading $downloadName $url to $mirrorName/$relativePath"
+			informationMessage "PASS: Downloading $downloadName $url to $mirrorName/$relativePath"
 		fi
 	fi
 	
@@ -197,7 +197,7 @@ function downloadFileAndCheckHash()
 		return 0
 	fi
 
-	informationMessage "STARTED: Verifying $downloadName $url hashes of $downloadFilePath"
+	informationMessage "TASK: Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
 	local hashName
@@ -221,7 +221,7 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$downloadFolderPath" "$downloadFileName" "$hashProgram" "$hashValue"; then
-					informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath $hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log)"
+					informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath $hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log)"
 					exit 1
 				fi
 			;;
@@ -238,21 +238,21 @@ function downloadFileAndCheckHash()
 				case "$hashName" in
 					KEYRING)
 						if ! verifyKeyringSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					KEYFILE)
 						if ! verifyKeyFileSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					HKP)
 						if ! verifyHkpSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -268,7 +268,7 @@ function downloadFileAndCheckHash()
 						fi
 						
 						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_basename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
-							informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -278,7 +278,7 @@ function downloadFileAndCheckHash()
 			
 			
 			*)
-				informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath (Unsupported hash algorithm $hashName for $toPath/$fileName)"
+				informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath (Unsupported hash algorithm $hashName for $toPath/$fileName)"
 				exit 1
 			;;
 			
@@ -286,11 +286,11 @@ function downloadFileAndCheckHash()
 	done
 	
 	if [ $hasHash -ne 0 ]; then
-		informationMessage "FAILED: Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
+		informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
 		exit 1
 	fi
 
-	informationMessage "PASSED: Verifying $downloadName $url hashes of $downloadFilePath"
+	informationMessage "PASS: Verifying $downloadName $url hashes of $downloadFilePath"
 }
 
 function gpgVerifySignatureUsingKey()
