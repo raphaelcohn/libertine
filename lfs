@@ -710,6 +710,7 @@ function writeToMakeFile()
 	
 	createInstallScriptForMakefile
 	cat >>"$makeFile" <<-EOF
+	
 		$LFS_DEPENDENCY_KEY: $makeDependencies
 		    $LFS_DEPENDENCY_SCRIPT_PATH
 	EOF
@@ -721,6 +722,7 @@ function installPackages()
 
 	prepareMuslCrossPath
 	
+	temporaryFileToRemoveOnExit
 	local -r makeFile="$TMP_FILE"
 	
 	cat >>"$makeFile" <<-EOF
@@ -733,9 +735,9 @@ function installPackages()
 	loopOverDependenciesInPhase writeToMakeFile
 
 	cp "$makeFile" /tmp/Makefile
-	make "$makeFile"
+	MAKEFLAGS="-j $LFS_MAKE_JOBS -d -o line" make "$makeFile"
 	
-	#loopOverDependenciesInPhase installPackage
+	exit 50
 }
 
 function sourceFunctions()
