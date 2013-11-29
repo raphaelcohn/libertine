@@ -381,9 +381,6 @@ function extractPackageSources()
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		return 0
 	fi
-
-	SECONDS=0
-	informationMessage "TASK: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
@@ -435,8 +432,6 @@ function extractPackageSources()
 		removeLastTrapHandler
 		
 	popd >/dev/null
-	
-	informationMessage "PASS: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 }
 
 function patchPackageSources()
