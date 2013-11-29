@@ -709,11 +709,8 @@ function writeToMakeFile()
 	fi
 	
 	createInstallScriptForMakefile
-	cat >>"$makeFile" <<-EOF
-	
-		$LFS_DEPENDENCY_KEY: $makeDependencies
-		    $LFS_DEPENDENCY_SCRIPT_PATH
-	EOF
+	echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
+	printf '\t%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH" >>"$makeFile"
 }
 
 function installPackages()
@@ -726,10 +723,10 @@ function installPackages()
 	local -r makeFile="$TMP_FILE"
 	
 	cat >>"$makeFile" <<-EOF
-	.PHONY: all ${phase_InstallationOrder["${LFS_PHASE}"]}
-	
-	all: ${phase_InstallationOrder["${LFS_PHASE}"]}
-	
+		.PHONY: all ${phase_InstallationOrder["${LFS_PHASE}"]}
+		
+		all: ${phase_InstallationOrder["${LFS_PHASE}"]}
+		
 	EOF
 	
 	loopOverDependenciesInPhase writeToMakeFile
