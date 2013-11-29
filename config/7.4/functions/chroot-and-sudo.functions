@@ -91,10 +91,8 @@ function createInstallScriptForMakefile()
 		setDebugging
 		initialiseTraps
 		
-		set -x
-	
 		continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"
-
+		
 		removeUnwanted
 		stripUnneeded
 		lockDownPermissions
