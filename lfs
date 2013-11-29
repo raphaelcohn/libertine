@@ -428,8 +428,6 @@ function patchPackageSources()
 	setDependencyPathValues
 	
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
-		linkBinariesToPath
-		linkSystemBinariesToPath
 		return 0
 	fi
 	
@@ -499,7 +497,7 @@ function installPackage()
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
 			exec 7>&2 2>"$LFS_DEPENDENCY_LOG_ERR"
 				
-				executeFunctionUnderSudo $LFS_DEPENDENCY_INSTALLER
+				continueInstallUnderSudo $LFS_DEPENDENCY_INSTALLER
 
 				removeUnwanted
 				stripUnneeded
@@ -685,13 +683,59 @@ function extractAndPatchAllPackageSources()
 	loopOverDependenciesInAllPhasesAsynchronously patchPackageSources
 }
 
+function writeToMakeFile()
+{
+	setDependencyPathValues
+	
+	local makeDependencies=""
+	for dependency in ${dependency_Dependencies["$LFS_DEPENDENCY_KEY"]}
+	do
+		if  [ -z "$makeDependencies" ]; then
+			makeDependencies="$dependency"
+		else
+			makeDependencies="$makeDependencies $dependency"
+		fi
+	done
+	
+	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
+		linkBinariesToPath
+		linkSystemBinariesToPath
+		
+		cat >"$makeFile" <<-EOF
+			$LFS_DEPENDENCY_KEY: $makeDependencies
+			    echo Skipping "$LFS_DEPENDENCY_NAME"
+		EOF
+		return 0
+	fi
+	
+	createInstallScriptForMakefile
+	cat >"$makeFile" <<-EOF
+		$LFS_DEPENDENCY_KEY: $makeDependencies
+		    "$LFS_DEPENDENCY_SCRIPT_PATH"
+	EOF
+}
+
 function installPackages()
 {
 	LFS_PHASE="$1"
 
 	prepareMuslCrossPath
-
-	loopOverDependenciesInPhase installPackage
+	
+	
+	temporaryFolderToRemoveOnExit
+	local -r makeFolder="$TMP_FILE"
+	local -r makeFile="$makeFolder"/Makefile
+	
+	cat >"$makeFile" <<-EOF
+	.PHONY: all ${phase_InstallationOrder["${LFS_PHASE}"]}
+	
+	all: ${phase_InstallationOrder["${LFS_PHASE}"]}
+	
+	EOF
+	
+	loopOverDependenciesInPhase writeToMakeFile
+	
+	#loopOverDependenciesInPhase installPackage
 }
 
 function sourceFunctions()

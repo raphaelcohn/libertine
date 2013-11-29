@@ -245,20 +245,6 @@ function dependencyToPath()
 	fi
 }
 
-function lfs_dependency_includes()
-{
-	declare -Ag LFS_DEPENDENCY_INCLUDE_VERSIONS
-	local -i index
-	local name
-	local version
-	for index in ${dependency_IncludeIndices["$LFS_DEPENDENCY_KEY"]}
-	do
-		name="${includes_Name[$index]}"
-		version="${includes_Version[$index]}"
-		LFS_DEPENDENCY_INCLUDE_VERSIONS["$name"]="$version"
-	done
-}
-
 function setCommonLfsDependencyVariables()
 {
 	LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
@@ -273,8 +259,17 @@ function setCommonLfsDependencyVariables()
 	LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
 	
 	LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
-	
-	lfs_dependency_includes
+
+	declare -Ag LFS_DEPENDENCY_INCLUDE_VERSIONS
+	local -i index
+	local name
+	local version
+	for index in ${dependency_IncludeIndices["$LFS_DEPENDENCY_KEY"]}
+	do
+		name="${includes_Name[$index]}"
+		version="${includes_Version[$index]}"
+		LFS_DEPENDENCY_INCLUDE_VERSIONS["$name"]="$version"
+	done
 	
 	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
@@ -318,6 +313,8 @@ function setDependencyPathValues()
 	
 	LFS_DEPENDENCY_LOG_OUT="$LFS_DEPENDENCY_LOG_PATH"/out
 	LFS_DEPENDENCY_LOG_ERR="$LFS_DEPENDENCY_LOG_PATH"/err
+	
+	LFS_DEPENDENCY_SCRIPT_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/script
 }
 
 function prepareZzzLfsPath()
