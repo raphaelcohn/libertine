@@ -657,7 +657,7 @@ function writeToMakeFile()
 	
 	createInstallScriptForMakefile
 	echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-	printf '\t%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH 1>>"$LFS_DEPENDENCY_LOG_OUT" 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
+	printf '\t@%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
 }
 
 function installPackages()
