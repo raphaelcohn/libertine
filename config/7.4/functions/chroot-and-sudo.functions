@@ -90,7 +90,9 @@ function createInstallScriptForMakefile()
 		
 		setDebugging
 		initialiseTraps
-	
+		
+		SECONDS=0
+		informationMessage "TASK: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 		pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 			continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"
@@ -115,6 +117,7 @@ function createInstallScriptForMakefile()
 			lockDownPackage
 		
 		popd >/dev/null
+		informationMessage "PASS: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 	EOF
 	
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$LFS_DEPENDENCY_SCRIPT_PATH"

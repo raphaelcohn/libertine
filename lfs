@@ -678,7 +678,15 @@ function installPackages()
 	
 	loopOverDependenciesInPhase writeToMakeFile
 	
-	make -j $LFS_MAKE_JOBS -k -s -r -R -w -f "$makeFile" all
+	SECONDS=0
+	informationMessage "TASK: Phase $LFS_PHASE"
+	
+		if ! make -j $LFS_MAKE_JOBS -k -s -r -R -f "$makeFile" all 2>/dev/null; then
+			informationMessage "FAIL: Phase $LFS_PHASE"
+			exit 1
+		fi
+		
+	informationMessage "PASS: Phase $LFS_PHASE ($SECONDS seconds)"
 }
 
 function sourceFunctions()
