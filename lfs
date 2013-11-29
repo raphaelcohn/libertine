@@ -721,10 +721,7 @@ function installPackages()
 
 	prepareMuslCrossPath
 	
-	
-	temporaryFolderToRemoveOnExit
-	local -r makeFolder="$TMP_FILE"
-	local -r makeFile="$makeFolder"/Makefile
+	local -r makeFile="$TMP_FILE"
 	
 	cat >>"$makeFile" <<-EOF
 	.PHONY: all ${phase_InstallationOrder["${LFS_PHASE}"]}
@@ -734,11 +731,9 @@ function installPackages()
 	EOF
 	
 	loopOverDependenciesInPhase writeToMakeFile
-	
-	pushd "$makeFolder" >/dev/null
-	cp Makefile /tmp/Makefile
-		make Makefile
-	popd >/dev/null
+
+	cp "$makeFile" /tmp/Makefile
+	make "$makeFile"
 	
 	#loopOverDependenciesInPhase installPackage
 }
