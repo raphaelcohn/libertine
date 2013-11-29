@@ -379,12 +379,13 @@ function extractAndPatchPackageSources()
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		return 0
 	fi
-	
-	progressMessage "Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+
+	SECONDS=0
+	informationMessage "TASK: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/err and out"
+		INSTALLATION_FAILED_MESSAGE="FAIL: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
@@ -456,6 +457,8 @@ function extractAndPatchPackageSources()
 		removeLastTrapHandler
 		
 	popd >/dev/null
+	
+	informationMessage "PASS: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 }
 
 function installPackage()
@@ -468,11 +471,12 @@ function installPackage()
 		return 0
 	fi
 	
-	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+	SECONDS=0
+	informationMessage "TASK: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/err and out"
+		INSTALLATION_FAILED_MESSAGE="FAIL: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
@@ -491,9 +495,9 @@ function installPackage()
 				linkBinariesToPath
 				linkSystemBinariesToPath
 				
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install &
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath &
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath &
+				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install ) &
+				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath ) &
+				( recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
 				wait
 				
 			exec 1>&6 6>&-
@@ -506,7 +510,7 @@ function installPackage()
 	touch "$LFS_DEPENDENCY_FINISHED_PATH"
 	lockDownPackage 1>>"$LFS_DEPENDENCY_LOG_OUT" 2>>"$LFS_DEPENDENCY_LOG_ERR"
 	
-	progressMessageSucceeded
+	informationMessage "PASS: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 }
 
 function removeAnyFailedPackagesFromPreviousRuns()
@@ -621,7 +625,7 @@ function loopOverDependenciesInAllPhasesAsynchronously()
 		do
 			setCommonLfsDependencyVariables
 
-			$callback &
+			( $callback ) &
 		done
 	done
 	
