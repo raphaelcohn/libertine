@@ -701,7 +701,7 @@ function writeToMakeFile()
 		linkBinariesToPath
 		linkSystemBinariesToPath
 		
-		cat >"$makeFile" <<-EOF
+		cat >>"$makeFile" <<-EOF
 			$LFS_DEPENDENCY_KEY: $makeDependencies
 			    echo Skipping "$LFS_DEPENDENCY_NAME"
 		EOF
@@ -709,9 +709,9 @@ function writeToMakeFile()
 	fi
 	
 	createInstallScriptForMakefile
-	cat >"$makeFile" <<-EOF
+	cat >>"$makeFile" <<-EOF
 		$LFS_DEPENDENCY_KEY: $makeDependencies
-		    "$LFS_DEPENDENCY_SCRIPT_PATH"
+		    $LFS_DEPENDENCY_SCRIPT_PATH
 	EOF
 }
 
@@ -726,7 +726,7 @@ function installPackages()
 	local -r makeFolder="$TMP_FILE"
 	local -r makeFile="$makeFolder"/Makefile
 	
-	cat >"$makeFile" <<-EOF
+	cat >>"$makeFile" <<-EOF
 	.PHONY: all ${phase_InstallationOrder["${LFS_PHASE}"]}
 	
 	all: ${phase_InstallationOrder["${LFS_PHASE}"]}
