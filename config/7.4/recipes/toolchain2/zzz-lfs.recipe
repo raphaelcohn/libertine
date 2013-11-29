@@ -10,3 +10,9 @@ version 0
 	depends perl
 	depends texinfo
 }
+
+function install_toolchain2_zzz-lfs()
+{
+	echo 'FIXME'
+	exit 1
+}

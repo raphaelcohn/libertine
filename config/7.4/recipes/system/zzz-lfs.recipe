@@ -5,6 +5,12 @@ version 0
 	depends tzdata
 }
 
+function install_system_zzz-lfs()
+{
+	echo 'FIXME'
+	exit 1
+}
+
 function downloadsList()
 {
 	cat <<-EOF
