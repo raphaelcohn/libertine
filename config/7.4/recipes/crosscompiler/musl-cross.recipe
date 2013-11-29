@@ -270,15 +270,20 @@ function install_crosscompiler_musl-cross()
 	fi
 	
 	# Replace gcc's shipped zlib with our version
-	mv gcc-"$gccVersion"/zlib  gcc-"$gccVersion"/zlib.orig
-	mv zlib-"$zlibVersion" gcc-"$gccVersion"/zlib
-	cp -f gcc-"$gccVersion"/zlib.orig/configure gcc-"$gccVersion"/zlib/configure
-	cp -f gcc-"$gccVersion"/zlib.orig/Makefile.in gcc-"$gccVersion"/zlib/Makefile.in
-	cp gcc-"$gccVersion"/zlib.orig/configure.ac gcc-"$gccVersion"/zlib
-	cp gcc-"$gccVersion"/zlib.orig/acinclude.m4 gcc-"$gccVersion"/zlib
-	cp gcc-"$gccVersion"/zlib.orig/aclocal.m4 gcc-"$gccVersion"/zlib
-	cp gcc-"$gccVersion"/zlib.orig/minigzip.c gcc-"$gccVersion"/zlib
-	cp gcc-"$gccVersion"/zlib.orig/Makefile.am gcc-"$gccVersion"/zlib
+	pushd gcc-"$gccVersion" >/dev/null
+
+		mv zlib zlib.orig
+		ln -s ../zlib-"$zlibVersion" zlib
+		cp -f zlib.orig/configure zlib/configure
+		cp -f zlib.orig/Makefile.in zlib/Makefile.in
+		cp zlib.orig/configure.ac zlib
+		cp zlib.orig/acinclude.m4 zlib
+		cp zlib.orig/aclocal.m4 zlib
+		cp zlib.orig/minigzip.c zlib
+		cp zlib.orig/Makefile.am zlib
+		
+	popd >/dev/null
+	
 	
 	local dependency
 	local -i index
