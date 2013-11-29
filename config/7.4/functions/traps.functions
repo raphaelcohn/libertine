@@ -49,12 +49,12 @@ function addFileToRemoveOnExit()
 
 function temporaryFileToRemoveOnExit()
 {
-	TMP_FILE="$(mktemp --tmpdir "$ourName".XXXXXXXXXXXX)"
+	TMP_FILE="$(mktemp -t "$ourName".XXXXXXXXXXXX)"
 	filesToRemoveOnExit+=("$TMP_FILE")
 }
 
 function temporaryFolderToRemoveOnExit()
 {
-	TMP_FILE="$(mktemp --tmpdir --directory "$ourName".XXXXXXXXXXXX)"
+	TMP_FILE="$(mktemp -t -d "$ourName".XXXXXXXXXXXX)"
 	filesToRemoveOnExit+=("$TMP_FILE")
 }
