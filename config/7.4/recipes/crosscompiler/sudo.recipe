@@ -7,6 +7,17 @@ version 1.8.8
 	depends selinux
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
+	
+	
+	
+	# TODO: Create this function, so we can then use this folder!
+	make_folders_before_install var lib/sudo log/sudo
+	
+	
+	
+	
+	
+	
 	setuid_binaries bin sudo sudoedit
 	install_binaries bin sudo sudoedit sudoreplay
 	install_system_binaries sbin visudo
