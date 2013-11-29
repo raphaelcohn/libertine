@@ -275,6 +275,55 @@ function setCommonLfsDependencyVariables()
 	LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
 	
 	lfs_dependency_includes
+	
+	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
+	
+	local -r installer_versioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
+	local -r installer_unversioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
+	
+	# Skip installer
+	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
+		LFS_DEPENDENCY_INSTALLER="installPackageSkip"
+		if type "$installer_versioned" &>/dev/null; then
+			exitError "A skip installer should not have an installer function"
+		elif type "$installer_unversioned" &>/dev/null; then
+			exitError "A skip installer should not have an installer function"
+		fi
+	else
+		# Use an override (versioned) installer, otherwise the default
+		if type "$installer_versioned" &>/dev/null; then
+			LFS_DEPENDENCY_INSTALLER="$installer_versioned"
+		elif type "$installer_unversioned" &>/dev/null; then
+			LFS_DEPENDENCY_INSTALLER="$installer_unversioned"
+		else
+			exitError "No installer $installer_versioned or $installer_unversioned defined"
+		fi
+	fi
+}
+
+function setDependencyPathValues()
+{
+	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_RELATIVE_PATH="${dependency_RelativePath["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]}"
+	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
+	
+	if [ "$LFS_PHASE" = "system" ]; then
+		LFS_DEPENDENCY_ROOT=""
+	else
+		LFS_DEPENDENCY_ROOT="$LFS"
+	fi
+	
+	LFS_DEPENDENCY_PACKAGE_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"
+	LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/install
+	LFS_DEPENDENCY_BINPATH_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/binpath
+	LFS_DEPENDENCY_SBINPATH_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/sbinpath
+	LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/source
+	LFS_DEPENDENCY_LOG_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/log
+	LFS_DEPENDENCY_FINISHED_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/finished
+	
+	LFS_DEPENDENCY_LOG_OUT="$LFS_DEPENDENCY_LOG_PATH"/out
+	LFS_DEPENDENCY_LOG_ERR="$LFS_DEPENDENCY_LOG_PATH"/err
 }
 
 function prepareZzzLfsPath()

@@ -374,70 +374,21 @@ function installPackageSkip()
 	:
 }
 
-function installPackage()
+function extractAndPatchPackageSources()
 {
-	LFS_DEPENDENCY_PATH="${dependency_Path["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_RELATIVE_PATH="${dependency_RelativePath["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]}"
-	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
-	
-	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
-	
-	if [ "$LFS_PHASE" = "system" ]; then
-		LFS_DEPENDENCY_ROOT=""
-	else
-		LFS_DEPENDENCY_ROOT="$LFS"
-	fi
-	LFS_DEPENDENCY_PACKAGE_PATH="${LFS_DEPENDENCY_ROOT}${LFS_DEPENDENCY_PATH}"
-	LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/install
-	LFS_DEPENDENCY_BINPATH_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/binpath
-	LFS_DEPENDENCY_SBINPATH_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/sbinpath
-	LFS_DEPENDENCY_SOURCE_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/source
-	LFS_DEPENDENCY_LOG_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/log
-	LFS_DEPENDENCY_FINISHED_PATH="$LFS_DEPENDENCY_PACKAGE_PATH"/finished
-	
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
-		linkBinariesToPath
-		linkSystemBinariesToPath
 		return 0
 	fi
 	
-	local -r installer_versioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}_${LFS_DEPENDENCY_VERSION}
-	local -r installer_unversioned=install_${LFS_PHASE}_${LFS_DEPENDENCY_NAME}
-	
-	local -r logPathPrefix="$LFS_DEPENDENCY_LOG_PATH"
-	local -r installStdOutLogFile="$LFS_DEPENDENCY_LOG_PATH"/out
-	local -r installStdErrLogFile="$LFS_DEPENDENCY_LOG_PATH"/err
-	local -i exitCode
-	
-	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
-	
-	# Skip installer
-	if [ "$LFS_DEPENDENCY_SKIP_INSTALL" = "1" ]; then
-		local -r installer="installPackageSkip"
-		if type "$installer_versioned" &>/dev/null; then
-			progressMessageFailed "A skip installer should not have an installer function"
-		elif type "$installer_unversioned" &>/dev/null; then
-			progressMessageFailed "A skip installer should not have an installer function"
-		fi
-	else
-		# Use an override (versioned) installer, otherwise the default
-		if type "$installer_versioned" &>/dev/null; then
-			local -r installer="$installer_versioned"
-		elif type "$installer_unversioned" &>/dev/null; then
-			local -r installer="$installer_unversioned"
-		else
-			progressMessageFailed "No installer $installer_versioned or $installer_unversioned defined"
-		fi
-	fi
+	progressMessage "Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/err and out"
 		addInstallationFailedTrapHandler
 		
-			exec 6>&1 1>"$installStdOutLogFile"
-			exec 7>&2 2>"$installStdErrLogFile"
+			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
+			exec 7>&2 2>"$LFS_DEPENDENCY_LOG_ERR"
 		
 				local -i index
 				count=0
@@ -499,6 +450,34 @@ function installPackage()
 					fi
 				done
 				
+			exec 1>&6 6>&-
+			exec 2>&7 7>&-
+			
+		removeLastTrapHandler
+		
+	popd >/dev/null
+}
+
+function installPackage()
+{
+	setDependencyPathValues
+	
+	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
+		linkBinariesToPath
+		linkSystemBinariesToPath
+		return 0
+	fi
+	
+	progressMessage "Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+	
+	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
+		
+		INSTALLATION_FAILED_MESSAGE="failed, logs in $LFS_DEPENDENCY_LOG_PATH/err and out"
+		addInstallationFailedTrapHandler
+		
+			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
+			exec 7>&2 2>"$LFS_DEPENDENCY_LOG_ERR"
+				
 				executeFunctionUnderSudo $installer
 
 				removeUnwanted
@@ -525,7 +504,7 @@ function installPackage()
 	popd >/dev/null
 	
 	touch "$LFS_DEPENDENCY_FINISHED_PATH"
-	lockDownPackage 1>>"$installStdOutLogFile" 2>>"$installStdErrLogFile"
+	lockDownPackage 1>>"$LFS_DEPENDENCY_LOG_OUT" 2>>"$LFS_DEPENDENCY_LOG_ERR"
 	
 	progressMessageSucceeded
 }
@@ -632,6 +611,23 @@ function removeAnyFailedPackagesFromPreviousRuns()
 	find "$optPath" -depth -mindepth 1 -maxdepth 4 -type d -empty -delete
 }
 
+function loopOverDependenciesInAllPhasesAsynchronously()
+{
+	local -r callback="$1"
+	
+	for LFS_PHASE in crosscompiler toolchain2 system
+	do
+		for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
+		do
+			setCommonLfsDependencyVariables
+
+			$callback &
+		done
+	done
+	
+	wait
+}
+
 function loopOverDependenciesInPhase()
 {
 	local -r callback="$1"
@@ -646,10 +642,16 @@ function loopOverDependenciesInPhase()
 
 function calculateDependencyPaths()
 {
+	# Can not be asynchronous as sets variables
 	for LFS_PHASE in crosscompiler toolchain2 system
 	do
 		loopOverDependenciesInPhase dependencyToPath
 	done
+}
+
+function extractAndPatchAllPackageSources()
+{
+	loopOverDependenciesInAllPhasesAsynchronously extractAndPatchPackageSources
 }
 
 function installPackages()
@@ -691,7 +693,7 @@ function main()
 	verifyHostSystemRequirementsUsingDependencyChecks
 	
 	doInclude
-		
+	
 	# Suspended for now, as we are using --cacert instead of --capath
 	#rehashCertificateAuthorities
 	
@@ -709,6 +711,8 @@ function main()
 
 	declare_for_chroot LFS_PATH_ORIGINAL
 	LFS_PATH_ORIGINAL="$PATH"
+	
+	extractAndPatchAllPackageSources
 	
 	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
 	installPackages crosscompiler
