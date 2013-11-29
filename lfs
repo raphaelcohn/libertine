@@ -381,9 +381,6 @@ function installPackage()
 	LFS_DEPENDENCY_RECIPE_SETTINGS_DEPENDENCIES="${dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]}"
 	LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PATH"/install
 	
-	pathToRootOfChroot "$LFS_DEPENDENCY_PREFIX_PATH"
-	LFS_DEPENDENCY_RELATIVE_PATH_TO_ROOT_FROM_INSTALL_FOLDER="$PathToRoot"
-	
 	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
 	if [ "$LFS_PHASE" = "system" ]; then
@@ -515,9 +512,10 @@ function installPackage()
 				linkBinariesToPath
 				linkSystemBinariesToPath
 				
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath
-				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath
+				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/install &
+				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/binpath &
+				recordHashes "$LFS_DEPENDENCY_ROOT" "$LFS_DEPENDENCY_PATH"/sbinpath &
+				wait
 				
 			exec 1>&6 6>&-
 			exec 2>&7 7>&-
@@ -634,27 +632,23 @@ function removeAnyFailedPackagesFromPreviousRuns()
 	find "$optPath" -depth -mindepth 1 -maxdepth 4 -type d -empty -delete
 }
 
+function loopOverDependenciesInPhase()
+{
+	local -r callback="$1"
+	
+	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
+	do
+		setCommonLfsDependencyVariables
+
+		$callback
+	done
+}
+
 function calculateDependencyPaths()
 {
 	for LFS_PHASE in crosscompiler toolchain2 system
 	do
-		for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
-		do
-			LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
-			LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
-			LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
-			LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
-			LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
-	
-			LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
-			LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
-			LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
-			LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
-			
-			LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
-
-			dependencyToPath
-		done
+		loopOverDependenciesInPhase dependencyToPath
 	done
 }
 
@@ -663,193 +657,8 @@ function installPackages()
 	LFS_PHASE="$1"
 
 	prepareMuslCrossPath
-	
-	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
-	do
-		LFS_DEPENDENCY_NAME="${dependency_Name["$LFS_DEPENDENCY_KEY"]}"
-		LFS_DEPENDENCY_VERSION="${dependency_Version["$LFS_DEPENDENCY_KEY"]}"
-		LFS_DEPENDENCY_RECIPE_HASH="${dependency_RecipeHash["$LFS_DEPENDENCY_KEY"]}"
-		LFS_DEPENDENCY_INCLUDE_HASH="${dependency_IncludeHash["$LFS_DEPENDENCY_KEY"]}"
-		LFS_DEPENDENCY_SETTINGS_HASH="${dependency_SettingsHash["$LFS_DEPENDENCY_KEY"]}"
-	
-		LFS_DEPENDENCY_USER=lfs-"$LFS_DEPENDENCY_NAME"
-		LFS_DEPENDENCY_GROUP="$LFS_DEPENDENCY_USER"
-		LFS_DEPENDENCY_UID=${dependency_UidGid["$LFS_DEPENDENCY_KEY"]}
-		LFS_DEPENDENCY_GID=$LFS_DEPENDENCY_UID
-		
-		LFS_DEPENDENCY_PATCHES="${dependency_PatchIndices["$LFS_DEPENDENCY_KEY"]}"
-		
-		lfs_dependency_includes
-		
-		installPackage
-	done
-}
 
-function stripToolchainSymbolsAfterToolchain2()
-{
-	:
-}
-
-function backUpToolchain()
-{
-	return 0
-	
-	if which rsync 1>/dev/null 2>/dev/null; then
-		progressMessage "Backing up toolchain using rsync to $toolsBackUpPath"
-		mkdir -m 0755 -p "$toolsBackUpPath"
-		if rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$toolsBackUpPath" "$LFS_TOOLS_PATH"/ "$toolsBackUpPath"/ 1>"$lfsLogPath"/toolchain.backup.stdout.log 2>"$lfsLogPath"/toolchain.backup.stderr.log; then
-			progressMessageSucceeded
-		else
-			progressMessageFailed "check logs in $lfsLogPath/toolchain.backup.*.log"
-		fi
-	fi
-	
-	progressMessage "Tarballing up toolchain using tar/gz to $toolsBackUpPath.tar.gz"
-	tar --create --owner=root --group=root --sparse --posix --directory "$LFS" "$LFS_TOOLS" | gzip -9 >"$toolsBackUpPath".tar.gz
-	progressMessageSucceeded
-}
-
-function createToolchain()
-{
-	declare_for_chroot LFS_PATH_ORIGINAL
-	LFS_PATH_ORIGINAL="$PATH"
-	
-	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
-	installPackages crosscompiler
-	installPackages toolchain2
-	
-	progressMessage "Stripping toolchain symbols ($stripToolchainSymbols)"
-	stripToolchainSymbolsAfterToolchain2 1>"$"$lfsLogPath""/toolchain2_strip-symbols.stdout.log 2>/toolchain2_strip-symbols.stderr.log
-	progressMessageSucceeded
-	
-	backUpToolchain
-}
-
-function cleanUpTarget()
-{
-	if [ ! -d "$LFS" ]; then
-		return 0
-	fi
-	
-	progressMessage "Cleaning up target $LFS"
-	
-		chattr -R -f -aiD "$LFS" 1>"$lfsLogPath"/system_chattr-cleanup.stdout.log 2>"$lfsLogPath"/system_chattr-cleanup.stderr.log || true
-		
-		pushd "$LFS" >/dev/null
-		
-			local file
-			for file in *
-			do
-				case "$file" in
-					
-					dev|proc|sys|sources|$LFS_TOOLS|$LFS_TOOLS.backup|$LFS_TOOLS.backup.*)
-						:
-					;;
-				
-					*)
-						if ! rm -rf -- "$file"; then
-							progressMessageFailed "could not remove $file"
-						fi
-					;;
-				
-				esac
-			done
-			
-			if [ -d dev ]; then
-				
-				pushd dev >/dev/null
-				
-					for file in *
-					do
-						if [ ! -f "$file" ]; then
-							if ! rm -rf -- "$file"; then
-								progressMessageFailed "could not remove dev/$file"
-							fi
-						fi
-					done
-					
-				popd >/dev/null
-				
-			fi
-			
-			if [ -d sources ]; then
-				
-				pushd sources >/dev/null
-				
-					for file in *
-					do
-						if [ ! -f "$file" ]; then
-							if ! rm -rf -- "$file"; then
-								progressMessageFailed "could not remove sources/$file"
-							fi
-						fi
-					done
-					
-				popd >/dev/null
-				
-			fi
-			
-		popd >/dev/null
-		
-	progressMessageSucceeded
-}
-
-function createOrUseBackUpToolchain()
-{
-	if [ -d "$toolsBackUpPath" ] && which rsync 1>/dev/null 2>/dev/null; then
-		cleanUpTarget
-		progressMessage "Restoring toolchain using rsync ($LFS_TOOLS)"
-			mkdir -m 0755 -p "$LFS_TOOLS_PATH"
-			
-			if ! rsync --verbose --archive --hard-links --acls --xattrs --delete-after --force --numeric-ids --fake-super --link-dest="$LFS_TOOLS_PATH" "$toolsBackUpPath"/ "$LFS_TOOLS_PATH"/ 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
-				progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
-			fi
-			changeOwnerOfToolchain
-		progressMessageSucceeded
-		
-	elif [ -f "$toolsBackUpPath".tar.gz ]; then
-		cleanUpTarget
-		progressMessage "Restoring toolchain using tarball ($LFS_TOOLS)"
-			rm -rf -- "$LFS_TOOLS_PATH"
-			
-			pushd "$LFS"/.. >/dev/null
-				if ! tar --extract --gzip --file "$toolsBackUpPath".tar.gz 1>"$lfsLogPath"/toolchain.restore.stdout.log 2>"$lfsLogPath"/toolchain.restore.stderr.log; then
-					progressMessageFailed "check logs in $lfsLogPath/toolchain.restore.*.log"
-				fi
-			popd >/dev/null
-			changeOwnerOfToolchain
-		progressMessageSucceeded
-	else
-		createToolchain
-	fi
-}
-
-function runSystemInstallationLogic()
-{
-	local -r callback="$1"
-	
-	local -r stdoutLog="$lfsLogPath"/system_"$callback".stdout.log
-	local -r stderrLog="$lfsLogPath"/system_"$callback".stderr.log
-	
-	progressMessage "Phase system, executing $callback on target"
-		
-		INSTALLATION_FAILED_MESSAGE="logs in $phase/$callback.*.log"
-		addInstallationFailedTrapHandler
-			
-			exec 6>&1 1>"$stdoutLog"
-			exec 7>&2 2>"$stderrLog"
-				
-				set -x
-				# FORCE_UNSAFE_CONFIGURE=1 allows configure to run as root
-				FORCE_UNSAFE_CONFIGURE=1 $callback
-				set +x
-				
-			exec 1>&6 6>&-
-			exec 2>&7 7>&-
-			
-		removeLastTrapHandler
-		
-	progressMessageSucceeded
+	loopOverDependenciesInPhase installPackage
 }
 
 function sourceFunctions()
@@ -897,8 +706,13 @@ function main()
 	LFS_PHASE="system" prepareZzzLfsPath
 	
 	installEssentialFolderStructure
+
+	declare_for_chroot LFS_PATH_ORIGINAL
+	LFS_PATH_ORIGINAL="$PATH"
 	
-	createOrUseBackUpToolchain
+	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
+	installPackages crosscompiler
+	installPackages toolchain2
 	
 	chrootToEnvironment
 }

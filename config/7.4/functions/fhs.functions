@@ -1,13 +1,5 @@
 set -o errexit +o hashall
 
-function pathToRootOfChroot()
-{
-	local -r pathRootedInOpt="$1"
-
-	local -r relativePathToRootOfFhsWithTrailingSlash="$(echo -n "$pathRootedInOpt" | awk -v RS='/' -v ORS='../' 'NR !=1 {print ""}')"
-	PathToRoot="${relativePathToRootOfFhsWithTrailingSlash:0:${#relativePathToRootOfFhsWithTrailingSlash}-1}"
-}
-
 function installEssentialFolderStructure()
 {
 	# removes everything from the target bar /opt/lfs, /srv and /var (we could add /home; that's not so clear-cut)

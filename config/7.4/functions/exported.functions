@@ -701,7 +701,7 @@ function depends()
 	fi
 	
 	local existingInstall
-	for existingInstall in "${phase_InstallationOrder["${LFS_PHASE}"]}"
+	for existingInstall in ${phase_InstallationOrder["${LFS_PHASE}"]}
 	do
 		if [ "$existingInstall" = "$child" ]; then
 			return 0
