@@ -381,7 +381,7 @@ function extractPackageSources()
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		return 0
 	fi
-	
+
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		INSTALLATION_FAILED_MESSAGE="FAIL: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
@@ -683,7 +683,11 @@ function calculateDependencyPaths()
 
 function extractAndPatchAllPackageSources()
 {
+	SECONDS=0
+	informationMessage "TASK: Extracting"
 	loopOverDependenciesInAllPhasesAsynchronously extractPackageSources
+	informationMessage "PASS: Extracting"
+	
 	loopOverDependenciesInAllPhasesAsynchronously patchPackageSources
 }
 
