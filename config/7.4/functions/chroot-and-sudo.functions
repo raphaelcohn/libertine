@@ -97,7 +97,10 @@ function createInstallScriptForMakefile()
 		informationMessage "TASK: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 		pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-			continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"
+			if ! continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"; then
+				informationMessage "FAIL: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
+				exit 1
+			fi
 		
 			removeUnwanted
 			stripUnneeded
