@@ -376,6 +376,8 @@ function installPackageSkip()
 
 function extractAndPatchPackageSources()
 {
+	setDependencyPathValues
+	
 	if [ -f "$LFS_DEPENDENCY_FINISHED_PATH" ]; then
 		return 0
 	fi
@@ -387,8 +389,7 @@ function extractAndPatchPackageSources()
 		
 		INSTALLATION_FAILED_MESSAGE="FAIL: Extracting phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
 		addInstallationFailedTrapHandler
-		
-		echo "$LFS_DEPENDENCY_LOG_OUT"
+			
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
 			exec 7>&2 2>"$LFS_DEPENDENCY_LOG_ERR"
 		
