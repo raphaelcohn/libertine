@@ -90,27 +90,31 @@ function createInstallScriptForMakefile()
 		
 		setDebugging
 		initialiseTraps
-		
-		continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"
-		
-		removeUnwanted
-		stripUnneeded
-		lockDownPermissions
-		setUidGidOnPaths
-		setBinaryPermissionBits
-		setCapabilityBinaries
-		installBinariesToPackagePath
-		installSystemBinariesToPackagePath
-		linkBinariesToPath
-		linkSystemBinariesToPath
-		
-		( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install ) &
-		( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath ) &
-		( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
-		wait
 	
-		touch "$LFS_DEPENDENCY_FINISHED_PATH"
-		lockDownPackage
+		pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
+		
+			continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER"
+		
+			removeUnwanted
+			stripUnneeded
+			lockDownPermissions
+			setUidGidOnPaths
+			setBinaryPermissionBits
+			setCapabilityBinaries
+			installBinariesToPackagePath
+			installSystemBinariesToPackagePath
+			linkBinariesToPath
+			linkSystemBinariesToPath
+		
+			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install ) &
+			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath ) &
+			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
+			wait
+	
+			touch "$LFS_DEPENDENCY_FINISHED_PATH"
+			lockDownPackage
+		
+		popd >/dev/null
 	EOF
 	
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$LFS_DEPENDENCY_SCRIPT_PATH"
