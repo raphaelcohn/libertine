@@ -636,9 +636,6 @@ function loopOverDependenciesInAllPhasesAsynchronously()
 
 function loopOverDependenciesInPhase()
 {
-	echo ${phase_InstallationOrder["${LFS_PHASE}"]}
-	exit 5
-	
 	local -r callback="$1"
 	
 	for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
