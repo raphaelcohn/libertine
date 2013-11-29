@@ -649,14 +649,14 @@ function writeToMakeFile()
 		linkSystemBinariesToPath
 
 		echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-		printf '\t%s\n\n' "@echo $ourName: TASK: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
+		printf '\t%s\n' "@echo $ourName: TASK: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
 		printf '\t%s\n\n' "@echo $ourName: PASS: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
 		return 0
 	fi
 	
 	createInstallScriptForMakefile
 	echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-	printf '\t%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH 2>>"$LFS_DEPENDENCY_LOG_ERR"" >>"$makeFile"
+	printf '\t@%s\n\n' "$LFS_DEPENDENCY_SCRIPT_PATH" >>"$makeFile"
 }
 
 function installPackages()
