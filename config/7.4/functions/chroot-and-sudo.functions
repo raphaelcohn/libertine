@@ -84,6 +84,8 @@ function createInstallScriptForMakefile()
 		LFS='$LFS'
 	EOF
 	cat >>"$LFS_DEPENDENCY_SCRIPT_PATH" <<-'EOF'
+	echo $LFS
+	exit 50
 		setLocale
 		
 		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
