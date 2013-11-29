@@ -680,7 +680,7 @@ function installPackages()
 	
 	SECONDS=0
 	informationMessage "TASK: Phase $LFS_PHASE"
-	
+	cp $makeFile /tmp/Makefile
 		if ! make -j $LFS_MAKE_JOBS -k -r -R -f "$makeFile" all 2>/dev/null; then
 			informationMessage "FAIL: Phase $LFS_PHASE"
 			exit 1
