@@ -649,7 +649,7 @@ function writeToMakeFile()
 		linkSystemBinariesToPath
 
 		echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-		printf '\t%s\n\n' "echo Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
+		printf '\t%s\n\n' "@echo Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
 		return 0
 	fi
 	
