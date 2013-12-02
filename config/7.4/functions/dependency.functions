@@ -270,6 +270,15 @@ function setCommonLfsDependencyVariables()
 		version="${includes_Version[$index]}"
 		LFS_DEPENDENCY_INCLUDE_VERSIONS["$name"]="$version"
 	done
+
+	declare -Ag LFS_DEPENDENCY_INCLUDE_TARBALLS
+	local tarball
+	for index in ${dependency_IncludeIndices["$LFS_DEPENDENCY_KEY"]}
+	do
+		name="${includes_Name[$index]}"
+		tarball="${includes_Version[$index]}"
+		LFS_DEPENDENCY_INCLUDE_TARBALLS["$name"]="$tarball"
+	done
 	
 	LFS_DEPENDENCY_SKIP_INSTALL="${dependency_SkipInstall["$LFS_DEPENDENCY_KEY"]}"
 	
