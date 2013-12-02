@@ -15,7 +15,7 @@ function install_crosscompiler_m4()
 	pushdDependencyFolder
 	
 		mv lib lib.orig
-		ln -s ../$tarball lib
+		ln -s ../$tarball/lib lib
 	
 		#cp lib/stdio.in.h lib/stdio.in.h.orig
 		#sed -i -e '/gets is a/d' lib/stdio.in.h
