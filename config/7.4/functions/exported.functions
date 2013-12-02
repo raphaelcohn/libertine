@@ -65,6 +65,7 @@ declare_for_chroot -A dependency_Path
 declare_for_chroot -A dependency_RelativePath
 declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
+declare_for_chroot -A dependency_MakeFhsFoldersBeforeInstallPaths
 declare_for_chroot -A dependency_RemoveResourcePaths
 declare_for_chroot -A dependency_CompileResourcePaths
 declare_for_chroot -A dependency_BinaryStripPaths
@@ -1093,6 +1094,31 @@ function install_system_binaries()
 			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$binaryPath"
 		else
 			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
+		fi
+	done
+}
+
+function make_fhs_folders_before_install()
+{
+	local -r relativeParentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local folder
+	local folderPath
+	local existingPaths
+	for folder in "$@"
+	do
+		# The leading slash is deliberate
+		binaryPath=/"$relativeParentPath"/"$folderPath"
+		
+		existingPaths="${dependency_MakeFhsFoldersBeforeInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_MakeFhsFoldersBeforeInstallPaths["$DependencyKey"]="$binaryPath"
+		else
+			dependency_MakeFhsFoldersBeforeInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
 		fi
 	done
 }

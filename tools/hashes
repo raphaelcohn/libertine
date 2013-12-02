@@ -10,7 +10,11 @@ function runOnTrap()
 function hashDownload()
 {
 	curl -L "$1" >"$tempFile"
-	echo -n MD5:$(md5sum "$tempFile" | awk '{print $1}')
+	
+	local -r size="$(stat -c '%s' "$tempFile")"
+	
+	echo -n SIZE:$size
+	echo -n ,MD5:$(md5sum "$tempFile" | awk '{print $1}')
 	echo -n ,SHA1:$(sha1sum "$tempFile" | awk '{print $1}')
 	echo -n ,SHA256:$(sha256sum "$tempFile" | awk '{print $1}')
 	echo ,SHA512:$(sha512sum "$tempFile" | awk '{print $1}')

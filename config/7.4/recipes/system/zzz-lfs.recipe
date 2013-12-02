@@ -11,6 +11,13 @@ function install_system_zzz-lfs()
 	exit 1
 }
 
+#tar	autoconf	2.69	"$GNU"/autoconf/autoconf-2.69.tar.xz	50f97f4159805e374639a73e2636f22e	xz	autoconf-2.69.tar.xz	autoconf-2.69
+#tar	automake	1.14	"$GNU"/automake/automake-1.14.tar.xz	cb3fba6d631cddf12e230fd0cc1890df	xz	automake-1.14.tar.xz	automake-1.14
+#patch	automake	1.14	"$PATCHES"/automake-1.14-test-1.patch	1bc501443baee55bca4d6552ed18a757		automake-1.14-test-1.patch	automake-1.14-test-1.patch
+#tar	libtool	2.4.2	"$GNU"/libtool/libtool-2.4.2.tar.gz	d2f3b7d4627e69e13514a40e72a24d50	gzip	libtool-2.4.2.tar.gz	libtool-2.4.2
+#tar	bison	3.0	"$GNU"/bison/bison-3.0.tar.xz	a2624994561aa69f056c904c1ccb2880	xz	bison-3.0.tar.xz	bison-3.0
+#tar	flex	2.5.37	"$SOURCEFORGE"/"$ourSourcePackageName"/flex-2.5.37.tar.bz2	c75940e1fc25108f2a7b3ef42abdae06	bzip2	flex-2.5.37.tar.bz2	flex-2.5.37
+
 function downloadsList()
 {
 	cat <<-EOF

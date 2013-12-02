@@ -220,6 +220,13 @@ function downloadFileAndCheckHash()
 				hasHash=0
 			;;
 			
+			SIZE)
+				hasHash=0
+				if ! verifySize "$downloadFolderPath" "$downloadFileName" "$hashValue"; then
+					informationMessage "FAIL: Verifying $downloadName $url size of $downloadFilePath ($progressMessage)"
+				fi
+			;;
+			
 			MD5|SHA1|SHA224|SHA256|SHA384|SHA512)
 				hashProgram=${hashName,,}sum
 				hasHash=0
@@ -241,21 +248,21 @@ function downloadFileAndCheckHash()
 				case "$hashName" in
 					KEYRING)
 						if ! verifyKeyringSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					KEYFILE)
 						if ! verifyKeyFileSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					HKP)
 						if ! verifyHkpSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -271,7 +278,7 @@ function downloadFileAndCheckHash()
 						fi
 						
 						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_basename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
-							informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath ($progressMessage)"
+							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -356,6 +363,28 @@ function gpgVerifySignatureUsingKey()
 	--verify "$signaturesPath"/"$signatureFileName" "$toPath"/"$fileName" </dev/null 1>>"$logFileName" 2>&1
 	
 	return $?
+}
+
+function verifySize()
+{
+	local -r toPath="$1"
+	local -r fileName="$2"
+	local -ir expectedSize=$3
+	
+	local -i exitCode
+	local -r logFile="$downloadsLogsPath"/"$fileName".size.log
+	pushd "$toPath">/dev/null
+	
+		local -ir actualSize=$(stat -c '%s' "$fileName")
+		if [ $actualSize -ne $expectedSize ]; then
+			exitCode=1
+		else
+			exitCode=0
+		fi
+		
+	popd >/dev/null
+	
+	return $exitCode
 }
 
 function verifyHash()

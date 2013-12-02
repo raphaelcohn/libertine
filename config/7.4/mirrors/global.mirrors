@@ -40,7 +40,7 @@ mirror  FEDORA       https://fedorahosted.org/releases/                         
 mirror  SUDO         https://www.sudo.ws/
 
 # Insecure
-mirror  PATCHES    http://www.linuxfromscratch.org/patches/lfs/development/
+mirror  PATCHES    http://www.linuxfromscratch.org/patches/lfs/$LFS_DISTRIBUTION_VERSION/
 mirror  PERL       http://www.cpan.org/src/
 mirror  BZIP       http://www.bzip.org/
 mirror  XZ         http://tukaani.org/

@@ -2,8 +2,40 @@ set -o errexit +o hashall
 
 source_package GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION".tar.gz MD5:3fb927c7c33022f1c327f14a81c0d4b0,KEYRING:gnu-keyring.gpg
 
-if [ "$LFS_SOURCE_PACKAGE_VERSION" = "4.2" ]; then
-	source_patch PATCHES "$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"-fixes-12.patch MD5:419f95c173596aea47a23d922598977a
-fi
+# Something similiar is needed for readline
+function installPackage_system_bash_patches()
+{
+	local reducedVersion=""
+	local -i maximumPatch=0
+	
+	case "$LFS_SOURCE_PACKAGE_VERSION" in
+		
+		4.2)
+			reducedVersion=42
+			maximumPatch=45
+		;;
+		
+	esac
+	
+	if [ -z "$reducedVersion" ]; then
+		return 0
+	fi
+	
+	local -i patchIndex
+	local patchNumber
+	for patchIndex in {1..$maximumPatch}
+	do
+		if [ ${#patchIndex} -eq 1 ]; then
+			local patchNumber="00${patchIndex}"
+		elif [ ${#patchIndex} -eq 2 ]; then
+			local patchNumber="0${patchIndex}"
+		else
+			local patchNumber="$patchIndex"
+		fi
+		
+		source_patch GNU "$LFS_SOURCE_PACKAGE_NAME"/"$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"-patches/${LFS_SOURCE_PACKAGE_NAME}${reducedVersion}-$patchNumber KEYRING:gnu-keyring.gpg
+	done
+}
+installPackage_system_bash_patches
 
 #addCPE "$LFS_SOURCE_PACKAGE_VERSION" cpe:/a:gnu:bash:"$LFS_SOURCE_PACKAGE_VERSION"

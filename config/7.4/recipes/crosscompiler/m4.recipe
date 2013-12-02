@@ -1,12 +1,19 @@
 set -o errexit +o hashall
 
-version 5.14
+version 1.4.16
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 }
 
-function install_crosscompiler_file()
+function install_crosscompiler_m4()
 {
+	pushdDependencyFolder
+	
+		cp lib/stdio.in.h lib/stdio.in.h.orig
+		sed -i -e '/gets is a/d' lib/stdio.in.h
+		
+	popdDependencyFolder
+
 	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty
 }

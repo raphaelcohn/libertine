@@ -7,16 +7,10 @@ version 1.8.8
 	depends selinux
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	
-	
-	
-	# TODO: Create this function, so we can then use this folder!
-	make_folders_before_install var lib/sudo log/sudo
-	
-	
-	
-	
-	
+	make_fhs_folders_before_install var \
+		lib/sudo \
+		log/sudo l\
+		log/sudo/io
 	
 	setuid_binaries bin sudo sudoedit
 	install_binaries bin sudo sudoedit sudoreplay
@@ -32,9 +26,6 @@ function install_crosscompiler_sudo()
 	#OPIE
 	#PAM
 	#S/KEY
-	
-	mkdir -m 0755 -p "$LFS"/var/lib/sudo
-	mkdir -m 0755 -p "$LFS"/var/log/sudo/io
 	
 	# Do we want to use sendmail?
 	

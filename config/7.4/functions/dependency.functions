@@ -622,6 +622,19 @@ function stripUnneeded()
 	done
 }
 
+function createFhsFoldersBeforeInstallation()
+{
+	local absoluteFolderPath
+	local path
+	for absoluteFolderPath in ${dependency_MakeFhsFoldersBeforeInstallPaths["$LFS_DEPENDENCY_KEY"]}
+	do
+		path="${LFS}${absoluteFolderPath}"
+		mkdir -m -p 0755 "$path"
+		chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$path"
+		chmod 0755 "$path"
+	done
+}
+
 function _setPropertyOnFiles()
 {
 	local -r settingCommand="$1"
