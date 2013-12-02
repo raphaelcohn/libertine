@@ -142,12 +142,13 @@ function continueInstallUnderSudo()
 	EOF
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
 		setLocale
-		
 		setDebugging
 		initialiseTraps
+		
+		export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
+		set -x
 	EOF
 	cat >>"$continutationBinaryForSudo" <<-EOF
-		set -x
 		$functionToExecute
 	EOF
 	
@@ -176,8 +177,35 @@ function chrootToEnvironment()
 		
 		setDebugging
 		initialiseTraps
-	
-		export PATH="$LFS_DEPENDENCY_PATH_ZZZ"/binpath
+		
+		case "$LFS_PHASE" in
+			
+			crosscompiler)
+				LFS_PHASE=crosscompiler prepareZzzLfsPath
+				prepareMuslCrossPath
+				export PATH="$LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS"
+			;;
+						
+			toolchain2)
+				LFS_PHASE=crosscompiler prepareZzzLfsPath
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
+				LFS_PHASE=toolchain2 prepareZzzLfsPath
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$ourPath"
+				export PATH="$ourPath"
+			;;
+					
+			system)
+				LFS_PHASE=crosscompiler prepareZzzLfsPath
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
+				LFS_PHASE=toolchain2 prepareZzzLfsPath
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$ourPath"
+				LFS_PHASE=system prepareZzzLfsPath
+				ourPath"$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$ourPath"
+				export PATH="$ourPath"
+			;;
+			
+		esac
+		
 		installPackages system
 	EOF
 	

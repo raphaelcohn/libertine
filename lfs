@@ -251,10 +251,6 @@ function parseCommandLine()
 		else
 			exitError "Please specify one machine"
 		fi
-		
-		if [ -z "$LFS_DISTRIBUTION_VERSION" ]; then
-			exitError "Please specify a distribution using -d"
-		fi
 	fi
 }
 
@@ -685,7 +681,8 @@ function writeToMakeFile()
 function installPackages()
 {
 	LFS_PHASE="$1"
-
+	
+	prepareZzzLfsPath
 	prepareMuslCrossPath
 	
 	temporaryFileToRemoveOnExit
@@ -739,16 +736,13 @@ function main()
 	
 	calculateDependencyPaths
 	
-	LFS_PHASE="system" prepareZzzLfsPath
-	
-	installEssentialFolderStructure
-
-	declare_for_chroot LFS_PATH_ORIGINAL
-	LFS_PATH_ORIGINAL="$PATH"
-	
 	extractAndPatchAllPackageSources
 	
-	export PATH="${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/sbinpath:"${LFS}${LFS_DEPENDENCY_PATH_ZZZ}"/binpath:"$LFS_PATH_ORIGINAL"
+	LFS_PHASE="system" prepareZzzLfsPath
+	installEssentialFolderStructure
+	
+	LFS_PATH_ORIGINAL="$PATH"
+	
 	installPackages crosscompiler
 	installPackages toolchain2
 }

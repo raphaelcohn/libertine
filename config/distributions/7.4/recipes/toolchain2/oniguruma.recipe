@@ -1,40 +1,32 @@
 set -o errexit +o hashall
 
-version 5.14
+version 5.9.5
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
-
-	strip_unneeded bin file
+	
+	remove_unwanted bin onig-config
+	remove_unwanted . bin
 	
 	strip_unneeded lib \
-		libmagic.a \
-		libmagic.so
+		libonig.a \
+		libonig.so
 	
 	compile_resources . include
 	
 	compile_resources lib \
-		libmagic.a \
-		libmagic.la
-	
-	compile_resources share \
-		man/man3
-	
-	install_binaries bin file
-	
-	#share/misc/magic.mgc
+		libonig.a \
+		libonig.la \
+		pkgconfig
 }
 
-function install_crosscompiler_file()
+function install_toolchain2_oniguruma()
 {
 	buildUsingAutotoolsExternal callback_empty \
-		--disable-silent-rules \
-		--enable-fsect-man5 \
 		--disable-dependency-tracking \
-		--enable-static \
 		--enable-shared \
+		--enable-static \
 		--enable-fast-install \
-		--disable-warnings \
 		--with-pic \
 		--with-gnu-ld
 }

@@ -149,7 +149,7 @@ function installEssentialFolderStructure()
 	fi
 	
 	# Reference folders inside pivot
-	for item in bin etc lib lib32 lib64 sbin usr
+	for item in bin etc lib libx32 lib32 lib64 sbin usr
 	do
 		folder="$LFS"/"$item"
 		

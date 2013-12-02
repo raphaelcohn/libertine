@@ -2,8 +2,10 @@ set -o errexit +o hashall
 
 version 0
 {
-	depends oniguruma
-	depends file
+	depends ncurses
+	depends gettext
+	depends perl
+	depends texinfo
 }
 
 function install_toolchain2_zzz-lfs()
