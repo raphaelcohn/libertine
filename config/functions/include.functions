@@ -23,6 +23,7 @@ function includeMirrors()
 
 function machineSettingDefaults()
 {
+	setting_string LFS_DISTRIBUTION_VERSION 7.4
 	setting_string LFS_HOSTNAME "$1"
 	
 	setting_string LFS_NATIVE_ARCHITECTURE x86_64
@@ -46,7 +47,8 @@ function machineSettingDefaults()
 
 function verifyMachineSettings()
 {
-	verifyStringSetting LFS_HOSTNAME simple
+	verifyStringSetting LFS_DISTRIBUTION_VERSION
+	verifyStringSetting LFS_HOSTNAME
 	
 	verifyStringSetting LFS_NATIVE_ARCHITECTURE
 	verifyStringSetting LFS_FOREIGN_ARCHITECTURE
@@ -77,6 +79,9 @@ function includeMachineSettings()
 	source "$machineSettingsFile"
 	
 	verifyMachineSettings
+
+	declare_for_chroot LFS_DISTRIBUTION_VERSION
+	LFS_DISTRIBUTION_VERSION="${settings_string[LFS_DISTRIBUTION_VERSION]}"
 	
 	declare_for_chroot LFS_MACHINE_SETTINGS_HASH
 	LFS_MACHINE_SETTINGS_HASH="$(sha256sum "$machineSettingsFile" | awk 'NR==1 {print $1}')"

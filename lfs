@@ -127,10 +127,9 @@ function executeWithCleanEnvironment()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-d distribution] [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-o option] -- machine
+Usage: ${ourName} [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-o option] -- machine
 
 Defaults
-    distribution       ${LFS_DISTRIBUTION_VERSION}
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
     mirrors            ${mirrors}
@@ -165,11 +164,7 @@ Options are as follows:-   Default
 }
 
 function parseCommandLine()
-{
-	# Defaults
-	LFS_DISTRIBUTION_VERSION="7.4"
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('LFS_DISTRIBUTION_VERSION')
-	
+{	
 	lfsPath="/var/tmp/lfs"
 	
 	lfsConfigPath="${crudeOurPath}/config"
@@ -199,10 +194,6 @@ function parseCommandLine()
 				
 				h)
 					exitHelp 2
-				;;
-				
-				d)
-					LFS_DISTRIBUTION_VERSION="$OPTARG"
 				;;
 				
 				l)
@@ -267,6 +258,19 @@ function parseCommandLine()
 	fi
 }
 
+function sourceFunctions()
+{
+	local fileToSource
+	pushd "$functionsPath" >/dev/null
+		
+		for fileToSource in *.functions
+		do
+			source "$fileToSource"
+		done
+		
+	popd >/dev/null
+}
+
 function setPaths()
 {
 	essentialProgramCheck mkdir awk
@@ -278,39 +282,69 @@ function setPaths()
 	lfsConfigPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly distributionConfigPath="$lfsConfigPath"/"$LFS_DISTRIBUTION_VERSION"
+	readonly functionsPath="$distributionConfigPath"/functions
+	if [ ! -d "$functionsPath" ]; then
+		exitError "functions path $functionsPath does not exist or is not a directory"
+	fi
+	
+	sourceFunctions
+	
+	readonly settingsPath="$lfsConfigPath"/settings
+	if [ ! -d "$settingsPath" ]; then
+		exitError "settings path $settingsPath does not exist or is not a directory"
+	fi
+	
+	readonly machinesPath="$settingsPath"/machines
+	if [ ! -d "$machinesPath" ]; then
+		exitError "machines path $machinesPath does not exist or is not a directory"
+	fi
+	
+	
+	
+	
+	
+	
+	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
 	if [ ! -d "$distributionConfigPath" ]; then
 		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
 	fi
 	
-	readonly certificateAuthoritiesPath="$distributionConfigPath"/certificate-authorities
+	
+	
+	
+	
+	
+	readonly certificateAuthoritiesPath="$lfsConfigPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	readonly mirrorsPath="$distributionConfigPath"/mirrors
-	if [ ! -d "$mirrorsPath" ]; then
-		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
-	fi
-	
-	readonly gpghomePath="$distributionConfigPath"/gpghome
+	readonly gpghomePath="$lfsConfigPath"/gpghome
 	if [ ! -d "$gpghomePath" ]; then
 		exitError "gpghome path $gpghomePath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$distributionConfigPath"/keyrings
+	readonly keyringsPath="$lfsConfigPath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$distributionConfigPath"/keys
+	readonly keysPath="$lfsConfigPath"/keys
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$distributionConfigPath"/signatures
+	readonly signaturesPath="$lfsConfigPath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
+	fi
+	
+	
+
+	
+	readonly mirrorsPath="$distributionConfigPath"/mirrors
+	if [ ! -d "$mirrorsPath" ]; then
+		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
 	fi
 	
 	readonly recipesPath="$distributionConfigPath"/recipes
@@ -328,20 +362,9 @@ function setPaths()
 		exitError "includes path $includesPath does not exist or is not a directory"
 	fi
 	
-	readonly functionsPath="$distributionConfigPath"/functions
-	if [ ! -d "$includesPath" ]; then
-		exitError "functions path $functionsPath does not exist or is not a directory"
-	fi
 	
-	readonly settingsPath="$distributionConfigPath"/settings
-	if [ ! -d "$settingsPath" ]; then
-		exitError "settings path $settingsPath does not exist or is not a directory"
-	fi
 	
-	readonly machinesPath="$settingsPath"/machines
-	if [ ! -d "$machinesPath" ]; then
-		exitError "machines path $machinesPath does not exist or is not a directory"
-	fi
+	
 	
 	if [ ! -d "$lfsPath" ]; then
 		mkdir -m 0755 -p "$lfsPath"
@@ -350,11 +373,11 @@ function setPaths()
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
+	readonly lfsLogPath=/var/log/lfs/"$machine"
 	readonly lfsDownloadsPath="$lfsPath"/downloads
 	readonly lfsExtractsPath="$lfsPath"/extracts
 	
-	LFS="$lfsPath"/"$LFS_DISTRIBUTION_VERSION"
+	LFS="$lfsPath"/"$machine"
 }
 
 function createSkeletonFolderStructure()
@@ -688,19 +711,6 @@ function installPackages()
 	informationMessage "PASS: Phase $LFS_PHASE ($SECONDS seconds)"
 }
 
-function sourceFunctions()
-{
-	local fileToSource
-	pushd "$functionsPath" >/dev/null
-		
-		for fileToSource in *.functions
-		do
-			source "$fileToSource"
-		done
-		
-	popd >/dev/null
-}
-
 function main()
 {
 	setDebugging
@@ -708,7 +718,6 @@ function main()
 	ensureWhichInstalled
 	parseCommandLine "$@"
 	setPaths
-	sourceFunctions
 	
 	setLocale
 	setMakeFlags

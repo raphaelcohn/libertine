@@ -1,5 +1,7 @@
 set -o errexit +o hashall
 
+setting_string LFS_DISTRIBUTION_VERSION 7.4
+
 # See http://gcc.gnu.org/onlinedocs/gcc/i386-and-x86_002d64-Options.html
 # And gcc -march=native -v -E - 2>&1 <<<'' | grep "cc1" | egrep -o -e $'-m(arch|tune)=[^ "\']+' to determine best arch
 # But gcc -c -Q -march=native --help=target | grep sse  seems to infer no SSE!

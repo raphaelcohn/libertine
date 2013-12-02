@@ -4,7 +4,7 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 {
 	# Check against http://www.linuxfromscratch.org/lfs/view/development/prologue/hostreqs.html
 	
-	readonly dependencyChecks="$distributionConfigPath"/dependency-checks
+	readonly dependencyChecks="$lfsConfigPath"/dependency-checks
 	if [ ! -d "$dependencyChecks" ]; then
 		exitError "dependency-checks $dependencyChecks does not exist or is not a directory"
 	fi

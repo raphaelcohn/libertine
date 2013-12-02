@@ -86,8 +86,6 @@ function createInstallScriptForMakefile()
 	cat >>"$LFS_DEPENDENCY_SCRIPT_PATH" <<-'EOF'
 		setLocale
 		
-		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
-		
 		setDebugging
 		initialiseTraps
 		
@@ -144,8 +142,6 @@ function continueInstallUnderSudo()
 	EOF
 	cat >>"$continutationBinaryForSudo" <<-'EOF'
 		setLocale
-		
-		lfsLogPath=/var/log/lfs/"$LFS_DISTRIBUTION_VERSION"
 		
 		setDebugging
 		initialiseTraps
