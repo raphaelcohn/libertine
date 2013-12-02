@@ -9,7 +9,7 @@ version 1.8.8
 	
 	make_fhs_folders_before_install var \
 		lib/sudo \
-		log/sudo l\
+		log/sudo \
 		log/sudo/io
 	
 	setuid_binaries bin sudo sudoedit
@@ -19,6 +19,7 @@ version 1.8.8
 
 function install_crosscompiler_sudo()
 {
+	set -x 
 	local -r zlibRelativeInstallPath="$(dependencyPath zlib)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
 		
