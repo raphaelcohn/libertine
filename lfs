@@ -692,7 +692,14 @@ function installPackages()
 	SECONDS=0
 	informationMessage "TASK: Phase $LFS_PHASE"
 	cp $makeFile /tmp/Makefile
-		if ! make -j 4 -l $LFS_MAKE_LOAD_AVERAGE -r -R -f "$makeFile" all 2>/dev/null; then
+		
+		if [ "$LFS_BASH_DEBUGGING" = "yes" ]; then
+			local -r logFile="$LFS_DEPENDENCY_LOG_ERR"
+		else
+			local -r logFile=/dev/null
+		fi
+		
+		if ! make -j 4 -l $LFS_MAKE_LOAD_AVERAGE -r -R -f "$makeFile" all 2>>"$logFile"; then
 			informationMessage "FAIL: Phase $LFS_PHASE"
 			exit 1
 		fi
