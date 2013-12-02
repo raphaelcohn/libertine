@@ -6,13 +6,11 @@ version 0
 {
 	depends make
 	depends m4
-	depends file
 	depends busybox-bin
 	depends busybox-sbin
 	depends busybox-suid
 	depends busybox-iputils
 	depends patchelf
-	depends oniguruma
 	depends bash
 	depends sudo
 }
