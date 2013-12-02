@@ -1161,6 +1161,15 @@ function dependencyPath()
 	done
 }
 
+function fixUpGnulib()
+{
+	pushdDependencyFolder
+	
+		../gnulib/gnulib-tool --add-import
+		
+	popdDependencyFolder
+}
+
 function fixUpAutoToolsConfig()
 {
 	if [ -d config ]; then
