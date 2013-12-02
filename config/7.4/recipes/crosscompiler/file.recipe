@@ -17,7 +17,7 @@ version 5.14
 		libmagic.a \
 		libmagic.la
 	
-	compile_resouces share \
+	compile_resources share \
 		man/man3
 	
 	install_binaries bin file
