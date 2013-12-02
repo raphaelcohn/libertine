@@ -91,6 +91,7 @@ function createInstallScriptForMakefile()
 		
 		SECONDS=0
 		informationMessage "TASK: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+		exec 2>&1
 		pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 			
 			createFhsFoldersBeforeInstallation
