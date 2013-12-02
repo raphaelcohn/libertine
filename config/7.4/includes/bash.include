@@ -23,7 +23,7 @@ function installPackage_system_bash_patches()
 	
 	local -i patchIndex
 	local patchNumber
-	for patchIndex in {1..$maximumPatch}
+	for ((patchIndex=1;patchIndex<=maximumPath;++patchIndex))
 	do
 		if [ ${#patchIndex} -eq 1 ]; then
 			local patchNumber="00${patchIndex}"
