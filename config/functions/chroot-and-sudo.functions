@@ -153,12 +153,12 @@ function continueInstallUnderSudo()
 			crosscompiler)
 				LFS_PHASE=crosscompiler prepareZzzLfsPath
 				prepareMuslCrossPath
-				export PATH="$LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS"
+				export PATH="$LFS_DEPENDENCY_BINPATH_PATH_MUSL_CROSS":"$PATH"
 			;;
 						
 			toolchain2)
 				LFS_PHASE=crosscompiler prepareZzzLfsPath
-				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$PATH"
 				LFS_PHASE=toolchain2 prepareZzzLfsPath
 				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$ourPath"
 				export PATH="$ourPath"
@@ -166,7 +166,7 @@ function continueInstallUnderSudo()
 					
 			system)
 				LFS_PHASE=crosscompiler prepareZzzLfsPath
-				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ"
+				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$PATH"
 				LFS_PHASE=toolchain2 prepareZzzLfsPath
 				ourPath="$LFS_DEPENDENCY_BINPATH_PATH_ZZZ":"$ourPath"
 				LFS_PHASE=system prepareZzzLfsPath
