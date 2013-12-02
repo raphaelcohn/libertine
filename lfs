@@ -699,7 +699,7 @@ function installPackages()
 			local -r logFile=/dev/null
 		fi
 		
-		if ! make -j 4 -l $LFS_MAKE_LOAD_AVERAGE -r -R -f "$makeFile" all 2>>"$logFile"; then
+		if ! make -j 4 -l $LFS_MAKE_LOAD_AVERAGE -r -R -f "$makeFile" all; then
 			informationMessage "FAIL: Phase $LFS_PHASE"
 			exit 1
 		fi
