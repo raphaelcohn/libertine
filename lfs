@@ -447,7 +447,7 @@ function patchPackageSources()
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="FAIL: Installing phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
+		INSTALLATION_FAILED_MESSAGE="FAIL: Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
