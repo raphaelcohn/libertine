@@ -9,10 +9,12 @@ version 1.4.16
 
 function install_crosscompiler_m4()
 {
+	local -r gnulibVersion="${LFS_DEPENDENCY_INCLUDE_VERSIONS[gnulib]}"
+	
 	pushdDependencyFolder
 	
 		mv lib lib.orig
-		mv ../gnulib-"${settings_string[LFS_AUTOTOOLS_GNULIB_VERSION]}" lib
+		mv ../gnulib-"$gnulibVersion" lib
 	
 		#cp lib/stdio.in.h lib/stdio.in.h.orig
 		#sed -i -e '/gets is a/d' lib/stdio.in.h
