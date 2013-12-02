@@ -19,6 +19,7 @@ version 1.8.8
 
 function install_crosscompiler_sudo()
 {
+	echo "HELLO"
 	set -x 
 	local -r zlibRelativeInstallPath="$(dependencyPath zlib)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
