@@ -278,7 +278,7 @@ function setPaths()
 	lfsConfigPath="$(pwd)"
 	popd >/dev/null
 	
-	readonly functionsPath="$distributionConfigPath"/functions
+	readonly functionsPath="$lfsConfigPath"/functions
 	if [ ! -d "$functionsPath" ]; then
 		exitError "functions path $functionsPath does not exist or is not a directory"
 	fi
