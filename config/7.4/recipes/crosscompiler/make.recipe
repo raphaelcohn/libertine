@@ -4,6 +4,10 @@ version 3.82
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+
+	strip_unneeded bin make
+	
+	install_binaries bin make
 }
 
 function install_crosscompiler_make()

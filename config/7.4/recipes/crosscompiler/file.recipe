@@ -4,9 +4,37 @@ version 5.14
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+
+	strip_unneeded bin file
+	
+	strip_unneeded lib \
+		libmagic.a \
+		libmagic.so
+	
+	compile_resources . include
+	
+	compile_resources lib \
+		libmagic.a \
+		libmagic.la
+	
+	compile_resouces share \
+		man/man3
+	
+	install_binaries bin file
+	
+	#share/misc/magic.mgc
 }
 
 function install_crosscompiler_file()
 {
-	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty
+	buildUsingAutotoolsExternal callback_empty \
+		--disable-silent-rules \
+		--enable-fsect-man5 \
+		--disable-dependency-tracking \
+		--enable-static \
+		--enable-shared \
+		--enable-fast-install \
+		--disable-warnings \
+		--with-pic \
+		--with-gnu-ld
 }

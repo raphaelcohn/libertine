@@ -54,8 +54,6 @@ function recordHashes()
 	local fileObject
 	find "$topLevelFolder" -print0 | LC_ALL=C sort -k 1 -z | while IFS= read -r -d $'\0' fileObject
 	do
-		echo "$fileObject"
-		
 		# symlinks first as all other tests cause de-referencing of symlinks
 		if [ -h "$fileObject" ]; then
 			recordHashSymlink

@@ -503,8 +503,6 @@ function lockDownPermissions()
 				# Bizarrely, +a prevents chown / chmod working, but not +i (immutable) (hence removal above)
 				# We strip all regular permissions, including write, sticky, suid, guid and execute; these MUST be restored by exception
 				if [ -x "$topLevelFolder" ]; then
-					echo "Removing execute permissions from $topLevelFolder"
-				
 					# Strip unneeded symbols (don't bother if errors)
 					chmod 0666 "$topLevelFolder"
 					strip --strip-unneeded "$topLevelFolder" 1>/dev/null 2>/dev/null || true
@@ -548,7 +546,6 @@ function lockDownPermissions()
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid); these must be restored by exception
 				find "$topLevelFolder" -type d -print0 | xargs -0 -r -n 10 chmod 0555
-				find "$topLevelFolder" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
 				find "$topLevelFolder" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise
@@ -800,10 +797,7 @@ function lockDownPackage()
 				# Note, we leave c, compression, alone
 				# Note, we leave C (disable copy-on-write for BTRFS), alone
 				chattr -djsStuai "$file"
-
-				if [ -x "$topLevelFolder" ]; then
-					echo "Removing execute permissions from $topLevelFolder"
-				fi
+				
 				chmod 0444 "$file"
 				
 				# A - atime not recorded
@@ -832,7 +826,6 @@ function lockDownPackage()
 				
 				# We strip all dangerous permissions (Sticky bit, set suid, set guid)
 				find "$file" -type d -print0 | xargs -0 -r -n 10 chmod 0555
-				find "$file" -type f -perm -0111 -print0 | xargs -0 -r -n 1 echo "Removing execute permissions from"
 				find "$file" -type f -print0 | xargs -0 -r -n 10 chmod 0444
 				
 				# block, char, named pipe, socket likewise
