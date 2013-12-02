@@ -94,6 +94,7 @@ function package_crosscompiler_busybox_build()
 		PATH="$PATH" \
 		make \
 			--jobs $LFS_MAKE_JOBS \
+			--load-average $LFS_MAKE_LOAD_AVERAGE \
 			--debug \
 			--print-directory \
 			V=2 \
@@ -144,6 +145,7 @@ function package_crosscompiler_busybox_build()
 		PATH="$PATH" \
 		make \
 			--jobs $LFS_MAKE_JOBS \
+			--load-average $LFS_MAKE_LOAD_AVERAGE \
 			--debug \
 			--print-directory \
 			V=2 \

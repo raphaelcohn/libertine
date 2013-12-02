@@ -1237,6 +1237,7 @@ function autotoolsConfiguredMakeWrapper()
 	PATH="$PATH" \
 	make \
 		--jobs $LFS_MAKE_JOBS \
+		--load-average $LFS_MAKE_LOAD_AVERAGE \
 		--debug \
 		--print-directory \
 		V=1 \
@@ -1249,6 +1250,7 @@ function buildUsingMakeExternal()
 	PATH="$PATH" \
 	make \
 		--jobs $LFS_MAKE_JOBS \
+		--load-average $LFS_MAKE_LOAD_AVERAGE \
 		--debug \
 		--print-directory \
 		V=1 \

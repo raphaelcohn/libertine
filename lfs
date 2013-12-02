@@ -297,20 +297,10 @@ function setPaths()
 	
 	includeMachineSettings
 	
-	
-	
-	
-	
-	
 	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
 	if [ ! -d "$distributionConfigPath" ]; then
 		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
 	fi
-	
-	
-	
-	
-	
 	
 	readonly certificateAuthoritiesPath="$lfsConfigPath"/certificate-authorities
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
@@ -702,7 +692,7 @@ function installPackages()
 	SECONDS=0
 	informationMessage "TASK: Phase $LFS_PHASE"
 	cp $makeFile /tmp/Makefile
-		if ! make -j $LFS_MAKE_JOBS -r -R -f "$makeFile" all 2>/dev/null; then
+		if ! make -j $LFS_MAKE_JOBS -l $LFS_MAKE_LOAD_AVERAGE -r -R -f "$makeFile" all 2>/dev/null; then
 			informationMessage "FAIL: Phase $LFS_PHASE"
 			exit 1
 		fi
