@@ -105,8 +105,6 @@ function doInclude()
 {
 	includeMirrors
 	
-	includeMachineSettings
-	
 	setArchitectures
 	setCFlags
 	

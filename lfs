@@ -295,6 +295,8 @@ function setPaths()
 		exitError "machines path $machinesPath does not exist or is not a directory"
 	fi
 	
+	includeMachineSettings
+	
 	
 	
 	
