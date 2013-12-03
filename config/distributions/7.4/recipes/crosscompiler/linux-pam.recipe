@@ -2,10 +2,14 @@ set -o errexit +o hashall
 
 version 1.1.8
 {
-	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+	depends musl-cross
+	depends selinux
 	
 	setuid_binaries sbin unix_chkpwd
+	
+	# todo: strip, compiler resources, etc
+	
 	install_system_binaries sbin unix_chkpwd
 }
 
@@ -13,19 +17,19 @@ function install_crosscompiler_linux-pam()
 {
 	# pkgconfig, libprelude?
 	buildUsingAutotoolsExternal callback_empty \
-		--disable-shared \
+		--enable-shared \
 		--enable-static \
 		--disable-dependency-tracking \
 		--enable-static-modules \
-		--disable-pie \
+		--enable-pie \
 		--disable-prelude \
 		--enable-pamlocking \
 		--enable-read-both-confs \
 		--disable-db \
 		--disable-nis \
-			--disable-selinux \
+			--enable-selinux \
 		--disable-regenerate-docu \
-			--without-pic \
+			--with -pic \
 		--with-gnu-ld \
 		--without-mailspool \
 		--without-xauth \

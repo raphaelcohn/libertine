@@ -1,0 +1,6 @@
+set -o errexit +o hashall
+
+setting_string SUDO_MAIL_TO "admin@stormmq.com"
+setting_string SUDO_MAIL_SUBJECT "*** SECURITY information for %h ***"
+setting_string SUDO_PASSWORD_PROMPT "Password:"
+setting_string SUDO_BAD_PASSWORD_MESSAGE "Sorry, try again."

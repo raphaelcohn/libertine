@@ -4,6 +4,7 @@ version 1.8.8
 {
 	depends musl-cross
 	depends zlib
+	depends linux-pam
 	depends selinux
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
@@ -22,61 +23,76 @@ function install_crosscompiler_sudo()
 	local -r zlibRelativeInstallPath="$(dependencyPath zlib)"/install
 	local -r zlibAbsoluteInstallPath="${LFS}${zlibRelativeInstallPath}"
 		
-	#krb5
-	#OPIE
-	#PAM
-	#S/KEY
+	local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
+	local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 	
-	# Do we want to use sendmail?
+	local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
+	local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
+	
+	local -r busyboxBinRelativeInstallPath="$(dependencyPath busybox-bin)"/install
+	local -r busyboxBinAbsoluteInstallPath="${LFS}${busyboxBinRelativeInstallPath}"
+
+	local -r securePath="$(
+		LFS_PHASE=system prepareZzzLfsPath
+		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/sbinpath
+		echo ":"
+		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/binpath
+	)"
+	
+	# NOTE: OPIE, S/Key and SecurID are not supported; these are effectively legacy technologies now that HOTP / TOTP (OATH) exist
+	# TODO: Consider supporting Kerberos5
+	# TODO: Support PAM
 	
 	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
---enable-zlib="$zlibAbsoluteInstallPath" \
---with-incpath=DIR \
---with-libpath=DIR \
---with-libraries=LIBRARY \
---with-opie=DIR \
---with-SecurID=DIR \
---with-skey=DIR \
---with-editor=[PATH TO VI]:[PATH TO ED] \
-		--with-secure-path[=PATH]
-		--with-sendmail=no
---with-timedir=/var/lib/sudo \
---enable-pie \
---disable-shared \
---disable-root-mailer \
---disable-nls \
---with-selinux \
---disable-admin-flag \
---with-linux-audit \
---with-man \
---with-netsvc=no \
---with-nsswitch=no \
---without-AFS \
---with-pam \
---enable-shadow \
---disable-sia \
---enable-gss-krb5-ccache-name \
---disable-path-info \
---enable-noargs-shell \
---with-badpri=warning \
---with-goodpri=info \
---with-ignore-dot \
---with-iologdir=/var/log/sudo/io \
---without-lecture \
---with-logfac=authpriv \
---with-logging=syslog \
---with-logpath=/var/log/sudo/sudo.log \
---with-long-otp-prompt \
---without-mail-if-no-user \
---without-mail-if-no-host \
---without-mail-if-noperms \
---with-mailto="admin@stormmq.com" \
---with-password-timeout=0 \
---with-passwd-tries=3 \
---with-sudoers-mode=0440
---with-sudoers-uid=0 \
---with-sudoers-gid=0 \
---with-timeout=5 \
---without-tty-tickets \
---with-umask=0022
+		--enable-pie \
+		--disable-shared \
+		--disable-rpath \
+		--with-selinux \
+		--with-pam \
+		--with-incpath="$selinuxAbsoluteInstallPath/usr/include $prceAbsoluteInstallPath/include" \
+		--with-libpath="$selinuxAbsoluteInstallPath/usr/lib $prceAbsoluteInstallPath/lib" \
+		--with-libraries="selinux sepol pcre" \
+		--enable-zlib="$zlibAbsoluteInstallPath" \
+		--with-editor="$busyboxBinRelativeInstallPath"/vi:"$busyboxBinRelativeInstallPath"/ed \
+		--with-secure-path="$securePath" \
+		--with-sendmail="$busyboxBinRelativeInstallPath"/sendmail \
+		--with-mail-if-no-user \
+		--with-mail-if-no-host \
+		--with-mail-if-noperms \
+		--disable-root-mailer \
+		--with-mailto="${settings_string[SUDO_MAIL_TO]}" \
+		--with-mailsubject="${settings_string[SUDO_MAIL_SUBJECT]}" \
+		--with-iologdir=/var/log/sudo/io \
+		--with-logpath=/var/log/sudo/sudo.log \
+		--with-timedir=/var/lib/sudo \
+		--with-loglen=0 \
+		--with-passprompt="${settings_string[SUDO_PASSWORD_PROMPT]}"
+		--with-badpass-message="${settings_string[SUDO_BAD_PASSWORD_MESSAGE]}" \
+		--disable-nls \
+		--disable-admin-flag \
+		--with-linux-audit \
+		--with-man \
+		--with-netsvc=no \
+		--with-nsswitch=no \
+		--without-AFS \
+		--enable-shadow \
+		--disable-sia \
+		--enable-gss-krb5-ccache-name \
+		--disable-path-info \
+		--enable-noargs-shell \
+		--with-badpri=warning \
+		--with-goodpri=info \
+		--with-ignore-dot \
+		--without-lecture \
+		--with-logfac=authpriv \
+		--with-logging=syslog \
+		--with-long-otp-prompt \
+		--with-password-timeout=0 \
+		--with-passwd-tries=3 \
+		--with-sudoers-mode=0440
+		--with-sudoers-uid=0 \
+		--with-sudoers-gid=0 \
+		--with-timeout=5 \
+		--without-tty-tickets \
+		--with-umask=0022
 }
