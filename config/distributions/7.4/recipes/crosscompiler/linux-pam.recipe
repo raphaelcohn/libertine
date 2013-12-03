@@ -38,7 +38,7 @@ function install_crosscompiler_linux-pam()
 	# SELinux detection in configure fails because it looks in the current sysroot
 	# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
 	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"')
-	buildUsingAutotoolsExternal callback_empty \
+	buildUsingAutotoolsExternal package_crosscompiler_linux-pam_fixMakefileNisLibs \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
 		--enable-static \
