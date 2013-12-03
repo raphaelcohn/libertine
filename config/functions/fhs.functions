@@ -101,10 +101,36 @@ function installEssentialFolderStructure()
 		done
 	
 	# /var defaults
-		# srv is our own invention
-		for item in account cache crash games home lib local log mail opt spool srv yp
+		# home and srv  our own invention
+		# mail is not created, seems to be a Debian-ism
+		for item in account cache crash games home lib local log opt spool srv yp
 		do
 			folder="$LFS"/var/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 0755 "$folder"
+			else
+				mkdir -m 0755 -p "$folder"
+			fi
+		done
+		
+		# /var/lib
+		for item in misc
+		do
+			folder="$LFS"/var/lib/"$item"
+			if [ -d "$folder" ]; then
+				chown 0:0 "$folder"
+				chmod 0755 "$folder"
+			else
+				mkdir -m 0755 -p "$folder"
+			fi
+		done
+		
+		# /var/spool
+		# We do not create: lpd uucp news rwho mqueue  as these seem to be pretty specific to certain applications
+		for item in cron mail
+		do
+			folder="$LFS"/var/spool/"$item"
 			if [ -d "$folder" ]; then
 				chown 0:0 "$folder"
 				chmod 0755 "$folder"
@@ -121,6 +147,12 @@ function installEssentialFolderStructure()
 		folder="$LFS"/var/lock
 		if [ ! -L "$folder" ]; then
 			ln -s ../run/lock "$folder"
+		fi
+
+		# Not sure if this is a Debian invention, but we symlink it to /var/spool/mail (the opposite way round to Debian)
+		folder="$LFS"/var/mail
+		if [ ! -L "$folder" ]; then
+			ln -s spool/mail "$folder"
 		fi
 	
 	# /home /srv

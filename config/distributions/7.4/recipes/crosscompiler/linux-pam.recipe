@@ -15,23 +15,32 @@ version 1.1.8
 
 function install_crosscompiler_linux-pam()
 {
-	# pkgconfig, libprelude?
+	local -r muslCrossRelativeInstallPath="$(dependencyPath musl-cross)"/install
+	local -r muslCrossAbsoluteInstallPath="${LFS}${muslCrossRelativeInstallPath}"
+	
+	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
+	
 	buildUsingAutotoolsExternal callback_empty \
+		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
 		--enable-static \
 		--disable-dependency-tracking \
 		--enable-static-modules \
 		--enable-pie \
+		--disable-nls \
+		--disable-rpath \
 		--disable-prelude \
 		--enable-pamlocking \
 		--enable-read-both-confs \
+		--enable-cracklib \
+		--enable-audit \
 		--disable-db \
 		--disable-nis \
-			--enable-selinux \
+		--enable-selinux \
 		--disable-regenerate-docu \
-			--with -pic \
+		--with-pic \
 		--with-gnu-ld \
-		--without-mailspool \
+		--with-mailspool=/var/spool/mail \
 		--without-xauth \
 	    --without-xml-catalog \
 		--without-libiconv-prefix \
