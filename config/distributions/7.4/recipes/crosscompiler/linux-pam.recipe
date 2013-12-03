@@ -26,6 +26,28 @@ function install_crosscompiler_linux-pam()
 	#  This is wrong:  allow_undefined_flag=""
 	#  This is wrong:  no_undefined_flag=""
 	
+	# Linux PAM does not respect the configure-time non-detection of innetgr!
+	function patchWithMissingDummyInnetgr()
+	{
+		local fileToPatch
+		for fileToPatch in "$@"
+		do
+			mv "$fileToPatch" "$fileToPatch".orig
+		
+			cat >"$fileToPatch" <<-EOF
+				static int innetgr (const char *netgroup, const char *host, const char *user, const char *domain)
+				{
+				    return 0
+				}
+			
+			EOF
+		
+			cat "$fileToPatch".orig >>"$fileToPatch"
+		done
+	}
+	
+	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
+	
 	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
 	{
 		cp libtool libtool.orig
