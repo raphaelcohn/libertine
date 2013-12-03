@@ -38,7 +38,7 @@ function install_crosscompiler_linux-pam()
 				cat >"$fileToPatch" <<-EOF
 					static int innetgr (const char *netgroup, const char *host, const char *user, const char *domain)
 					{
-					    return 0
+					    return 0;
 					}
 			
 				EOF
