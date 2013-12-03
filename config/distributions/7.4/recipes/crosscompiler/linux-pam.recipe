@@ -20,16 +20,11 @@ function install_crosscompiler_linux-pam()
 	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 	
-	# LDFLAGS =  -Wl,--as-needed -Wl,--no-undefined -Wl,-O1
-	
 	# Generated libtool is a bit incomplete
 	#  uses rpath but not rpath-link
 	#  sys_lib_dlsearch_path_spec is to pot (it is currently sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa /lib32 /usr/lib32 ")
 	#  This is wrong:  allow_undefined_flag=""
 	#  This is wrong:  no_undefined_flag=""
-	#  
-	
-	#  -Wl,-rpath -Wl,/opt/lfs/7.4/crosscompiler/linux-pam/1.1.8/68cf2aef1a66535bf015b0b0946686ff65a24d3f6ceccbbffb7b42828b2dd516-0-2ef73eb0b16b7c4bae5e324b40dcb277213d0df4e9302b29a36ddf90d353c7f4/install/lib
 	
 	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
 	{
@@ -38,11 +33,22 @@ function install_crosscompiler_linux-pam()
 		
 		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 		
+		# autoconf really is pathetic
+		local makefile
+		find . -name 'Makefile' -print0 | while IFS= read -r -d'$\0' makefile
+		do
+			# SELinux detection in configure fails because it looks in the current sysroot
+			# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
+			# LIBCRYPT is incorrectly set to -l in some places
+			cp Makefile Makefile.orig
+			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' Makefile
+			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' Makefile
+		done
+		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
 		# As this variable is empty, it causes make to fail...
 		pushd libpam >/dev/null
-		
-			cp Makefile Makefile.orig
+			
 			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
 		
 		popd >/dev/null
@@ -50,10 +56,6 @@ function install_crosscompiler_linux-pam()
 	
 	##--enable-cracklib \
 
-	# SELinux detection in configure fails because it looks in the current sysroot
-	# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
-	# LIBCRYPT is incorrectly set to -l in some places
-	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"' 'LIBCRYPT=""' 'LDFLAGS="-Wl,-O1"')
 	buildUsingAutotoolsExternal package_crosscompiler_linux-pam_fixMakefileNisLibs \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \

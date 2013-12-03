@@ -1320,8 +1320,7 @@ function buildUsingAutotoolsExternal()
 		
 		$callback
 		
-		autotoolsConfiguredMakeWrapper "${makeVariablesForAll[@]}"
-		unset makeVariablesForAll
+		autotoolsConfiguredMakeWrapper
 	
 		if [ -z "$LFS" ]; then
 			autotoolsConfiguredMakeWrapper install
