@@ -36,7 +36,7 @@ function install_crosscompiler_linux-pam()
 		cp libtool libtool.orig
 		local -r replacement='hardcode_libdir_flag_spec="-Wl,-rpath=\\$libdir -Wl,-rpath-link='${LFS}'/\\$libdir"'
 		
-		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'${replacement}';g' libtool
+		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
 		# As this variable is empty, it causes make to fail...
