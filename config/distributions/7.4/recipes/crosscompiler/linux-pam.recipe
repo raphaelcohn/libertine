@@ -20,8 +20,7 @@ function install_crosscompiler_linux-pam()
 	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 	
-	# NIS_LIBS is still used, even though --configure disables it
-	# As a result, 
+	# LDFLAGS =  -Wl,--as-needed -Wl,--no-undefined -Wl,-O1
 	
 	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
 	{
@@ -37,7 +36,8 @@ function install_crosscompiler_linux-pam()
 
 	# SELinux detection in configure fails because it looks in the current sysroot
 	# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
-	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"')
+	# LIBCRYPT is incorrectly set to -l in some places
+	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"' 'LIBCRYPT=""' 'LDFLAGS="-Wl,-O1"')
 	buildUsingAutotoolsExternal package_crosscompiler_linux-pam_fixMakefileNisLibs \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
