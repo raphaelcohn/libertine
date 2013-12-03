@@ -29,21 +29,23 @@ function install_crosscompiler_linux-pam()
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
 	function patchWithMissingDummyInnetgr()
 	{
-		local fileToPatch
-		for fileToPatch in "$@"
-		do
-			mv "$fileToPatch" "$fileToPatch".orig
+		pushd linux-pam >/dev/null
+			local fileToPatch
+			for fileToPatch in "$@"
+			do
+				mv "$fileToPatch" "$fileToPatch".orig
 		
-			cat >"$fileToPatch" <<-EOF
-				static int innetgr (const char *netgroup, const char *host, const char *user, const char *domain)
-				{
-				    return 0
-				}
+				cat >"$fileToPatch" <<-EOF
+					static int innetgr (const char *netgroup, const char *host, const char *user, const char *domain)
+					{
+					    return 0
+					}
 			
-			EOF
+				EOF
 		
-			cat "$fileToPatch".orig >>"$fileToPatch"
-		done
+				cat "$fileToPatch".orig >>"$fileToPatch"
+			done
+		popd >/dev/null
 	}
 	
 	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
