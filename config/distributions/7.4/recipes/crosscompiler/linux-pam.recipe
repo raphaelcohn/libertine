@@ -20,6 +20,24 @@ function install_crosscompiler_linux-pam()
 	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 	
+	# NIS_LIBS is still used, even though --configure disables it
+	# As a result, 
+	
+	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
+	{
+		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
+		# As this variable is empty, it causes make to fail...
+		pushd libpam >/dev/null
+		
+			cp Makefile Makefile.orig
+			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
+		
+		popd >/dev/null
+	}
+
+	# SELinux detection in configure fails because it looks in the current sysroot
+	# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
+	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"')
 	buildUsingAutotoolsExternal callback_empty \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
