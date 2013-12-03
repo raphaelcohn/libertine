@@ -34,7 +34,7 @@ function install_crosscompiler_linux-pam()
 	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
 	{
 		cp libtool libtool.orig
-		local -r replacement='hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir \${wl}-rpath-link \${wl}'${LFS}'/\$libdir'
+		local -r replacement='hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir \\${wl}-rpath-link \\${wl}'${LFS}'/\$libdir'
 		
 		sed -i -e 's/hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir"/'${replacement}'/g' libtool
 		
