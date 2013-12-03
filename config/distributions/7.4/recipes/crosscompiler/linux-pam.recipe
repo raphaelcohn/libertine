@@ -22,8 +22,22 @@ function install_crosscompiler_linux-pam()
 	
 	# LDFLAGS =  -Wl,--as-needed -Wl,--no-undefined -Wl,-O1
 	
+	# Generated libtool is a bit incomplete
+	#  uses rpath but not rpath-link
+	#  sys_lib_dlsearch_path_spec is to pot (it is currently sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa /lib32 /usr/lib32 ")
+	#  This is wrong:  allow_undefined_flag=""
+	#  This is wrong:  no_undefined_flag=""
+	#  
+	
+	#  -Wl,-rpath -Wl,/opt/lfs/7.4/crosscompiler/linux-pam/1.1.8/68cf2aef1a66535bf015b0b0946686ff65a24d3f6ceccbbffb7b42828b2dd516-0-2ef73eb0b16b7c4bae5e324b40dcb277213d0df4e9302b29a36ddf90d353c7f4/install/lib
+	
 	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
 	{
+		cp libtool libtool.orig
+		local -r replacement='hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir \${wl}-rpath-link \${wl}'${LFS}'/\$libdir'
+		
+		sed -i -e 's/hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir"/'${replacement}'/g' libtool
+		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
 		# As this variable is empty, it causes make to fail...
 		pushd libpam >/dev/null
@@ -33,6 +47,8 @@ function install_crosscompiler_linux-pam()
 		
 		popd >/dev/null
 	}
+	
+	##--enable-cracklib \
 
 	# SELinux detection in configure fails because it looks in the current sysroot
 	# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
@@ -42,15 +58,14 @@ function install_crosscompiler_linux-pam()
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
 		--enable-static \
+		--disable-static-modules \
 		--disable-dependency-tracking \
-		--enable-static-modules \
 		--enable-pie \
 		--disable-nls \
 		--disable-rpath \
 		--disable-prelude \
 		--enable-pamlocking \
 		--enable-read-both-confs \
-		--enable-cracklib \
 		--enable-audit \
 		--disable-db \
 		--disable-nis \
