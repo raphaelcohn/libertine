@@ -55,6 +55,7 @@ function install_crosscompiler_linux-pam()
 	# LIBCRYPT is incorrectly set to -l in some places
 	declare -a makeVariablesForAll=('LIBSELINUX=" -lselinux -lsepol -lpcre"' 'LIBCRYPT=""' 'LDFLAGS="-Wl,-O1"')
 	buildUsingAutotoolsExternal package_crosscompiler_linux-pam_fixMakefileNisLibs \
+		--disable-werror \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
 		--enable-static \
