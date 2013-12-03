@@ -345,6 +345,22 @@ function install_crosscompiler_musl-cross()
 	
 	popd >/dev/null
 	
+	# Fix correct UTMP, BTMP, WTMP AND LASTLOG paths
+	pushd musl/include >/dev/null
+		
+		# See glibc's paths.h
+		cp utmp.h utmp.h.orig
+		sed -i -e 's;^#define _PATH_UTMP "/dev/null/utmp"$;#define _PATH_UTMP "/var/run/utmp";g' utmp.h
+		sed -i -e 's;^#define _PATH_WTMP "/dev/null/utmp"$;#define _PATH_WTMP "/var/log/wtmp"\n#define _PATH_BTMP "/var/log/btmp"\n#define _PATH_LASTLOG "/var/log/lastlog";g' utmp.h
+		sed -i -e 's;^#define WTMP_FILE _PATH_WTMP$;#define WTMP_FILE _PATH_WTMP\n#define BTMP_FILE _PATH_BTMP\n#define LASTLOG_FILE _PATH_LASTLOG;g' utmp.h
+		sed -i -e 's;^#define WTMP_FILENAME _PATH_WTMP$;#define WTMP_FILENAME _PATH_WTMP\n#define BTMP_FILENAME _PATH_BTMP\n#define LASTLOG_FILENAME _PATH_LASTLOG;g' utmp.h
+		
+	popd >/dev/null
+	
+
+	sed -i -e "s;/lib:/usr/local/lib:/usr/lib;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib;g" dynlink.c
+	
+	
 	pushd "$LFS_DEPENDENCY_NAME" >/dev/null
 			
 		# No longer create reverse symlinks
