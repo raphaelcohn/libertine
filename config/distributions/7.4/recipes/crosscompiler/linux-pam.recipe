@@ -138,14 +138,8 @@ function install_crosscompiler_linux-pam()
 			
 		done < <(find . -name 'Makefile' -print0)
 		
-		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
-		# As this variable is empty, it causes make to fail...
-		pushd libpam >/dev/null
-			
-			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
-			
-			pushd modules/pam_unix >/dev/null
-			
+		pushd modules/pam_unix >/dev/null
+		
 			# -l problem in pam_unix
 			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile
 			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile.in
@@ -153,8 +147,14 @@ function install_crosscompiler_linux-pam()
 			sed -i -e 's/^unix_chkpwd_LDADD =.*$/unix_chkpwd_LDADD =/g' Makefile.in
 			sed -i -e 's/^unix_update_LDADD =.*$/unix_update_LDADD =/g' Makefile
 			sed -i -e 's/^unix_update_LDADD =.*$/unix_update_LDADD =/g' Makefile.in
+		
+		popd >/dev/null
+		
+		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
+		# As this variable is empty, it causes make to fail...
+		pushd libpam >/dev/null
 			
-			popd >/dev/null
+			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
 		
 		popd >/dev/null
 		
