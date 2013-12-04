@@ -160,11 +160,10 @@ function install_crosscompiler_linux-pam()
 		pushd modules/pam_unix >/dev/null
 			
 			sed -i -e 's/-l $(NIS_LIBS)//g' Makefile
-			sed -i -e 's/^NIS_LIBS = @NIS_LIBS@.*$/NIS_LIBS = c/g' Makefile.in
+			sed -i -e 's/^NIS_LIBS = @NIS_LIBS@.*$/NIS_LIBS = crypt/g' Makefile.in
 		
 		popd >/dev/null
-			
-				
+		
 		# May have been removed
 		if [ -d modules/pam_pwhistory ]; then
 			
