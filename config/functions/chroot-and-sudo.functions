@@ -146,8 +146,6 @@ function continueInstallUnderSudo()
 		setDebugging
 		initialiseTraps
 		
-		set -x
-		
 		case "$LFS_PHASE" in
 			
 			crosscompiler)
@@ -175,6 +173,8 @@ function continueInstallUnderSudo()
 			;;
 			
 		esac
+		
+		set -x
 	EOF
 	cat >>"$continutationBinaryForSudo" <<-EOF
 		$functionToExecute
