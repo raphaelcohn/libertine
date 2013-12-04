@@ -123,13 +123,12 @@ function install_crosscompiler_linux-pam()
 			# SELinux detection in configure fails because it looks in the current sysroot
 			# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
 			# LIBCRYPT is incorrectly set to -l in some places
-			cp Makefile Makefile.orig
+			cp "$makefile" "$makefile".orig
 			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile"
 			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile"
+			cp "$makefile" "$makefile".patched
+			
 		done < <(find . -name 'Makefile' -print0)
-		
-		echo "Check pam_unix Makefile"
-		exit 50
 		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
 		# As this variable is empty, it causes make to fail...
