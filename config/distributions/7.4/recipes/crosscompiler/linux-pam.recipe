@@ -38,7 +38,8 @@ function install_crosscompiler_linux-pam()
 	#  debug (unnecessary)
 	function removeModules()
 	{
-		local -r module=pam_"$1"
+		local -r moduleName="$1"
+		local -r module=pam_"$moduleName"
 		
 		pushd linux-pam/modules >/dev/null
 			
@@ -47,12 +48,12 @@ function install_crosscompiler_linux-pam()
 			if [ ! -f Makefile.in.orig ]; then
 				cp Makefile.in Makefile.in.orig
 			fi
-			sed -e -i "s/$module //g" Makefile.in
+			sed -e -i "s/pam\_${moduleName} //g" Makefile.in
 			
 			if [ ! -f Makefile.am.orig ]; then
 				cp Makefile.am Makefile.am.orig
 			fi
-			sed -e -i "s/$module //g" Makefile.am
+			sed -e -i "s/pam\_${moduleName} //g" Makefile.am
 			
 		popd >/dev/null
 			
