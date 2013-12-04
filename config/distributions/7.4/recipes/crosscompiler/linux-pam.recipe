@@ -41,20 +41,30 @@ function install_crosscompiler_linux-pam()
 		local -r moduleName="$1"
 		local -r module=pam_"$moduleName"
 		
-		pushd linux-pam/modules >/dev/null
+		pushd linux-pam >/dev/null
 			
-			rm -r "$module"
-			
-			if [ ! -f Makefile.in.orig ]; then
-				cp Makefile.in Makefile.in.orig
+			if [ ! -f configure.orig ]; then
+				cp configure configure.orig
 			fi
-			sed -i -e "s/pam\_${moduleName} //g" Makefile.in
 			
-			if [ ! -f Makefile.am.orig ]; then
-				cp Makefile.am Makefile.am.orig
-			fi
-			sed -i -e "s/pam\_${moduleName} //g" Makefile.am
+			sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
+			sed -i -e 's;"modules/pam\_'"${moduleName}"'/Makefile") CONFIG;d' configure
+		
+			pushd modules >/dev/null
 			
+				rm -r "$module"
+			
+				if [ ! -f Makefile.in.orig ]; then
+					cp Makefile.in Makefile.in.orig
+				fi
+				sed -i -e "s/pam\_${moduleName} //g" Makefile.in
+			
+				if [ ! -f Makefile.am.orig ]; then
+					cp Makefile.am Makefile.am.orig
+				fi
+				sed -i -e "s/pam\_${moduleName} //g" Makefile.am
+			
+			popd >/dev/null
 		popd >/dev/null
 			
 	}
@@ -93,7 +103,7 @@ function install_crosscompiler_linux-pam()
 			done
 		popd >/dev/null
 	}
-	patchWithMissingDummyInnetgr group time pam_succeed_if
+	patchWithMissingDummyInnetgr group time succeed_if
 		
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
