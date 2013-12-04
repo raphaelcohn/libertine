@@ -82,7 +82,7 @@ function install_crosscompiler_linux-pam()
 			local fileToPatch
 			for moduleName in "$@"
 			do
-				module=pam_"$1"
+				module=pam_"$moduleName"
 				fileToPatch="$module"/"$module".c
 				
 				# True if we've removed the module above (eg pam_time)
