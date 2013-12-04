@@ -58,6 +58,7 @@ function install_crosscompiler_linux-pam()
 	
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
+		set -x
 		cp libtool libtool.orig
 		local -r replacement='hardcode_libdir_flag_spec="-Wl,-rpath=\\$libdir -Wl,-rpath-link='${LFS}'/\\$libdir"'
 		
@@ -82,6 +83,8 @@ function install_crosscompiler_linux-pam()
 			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
 		
 		popd >/dev/null
+		set +x
+		exit 50
 	}
 	
 	##--enable-cracklib \
