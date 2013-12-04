@@ -48,7 +48,7 @@ function install_crosscompiler_linux-pam()
 			fi
 			
 			sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
-			sed -i -e 's;"modules/pam\_'"${moduleName}"'/Makefile") CONFIG;d' configure
+			sed -i -e 's;"modules/pam\_'"${moduleName}"'/Makefile"\) CONFIG;d' configure
 		
 			pushd modules >/dev/null
 			
@@ -65,6 +65,7 @@ function install_crosscompiler_linux-pam()
 				sed -i -e "s/pam\_${moduleName} //g" Makefile.am
 			
 			popd >/dev/null
+			
 		popd >/dev/null
 			
 	}
