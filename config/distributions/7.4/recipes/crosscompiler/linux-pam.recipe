@@ -56,7 +56,7 @@ function install_crosscompiler_linux-pam()
 	
 	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
 	
-	function package_crosscompiler_linux-pam_fixMakefileNisLibs()
+	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
 		cp libtool libtool.orig
 		local -r replacement='hardcode_libdir_flag_spec="-Wl,-rpath=\\$libdir -Wl,-rpath-link='${LFS}'/\\$libdir"'
@@ -71,8 +71,8 @@ function install_crosscompiler_linux-pam()
 			# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
 			# LIBCRYPT is incorrectly set to -l in some places
 			cp Makefile Makefile.orig
-			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' Makefile
-			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' Makefile
+			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile"
+			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile"
 		done
 		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
@@ -86,7 +86,7 @@ function install_crosscompiler_linux-pam()
 	
 	##--enable-cracklib \
 
-	buildUsingAutotoolsExternal package_crosscompiler_linux-pam_fixMakefileNisLibs \
+	buildUsingAutotoolsExternal package_crosscompiler_linux_pam_fixMakefiles \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
 		--enable-static \
