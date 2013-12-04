@@ -64,6 +64,7 @@ function install_crosscompiler_linux-pam()
 		
 		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 		
+		echo $(pwd)
 		# autoconf really is pathetic
 		local makefile
 		find . -name 'Makefile' -print0 | while IFS= read -r -d'$\0' makefile
