@@ -128,11 +128,13 @@ function install_crosscompiler_linux-pam()
 			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile"
 			cp "$makefile" "$makefile".patched
 			
-			# Weirdly, pam_unix's Makefile seems to be recreated during the build
-			cp "$makefile".in "$makefile".in.orig
-			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile".in
-			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile".in
-			cp "$makefile" "$makefile".in.patched
+			if [ -f "$makefile".in ]; then
+				# Weirdly, pam_unix's Makefile seems to be recreated during the build
+				cp "$makefile".in "$makefile".in.orig
+				sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile".in
+				sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile".in
+				cp "$makefile" "$makefile".in.patched
+			fi
 			
 		done < <(find . -name 'Makefile' -print0)
 		
