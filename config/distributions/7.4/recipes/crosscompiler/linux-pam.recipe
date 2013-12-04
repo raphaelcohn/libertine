@@ -85,7 +85,7 @@ function install_crosscompiler_linux-pam()
 		popd >/dev/null
 		
 		# For some reason, there's a blank '-l' flag
-		pushd modules/pw_history >/dev/null
+		pushd modules/pam_pwhistory >/dev/null
 			
 			sed -i -e 's;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la -l;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la;g' Makefile
 		
