@@ -1,0 +1,21 @@
+
+sendemail()
+{
+	# No need to specify From:, as -f is mandatory
+	# BCC is deleted
+	cat <<-EOF
+		To: raphael.cohn@stormmq.com
+		Cc: sales@stormmq.com
+		Bcc: admin@stormmq.com
+		From: sender@stormmq.com
+		Reply-To: raphael.cohn
+		Subject: A Test Message
+		Hello this is a message
+		
+	EOF
+}
+
+# Needed for programs that use sendmail without busybox's extensions
+export SMTPHOST=mx.stormmq.com
+# uses fd 4 for user / pass credentials (is this a busybox thing)?
+sendemail | /var/tmp/lfs/simple/opt/lfs/7.4/crosscompiler/busybox-bin/current/current/binpath/sendmail -t -f 'sender@stormmq.com' 'raphael.cohn@stormmq.com'
