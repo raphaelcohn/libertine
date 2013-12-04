@@ -74,10 +74,9 @@ function install_crosscompiler_linux-pam()
 	
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
 	function patchWithMissingDummyInnetgr()
-	{
-		local -r 
-		
+	{	
 		pushd linux-pam/modules >/dev/null
+		
 			local moduleName
 			local module
 			local fileToPatch
@@ -87,7 +86,7 @@ function install_crosscompiler_linux-pam()
 				fileToPatch="$module"/"$module".c
 				
 				# True if we've removed the module above (eg pam_time)
-				if [ ! -f "$fileToPath" ]; then
+				if [ ! -f "$fileToPatch" ]; then
 					continue
 				fi
 				
@@ -103,6 +102,7 @@ function install_crosscompiler_linux-pam()
 		
 				cat "$fileToPatch".orig >>"$fileToPatch"
 			done
+			
 		popd >/dev/null
 	}
 	patchWithMissingDummyInnetgr group time succeed_if
