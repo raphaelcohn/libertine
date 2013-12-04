@@ -356,94 +356,95 @@ function install_crosscompiler_musl-cross()
 		#sed -i -e 's;^#define WTMP_FILENAME _PATH_WTMP$;#define WTMP_FILENAME _PATH_WTMP\n#define BTMP_FILENAME _PATH_BTMP\n#define LASTLOG_FILENAME _PATH_LASTLOG;g' include/utmp.h
 		
 		patch -Np1 <<-'EOF'
-			diff -N -u -r musl-0.9.14.orig/include/utmp.h musl-0.9.14/include/utmp.h
-			--- musl-0.9.14.orig/include/utmp.h	2013-09-23 22:01:11.000000000 +0100
-			+++ musl-0.9.14/include/utmp.h	2013-12-04 10:34:43.000000000 +0000
-			@@ -7,10 +7,6 @@
- 
-			 #include <utmpx.h>
- 
-			-#define ACCOUNTING 9
-			-#define UT_NAMESIZE 32
-			-#define UT_HOSTSIZE 256
-			-
-			 struct lastlog {
-			 	time_t ll_time;
-			 	char ll_line[UT_LINESIZE];
-			@@ -32,8 +28,11 @@
- 
-			 void updwtmp(const char *, const struct utmp *);
- 
-			-#define _PATH_UTMP "/dev/null/utmp"
-			-#define _PATH_WTMP "/dev/null/wtmp"
-			+void logwtmp(const char *, const char *, const char *);
-			+
-			+#define _PATH_UTMP "/var/run/utmp"
-			+#define _PATH_WTMP "/var/log/wtmp"
-			+#define _PATH_LASTLOG "/var/log/lastlog"
- 
-			 #define UTMP_FILE _PATH_UTMP
-			 #define WTMP_FILE _PATH_WTMP
-			diff -N -u -r musl-0.9.14.orig/include/utmpx.h musl-0.9.14/include/utmpx.h
-			--- musl-0.9.14.orig/include/utmpx.h	2013-09-23 22:01:11.000000000 +0100
-			+++ musl-0.9.14/include/utmpx.h	2013-12-04 10:32:20.000000000 +0000
-			@@ -13,6 +13,8 @@
-			 #include <bits/alltypes.h>
- 
-			 #define UT_LINESIZE 32
-			+#define UT_NAMESIZE 32
-			+#define UT_HOSTSIZE 256
- 
-			 struct utmpx
-			 {
-			@@ -20,8 +22,8 @@
-			 	pid_t ut_pid;
-			 	char ut_line[UT_LINESIZE];
-			 	char ut_id[4];
-			-	char ut_user[32];
-			-	char ut_host[256];
-			+	char ut_user[UT_NAMESIZE];
-			+	char ut_host[UT_HOSTSIZE];
-			 	struct {
-			 		short e_termination;
-			 		short e_exit;
-			@@ -50,6 +52,7 @@
-			 #define LOGIN_PROCESS   6
-			 #define USER_PROCESS    7
-			 #define DEAD_PROCESS    8
-			+#define ACCOUNTING      9
- 
-			 #ifdef __cplusplus
-			 }
-			diff -N -u -r musl-0.9.14.orig/src/legacy/utmp.c musl-0.9.14/src/legacy/utmp.c
-			--- musl-0.9.14.orig/src/legacy/utmp.c	1970-01-01 01:00:00.000000000 +0100
-			+++ musl-0.9.14/src/legacy/utmp.c	2013-12-04 10:52:55.000000000 +0000
-			@@ -0,0 +1,25 @@
-			+#include <utmp.h>
-			+#include <string.h>
-			+#include <sys/time.h>
-			+#include "libc.h"
-			+
-			+void logwtmp(const char * line, const char * name, const char * host)
-			+{
-			+	struct utmp u;
-			+	
-			+	memset(&u, 0, sizeof(u));
-			+	u.ut_pid = getpid();
-			+	u.ut_type = name[0] ? USER_PROCESS : DEAD_PROCESS;
-			+	strncpy(u.ut_line, line, sizeof(u.ut_line));
-			+	strncpy(u.ut_name, name, sizeof(u.ut_name));
-			+	strncpy(u.ut_host, host, sizeof(u.ut_host));
-			+
-			+	// struct timeval tv;
-			+	// gettimeofday(&tv, NULL);
-			+	// u.ut_tv.tv_sec = tv.tv_sec;
-			+	// u.ut_tv.tv_usec = tv.tv_usec;
-			+	struct timeval tv;
-			+	gettimeofday(&(u.ut_tv), NULL);
-			+	
-			+	updwtmp(_PATH_WTMP, &u);
-			+}
+diff -N -u -r musl-0.9.14.orig/include/utmp.h musl-0.9.14/include/utmp.h
+--- musl-0.9.14.orig/include/utmp.h	2013-09-23 22:01:11.000000000 +0100
++++ musl-0.9.14/include/utmp.h	2013-12-04 10:34:43.000000000 +0000
+@@ -7,10 +7,6 @@
+
+ #include <utmpx.h>
+
+-#define ACCOUNTING 9
+-#define UT_NAMESIZE 32
+-#define UT_HOSTSIZE 256
+-
+ struct lastlog {
+ 	time_t ll_time;
+ 	char ll_line[UT_LINESIZE];
+@@ -32,8 +28,11 @@
+
+ void updwtmp(const char *, const struct utmp *);
+
+-#define _PATH_UTMP "/dev/null/utmp"
+-#define _PATH_WTMP "/dev/null/wtmp"
++void logwtmp(const char *, const char *, const char *);
++
++#define _PATH_UTMP "/var/run/utmp"
++#define _PATH_WTMP "/var/log/wtmp"
++#define _PATH_LASTLOG "/var/log/lastlog"
+
+ #define UTMP_FILE _PATH_UTMP
+ #define WTMP_FILE _PATH_WTMP
+diff -N -u -r musl-0.9.14.orig/include/utmpx.h musl-0.9.14/include/utmpx.h
+--- musl-0.9.14.orig/include/utmpx.h	2013-09-23 22:01:11.000000000 +0100
++++ musl-0.9.14/include/utmpx.h	2013-12-04 10:32:20.000000000 +0000
+@@ -13,6 +13,8 @@
+ #include <bits/alltypes.h>
+
+ #define UT_LINESIZE 32
++#define UT_NAMESIZE 32
++#define UT_HOSTSIZE 256
+
+ struct utmpx
+ {
+@@ -20,8 +22,8 @@
+ 	pid_t ut_pid;
+ 	char ut_line[UT_LINESIZE];
+ 	char ut_id[4];
+-	char ut_user[32];
+-	char ut_host[256];
++	char ut_user[UT_NAMESIZE];
++	char ut_host[UT_HOSTSIZE];
+ 	struct {
+ 		short e_termination;
+ 		short e_exit;
+@@ -50,6 +52,7 @@
+ #define LOGIN_PROCESS   6
+ #define USER_PROCESS    7
+ #define DEAD_PROCESS    8
++#define ACCOUNTING      9
+
+ #ifdef __cplusplus
+ }
+diff -N -u -r musl-0.9.14.orig/src/legacy/utmp.c musl-0.9.14/src/legacy/utmp.c
+--- musl-0.9.14.orig/src/legacy/utmp.c	1970-01-01 01:00:00.000000000 +0100
++++ musl-0.9.14/src/legacy/utmp.c	2013-12-04 13:08:15.000000000 +0000
+@@ -0,0 +1,26 @@
++#include <utmp.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/time.h>
++#include "libc.h"
++
++void logwtmp(const char * line, const char * name, const char * host)
++{
++	struct utmp u;
++	
++	memset(&u, 0, sizeof(u));
++	u.ut_pid = getpid();
++	u.ut_type = name[0] ? USER_PROCESS : DEAD_PROCESS;
++	strncpy(u.ut_line, line, sizeof(u.ut_line));
++	strncpy(u.ut_name, name, sizeof(u.ut_name));
++	strncpy(u.ut_host, host, sizeof(u.ut_host));
++
++	// struct timeval tv;
++	// gettimeofday(&tv, NULL);
++	// u.ut_tv.tv_sec = tv.tv_sec;
++	// u.ut_tv.tv_usec = tv.tv_usec;
++	struct timeval tv;
++	gettimeofday(&(u.ut_tv), NULL);
++	
++	updwtmp(_PATH_WTMP, &u);
++}
 		EOF
 		
 	popd >/dev/null
