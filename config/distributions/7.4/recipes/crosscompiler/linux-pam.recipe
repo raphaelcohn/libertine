@@ -15,22 +15,18 @@ version 1.1.8
 
 function install_crosscompiler_linux-pam()
 {
-	
-	
-	
-	
-	
-	
 	local -r muslCrossRelativeInstallPath="$(dependencyPath musl-cross)"/install
 	local -r muslCrossAbsoluteInstallPath="${LFS}${muslCrossRelativeInstallPath}"
 	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
-	
-	# Generated libtool is a bit incomplete
-	#  uses rpath but not rpath-link
-	#  sys_lib_dlsearch_path_spec is to pot (it is currently sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa /lib32 /usr/lib32 ")
-	#  This is wrong:  allow_undefined_flag=""
-	#  This is wrong:  no_undefined_flag=""
+
+	# Remove pam_rhosts as it depends on unsupported features in musl
+	function removeModules()
+	{
+		local -r module="$1"
+		rm -r linux-pam/modules/"$module"
+	}
+	removeModules pam_rhosts
 	
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
 	function patchWithMissingDummyInnetgr()
@@ -53,10 +49,6 @@ function install_crosscompiler_linux-pam()
 			done
 		popd >/dev/null
 	}
-	
-	# Remove pam_rhosts as it depends on unsupported features in musl
-	rm -r modules/pam_rhosts
-	
 	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
 		
 	function package_crosscompiler_linux_pam_fixMakefiles()
