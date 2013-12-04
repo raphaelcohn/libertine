@@ -417,8 +417,8 @@ diff -N -u -r musl-0.9.14.orig/include/utmpx.h musl-0.9.14/include/utmpx.h
  }
 diff -N -u -r musl-0.9.14.orig/src/legacy/utmp.c musl-0.9.14/src/legacy/utmp.c
 --- musl-0.9.14.orig/src/legacy/utmp.c	1970-01-01 01:00:00.000000000 +0100
-+++ musl-0.9.14/src/legacy/utmp.c	2013-12-04 13:08:15.000000000 +0000
-@@ -0,0 +1,26 @@
++++ musl-0.9.14/src/legacy/utmp.c	2013-12-04 14:25:40.000000000 +0000
+@@ -0,0 +1,20 @@
 +#include <utmp.h>
 +#include <string.h>
 +#include <unistd.h>
@@ -428,19 +428,13 @@ diff -N -u -r musl-0.9.14.orig/src/legacy/utmp.c musl-0.9.14/src/legacy/utmp.c
 +void logwtmp(const char * line, const char * name, const char * host)
 +{
 +	struct utmp u;
-+	
 +	memset(&u, 0, sizeof(u));
++	
 +	u.ut_pid = getpid();
 +	u.ut_type = name[0] ? USER_PROCESS : DEAD_PROCESS;
 +	strncpy(u.ut_line, line, sizeof(u.ut_line));
 +	strncpy(u.ut_name, name, sizeof(u.ut_name));
 +	strncpy(u.ut_host, host, sizeof(u.ut_host));
-+
-+	// struct timeval tv;
-+	// gettimeofday(&tv, NULL);
-+	// u.ut_tv.tv_sec = tv.tv_sec;
-+	// u.ut_tv.tv_usec = tv.tv_usec;
-+	struct timeval tv;
 +	gettimeofday(&(u.ut_tv), NULL);
 +	
 +	updwtmp(_PATH_WTMP, &u);
