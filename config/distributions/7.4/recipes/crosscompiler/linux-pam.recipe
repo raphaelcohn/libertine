@@ -54,8 +54,11 @@ function install_crosscompiler_linux-pam()
 		popd >/dev/null
 	}
 	
-	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
+	# Remove pam_rhosts as it depends on unsupported features in musl
+	rm -r modules/pam_rhosts
 	
+	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
+		
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
 		cp libtool libtool.orig
