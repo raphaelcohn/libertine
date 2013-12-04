@@ -355,7 +355,7 @@ function install_crosscompiler_musl-cross()
 		#sed -i -e 's;^#define WTMP_FILE _PATH_WTMP$;#define WTMP_FILE _PATH_WTMP\n#define BTMP_FILE _PATH_BTMP\n#define LASTLOG_FILE _PATH_LASTLOG;g' include/utmp.h
 		#sed -i -e 's;^#define WTMP_FILENAME _PATH_WTMP$;#define WTMP_FILENAME _PATH_WTMP\n#define BTMP_FILENAME _PATH_BTMP\n#define LASTLOG_FILENAME _PATH_LASTLOG;g' include/utmp.h
 		
-		patch -Np1 -i <<-'EOF'
+		patch -Np1 <<-'EOF'
 			diff -N -u -r musl-0.9.14.orig/include/utmp.h musl-0.9.14/include/utmp.h
 			--- musl-0.9.14.orig/include/utmp.h	2013-09-23 22:01:11.000000000 +0100
 			+++ musl-0.9.14/include/utmp.h	2013-12-04 10:34:43.000000000 +0000
