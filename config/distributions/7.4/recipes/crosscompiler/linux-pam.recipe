@@ -20,21 +20,64 @@ function install_crosscompiler_linux-pam()
 	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 
-	# Remove pam_rhosts as it depends on unsupported features in musl
+	# Removes:-
+	#  rhosts as it depends on unsupported features in musl
+	#  xauth as it uses X (which we don't use)
+	#  wheel as we don't use it
+	#  motd likewise (ssh has its own banners)
+	#  userdb (unnecessary)
+	#  tally (defunct)
+	#  time (obsolecent; why restrict logins to certain times in this day and age when not using shared lines)
+	#  pam_pwhistory (stores passwords potentially recoverably)
+	#  permit (insecure)
+	#  nologin (security risk)
+	#  mail (old-fashioned and of limited use in a server or desktop today)
+	#  issue (cute but we can do without it)
+	#  group (security risk; unnecessary extra complexity in addition to /etc/group)
+	#  ftp as it is insecure
+	#  debug (unnecessary)
 	function removeModules()
 	{
-		local -r module="$1"
-		rm -r linux-pam/modules/"$module"
+		local -r module=pam_"$1"
+		
+		pushd linux-pam/modules >/dev/null
+			
+			rm -r "$module"
+			
+			if [ ! -f Makefile.in.orig ]; then
+				cp Makefile.in Makefile.in.orig
+			fi
+			sed -e -i "s/$module //g" Makefile.in
+			
+			if [ ! -f Makefile.am.orig ]; then
+				cp Makefile.am Makefile.am.orig
+			fi
+			sed -e -i "s/$module //g" Makefile.am
+			
+		popd >/dev/null
+			
 	}
-	removeModules pam_rhosts
+	removeModules rhosts xauth wheel motd userdb tally time pwhistory permit nologin mail issue group ftp debug
 	
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
 	function patchWithMissingDummyInnetgr()
 	{
-		pushd linux-pam >/dev/null
+		local -r 
+		
+		pushd linux-pam/modules >/dev/null
+			local moduleName
+			local module
 			local fileToPatch
-			for fileToPatch in "$@"
+			for moduleName in "$@"
 			do
+				module=pam_"$1"
+				fileToPatch="$module"/"$module".c
+				
+				# True if we've removed the module above (eg pam_time)
+				if [ ! -f "$fileToPath" ]; then
+					continue
+				fi
+				
 				mv "$fileToPatch" "$fileToPatch".orig
 		
 				cat >"$fileToPatch" <<-EOF
@@ -49,7 +92,7 @@ function install_crosscompiler_linux-pam()
 			done
 		popd >/dev/null
 	}
-	patchWithMissingDummyInnetgr modules/pam_group/pam_group.c modules/pam_time/pam_time.c modules/pam_succeed_if/pam_succeed_if.c
+	patchWithMissingDummyInnetgr group time pam_succeed_if
 		
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
@@ -58,7 +101,6 @@ function install_crosscompiler_linux-pam()
 		
 		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 		
-		echo $(pwd)
 		# autoconf really is pathetic
 		local makefile
 		while IFS= read -r -d $'\0' makefile
@@ -79,12 +121,15 @@ function install_crosscompiler_linux-pam()
 		
 		popd >/dev/null
 		
-		# For some reason, there's a blank '-l' flag
-		pushd modules/pam_pwhistory >/dev/null
-			
-			sed -i -e 's;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la -l;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la;g' Makefile
+		# May have been removed
+		if [ -d modules/pam_pwhistory ]; then
+			pushd modules/pam_pwhistory >/dev/null
 		
-		popd >/dev/null
+				# For some reason, there's a blank '-l' flag
+				sed -i -e 's;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la -l;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la;g' Makefile
+		
+			popd >/dev/null
+		fi
 	}
 	
 	##--enable-cracklib \
