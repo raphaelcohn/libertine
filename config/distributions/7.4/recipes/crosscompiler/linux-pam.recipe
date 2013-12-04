@@ -38,37 +38,39 @@ function install_crosscompiler_linux-pam()
 	#  debug (unnecessary)
 	function removeModules()
 	{
-		local -r moduleName="$1"
-		local -r module=pam_"$moduleName"
+		local moduleName
+		for moduleName in "$@"
+		do
+			local module=pam_"$moduleName"
 		
-		pushd linux-pam >/dev/null
+			pushd linux-pam >/dev/null
 			
-			if [ ! -f configure.orig ]; then
-				cp configure configure.orig
-			fi
+				if [ ! -f configure.orig ]; then
+					cp configure configure.orig
+				fi
 			
-			sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
+				sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
 			
-			sed -i -r -e '/\"modules\/pam\_'"${moduleName}"'\/Makefile\"/d' configure
+				sed -i -r -e '/\"modules\/pam\_'"${moduleName}"'\/Makefile\"/d' configure
 		
-			pushd modules >/dev/null
+				pushd modules >/dev/null
 			
-				rm -r "$module"
+					rm -r "$module"
 			
-				if [ ! -f Makefile.in.orig ]; then
-					cp Makefile.in Makefile.in.orig
-				fi
-				sed -i -e "s/pam\_${moduleName} //g" Makefile.in
+					if [ ! -f Makefile.in.orig ]; then
+						cp Makefile.in Makefile.in.orig
+					fi
+					sed -i -e "s/pam\_${moduleName} //g" Makefile.in
 			
-				if [ ! -f Makefile.am.orig ]; then
-					cp Makefile.am Makefile.am.orig
-				fi
-				sed -i -e "s/pam\_${moduleName} //g" Makefile.am
+					if [ ! -f Makefile.am.orig ]; then
+						cp Makefile.am Makefile.am.orig
+					fi
+					sed -i -e "s/pam\_${moduleName} //g" Makefile.am
+			
+				popd >/dev/null
 			
 			popd >/dev/null
-			
-		popd >/dev/null
-			
+		done
 	}
 	removeModules rhosts xauth wheel motd userdb tally time pwhistory permit nologin mail issue group ftp debug
 	
@@ -136,6 +138,7 @@ function install_crosscompiler_linux-pam()
 		
 		# May have been removed
 		if [ -d modules/pam_pwhistory ]; then
+			
 			pushd modules/pam_pwhistory >/dev/null
 		
 				# For some reason, there's a blank '-l' flag
