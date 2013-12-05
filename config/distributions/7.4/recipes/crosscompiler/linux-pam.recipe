@@ -108,7 +108,57 @@ function install_crosscompiler_linux-pam()
 		popd >/dev/null
 	}
 	patchWithMissingDummyInnetgr group time succeed_if
-		
+	
+	function fixMakefilesAm()
+	{
+		local makefile
+		while IFS= read -r -d $'\0' makefile
+		do
+			cp -a "$makefile" "$makefile".orig
+			
+			sed -i -e 's/@LIBCRYPT@ //g' "$makefile"
+			sed -i -e 's/ @LIBCRYPT@//g' "$makefile"
+			sed -i -e 's/\$(LIBCRYPT) //g' "$makefile"
+			sed -i -e 's/ $(LIBCRYPT)//g' "$makefile"
+			
+			sed -i -e 's/@NIS_LIBS@ //g' "$makefile"
+			sed -i -e 's/ @NIS_LIBS@//g' "$makefile"
+			sed -i -e 's/\$(NIS_LIBS) //g' "$makefile"
+			sed -i -e 's/ $(NIS_LIBS)//g' "$makefile"
+			
+			sed -i -e 's/@LIBSELINUX@/-lselinux -lsepol -lpcre/g' "$makefile"
+			
+			touch -r "$makefile".orig "$makefile"
+		done < <(find linux-pam -name 'Makefile.am' -print0)
+	}
+	fixMakefilesAm
+	
+	function fixMakefilesIn()
+	{
+		local makefile
+		while IFS= read -r -d $'\0' makefile
+		do
+			cp -a "$makefile" "$makefile".orig
+			
+			#sed -i -e '/^LIBCRYPT =.*$/d' "$makefile"
+			sed -i -e 's/ @LIBCRYPT@//g' "$makefile"
+			sed -i -e 's/@LIBCRYPT@ //g' "$makefile"
+			sed -i -e 's/ $(LIBCRYPT)//g' "$makefile"
+			sed -i -e 's/\$(LIBCRYPT) //g' "$makefile"
+			
+			#sed -i -e '/^NIS_LIBS =.*$/d' "$makefile"
+			sed -i -e 's/ @NIS_LIBS@//g' "$makefile"
+			sed -i -e 's/@NIS_LIBS@ //g' "$makefile"
+			sed -i -e 's/ $(NIS_LIBS)//g' "$makefile"
+			sed -i -e 's/\$(NIS_LIBS) //g' "$makefile"
+			
+			sed -i -e 's/@LIBSELINUX@/-lselinux -lsepol -lpcre/g' "$makefile"
+			
+			touch -r "$makefile".orig "$makefile"
+		done < <(find linux-pam -name 'Makefile.in' -print0)
+	}
+	fixMakefilesIn
+	
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
 		cp libtool libtool.orig
@@ -116,66 +166,24 @@ function install_crosscompiler_linux-pam()
 		
 		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 		
-		# autoconf really is pathetic
-		local makefile
-		while IFS= read -r -d $'\0' makefile
-		do
-			# SELinux detection in configure fails because it looks in the current sysroot
-			# Add libsepol and libpcre to anything requiring selinux (only for static compiling)
-			# LIBCRYPT is incorrectly set to -l in some places
-			cp "$makefile" "$makefile".orig
-			sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile"
-			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile"
-			cp "$makefile" "$makefile".patched
-			
-			if [ -f "$makefile".in ]; then
-				# Weirdly, pam_unix's Makefile seems to be recreated during the build
-				cp "$makefile".in "$makefile".in.orig
-				sed -i -e 's/^LIBSELINUX =.*$/LIBSELINUX = -lselinux -lsepol -lpcre/g' "$makefile".in
-				sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT = -lcrypt/g' "$makefile".in
-				cp "$makefile" "$makefile".in.patched
-			fi
-			
-		done < <(find . -name 'Makefile' -print0)
-		
-		pushd modules/pam_unix >/dev/null
-			
-		# DONT DO THIS
-			
-			# -l problem in pam_unix
-			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile
-			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile.in
-			sed -i -e 's/^unix_chkpwd_LDADD =.*$/unix_chkpwd_LDADD =/g' Makefile
-			sed -i -e 's/^unix_chkpwd_LDADD =.*$/unix_chkpwd_LDADD =/g' Makefile.in
-			sed -i -e 's/^unix_update_LDADD =.*$/unix_update_LDADD =/g' Makefile
-			sed -i -e 's/^unix_update_LDADD =.*$/unix_update_LDADD =/g' Makefile.in
-		
-		popd >/dev/null
-		
 		# Even though we --disable-nis in configure, the Make variable NIS_LIBS is still used to link against
 		# As this variable is empty, it causes make to fail...
-		pushd libpam >/dev/null
-			
-			sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
-		
-		popd >/dev/null
-		pushd modules/pam_unix >/dev/null
-			
-			sed -i -e 's/-l $(NIS_LIBS)//g' Makefile
-			sed -i -e 's/^NIS_LIBS = @NIS_LIBS@.*$/NIS_LIBS = crypt/g' Makefile.in
-		
-		popd >/dev/null
+		#pushd libpam >/dev/null
+		#	
+		#	sed -i -e 's/-l $(NIS_LIBS)  -lutil/-lutil/g' Makefile
+		#
+		#popd >/dev/null
 		
 		# May have been removed
-		if [ -d modules/pam_pwhistory ]; then
-			
-			pushd modules/pam_pwhistory >/dev/null
-		
-				# For some reason, there's a blank '-l' flag
-				sed -i -e 's;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la -l;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la;g' Makefile
-		
-			popd >/dev/null
-		fi
+		#if [ -d modules/pam_pwhistory ]; then
+		#	
+		#	pushd modules/pam_pwhistory >/dev/null
+		#
+		#		# For some reason, there's a blank '-l' flag
+		#		sed -i -e 's;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la -l;pam_pwhistory_la_LIBADD = $(top_builddir)/libpam/libpam.la;g' Makefile
+		#
+		#	popd >/dev/null
+		#fi
 	}
 	
 	##--enable-cracklib \
