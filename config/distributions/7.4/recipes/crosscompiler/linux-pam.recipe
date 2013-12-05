@@ -81,6 +81,7 @@ function install_crosscompiler_linux-pam()
 			popd >/dev/null
 		done
 	}
+	exit 50
 	removeModules rhosts xauth wheel motd userdb tally time pwhistory permit nologin mail issue group ftp debug
 	
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
