@@ -133,9 +133,6 @@ function install_crosscompiler_linux-pam()
 	}
 	fixMakefilesAm
 	
-	echo $(pwd)
-	exit 50
-	
 	function fixMakefilesIn()
 	{
 		local makefile
