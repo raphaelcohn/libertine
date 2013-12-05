@@ -3,7 +3,7 @@ set -o errexit +o hashall
 version 2.5.36
 {
 	depends musl-cross
-	#include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 
 	#strip_unneeded bin make
 	
@@ -12,5 +12,10 @@ version 2.5.36
 
 function install_crosscompiler_flex()
 {
-	buildUsingAutotoolsExternal callback_empty
+	buildUsingAutotoolsExternal callback_empty \
+		--disable-nls \
+		--disable-dependency-tracking \
+		--with-gnu-ld \
+		--without-libiconv-prefix \
+		--without-libintl-prefix
 }
