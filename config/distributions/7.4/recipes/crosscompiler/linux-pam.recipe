@@ -109,6 +109,9 @@ function install_crosscompiler_linux-pam()
 	}
 	patchWithMissingDummyInnetgr group time succeed_if
 	
+	echo $(pwd)
+	exit 50
+	
 	function fixMakefilesAm()
 	{
 		local makefile
@@ -140,13 +143,13 @@ function install_crosscompiler_linux-pam()
 		do
 			cp -a "$makefile" "$makefile".orig
 			
-			#sed -i -e '/^LIBCRYPT =.*$/d' "$makefile"
+			sed -i -e 's/^LIBCRYPT =.*$/LIBCRYPT =/g' "$makefile"
 			sed -i -e 's/ @LIBCRYPT@//g' "$makefile"
 			sed -i -e 's/@LIBCRYPT@ //g' "$makefile"
 			sed -i -e 's/ $(LIBCRYPT)//g' "$makefile"
 			sed -i -e 's/\$(LIBCRYPT) //g' "$makefile"
 			
-			#sed -i -e '/^NIS_LIBS =.*$/d' "$makefile"
+			sed -i -e 's/^NIS_LIBS =.*$/NIS_LIBS =/g' "$makefile"
 			sed -i -e 's/ @NIS_LIBS@//g' "$makefile"
 			sed -i -e 's/@NIS_LIBS@ //g' "$makefile"
 			sed -i -e 's/ $(NIS_LIBS)//g' "$makefile"
