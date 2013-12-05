@@ -10,7 +10,7 @@ version 2.5.36
 	#install_binaries bin make
 }
 
-function install_crosscompiler_make()
+function install_crosscompiler_flex()
 {
 	buildUsingAutotoolsExternal callback_empty
 }
