@@ -4,10 +4,16 @@ version 2.5.36
 {
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
-
-	#strip_unneeded bin make
 	
-	#install_binaries bin make
+	remove_unwanted share/doc flex
+	
+	compile_resources . include
+	compile_resources . lib
+	
+	strip_unneeded bin flex
+	strip_unneeded lib libfl.a libfl_pic.a
+	
+	install_binaries bin flex flex++
 }
 
 function install_crosscompiler_flex()
