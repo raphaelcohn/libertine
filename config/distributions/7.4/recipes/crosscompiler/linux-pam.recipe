@@ -46,42 +46,39 @@ function install_crosscompiler_linux-pam()
 	#  debug (unnecessary)
 	function removeModules()
 	{
-		local moduleName
-		for moduleName in "$@"
-		do
-			local module=pam_"$moduleName"
-		
-			pushd linux-pam >/dev/null
+		pushd linux-pam >/dev/null
+
+			cp -a configure configure.orig
 			
-				if [ ! -f configure.orig ]; then
-					cp -a configure configure.orig
-				fi
+			pushd modules >/dev/null
 			
-				sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
-			
-				sed -i -r -e '/\"modules\/pam\_'"${moduleName}"'\/Makefile\"/d' configure
-		
-				pushd modules >/dev/null
-			
-					rm -r "$module"
-			
-					if [ ! -f Makefile.in.orig ]; then
-						cp -a Makefile.in Makefile.in.orig
-					fi
-					sed -i -e "s/pam\_${moduleName} //g" Makefile.in
-					sed -i -e "s/ pam\_${moduleName}//g" Makefile.in
-			
-					#if [ ! -f Makefile.am.orig ]; then
-					#	cp -a Makefile.am Makefile.am.orig
-					#fi
-					#sed -i -e "s/pam\_${moduleName} //g" Makefile.am
-			
-				popd >/dev/null
+				cp -a Makefile.am Makefile.am.orig
+				cp -a Makefile.in Makefile.in.orig
 			
 			popd >/dev/null
-		done
+			
+			local moduleName
+			for moduleName in "$@"
+			do
+				local module=pam_"$moduleName"
+			
+					sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
+			
+					sed -i -r -e '/\"modules\/pam\_'"${moduleName}"'\/Makefile\"/d' configure
+		
+					pushd modules >/dev/null
+			
+						rm -r "$module"
+						
+						sed -i -e "s/ pam\_${moduleName} / /g" Makefile.am
+						
+						sed -i -e "s/ pam\_${moduleName} / /g" Makefile.in
+			
+					popd >/dev/null
+			done
+			
+		popd >/dev/null
 	}
-	exit 50
 	removeModules rhosts xauth wheel motd userdb tally time pwhistory permit nologin mail issue group ftp debug
 	
 	# Linux PAM does not respect the configure-time non-detection of innetgr!
