@@ -129,7 +129,7 @@ function install_crosscompiler_linux-pam()
 			sed -i -e 's/@LIBSELINUX@/-lselinux -lsepol -lpcre/g' "$makefile"
 			
 			touch -r "$makefile".orig "$makefile"
-		done < <(find linux-pam -name 'Makefile.am' -print0)
+		done < <(find -L linux-pam -name 'Makefile.am' -print0)
 	}
 	fixMakefilesAm
 	
@@ -158,7 +158,7 @@ function install_crosscompiler_linux-pam()
 			sed -i -e 's/@LIBSELINUX@/-lselinux -lsepol -lpcre/g' "$makefile"
 			
 			touch -r "$makefile".orig "$makefile"
-		done < <(find linux-pam -name 'Makefile.in' -print0)
+		done < <(find -L linux-pam -name 'Makefile.in' -print0)
 	}
 	fixMakefilesIn
 	
