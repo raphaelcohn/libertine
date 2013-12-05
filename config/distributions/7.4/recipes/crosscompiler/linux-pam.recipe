@@ -62,10 +62,10 @@ function install_crosscompiler_linux-pam()
 					fi
 					sed -i -e "s/pam\_${moduleName} //g" Makefile.in
 			
-					if [ ! -f Makefile.am.orig ]; then
-						cp Makefile.am Makefile.am.orig
-					fi
-					sed -i -e "s/pam\_${moduleName} //g" Makefile.am
+					#if [ ! -f Makefile.am.orig ]; then
+					#	cp Makefile.am Makefile.am.orig
+					#fi
+					#sed -i -e "s/pam\_${moduleName} //g" Makefile.am
 			
 				popd >/dev/null
 			
@@ -139,7 +139,9 @@ function install_crosscompiler_linux-pam()
 		done < <(find . -name 'Makefile' -print0)
 		
 		pushd modules/pam_unix >/dev/null
-		
+			
+		# DONT DO THIS
+			
 			# -l problem in pam_unix
 			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile
 			sed -i -e 's/^bigcrypt_LDADD =.*$/bigcrypt_LDADD =/g' Makefile.in
