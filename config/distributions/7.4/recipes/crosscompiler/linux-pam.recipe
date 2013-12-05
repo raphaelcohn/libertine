@@ -109,9 +109,6 @@ function install_crosscompiler_linux-pam()
 	}
 	patchWithMissingDummyInnetgr group time succeed_if
 	
-	echo $(pwd)
-	exit 50
-	
 	function fixMakefilesAm()
 	{
 		local makefile
@@ -135,6 +132,9 @@ function install_crosscompiler_linux-pam()
 		done < <(find linux-pam -name 'Makefile.am' -print0)
 	}
 	fixMakefilesAm
+	
+	echo $(pwd)
+	exit 50
 	
 	function fixMakefilesIn()
 	{
