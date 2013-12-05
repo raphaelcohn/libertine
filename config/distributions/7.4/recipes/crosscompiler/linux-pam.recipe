@@ -5,6 +5,7 @@ version 1.1.8
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	depends musl-cross
 	depends selinux
+	depends flex
 	
 	setuid_binaries sbin unix_chkpwd
 	
