@@ -54,7 +54,7 @@ function install_crosscompiler_linux-pam()
 			pushd linux-pam >/dev/null
 			
 				if [ ! -f configure.orig ]; then
-					cp configure configure.orig
+					cp -a configure configure.orig
 				fi
 			
 				sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
@@ -66,12 +66,13 @@ function install_crosscompiler_linux-pam()
 					rm -r "$module"
 			
 					if [ ! -f Makefile.in.orig ]; then
-						cp Makefile.in Makefile.in.orig
+						cp -a Makefile.in Makefile.in.orig
 					fi
 					sed -i -e "s/pam\_${moduleName} //g" Makefile.in
+					sed -i -e "s/ pam\_${moduleName}//g" Makefile.in
 			
 					#if [ ! -f Makefile.am.orig ]; then
-					#	cp Makefile.am Makefile.am.orig
+					#	cp -a Makefile.am Makefile.am.orig
 					#fi
 					#sed -i -e "s/pam\_${moduleName} //g" Makefile.am
 			
