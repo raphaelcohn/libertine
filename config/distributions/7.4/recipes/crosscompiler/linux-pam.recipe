@@ -62,7 +62,7 @@ function install_crosscompiler_linux-pam()
 			do
 				local module=pam_"$moduleName"
 			
-					sed -i -e "s; modules/pam\_${moduleName}/Makefile;;g" configure
+					sed -i -e "s;[[:space:]]modules/pam\_${moduleName}/Makefile;;g" configure
 			
 					sed -i -r -e '/\"modules\/pam\_'"${moduleName}"'\/Makefile\"/d' configure
 		
@@ -70,9 +70,11 @@ function install_crosscompiler_linux-pam()
 			
 						rm -r "$module"
 						
-						sed -i -e "s/ pam\_${moduleName} / /g" Makefile.am
+						sed -i -e "s/[[:space:]]pam\_${moduleName}[[:space:]]/ /g" Makefile.am
+						sed -i -e "s/[[:space:]]pam\_${moduleName}$/ /g" Makefile.am
 						
-						sed -i -e "s/ pam\_${moduleName} / /g" Makefile.in
+						sed -i -e "s/[[:space:]]pam\_${moduleName}[[:space:]]/ /g" Makefile.in
+						sed -i -e "s/[[:space:]]pam\_${moduleName}$/ /g" Makefile.in
 			
 					popd >/dev/null
 			done
