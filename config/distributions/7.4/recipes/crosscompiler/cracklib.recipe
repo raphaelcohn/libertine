@@ -66,7 +66,7 @@ function install_crosscompiler_cracklib()
 	
 	pushd ../install/build/sbin >/dev/null
 	
-		create-cracklib-dict ../share/cracklib/cracklib-small ../../../source/cracklib-words/file ../../../source/cracklib-words-cotse/*
+		./create-cracklib-dict ../share/cracklib/cracklib-small ../../../source/cracklib-words/file ../../../source/cracklib-words-cotse/*
 		
 	popd >/dev/null
 	
