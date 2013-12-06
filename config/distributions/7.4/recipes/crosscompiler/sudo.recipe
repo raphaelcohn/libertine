@@ -35,7 +35,7 @@ function install_crosscompiler_sudo()
 	local -r securePath="$(
 		LFS_PHASE=system prepareZzzLfsPath
 		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/sbinpath
-		echo ":"
+		echo -n ":"
 		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/binpath
 	)"
 	
