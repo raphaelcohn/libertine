@@ -519,6 +519,7 @@ function tarExtract()
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"
+				exit 50
 			else
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
