@@ -8,7 +8,7 @@ version 5.9.5
 	
 	remove_unwanted . bin
 	
-	xxx doc_resources
+	echo doc_resources
 	
 	compile_resources . include
 	

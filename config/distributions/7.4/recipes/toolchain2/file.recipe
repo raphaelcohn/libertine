@@ -4,7 +4,7 @@ version 5.14
 {
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	xxx doc_resources
+	echo doc_resources
 	
 	compile_resources . include
 	
