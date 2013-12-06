@@ -168,10 +168,13 @@ function install_crosscompiler_linux-pam()
 		done < <(find -L linux-pam -name 'Makefile.in' -print0)
 	}
 	fixMakefilesIn
-		
+			
 	# Remove pam_conv1, it uses Flex, requires extra libraries and frankly is a pain
 	sed -i -e 's/^SUBDIRS =.*$/SUBDIRS =/g' linux-pam/conf/Makefile.in
 	sed -i -e 's/^SUBDIRS =.*$/SUBDIRS = libpam libpamc libpam_misc modules doc/g' linux-pam/Makefile.in
+	
+	# Remove specs as it uses Flex
+	sed -i -e 's/^SUBDIRS =.*$/SUBDIRS = man sag adg mwg/g' linux-pam/doc/Makefile.in
 	
 	function package_crosscompiler_linux_pam_fixMakefiles()
 	{
