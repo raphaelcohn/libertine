@@ -507,6 +507,7 @@ function tarExtract()
 			exitError "Empty tarballFolder is not supported"
 		fi
 		
+		set -x
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
@@ -522,7 +523,7 @@ function tarExtract()
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		fi
-		
+		set +x
 		return 0
 	fi
 	
