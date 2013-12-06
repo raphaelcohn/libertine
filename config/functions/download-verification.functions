@@ -6,7 +6,7 @@ function doDownloads()
 	local certificateAuthorityName
 	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
-		( downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "${certificateAuthorities_Post["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}" ) &
+		( downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "${certificateAuthorities_Post["${certificateAuthorityName}"]}" "${certificateAuthorities_ReferFrom["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}" ) &
 	done
 	wait
 	
@@ -14,17 +14,17 @@ function doDownloads()
 	local -i index
 	for index in ${!signatures_Mirror[@]}
 	do
-		( downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "yes" "" ) &
+		( downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "${signatures_ReferFrom[$index]}" "yes" "" ) &
 	done
 	local -i index
 	for index in ${!keyrings_Mirror[@]}
 	do
-		( downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$index]}" "${keyrings_Post[$index]}" "no" "${keyrings_Hashes[$index]}" ) &
+		( downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$index]}" "${keyrings_Post[$index]}" "${keyrings_ReferFrom[$index]}" "no" "${keyrings_Hashes[$index]}" ) &
 	done
 	local -i index
 	for index in ${!keys_Mirror[@]}
 	do
-		( downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "${keys_Post[$index]}" "yes" "${keys_Hashes[$index]}" ) &
+		( downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "${keys_Post[$index]}" "${keys_ReferFrom[$index]}" "yes" "${keys_Hashes[$index]}" ) &
 	done
 	wait
 	
@@ -32,12 +32,12 @@ function doDownloads()
 	local -i index
 	for index in ${!sourcePackages_Mirror[@]}
 	do
-		( downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_Post[$index]}" "no" "${sourcePackages_Hashes[$index]}" ) &
+		( downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_Post[$index]}" "${sourcePackages_ReferFrom[$index]}" "no" "${sourcePackages_Hashes[$index]}" ) &
 	done
 	local -i index
 	for index in ${!patches_Mirror[@]}
 	do
-		( downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "${patches_Post[$index]}" "no" "${patches_Hashes[$index]}" ) &
+		( downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "${patches_Post[$index]}" "${patches_ReferFrom[$index]}" "no" "${patches_Hashes[$index]}" ) &
 	done
 	wait
 }
@@ -66,8 +66,8 @@ function linkOrCopyFile()
 # metalink in the latest curl (7.29.0) and wget (1.15, not released) allows parallel downloading and fail-over and obsoletes mirrorNames logic
 function downloadFileAndCheckHash()
 {
-	if [ $# -ne 9 ]; then
-		exitError "Needs 9 arguments"
+	if [ $# -ne 10 ]; then
+		exitError "Needs 10 arguments"
 	fi
 	
 	local -r downloadName="$1"
@@ -77,8 +77,10 @@ function downloadFileAndCheckHash()
 	local -r fileName="$5"
 	local -r decompressionOption="$6"
 	local -r postData="$7"
-	local -r hashesMayBeEmpty="$8"
-	local -r hashes="$9"
+	local -r referFrom="$8"
+	local -r hashesMayBeEmpty="$9"
+	shift 9
+	local -r hashes="$1"
 	
 	local -r url="${mirrors_Url["${mirrorName}"]}${relativePath}"
 	local -i exitCode
@@ -123,8 +125,6 @@ function downloadFileAndCheckHash()
 			local -r curlCompressionOption=""
 		fi
 		
-		local -r referer="$(dirname "$url")/"
-		
 		local certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
 		if [ -z "$certificateAuthorityName" ]; then
 			# Unless ssl hashing has occurred, capath will not reference any certificate authorities
@@ -165,10 +165,18 @@ function downloadFileAndCheckHash()
 			local -ar postOption=("--data-ascii" "$postData")
 		fi
 		
+		if [ -z "$referFrom" ]; then
+			local -r referer="$(dirname "$url")/"
+		else
+			local -r referer="$referFrom"
+		fi
+		local -ar referFromOption=("--referer" "${referer};auto")
+		
 		set +e
 		curl --fail --silent --show-error \
 		"${postOption[@]}" \
-		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" --referer "${referer};auto" \
+		"${referFromOption[@]}" \
+		--user-agent "lfs/${LFS_DISTRIBUTION_VERSION}" \
 		--location --max-redirs 5 --retry 20 \
 		--anyauth --netrc-optional --tlsv1 "${certificateAuthorityOption[@]}" \
 		${curlCompressionOption}--remote-time \
@@ -492,9 +500,25 @@ function tarExtract()
 	
 	pushd "$(purebash_dirname "$tarball")" >/dev/null
 		
-	local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
+		local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
 		
 	popd >/dev/null
+	
+	if [ "$isTarbomb" = "file" ]; then
+		if [ -n "$tarballFolder" ]; then
+			return 0
+		fi
+
+		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
+			mkdir -m 0755 -p "$tarballFolder"
+			mv "$tarball" "$tarballFolder"/"$tarball"
+		else
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"/"$tarball"
+		fi
+		
+		return 0
+	fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
@@ -520,5 +544,6 @@ function tarExtract()
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		popd >/dev/null
 	fi
+	
 	informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
 }

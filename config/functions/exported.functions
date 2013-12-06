@@ -17,6 +17,7 @@ declare_for_chroot -a signatures_RelativePath
 declare_for_chroot -a signatures_FileName
 declare_for_chroot -a signatures_Compression
 declare_for_chroot -a signatures_Post
+declare_for_chroot -a signatures_ReferFrom
 
 declare_for_chroot -a keyrings_Mirror
 declare_for_chroot -a keyrings_RelativePath
@@ -24,6 +25,7 @@ declare_for_chroot -a keyrings_FileName
 declare_for_chroot -a keyrings_Hashes
 declare_for_chroot -a keyrings_Compression
 declare_for_chroot -a keyrings_Post
+declare_for_chroot -a keyrings_ReferFrom
 
 declare_for_chroot -a keys_Mirror
 declare_for_chroot -a keys_RelativePath
@@ -31,6 +33,7 @@ declare_for_chroot -a keys_FileName
 declare_for_chroot -a keys_Hashes
 declare_for_chroot -a keys_Compression
 declare_for_chroot -a keys_Post
+declare_for_chroot -a keys_ReferFrom
 
 declare_for_chroot -a sourcePackages_Name
 declare_for_chroot -a sourcePackages_Version
@@ -40,6 +43,7 @@ declare_for_chroot -a sourcePackages_Hashes
 declare_for_chroot -a sourcePackages_FileName
 declare_for_chroot -a sourcePackages_Compression
 declare_for_chroot -a sourcePackages_Post
+declare_for_chroot -a sourcePackages_ReferFrom
 declare_for_chroot -a sourcePackages_ExtractedTarballFolder
 declare_for_chroot -a sourcePackages_IsTarbomb
 
@@ -49,6 +53,7 @@ declare_for_chroot -a patches_FileName
 declare_for_chroot -a patches_Hashes
 declare_for_chroot -a patches_Compression
 declare_for_chroot -a patches_Post
+declare_for_chroot -a patches_ReferFrom
 declare_for_chroot -ai patches_SourcePackageIndex
 
 declare_for_chroot -A dependency_Phase
@@ -186,6 +191,7 @@ function signature()
 				signatures_FileName[$index]="$hashSignatureFileName"
 				signatures_Compression[$index]=""
 				signatures_Post[$index]="$LFS_DOWNLOAD_POST"
+				signatures_ReferFrom[$index]="$LFS_DOWNLOAD_REFER_FROM"
 				
 				case "$hashName" in
 					HKP|HKP_UNCOMPRESSED)
@@ -233,6 +239,7 @@ function keyring()
 	keyrings_Hashes+=("${ourHashes//,/ }")
 	keyrings_Compression+=("")
 	keyrings_Post+=("$LFS_DOWNLOAD_POST")
+	keyrings_ReferFrom+=("$LFS_DOWNLOAD_REFER_FROM")
 	
 	signature "$ourMirror" "$ourRelativePath" "${keyrings_Hashes[$index]}"
 }
@@ -277,6 +284,7 @@ function key()
 	keys_Hashes+=("${ourHashes//,/ }")
 	keys_Compression+=("")
 	keys_Post+=("$LFS_DOWNLOAD_POST")
+	keys_ReferFrom+=("$LFS_DOWNLOAD_REFER_FROM")
 	
 	signature "$ourMirror" "$ourRelativePath" "${keys_Hashes[$index]}"
 }
@@ -448,6 +456,7 @@ function source_package()
 	sourcePackages_Hashes+=("${ourHashes//,/ }")
 	sourcePackages_Compression+=("$ourCompression")
 	sourcePackages_Post+=("$LFS_DOWNLOAD_POST")
+	sourcePackages_ReferFrom+=("$LFS_DOWNLOAD_REFER_FROM")
 	sourcePackages_FileName+=("$ourFileName")
 	sourcePackages_ExtractedTarballFolder+=("$ourExtractedTarballFolder")
 	sourcePackages_IsTarbomb+=("$isTarbomb")
@@ -516,6 +525,7 @@ function source_patch()
 	patches_Hashes+=("${ourHashes//,/ }")
 	patches_Compression+=("")
 	patches_Post+=("$LFS_DOWNLOAD_POST")
+	patches_ReferFrom+=("$LFS_DOWNLOAD_REFER_FROM")
 	patches_SourcePackageIndex+=($sourcePackageIndex)
 	
 	if [ -z "$existingPatchIndices" ]; then

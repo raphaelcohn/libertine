@@ -8,6 +8,7 @@ declare_for_chroot -A certificateAuthorities_FileName
 declare_for_chroot -A certificateAuthorities_Hashes
 declare_for_chroot -A certificateAuthorities_Compression
 declare_for_chroot -A certificateAuthorities_Post
+declare_for_chroot -A certificateAuthorities_ReferFrom
 declare_for_chroot -A certificateAuthorities_Format
 
 function certificate_authority()
@@ -59,6 +60,7 @@ function certificate_authority()
 	certificateAuthorities_Compression["${certificateAuthorityName}"]=""
 	certificateAuthorities_Format["${certificateAuthorityName}"]="$format"
 	certificateAuthorities_Post["${certificateAuthorityName}"]="$LFS_DOWNLOAD_POST"
+	certificateAuthorities_ReferFrom["${certificateAuthorityName}"]="$LFS_DOWNLOAD_REFER_FROM"
 }
 
 function certificateAuthorityExists()

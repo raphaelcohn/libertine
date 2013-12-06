@@ -5,14 +5,12 @@ version 2.9.0
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	include cracklib-words 20080507
-	
-
-	# Additional word lists:-
-	# http://www.cotse.com/tools/wordlists.htm
+	include cracklib-words-cotse 0
 }
 
 function install_crosscompiler_cracklib()
 {
+	xzczczxc
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-nls \
 		--disable-dependency-tracking \
