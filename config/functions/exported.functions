@@ -674,10 +674,14 @@ function depends()
 		
 		local userAndGroupName=lfs-"$localSourcePackageName"
 		
-		local uidgid="$(head -n 1 "$uidgidFile")"
-		if [ -z "$uidAndGid" ]; then
-			exitError "Undefined package uid for $localSourcePackageName ($uidgidFile)"
+		local relativeUidGid="$(head -n 1 "$uidgidFile")"
+		if [ -z "$relativeUidGid" ]; then
+			exitError "Undefined package relative uid/gid for $localSourcePackageName ($uidgidFile)"
 		fi
+		
+		local -ir baseRecipeUidGid=${settings_integer[LFS_INCLUSIVE_RECIPE_UID]}
+		
+		local -ir absoluteUidGid=$((relativeUidGid+baseRecipeUidGid))
 		
 		local -i create=1
 		local group
@@ -689,13 +693,13 @@ function depends()
 		done
 		
 		if [ $create -eq 1 ]; then
-			system_group "$userAndGroupName" $uidAndGid
-			user "$userAndGroupName" "$userAndGroupName" /dev/null /bin/false $uidAndGid "$userAndGroupName"
+			system_group "$userAndGroupName" $absoluteUidGid
+			user "$userAndGroupName" "$userAndGroupName" /dev/null /bin/false $absoluteUidGid "$userAndGroupName"
 		fi
 		
 		# Weirdly, but usefully, a source'd file has access to our local variables AND can mutate them (it does not run a subshell or stack scope)
 		# BUT, and here's the BUT, they won't get passed down to any functions!
-		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha256sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$uidAndGid source "$recipeFile"
+		LFS_RECIPE_NAME="$localSourcePackageName" LFS_RECIPE_HASH="$(sha256sum "$recipeFile" | awk 'NR==1 {print $1}')" LFS_RECIPE_INCLUDE_HASH="$includeHash" LFS_RECIPE_SETTINGS_HASH="$settingsHash" LFS_RECIPE_UIDGID=$absoluteUidGid source "$recipeFile"
 	fi
 	
 	# We currently only do this for the last set version. In future, we might be able to take a directive from above

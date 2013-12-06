@@ -39,8 +39,9 @@ function machineSettingDefaults()
 	setting_string LFS_DISTRIBUTION_CODENAME "stormmq"
 	setting_string LFS_DISTRIBUTION_DESCRIPTION "Linux From Scratch"
 
-	setting_integer LFS_INCLUSIVE_SYSTEM_UID 1000
-	setting_integer LFS_INCLUSIVE_SYSTEM_GID 1000
+	setting_integer LFS_INCLUSIVE_RECIPE_UID 100
+	setting_integer LFS_INCLUSIVE_SYSTEM_UID 9000
+	setting_integer LFS_INCLUSIVE_SYSTEM_GID 9000
 	setting_integer LFS_INCLUSIVE_USER_UID 10000
 	setting_integer LFS_INCLUSIVE_USER_GID 10000
 }
