@@ -56,6 +56,7 @@ mirror  AMD       'http://developer.amd.com/amd-license-agreement/?f='
 mirror  SAVANNAH  'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
 mirror  LINUX_PAM  http://linux-pam.org/
 mirror  ONIGURUMA  http://www.geocities.jp/kosako3/
+mirror  COETSE     http://www.cotse.com/wordlists/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html

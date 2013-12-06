@@ -9,7 +9,7 @@ function runOnTrap()
 
 function hashDownload()
 {
-	curl -L "$1" >"$tempFile"
+	curl -L "$1" >"$tempFile" 2>/dev/null
 	
 	local -r size="$(stat -c '%s' "$tempFile")"
 	
