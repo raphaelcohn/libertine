@@ -6,6 +6,8 @@ version 1.4.16
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	include gnulib "${settings_string[LFS_AUTOTOOLS_GNULIB_VERSION]}"
 	
+	doc_resources . share
+	
 	strip_unneeded bin m4
 	
 	install_binaries bin m4

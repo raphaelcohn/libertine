@@ -4,7 +4,9 @@ version 02c4ffa5550a3e35f62ae0bfed4c08812e66bf24
 {
 	depends musl-cross
 	
-	remove_unwanted share/doc patchelf
+	remove_unwanted share doc
+	
+	doc_resources . share
 	
 	strip_unneeded bin patchelf
 	

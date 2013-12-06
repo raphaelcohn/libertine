@@ -3,12 +3,8 @@ set -o errexit +o hashall
 version 5.14
 {
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
-
-	strip_unneeded bin file
 	
-	strip_unneeded lib \
-		libmagic.a \
-		libmagic.so
+	xxx doc_resources
 	
 	compile_resources . include
 	
@@ -18,6 +14,12 @@ version 5.14
 	
 	compile_resources share \
 		man/man3
+
+	strip_unneeded bin file
+	
+	strip_unneeded lib \
+		libmagic.a \
+		libmagic.so
 	
 	install_binaries bin file
 	

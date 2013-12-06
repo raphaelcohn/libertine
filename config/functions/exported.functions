@@ -67,6 +67,7 @@ declare_for_chroot -A dependency_RecipeSettingsDependencies
 declare_for_chroot -A dependency_SkipInstall
 declare_for_chroot -A dependency_MakeFhsFoldersBeforeInstallPaths
 declare_for_chroot -A dependency_RemoveResourcePaths
+declare_for_chroot -A dependency_DocResourcePaths
 declare_for_chroot -A dependency_CompileResourcePaths
 declare_for_chroot -A dependency_BinaryStripPaths
 declare_for_chroot -A dependency_UidGidPaths
@@ -921,6 +922,30 @@ function remove_unwanted()
 			dependency_RemoveResourcePaths["$DependencyKey"]="$filePath"
 		else
 			dependency_RemoveResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function doc_resources()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_DocResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_DocResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_DocResourcePaths["$DependencyKey"]="$existingPaths $filePath"
 		fi
 	done
 }

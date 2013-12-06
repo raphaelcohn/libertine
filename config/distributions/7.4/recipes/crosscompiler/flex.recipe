@@ -5,7 +5,9 @@ version 2.5.36
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	remove_unwanted share/doc flex
+	remove_unwanted share doc
+	
+	doc_resources . share
 	
 	compile_resources . include
 	compile_resources . lib

@@ -9,6 +9,8 @@ version 4.2
 	
 	remove_unwanted share/man/man1 bashbug.1
 	
+	doc_resources . share
+	
 	strip_unneeded bin bash
 	
 	install_binaries bin bash

@@ -12,14 +12,17 @@ version 20131030
 	#include policycoreutils 2.2.2
 	#include sepolgen 1.2.1
 	
-	remove_unwanted usr/bin chkcon
-	remove_unwanted usr/share/man8 chkcon.8
+	remove_unwanted . bin
+	
+	remove_unwanted usr bin sbin
+	
+	remove_unwanted usr/share man8
+	
+	doc_resources usr share
 	
 	strip_unneeded lib \
 		libsepol.so \
 		libselinux.so
-	
-	#strip_unneeded usr/bin chkcon
 	
 	strip_unneeded usr/lib \
 		libsepol.a \
@@ -27,9 +30,7 @@ version 20131030
 		libselinux.a \
 		libselinux.so
 	
-	compile_resources usr/include \
-		sepol \
-		selinux
+	compile_resources usr include
 	
 	compile_resources usr/lib \
 		libsepol.a \

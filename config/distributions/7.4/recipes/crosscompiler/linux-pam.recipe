@@ -7,11 +7,156 @@ version 1.1.8
 	depends selinux
 	depends flex
 	
-	setuid_binaries sbin unix_chkpwd
+	remove_unwanted share doc
 	
-	# todo: strip, compiler resources, etc
+	doc_resources . share
 	
-	install_system_binaries sbin unix_chkpwd
+	compile_resources . include
+	
+	compile_resources lib \
+		libpam.a \
+		libpamc.a \
+		libpam_misc.a \
+	
+	compile_resources lib \
+		libpam.la \
+		libpamc.la \
+		libpam_misc.la
+	
+	compile_resources lib/security \
+		pam_access.a \ 
+		pam_deny.a \ 
+		pam_echo.a \ 
+		pam_env.a \ 
+		pam_exec.a \ 
+		pam_faildelay.a \ 
+		pam_filter.a \ 
+		pam_keyinit.a \ 
+		pam_lastlog.a \ 
+		pam_limits.a \ 
+		pam_listfile.a \ 
+		pam_localuser.a \ 
+		pam_loginuid.a \ 
+		pam_mkhomedir.a \ 
+		pam_namespace.a \ 
+		pam_rootok.a \ 
+		pam_securetty.a \ 
+		pam_shells.a \ 
+		pam_stress.a \ 
+		pam_succeed_if.a \ 
+		pam_tally2.a \ 
+		pam_timestamp.a \ 
+		pam_umask.a \ 
+		pam_unix.a \ 
+		pam_warn.a
+	
+	compile_resources lib/security \
+		pam_access.la \ 
+		pam_deny.la \ 
+		pam_echo.la \ 
+		pam_env.la \ 
+		pam_exec.la \ 
+		pam_faildelay.la \ 
+		pam_filter.la \ 
+		pam_keyinit.la \ 
+		pam_lastlog.la \ 
+		pam_limits.la \ 
+		pam_listfile.la \ 
+		pam_localuser.la \ 
+		pam_loginuid.la \ 
+		pam_mkhomedir.la \ 
+		pam_namespace.la \ 
+		pam_rootok.la \ 
+		pam_securetty.la \ 
+		pam_shells.la \ 
+		pam_stress.la \ 
+		pam_succeed_if.la \ 
+		pam_tally2.la \ 
+		pam_timestamp.la \ 
+		pam_umask.la \ 
+		pam_unix.la \ 
+		pam_warn.la
+	
+	strip_unneeded lib \
+		libpam.a \
+		libpamc.a \
+		libpam_misc.a
+	
+	strip_unneeded lib \
+		libpam.so \
+		libpamc.so \
+		libpam_misc.so
+	
+	strip_unneeded lib/security \
+		pam_access.a \ 
+		pam_deny.a \ 
+		pam_echo.a \ 
+		pam_env.a \ 
+		pam_exec.a \ 
+		pam_faildelay.a \ 
+		pam_filter.a \ 
+		pam_keyinit.a \ 
+		pam_lastlog.a \ 
+		pam_limits.a \ 
+		pam_listfile.a \ 
+		pam_localuser.a \ 
+		pam_loginuid.a \ 
+		pam_mkhomedir.a \ 
+		pam_namespace.a \ 
+		pam_rootok.a \ 
+		pam_securetty.a \ 
+		pam_shells.a \ 
+		pam_stress.a \ 
+		pam_succeed_if.a \ 
+		pam_tally2.a \ 
+		pam_timestamp.a \ 
+		pam_umask.a \ 
+		pam_unix.a \ 
+		pam_warn.a
+	
+	strip_unneeded lib/security \
+		pam_access.so \ 
+		pam_deny.so \ 
+		pam_echo.so \ 
+		pam_env.so \ 
+		pam_exec.so \ 
+		pam_faildelay.so \ 
+		pam_filter.so \ 
+		pam_keyinit.so \ 
+		pam_lastlog.so \ 
+		pam_limits.so \ 
+		pam_listfile.so \ 
+		pam_localuser.so \ 
+		pam_loginuid.so \ 
+		pam_mkhomedir.so \ 
+		pam_namespace.so \ 
+		pam_rootok.so \ 
+		pam_securetty.so \ 
+		pam_shells.so \ 
+		pam_stress.so \ 
+		pam_succeed_if.so \ 
+		pam_tally2.so \ 
+		pam_timestamp.so \ 
+		pam_umask.so \ 
+		pam_unix.so \ 
+		pam_warn.so
+	
+	strip_unneeded sbin \
+		unix_chkpwd \
+		mkhomedir_helper \
+		pam_tally2 \
+		pam_timestamp_check \
+		unix_update
+	
+	# Need to have group set to 'shadow'
+	setgid_binaries sbin unix_chkpwd
+	
+	install_system_binaries sbin \
+		unix_chkpwd \
+		mkhomedir_helper \
+		pam_tally2 \
+		pam_timestamp_check \
+		unix_update
 }
 
 function install_crosscompiler_linux-pam()

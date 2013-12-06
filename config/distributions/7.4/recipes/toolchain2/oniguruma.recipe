@@ -5,11 +5,10 @@ version 5.9.5
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
 	remove_unwanted bin onig-config
+	
 	remove_unwanted . bin
 	
-	strip_unneeded lib \
-		libonig.a \
-		libonig.so
+	xxx doc_resources
 	
 	compile_resources . include
 	
@@ -17,6 +16,10 @@ version 5.9.5
 		libonig.a \
 		libonig.la \
 		pkgconfig
+	
+	strip_unneeded lib \
+		libonig.a \
+		libonig.so
 }
 
 function install_toolchain2_oniguruma()
