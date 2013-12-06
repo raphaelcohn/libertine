@@ -8,8 +8,6 @@ version 5.9.5
 	
 	remove_unwanted . bin
 	
-	echo doc_resources
-	
 	compile_resources . include
 	
 	compile_resources lib \
@@ -24,6 +22,8 @@ version 5.9.5
 
 function install_toolchain2_oniguruma()
 {
+	xxx add doc_resources
+	
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-dependency-tracking \
 		--enable-shared \

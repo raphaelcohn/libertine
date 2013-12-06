@@ -4,8 +4,6 @@ version 5.14
 {
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	echo doc_resources
-	
 	compile_resources . include
 	
 	compile_resources lib \
@@ -28,6 +26,8 @@ version 5.14
 
 function install_toolchain2_file()
 {
+	xxx add doc_resources
+	
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-silent-rules \
 		--enable-fsect-man5 \
