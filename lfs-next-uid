@@ -165,6 +165,7 @@ function main()
 				uidgidFile="$baseFileName".uidgid
 				if [ ! -f "$uidgidFile" ]; then
 					warning "Recipe file $recipeFile has no corresponding uidgid file $uidgidFile"
+					continue
 				fi
 				
 				uidgid="$(head -n 1 "$uidgidFile")"
