@@ -52,7 +52,7 @@ function install_crosscompiler_cracklib()
 	# http://www.linuxfromscratch.org/blfs/view/svn/postlfs/cracklib.html
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 	
-	# We need to compile twice, once for build host and once for install host
+	# We need to compile twice, once for build host and once for install host (as we use some tools locally)
 
 	buildUsingAutotoolsExternalForBuildServer callback_empty \
 		--oldincludedir="$emptyIncludeFolder" \

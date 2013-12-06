@@ -172,6 +172,9 @@ function install_crosscompiler_linux-pam()
 	local -r muslCrossRelativeInstallPath="$(dependencyPath musl-cross)"/install
 	local -r muslCrossAbsoluteInstallPath="${LFS}${muslCrossRelativeInstallPath}"
 	
+	local -r cracklibRelativeInstallPath="$(dependencyPath cracklib)"/install
+	local -r cracklibAbsoluteInstallPath="${LFS}${cracklibRelativeInstallPath}"
+	
 	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
 
 	# Removes:-
@@ -329,10 +332,8 @@ function install_crosscompiler_linux-pam()
 		sed -i -e 's;hardcode_libdir_flag_spec="\\${wl}-rpath \\${wl}\\$libdir";'"${replacement}"';g' libtool
 	}
 	
-	##--enable-cracklib \
-	
-	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -I${selinuxAbsoluteInstallPath}/usr/include" \
-	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib" \
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -I${selinuxAbsoluteInstallPath}/usr/include -I${cracklibAbsoluteInstallPath}/include" \
+	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${selinuxAbsoluteInstallPath}/usr/lib -L${prceAbsoluteInstallPath}/lib -L${cracklibAbsoluteInstallPath}/lib" \
 	buildUsingAutotoolsExternal package_crosscompiler_linux_pam_fixMakefiles \
 		--oldincludedir="$emptyIncludeFolder" \
 		--enable-shared \
@@ -349,6 +350,7 @@ function install_crosscompiler_linux-pam()
 		--disable-db \
 		--disable-nis \
 		--enable-selinux \
+		--enable-cracklib \
 		--disable-regenerate-docu \
 		--with-pic \
 		--with-gnu-ld \
