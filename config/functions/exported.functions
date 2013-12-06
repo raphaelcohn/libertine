@@ -1332,6 +1332,54 @@ function callback_empty()
 	:
 }
 
+# This is a hack for packages which don't support cross-compilation
+function buildUsingAutotoolsExternalForBuildServer()
+{
+	local -r callback="$1"
+	shift 1
+	
+	fixUpAutoToolsConfig
+	
+	pushdDependencyFolder
+	
+		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
+		PATH="$PATH" \
+		./configure \
+			CC="$LFS_C_HOST_CC" \
+			CXX="$LFS_C_HOST_CXX" \
+			CPP="$LFS_C_HOST_CPP" \
+			CXXCPP="$LFS_C_HOST_CXXCPP" \
+			AR="$LFS_C_HOST_AR" \
+			AS="$LFS_C_HOST_AS" \
+			NM="$LFS_C_HOST_NM" \
+			RANLIB="$LFS_C_HOST_RANLIB" \
+			OBJDUMP="$LFS_C_HOST_OBJDUMP" \
+			OBJCOPY="$LFS_C_HOST_OBJCOPY" \
+			LD="$LFS_C_HOST_LD" \
+			STRIP="$LFS_C_HOST_STRIP" \
+			CPPFLAGS="$LFS_C_HOST_CPPFLAGS" \
+			CFLAGS="$LFS_C_HOST_CFLAGS" \
+			CXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
+			LDFLAGS="$LFS_C_HOST_LDFLAGS" \
+		"$@" \
+		--build="$LFS_NATIVE_TRIPLE" \
+		--host="$LFS_NATIVE_TRIPLE" \
+		--target="$LFS_NATIVE_TRIPLE" \
+		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"/build
+		
+		$callback
+		
+		autotoolsConfiguredMakeWrapper
+	
+		if [ -z "$LFS" ]; then
+			autotoolsConfiguredMakeWrapper install
+		else
+			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
+		fi
+		
+	popdDependencyFolder
+}
+
 function buildUsingAutotoolsExternal()
 {	
 	local -r callback="$1"

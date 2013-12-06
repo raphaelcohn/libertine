@@ -9,15 +9,57 @@ version 2.9.0
 	
 	# More wordlists:-
 	# http://www.cyberwarzone.com/cyberwarfare/password-cracking-mega-collection-password-cracking-word-lists
+	# http://wordlist.sourceforge.net/
+	# http://www.openwall.com/wordlists/
 }
 
 function install_crosscompiler_cracklib()
 {
-	xzczczxc
-	buildUsingAutotoolsExternal callback_empty \
-		--disable-nls \
+	# http://www.linuxfromscratch.org/blfs/view/svn/postlfs/cracklib.html
+	local -r emptyIncludeFolder="$muslCrossAbsoluteInstallPath"/"$LFS_FOREIGN_TRIPLE"/include
+	
+	# We need to compile twice, once for build host and once for install host
+
+	buildUsingAutotoolsExternalForBuildServer callback_empty \
+		--oldincludedir="$emptyIncludeFolder" \
+		--enable-shared \
+		--enable-static \
+		--enable-fast-install \
 		--disable-dependency-tracking \
+		--disable-nls \
 		--with-gnu-ld \
+		--without-x \
 		--without-libiconv-prefix \
-		--without-libintl-prefix
+		--without-libintl-prefix \
+		--without-python \
+		--with-default-dict="$LFS_DEPENDENCY_PREFIX_PATH"/lib/cracklib/pw_dict
+	
+	pushdDependencyFolder
+	
+		make clean
+	
+	popdDependencyFolder 
+	
+	buildUsingAutotoolsExternal callback_empty \
+		--oldincludedir="$emptyIncludeFolder" \
+		--enable-shared \
+		--enable-static \
+		--enable-fast-install \
+		--disable-dependency-tracking \
+		--disable-nls \
+		--with-gnu-ld \
+		--without-x \
+		--without-libiconv-prefix \
+		--without-libintl-prefix \
+		--without-python \
+		--with-default-dict="$LFS_DEPENDENCY_PREFIX_PATH"/lib/cracklib/pw_dict
+	
+	# We could install to /usr/share/dict, but what's the point?
+	
+	pushd cracklib-words-cotse >/dev/null
+	
+		../cracklib/util/cracklib-format ../cracklib-words/file * | ../../install/build/usr/bin/cracklib-packer --output ../../install/lib/cracklib/pw_dict
+		
+	popd >/dev/null
+	
 }
