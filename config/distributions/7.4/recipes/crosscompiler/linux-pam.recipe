@@ -25,6 +25,7 @@ version 1.1.8
 	
 	compile_resources lib/security \
 		pam_access.a \
+		pam_cracklib.a \
 		pam_deny.a \
 		pam_echo.a \
 		pam_env.a \
@@ -52,6 +53,7 @@ version 1.1.8
 	
 	compile_resources lib/security \
 		pam_access.la \
+		pam_cracklib.la \
 		pam_deny.la \
 		pam_echo.la \
 		pam_env.la \
@@ -89,6 +91,7 @@ version 1.1.8
 	
 	strip_unneeded lib/security \
 		pam_access.a \
+		pam_cracklib.a \
 		pam_deny.a \
 		pam_echo.a \
 		pam_env.a \
@@ -116,6 +119,7 @@ version 1.1.8
 	
 	strip_unneeded lib/security \
 		pam_access.so \
+		pam_cracklib.so \
 		pam_deny.so \
 		pam_echo.so \
 		pam_env.so \
