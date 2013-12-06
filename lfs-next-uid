@@ -143,6 +143,7 @@ function findNextUid()
 	local recipeFile
 	local baseFileName
 	local uidgidFile
+	local uidgidInitial
 	local -i uidgid
 	local -i maximumUidGid=0
 	for LFS_PHASE in crosscompiler toolchain2 system
@@ -165,7 +166,16 @@ function findNextUid()
 					continue
 				fi
 				
-				uidgid="$(head -n 1 "$uidgidFile")"
+				uidgidInitial="$(head -n 1 "$uidgidFile")"
+				if [ -z "$uidgidInitial" ]; then
+					warning "Uidgid file $uidgidFile has no value"
+					continue
+				fi
+				uidgid="$uidgidInitial"
+				if [ "$uidgid" != "$uidgidInitial" ]; then
+					warning "Uidgid file $uidgidFile has no valid value"
+					continue
+				fi
 				if [ $uidgid -gt $maximumUidGid ]; then
 					maximumUidGid=$uidgid
 				fi
