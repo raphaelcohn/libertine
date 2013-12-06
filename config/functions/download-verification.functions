@@ -510,14 +510,14 @@ function tarExtract()
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
-				mv "$tarball" "$tarballFolder"/"$tarball"
+				mv "$tarball" "$tarballFolder"
 			else
 				${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		else
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
-				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"/"$tarball"
+				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"
 			else
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
