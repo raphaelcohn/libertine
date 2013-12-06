@@ -631,8 +631,14 @@ function depends()
 		
 		local -r recipeFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".recipe
 		
+		local -r uidgidFile="$recipesPath"/"$LFS_PHASE"/"$localSourcePackageName".uidgid
+		
 		if [ ! -f "$recipeFile" ]; then
 			exitError "recipe $localSourcePackageName ($recipeFile) does not exist or is not a file"
+		fi
+		
+		if [ ! -f "$uidgidFile" ]; then
+			exitError "uidgid file for $localSourcePackageName ($uidgidFile) does not exist or is not a file"
 		fi
 		
 		# Prevent recursion
@@ -668,16 +674,7 @@ function depends()
 		
 		local userAndGroupName=lfs-"$localSourcePackageName"
 		
-		
-			
-			
-		XXXXXXXXX	
-			
-			
-			
-			
-			
-		local uidAndGid="$(grep -G "^${localSourcePackageName} " "$recipesPackageUidFile" | awk '{print $2}')"
+		local uidgid="$(head -n 1 "$localSourcePackageName".uidgid)"
 		if [ -z "$uidAndGid" ]; then
 			exitError "Undefined package uid for $localSourcePackageName"
 		fi
