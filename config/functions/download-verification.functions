@@ -505,8 +505,7 @@ function tarExtract()
 	popd >/dev/null
 	
 	if [ "$isTarbomb" = "file" ]; then
-		set -x
-		if [ -n "$tarballFolder" ]; then
+		if [ -z "$tarballFolder" ]; then
 			return 0
 		fi
 		
@@ -517,7 +516,6 @@ function tarExtract()
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"/"$tarball"
 		fi
-		exit 50
 		return 0
 	fi
 	
