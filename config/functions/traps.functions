@@ -1,5 +1,12 @@
 set -o errexit +o hashall
 
+declare_for_chroot -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT
+declare_for_chroot INSTALLATION_FAILED_MESSAGE
+
+declare_for_chroot -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT
+redeclare_array_for_chroot trapHandlers
+redeclare_array_for_chroot filesToRemoveOnExit
+
 function initialiseTraps()
 {
 	addNextTrapHandler removeFilesOnExit

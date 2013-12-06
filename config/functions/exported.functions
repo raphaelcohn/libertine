@@ -97,6 +97,15 @@ declare_for_chroot -a users_Shell
 declare_for_chroot -a users_Uid
 declare_for_chroot -a users_Gid
 
+function warning()
+{
+	if [ $# -ne 1 ]; then
+		exitError "Incorrect arguments"
+	fi
+	
+	echo "$ourName: WARNING: $1" 1>&2
+}
+
 function informationMessage()
 {
 	echo "$ourName: $1"
@@ -659,6 +668,15 @@ function depends()
 		
 		local userAndGroupName=lfs-"$localSourcePackageName"
 		
+		
+			
+			
+		XXXXXXXXX	
+			
+			
+			
+			
+			
 		local uidAndGid="$(grep -G "^${localSourcePackageName} " "$recipesPackageUidFile" | awk '{print $2}')"
 		if [ -z "$uidAndGid" ]; then
 			exitError "Undefined package uid for $localSourcePackageName"

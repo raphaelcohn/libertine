@@ -1,39 +1,6 @@
 #!/bin/bash -
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
 
-function declare_for_chroot()
-{
-	if [ $# -eq 1 ]; then
-		# Done this way to avoid a Core Dump!
-		local -r variable="$1"
-		eval $variable=
-	else
-		local -r flags="$1"
-		local -r variable="$2"
-		declare ${flags}g $variable
-	fi
-	
-	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=($variable)
-}
-
-function redeclare_array_for_chroot()
-{
-	local -r variable="$1"
-	declare -a $variable
-	LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT+=($variable)
-}
-
-declare_for_chroot -a LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT
-declare_for_chroot INSTALLATION_FAILED_MESSAGE
-
-declare_for_chroot -a LFS_ARRAY_VARIABLES_TO_REDECLARE_IN_CHROOT
-redeclare_array_for_chroot trapHandlers
-redeclare_array_for_chroot filesToRemoveOnExit
-
-# Defensive
-declare_for_chroot FUNCNEST
-FUNCNEST=40
-
 function ensureWhichInstalled()
 {
 	set +e
@@ -54,7 +21,7 @@ function essentialProgramCheck()
 	for program in "$@"
 	do
 		if ! which "$program" 1>/dev/null 2>/dev/null; then
-			warning "Program $program does not exist on path $PATH"
+			echo "$ourName: FAIL: Program $program does not exist on path $PATH" 1>&2
 			return 100
 		fi
 	done
@@ -63,7 +30,6 @@ function essentialProgramCheck()
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
 # Such a critical piece is code executed before and during command line arg parsing (eg exitError)
-# They will usually be MUCH slower than their external equivalents
 function purebash_dirname()
 {
 	local -r converted="${1%/*}"
@@ -77,22 +43,6 @@ function purebash_dirname()
 function purebash_basename()
 {
 	echo "${1##*/}"
-}
-
-function exitError()
-{
-	local -r error="$1"
-	echo "$ourName: $error" 1>&2
-	exit 1
-}
-
-function warning()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	echo "$ourName: WARNING: $1" 1>&2
 }
 
 function setDebugging()
@@ -124,6 +74,13 @@ function executeWithCleanEnvironment()
 	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
 }
 
+function exitError()
+{
+	local -r error="$1"
+	echo "$ourName: $error" 1>&2
+	exit 1
+}
+
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
@@ -135,7 +92,7 @@ Defaults
     mirrors            ${mirrors}
     option             See below
 
-A machine defines machine settings in <lfsConfigPath>/settings/machine/<machine>.settings
+A machine defines machine settings in <lfsConfigPath>/settings/machines/<machine>.settings
 
 A mirror defines mirror URLs. If a mirror is 'timezone', then timezone settings used to determine the actual mirrors.
 If Etc/UTC or something similar is the timezone, then the 'language' mirrors are used. These use the LC_CTYPE,
@@ -254,8 +211,23 @@ function parseCommandLine()
 	fi
 }
 
+function setLfsConfigPath()
+{
+	if [ ! -d "$lfsConfigPath" ]; then
+		exitError "Config path $lfsConfigPath does not exist or is not a directory"
+	fi
+	pushd "$lfsConfigPath">/dev/null
+	lfsConfigPath="$(pwd)"
+	popd >/dev/null
+}
+
 function sourceFunctions()
 {
+	readonly functionsPath="$lfsConfigPath"/functions
+	if [ ! -d "$functionsPath" ]; then
+		exitError "functions path $functionsPath does not exist or is not a directory"
+	fi
+	
 	local fileToSource
 	pushd "$functionsPath" >/dev/null
 		
@@ -271,101 +243,13 @@ function setPaths()
 {
 	essentialProgramCheck mkdir awk
 	
-	if [ ! -d "$lfsConfigPath" ]; then
-		exitError "Config path $lfsConfigPath does not exist or is not a directory"
-	fi
-	pushd "$lfsConfigPath">/dev/null
-	lfsConfigPath="$(pwd)"
-	popd >/dev/null
-	
-	readonly functionsPath="$lfsConfigPath"/functions
-	if [ ! -d "$functionsPath" ]; then
-		exitError "functions path $functionsPath does not exist or is not a directory"
-	fi
+	setLfsConfigPath
 	
 	sourceFunctions
 	
-	readonly settingsPath="$lfsConfigPath"/settings
-	if [ ! -d "$settingsPath" ]; then
-		exitError "settings path $settingsPath does not exist or is not a directory"
-	fi
+	setPathsAfterSourcingFunctions
 	
-	readonly machinesPath="$settingsPath"/machines
-	if [ ! -d "$machinesPath" ]; then
-		exitError "machines path $machinesPath does not exist or is not a directory"
-	fi
-	
-	includeMachineSettings
-	
-	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
-	if [ ! -d "$distributionConfigPath" ]; then
-		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
-	fi
-	
-	readonly certificateAuthoritiesPath="$lfsConfigPath"/certificate-authorities
-	if [ ! -d "$certificateAuthoritiesPath" ]; then
-		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
-	fi
-	
-	readonly gpghomePath="$lfsConfigPath"/gpghome
-	if [ ! -d "$gpghomePath" ]; then
-		exitError "gpghome path $gpghomePath does not exist or is not a directory"
-	fi
-	
-	readonly keyringsPath="$lfsConfigPath"/keyrings
-	if [ ! -d "$keyringsPath" ]; then
-		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
-	fi
-	
-	readonly keysPath="$lfsConfigPath"/keys
-	if [ ! -d "$keysPath" ]; then
-		exitError "Keys path $keysPath does not exist or is not a directory"
-	fi
-	
-	readonly signaturesPath="$lfsConfigPath"/signatures
-	if [ ! -d "$signaturesPath" ]; then
-		exitError "Signatures path $signaturesPath does not exist or is not a directory"
-	fi
-	
-	
-
-	
-	readonly mirrorsPath="$distributionConfigPath"/mirrors
-	if [ ! -d "$mirrorsPath" ]; then
-		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
-	fi
-	
-	readonly recipesPath="$distributionConfigPath"/recipes
-	if [ ! -d "$recipesPath" ]; then
-		exitError "Recipes path $recipesPath does not exist or is not a directory"
-	fi
-	
-	readonly recipesPackageUidFile="$recipesPath"/package-uid
-	if [ ! -f "$recipesPackageUidFile" ]; then
-		exitError "package-uid file $recipesPackageUidFile does not exist or is not a file"
-	fi
-	
-	readonly includesPath="$distributionConfigPath"/includes
-	if [ ! -d "$includesPath" ]; then
-		exitError "includes path $includesPath does not exist or is not a directory"
-	fi
-	
-	
-	
-	
-	
-	if [ ! -d "$lfsPath" ]; then
-		mkdir -m 0755 -p "$lfsPath"
-	fi
-	pushd "$lfsPath">/dev/null
-	lfsPath="$(pwd)"
-	popd >/dev/null
-	
-	readonly lfsLogPath=/var/log/lfs/"$machine"
-	readonly lfsDownloadsPath="$lfsPath"/downloads
-	readonly lfsExtractsPath="$lfsPath"/extracts
-	
-	LFS="$lfsPath"/"$machine"
+	setLfsPaths
 }
 
 function createSkeletonFolderStructure()
@@ -714,6 +598,10 @@ function main()
 	ensureWhichInstalled
 	parseCommandLine "$@"
 	setPaths
+
+	# Defensive
+	declare_for_chroot FUNCNEST
+	FUNCNEST=40
 	
 	setLocale
 	setMakeFlags

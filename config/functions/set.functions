@@ -1,5 +1,86 @@
 set -o errexit +o hashall
 
+function setPathsAfterSourcingFunctions()
+{
+	readonly settingsPath="$lfsConfigPath"/settings
+	if [ ! -d "$settingsPath" ]; then
+		exitError "settings path $settingsPath does not exist or is not a directory"
+	fi
+	
+	readonly machinesPath="$settingsPath"/machines
+	if [ ! -d "$machinesPath" ]; then
+		exitError "machines path $machinesPath does not exist or is not a directory"
+	fi
+	
+	includeMachineSettings
+	
+	setRemainingPathsAfterIncludingMachineSettings
+}
+
+function setRemainingPathsAfterIncludingMachineSettings()
+{
+	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
+	if [ ! -d "$distributionConfigPath" ]; then
+		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
+	fi
+	
+	readonly certificateAuthoritiesPath="$lfsConfigPath"/certificate-authorities
+	if [ ! -d "$certificateAuthoritiesPath" ]; then
+		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
+	fi
+	
+	readonly gpghomePath="$lfsConfigPath"/gpghome
+	if [ ! -d "$gpghomePath" ]; then
+		exitError "gpghome path $gpghomePath does not exist or is not a directory"
+	fi
+	
+	readonly keyringsPath="$lfsConfigPath"/keyrings
+	if [ ! -d "$keyringsPath" ]; then
+		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
+	fi
+	
+	readonly keysPath="$lfsConfigPath"/keys
+	if [ ! -d "$keysPath" ]; then
+		exitError "Keys path $keysPath does not exist or is not a directory"
+	fi
+	
+	readonly signaturesPath="$lfsConfigPath"/signatures
+	if [ ! -d "$signaturesPath" ]; then
+		exitError "Signatures path $signaturesPath does not exist or is not a directory"
+	fi
+	
+	readonly mirrorsPath="$distributionConfigPath"/mirrors
+	if [ ! -d "$mirrorsPath" ]; then
+		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
+	fi
+	
+	readonly recipesPath="$distributionConfigPath"/recipes
+	if [ ! -d "$recipesPath" ]; then
+		exitError "Recipes path $recipesPath does not exist or is not a directory"
+	fi
+	
+	readonly includesPath="$distributionConfigPath"/includes
+	if [ ! -d "$includesPath" ]; then
+		exitError "includes path $includesPath does not exist or is not a directory"
+	fi
+}
+
+function setLfsPaths()
+{
+	if [ ! -d "$lfsPath" ]; then
+		mkdir -m 0755 -p "$lfsPath"
+	fi
+	pushd "$lfsPath">/dev/null
+	lfsPath="$(pwd)"
+	popd >/dev/null
+	
+	readonly lfsLogPath=/var/log/lfs/"$machine"
+	readonly lfsDownloadsPath="$lfsPath"/downloads
+	readonly lfsExtractsPath="$lfsPath"/extracts
+	
+	LFS="$lfsPath"/"$machine"
+}
+
 function setLocale()
 {
 	export LC_ALL=POSIX
