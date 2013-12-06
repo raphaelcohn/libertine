@@ -42,11 +42,12 @@ function install_crosscompiler_sudo()
 		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/binpath
 	)"
 	
-	# NOTE: OPIE, S/Key and SecurID are not supported; these are effectively legacy technologies now that HOTP / TOTP (OATH) exist
-	# TODO: Consider supporting Kerberos5
-	# TODO: Support PAM
+	# FAILS ON:-
+	# finding selinux (because it doesn't use the lib paths in configure)!
+	# bits/predefs.h  which doesn't exist in musl libc!
 	
-	buildUsingAutotoolsExternal callback_empty \
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" \
+	LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" buildUsingAutotoolsExternal callback_empty \
 		--enable-pie \
 		--disable-shared \
 		--disable-rpath \
