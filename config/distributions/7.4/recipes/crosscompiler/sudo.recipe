@@ -26,8 +26,11 @@ function install_crosscompiler_sudo()
 	local -r prceRelativeInstallPath="$(dependencyPath pcre)"/install
 	local -r prceAbsoluteInstallPath="${LFS}${prceRelativeInstallPath}"
 	
-	local -r selinuxRelativeInstallPath="$(dependencyPath selinux)"/install
-	local -r selinuxAbsoluteInstallPath="${LFS}${selinuxRelativeInstallPath}"
+	local -r linuxPamRelativeInstallPath="$(dependencyPath linux-pam)"/install
+	local -r linuxPamAbsoluteInstallPath="${LFS}${linuxPamRelativeInstallPath}"
+	
+	local -r cracklibRelativeInstallPath="$(dependencyPath cracklib)"/install
+	local -r cracklibAbsoluteInstallPath="${LFS}${cracklibRelativeInstallPath}"
 	
 	local -r busyboxBinRelativeInstallPath="$(dependencyPath busybox-bin)"/install
 	local -r busyboxBinAbsoluteInstallPath="${LFS}${busyboxBinRelativeInstallPath}"
@@ -43,15 +46,15 @@ function install_crosscompiler_sudo()
 	# TODO: Consider supporting Kerberos5
 	# TODO: Support PAM
 	
-	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
+	buildUsingAutotoolsExternal callback_empty \
 		--enable-pie \
 		--disable-shared \
 		--disable-rpath \
 		--with-selinux \
 		--with-pam \
-		--with-incpath="$selinuxAbsoluteInstallPath/usr/include $prceAbsoluteInstallPath/include" \
-		--with-libpath="$selinuxAbsoluteInstallPath/usr/lib $prceAbsoluteInstallPath/lib" \
-		--with-libraries="selinux sepol pcre" \
+		--with-incpath="$selinuxAbsoluteInstallPath/usr/include $linuxPamAbsoluteInstallPath/include" \
+		--with-libpath="$selinuxAbsoluteInstallPath/usr/lib $prceAbsoluteInstallPath/lib $linuxPamAbsoluteInstallPath/lib $cracklibAbsoluteInstallPath/lib" \
+		--with-libraries="selinux sepol pcre pam pamc pam_misc crack" \
 		--enable-zlib="$zlibAbsoluteInstallPath" \
 		--with-editor="$busyboxBinRelativeInstallPath"/vi:"$busyboxBinRelativeInstallPath"/ed \
 		--with-secure-path="$securePath" \
