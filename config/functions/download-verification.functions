@@ -484,14 +484,12 @@ function extractFileForSignatureTest()
 }
 
 function tarExtract()
-{	
-	if [ $# -ne 4 ]; then
-		exitError "Not enough arguments"
-	fi
-	local -r tarball="$1"
-	local -r tarballFolder="$2"
-	local -r tarballCompression="$3"
-	local -r isTarbomb="$4"
+{
+	local -r sourcePackageName="$1"
+	local -r tarball="$2"
+	local -r tarballFolder="$3"
+	local -r tarballCompression="$4"
+	local -r isTarbomb="$5"
 	
 	SECONDS=0
 	informationMessage "TASK: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball"
@@ -506,16 +504,29 @@ function tarExtract()
 	
 	if [ "$isTarbomb" = "file" ]; then
 		if [ -z "$tarballFolder" ]; then
-			return 0
+			exitError "Empty tarballFolder is not supported"
 		fi
 		
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			mkdir -m 0755 -p "$tarballFolder"
-			mv "$tarball" "$tarballFolder"/"$tarball"
+			if [ -z "$tarballCompression" ]; then
+				ln "$tarball" "$tarballFolder"/file
+			else
+				${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
+			fi
 		else
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
-			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"/"$tarball"
+			if [ -z "$tarballCompression" ]; then
+				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ln "$tarball" "$tarballFolder"/file
+			else
+				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
+			fi
 		fi
+	
+		if [ ! -e "$sourcePackageName" ]; then
+			ln -s "$tarballFolder" "$sourcePackageName"
+		fi
+		
 		return 0
 	fi
 	
@@ -542,6 +553,10 @@ function tarExtract()
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		popd >/dev/null
+	fi
+	
+	if [ ! -e "$sourcePackageName" ]; then
+		ln -s "$tarballFolder" "$sourcePackageName"
 	fi
 	
 	informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"

@@ -280,39 +280,15 @@ function extractPackageSources()
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
 		local -i index
-		count=0
 		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
 		do
 			setLfsSourcePackageVariables $index
 	
-			if [ -z "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" ]; then
-				if [ ! -L "$LFS_SOURCE_PACKAGE_NAME" ]; then
-					ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
-				fi
-				if [ $count -eq 0 ]; then
-					if [ ! -L "$LFS_DEPENDENCY_NAME" ]; then
-						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
-					fi
-				fi
+			if [ -d "$lfsExtractsPath"/"$LFS_SOURCE_PACKAGE_MIRROR"/"$LFS_SOURCE_PACKAGE_RELATIVE_PATH".decompressed ]; then
+				( tarExtract "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" ) &
 			else
-				if [ -d "$lfsExtractsPath"/"$LFS_SOURCE_PACKAGE_MIRROR"/"$LFS_SOURCE_PACKAGE_RELATIVE_PATH".decompressed ]; then
-					( tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" ) &
-				else
-					( tarExtract "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" ) &
-				fi
-				
-				if [ ! -L "$LFS_SOURCE_PACKAGE_NAME" ]; then
-					ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_NAME" 2>/dev/null || true
-				fi
-				
-				if [ $count -eq 0 ]; then
-					if [ ! -L "$LFS_DEPENDENCY_NAME" ]; then
-						ln -s "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME" 2>/dev/null || true
-					fi
-				fi
+				( tarExtract "$LFS_SOURCE_PACKAGE_NAME" "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_SOURCE_PACKAGE_COMPRESSION" "$LFS_SOURCE_PACKAGE_IS_TARBOMB" ) &
 			fi
-			
-			let count=count+1
 		done
 		
 	popd >/dev/null
