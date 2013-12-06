@@ -6,6 +6,9 @@ version 2.9.0
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	include cracklib-words 20080507
 	include cracklib-words-cotse 0
+	
+	# More wordlists:-
+	# http://www.cyberwarzone.com/cyberwarfare/password-cracking-mega-collection-password-cracking-word-lists
 }
 
 function install_crosscompiler_cracklib()

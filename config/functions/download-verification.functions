@@ -510,7 +510,7 @@ function tarExtract()
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
-				ln "$tarball" "$tarballFolder"/file
+				ln "$tarballFolder"/file "$tarball"
 			else
 				${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
