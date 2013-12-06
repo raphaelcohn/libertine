@@ -40,8 +40,8 @@ version 2.9.0
 		cracklib-check \
 		cracklib-unpacker
 	
-	uidgid_paths 0:0 lib /
-		cracklib/pw_dict
+	uidgid_paths 0:0 lib \
+		cracklib/pw_dict \
 		cracklib
 }
 
