@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 version 0
 {
-	depends tzdata
+	:
 }
 
 function install_system_zzz-lfs()
