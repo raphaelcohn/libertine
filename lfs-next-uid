@@ -163,7 +163,7 @@ function main()
 				fi
 				baseFileName="$(basename "$recipeFile" .recipe)"
 				uidgidFile="$baseFileName".uidgid
-				if [ ! -f "$uidGidFile" ]; then
+				if [ ! -f "$uidgidFile" ]; then
 					exitError "Recipe file $recipeFile has no corresponding uidgid file $uidgidFile"
 				fi
 				
