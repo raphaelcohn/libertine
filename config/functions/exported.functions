@@ -676,7 +676,7 @@ function depends()
 		
 		local uidgid="$(head -n 1 "$uidgidFile")"
 		if [ -z "$uidAndGid" ]; then
-			exitError "Undefined package uid for $localSourcePackageName"
+			exitError "Undefined package uid for $localSourcePackageName ($uidgidFile)"
 		fi
 		
 		local -i create=1
