@@ -134,12 +134,9 @@ function setPaths()
 	setPathsAfterSourcingFunctions
 }
 
-function main()
+function findNextUid()
 {
-	setDebugging
-	findOurNameAndPath
-	parseCommandLine "$@"
-	setPaths
+	echo "$ourName: TASK: Next recipe uidgid to be used"
 	
 	local LFS_PHASE
 	local phasePath
@@ -180,6 +177,16 @@ function main()
 	local -i nextUidGid=$((maximumUidGid+1))
 	
 	echo "$ourName: PASS: Next recipe uidgid to be used is $nextUidGid"
+}
+
+function main()
+{
+	setDebugging
+	findOurNameAndPath
+	parseCommandLine "$@"
+	setPaths
+	
+	findNextUid
 }
 
 main "$@"
