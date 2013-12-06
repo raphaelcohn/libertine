@@ -523,8 +523,6 @@ function tarExtract()
 		return 0
 	fi
 	
-	rm -rf -- "$tarballFolder"
-	
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			mkdir -m 0755 -p "$tarballFolder"
