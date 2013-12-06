@@ -11,6 +11,8 @@ version 2.9.0
 	# http://www.cyberwarzone.com/cyberwarfare/password-cracking-mega-collection-password-cracking-word-lists
 	# http://wordlist.sourceforge.net/
 	# http://www.openwall.com/wordlists/
+	
+	remove_unwanted . build
 }
 
 function install_crosscompiler_cracklib()
@@ -32,13 +34,21 @@ function install_crosscompiler_cracklib()
 		--without-libiconv-prefix \
 		--without-libintl-prefix \
 		--without-python \
-		--with-default-dict="$LFS_DEPENDENCY_PREFIX_PATH"/lib/cracklib/pw_dict
+		--with-default-dict="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/build/lib/cracklib/pw_dict
+	
+	# We could install to /usr/share/dict, but what's the point?
+	
+	pushd cracklib-words-cotse >/dev/null
+	
+		../../install/build/sbin/cracklib-format/util/cracklib-format ../cracklib-words/file * | ../../install/build/sbin/cracklib-packer --output ../../install/lib/cracklib/pw_dict
+		
+	popd >/dev/null
 	
 	pushdDependencyFolder
 	
 		make clean
 	
-	popdDependencyFolder 
+	popdDependencyFolder
 	
 	buildUsingAutotoolsExternal callback_empty \
 		--oldincludedir="$emptyIncludeFolder" \
@@ -53,13 +63,4 @@ function install_crosscompiler_cracklib()
 		--without-libintl-prefix \
 		--without-python \
 		--with-default-dict="$LFS_DEPENDENCY_PREFIX_PATH"/lib/cracklib/pw_dict
-	
-	# We could install to /usr/share/dict, but what's the point?
-	
-	pushd cracklib-words-cotse >/dev/null
-	
-		../cracklib/util/cracklib-format ../cracklib-words/file * | ../../install/build/usr/bin/cracklib-packer --output ../../install/lib/cracklib/pw_dict
-		
-	popd >/dev/null
-	
 }

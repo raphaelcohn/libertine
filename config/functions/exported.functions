@@ -1365,7 +1365,7 @@ function buildUsingAutotoolsExternalForBuildServer()
 		--build="$LFS_NATIVE_TRIPLE" \
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_NATIVE_TRIPLE" \
-		--prefix="$LFS_DEPENDENCY_PREFIX_PATH"/build
+		--prefix="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/build
 		
 		$callback
 		
@@ -1374,7 +1374,7 @@ function buildUsingAutotoolsExternalForBuildServer()
 		if [ -z "$LFS" ]; then
 			autotoolsConfiguredMakeWrapper install
 		else
-			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
+			autotoolsConfiguredMakeWrapper install
 		fi
 		
 	popdDependencyFolder
