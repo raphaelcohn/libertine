@@ -64,9 +64,9 @@ function install_crosscompiler_cracklib()
 	
 	# We could install to /usr/share/dict, but what's the point?
 	
-	pushd cracklib-words-cotse >/dev/null
+	pushd ../../install/build/sbin >/dev/null
 	
-		../../install/build/sbin/create-cracklib-dict ../../install/build/share/cracklib/cracklib-small ../cracklib-words/file *
+		create-cracklib-dict ../share/cracklib/cracklib-small ../../../source/cracklib-words/file ../../../source/cracklib-words-cotse/*
 		
 	popd >/dev/null
 	
