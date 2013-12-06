@@ -48,39 +48,35 @@ function parseCommandLine()
 	
 	machine="simple"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('machine')
+
+	local OPTERR=1
+	local OPTIND=1
+	local OPTARG
+	local option
+	while getopts :hl:d:m:1:2:o: option
+	do
+		case "$option" in
+			
+			h)
+				exitHelp 2
+			;;
+			
+			c)
+				lfsConfigPath="$OPTARG"
+			;;
+			
+			'?')
+				exitError "Invalid option -${OPTARG}"
+			;;
+			
+		esac
+	done
 	
-	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
-		executeWithCleanEnvironment "$@"
+	shift $((OPTIND - 1))
+	if [ $# -eq 1 ]; then
+		machine="$1"
 	else
-		local OPTERR=1
-		local OPTIND=1
-		local OPTARG
-		local option
-		while getopts :hl:d:m:1:2:o: option
-		do
-			case "$option" in
-				
-				h)
-					exitHelp 2
-				;;
-				
-				c)
-					lfsConfigPath="$OPTARG"
-				;;
-				
-				'?')
-					exitError "Invalid option -${OPTARG}"
-				;;
-				
-			esac
-		done
-		
-		shift $((OPTIND - 1))
-		if [ $# -eq 1 ]; then
-			machine="$1"
-		else
-			exitError "Please specify one machine"
-		fi
+		exitError "Please specify one machine"
 	fi
 }
 
