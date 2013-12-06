@@ -19,7 +19,7 @@ version 2.9.0
 		cracklib-packer \
 		create-cracklib-dict
 	
-	remove_unwanted share cracklib
+	remove_unwanted . share
 	
 	# no doc resources
 	
@@ -41,7 +41,9 @@ version 2.9.0
 		cracklib-unpacker
 	
 	uidgid_paths 0:0 lib \
-		cracklib/pw_dict \
+		cracklib/pw_dict.hwm \
+		cracklib/pw_dict.pwd \
+		cracklib/pw_dict.pwi \
 		cracklib
 }
 
@@ -76,6 +78,18 @@ function install_crosscompiler_cracklib()
 		PATH=".:$PATH" ./create-cracklib-dict ../share/cracklib/cracklib-small ../../../source/cracklib-words/file ../../../source/cracklib-words-cotse/*
 		
 	popd >/dev/null
+	
+	pushd "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/cracklib >/dev/null
+	
+		local file
+		for file in *
+		do
+			chmod 0400 "$file"
+		done
+	
+	popd >/dev/null
+	
+	chmod 0500 "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/cracklib
 	
 	pushdDependencyFolder
 	
