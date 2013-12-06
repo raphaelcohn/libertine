@@ -98,6 +98,16 @@ function sourceFunctions()
 	popd >/dev/null
 }
 
+function setLfsConfigPath()
+{
+	if [ ! -d "$lfsConfigPath" ]; then
+		exitError "Config path $lfsConfigPath does not exist or is not a directory"
+	fi
+	pushd "$lfsConfigPath">/dev/null
+	lfsConfigPath="$(pwd)"
+	popd >/dev/null
+}
+
 function setPaths()
 {
 	setLfsConfigPath
