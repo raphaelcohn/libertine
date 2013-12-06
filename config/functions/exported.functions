@@ -845,6 +845,8 @@ function user()
 		fi
 	fi
 	
+	echo ${users_Uid[@]}
+	
 	# check uid not already in use
 	local -i existingUid
 	for existingUid in ${users_Uid[@]}
