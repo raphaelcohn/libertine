@@ -674,7 +674,7 @@ function depends()
 		
 		local userAndGroupName=lfs-"$localSourcePackageName"
 		
-		local uidgid="$(head -n 1 "$localSourcePackageName".uidgid)"
+		local uidgid="$(head -n 1 "$uidgidFile")"
 		if [ -z "$uidAndGid" ]; then
 			exitError "Undefined package uid for $localSourcePackageName"
 		fi
