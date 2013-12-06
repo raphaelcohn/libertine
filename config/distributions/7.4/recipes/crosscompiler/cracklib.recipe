@@ -13,6 +13,32 @@ version 2.9.0
 	# http://www.openwall.com/wordlists/
 	
 	remove_unwanted . build
+	
+	remove_unwanted sbin \
+		cracklib-format \
+		cracklib-packer \
+		create-cracklib-dict
+	
+	remove_unwanted share cracklib
+	
+	# no doc resources
+	
+	compile_resources . include
+	
+	compile_resources lib \
+		libcrack.a \
+		libcrack.la
+	
+	strip_unneeded lib \
+		libcrack.so
+	
+	strip_unneeded sbin \
+		cracklib-check \
+		cracklib-unpacker
+	
+	install_system_binaries sbin \
+		cracklib-check \
+		cracklib-unpacker
 }
 
 function install_crosscompiler_cracklib()
@@ -40,7 +66,7 @@ function install_crosscompiler_cracklib()
 	
 	pushd cracklib-words-cotse >/dev/null
 	
-		../../install/build/sbin/cracklib-format/util/cracklib-format ../cracklib-words/file * | ../../install/build/sbin/cracklib-packer --output ../../install/lib/cracklib/pw_dict
+		../../install/build/sbin/create-cracklib-dict ../cracklib-words/file *
 		
 	popd >/dev/null
 	
