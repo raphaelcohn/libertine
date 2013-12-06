@@ -39,6 +39,10 @@ version 2.9.0
 	install_system_binaries sbin \
 		cracklib-check \
 		cracklib-unpacker
+	
+	uidgid_paths 0:0 lib /
+		cracklib/pw_dict
+		cracklib
 }
 
 function install_crosscompiler_cracklib()
@@ -60,9 +64,12 @@ function install_crosscompiler_cracklib()
 		--without-libiconv-prefix \
 		--without-libintl-prefix \
 		--without-python \
-		--with-default-dict="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/build/lib/cracklib/pw_dict
+		--with-default-dict="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/cracklib/pw_dict
 	
 	# We could install to /usr/share/dict, but what's the point?
+	
+	# needs to be made root-owner
+	mkdir -m 0755 -p "${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/lib/cracklib
 	
 	pushd ../install/build/sbin >/dev/null
 	
