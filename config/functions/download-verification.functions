@@ -522,10 +522,6 @@ function tarExtract()
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		fi
-	
-		if [ ! -e "$sourcePackageName" ]; then
-			ln -s "$tarballFolder" "$sourcePackageName"
-		fi
 		
 		return 0
 	fi
