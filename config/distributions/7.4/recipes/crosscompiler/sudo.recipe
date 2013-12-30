@@ -53,10 +53,11 @@ function install_crosscompiler_sudo()
 		
 			mv Makefile Makefile.orig
 			
-			cat >Makefile <<-EOF
+			local -r cppFlagsExtra='-I$(incdir) -I$(top_builddir) -I$(top_srcdir)'
+			CPPFLAGS_LOCAL="$cppFlagsExtra $LFS_C_HOST_CPPFLAGS" cat >Makefile <<-EOF
 				CC_FOR_BUILD = $LFS_C_HOST_CC
 				CXX_FOR_BUILD = $LFS_C_HOST_CXX
-				CPPFLAGS_FOR_BUILD = $LFS_C_HOST_CPPFLAGS
+				CPPFLAGS_FOR_BUILD = $CPPFLAGS_LOCAL
 				CFLAGS_FOR_BUILD = $LFS_C_HOST_CFLAGS
 				CXXFLAGS_FOR_BUILD = $LFS_C_HOST_CXXFLAGS
 				LDFLAGS_FOR_BUILD = $LFS_C_HOST_LDFLAGS
