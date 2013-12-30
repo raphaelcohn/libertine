@@ -46,7 +46,7 @@ function install_crosscompiler_sudo()
 	)"
 	
 	# Fix-up Makefile.in; we'd like to fix CFLAGS, too, but it's much harder
-	pushd compat >/dev/null
+	pushd sudo/compat >/dev/null
 
 		cp Makefile.in Makefile.in.orig
 
