@@ -16,3 +16,8 @@ version 1.21.1
 		vlock \
 		wall
 }
+
+function install_crosscompiler_busybox-suid()
+{
+	package_crosscompiler_busybox_build "suid" bin
+}
