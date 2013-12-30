@@ -68,8 +68,8 @@ function install_crosscompiler_sudo()
 			cp Makefile Makefile.orig
 			
 			# Force use of host compiler
-			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@;g' Makefile
-			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;g' Makefile
+			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(DEFS) $(srcdir)/mksiglist.c -o $@;g' Makefile
+			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(DEFS) $(srcdir)/mksigname.c -o $@;g' Makefile
 		
 		popd >/dev/null
 	}
