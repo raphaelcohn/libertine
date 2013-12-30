@@ -100,11 +100,14 @@ function setMakeFlags()
 	local loadAverage=$((cpuCount-1))
 	LFS_MAKE_LOAD_AVERAGE="${loadAverage}.70"
 	
-	declare_for_chroot -i LFS_MAKE_JOBS
+	declare_for_chroot -i LFS_MAKE_COMPILE_JOBS
+	declare_for_chroot -i LFS_MAKE_PACKAGE_JOBS
 	if [ "$parallelMake" = "yes" ]; then
-		LFS_MAKE_JOBS=$((cpuCount*2))
+		LFS_MAKE_COMPILE_JOBS=$((cpuCount*2))
+		LFS_MAKE_PACKAGE_JOBS=$((cpuCount/3))
 	else
-		LFS_MAKE_JOBS=1
+		LFS_MAKE_COMPILE_JOBS=1
+		LFS_MAKE_PACKAGE_JOBS=1
 	fi
 }
 

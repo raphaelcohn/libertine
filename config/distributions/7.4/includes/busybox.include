@@ -88,7 +88,7 @@ function package_crosscompiler_busybox_build()
 	
 		PATH="$PATH" \
 		make \
-			--jobs $LFS_MAKE_JOBS \
+			--jobs $LFS_MAKE_COMPILE_JOBS \
 			--load-average $LFS_MAKE_LOAD_AVERAGE \
 			--debug \
 			--print-directory \
@@ -139,7 +139,7 @@ function package_crosscompiler_busybox_build()
 		#  - _xxx are specific targets, eg _conf and _conf.o
 		PATH="$PATH" \
 		make \
-			--jobs $LFS_MAKE_JOBS \
+			--jobs $LFS_MAKE_COMPILE_JOBS \
 			--load-average $LFS_MAKE_LOAD_AVERAGE \
 			--debug \
 			--print-directory \

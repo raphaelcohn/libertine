@@ -1290,7 +1290,7 @@ function autotoolsConfiguredMakeWrapper()
 	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 	PATH="$PATH" \
 	make \
-		--jobs $LFS_MAKE_JOBS \
+		--jobs $LFS_MAKE_COMPILE_JOBS \
 		--load-average $LFS_MAKE_LOAD_AVERAGE \
 		--debug \
 		--print-directory \
@@ -1303,7 +1303,7 @@ function buildUsingMakeExternal()
 	# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 	PATH="$PATH" \
 	make \
-		--jobs $LFS_MAKE_JOBS \
+		--jobs $LFS_MAKE_COMPILE_JOBS \
 		--load-average $LFS_MAKE_LOAD_AVERAGE \
 		--debug \
 		--print-directory \
