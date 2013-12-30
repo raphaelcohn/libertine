@@ -45,14 +45,38 @@ function install_crosscompiler_sudo()
 		echo -n "$LFS_DEPENDENCY_PATH_ZZZ"/binpath
 	)"
 	
+	# sudo does the nasty trick of compiling and running a binary
+	# unfortunately, these binaries are compiled using the TARGET compiler NOT the HOST compiler...
+	function package_crosscompiler_sudo_fixMakefiles()
+	{
+		pushd compat >/dev/null
+		
+			mv Makefile Makefile.orig
+			
+			cat >Makefile <<-EOF
+				CC_FOR_BUILD = $LFS_C_HOST_CC
+				CXX_FOR_BUILD = $LFS_C_HOST_CXX
+				CPPFLAGS_FOR_BUILD = $LFS_C_HOST_CPPFLAGS
+				CFLAGS_FOR_BUILD = $LFS_C_HOST_CFLAGS
+				CXXFLAGS_FOR_BUILD = $LFS_C_HOST_CXXFLAGS
+				LDFLAGS_FOR_BUILD = $LFS_C_HOST_LDFLAGS
+			EOF
+			
+			cat Makefile.orig >>Makefile
+			
+			# Force use of host compiler
+			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@;g' Makefile
+			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;g' Makefile
+		
+		popd >/dev/null
+	}
+	
 	# FAILS ON:-
 	# finding selinux (because it doesn't use the lib paths in configure)!
-	# bits/predefs.h  which doesn't exist in musl libc!
 	
-	# LIBS
 	
 	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" \
-	LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" buildUsingAutotoolsExternal callback_empty \
+	LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" buildUsingAutotoolsExternal package_crosscompiler_sudo_fixMakefiles \
 		--enable-pie \
 		--disable-shared \
 		--disable-rpath \
