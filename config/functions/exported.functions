@@ -1341,7 +1341,7 @@ function buildUsingAutotoolsHost()
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
-	
+	# 		--build="$LFS_NATIVE_TRIPLE" \
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		PATH="$PATH" \
 		./configure \
@@ -1361,7 +1361,6 @@ function buildUsingAutotoolsHost()
 			CFLAGS="$LFS_C_HOST_CFLAGS" \
 			CXXFLAGS="$LFS_C_HOST_CXXFLAGS" \
 			LDFLAGS="$LFS_C_HOST_LDFLAGS" \
-		--build="$LFS_NATIVE_TRIPLE" \
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_NATIVE_TRIPLE" \
 		--prefix="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/build \
@@ -1388,6 +1387,7 @@ function buildUsingAutotoolsExternal()
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
+	# 		--build="$LFS_NATIVE_TRIPLE" \
 	
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		# Note that an older name for CC_FOR_BUILD is HOST_CC
@@ -1415,7 +1415,6 @@ function buildUsingAutotoolsExternal()
 			CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
 			CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS" \
 			LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS" \
-		--build="$LFS_NATIVE_TRIPLE" \
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_FOREIGN_TRIPLE" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
