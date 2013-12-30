@@ -51,7 +51,7 @@ function install_crosscompiler_cracklib()
 {
 	echo "Building for host so as to use cracklib dictionary creation tools locally"
 
-	buildUsingAutotoolsExternalForBuildServer callback_empty \
+	buildUsingAutotoolsHost callback_empty \
 		--oldincludedir="$muslCrossAbsoluteInstallPath"/"$LFS_NATIVE_TRIPLE"/include \
 		--enable-shared \
 		--enable-static \
