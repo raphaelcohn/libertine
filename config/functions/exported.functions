@@ -1390,6 +1390,7 @@ function buildUsingAutotoolsExternal()
 	pushdDependencyFolder
 	
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
+		# Note that an older name for CC_FOR_BUILD is HOST_CC
 		PATH="$PATH" \
 		./configure \
 			CC_FOR_BUILD="$LFS_C_HOST_CC" \
