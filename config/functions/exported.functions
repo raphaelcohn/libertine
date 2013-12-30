@@ -1341,7 +1341,6 @@ function buildUsingAutotoolsHost()
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
-	# 		--build="$LFS_NATIVE_TRIPLE" \
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		PATH="$PATH" \
 		./configure \
@@ -1387,8 +1386,6 @@ function buildUsingAutotoolsExternal()
 	fixUpAutoToolsConfig
 	
 	pushdDependencyFolder
-	# 		--build="$LFS_NATIVE_TRIPLE" \
-	
 		# This weird setting of PATH is so we can use the set -x output on the command line directly to test build problems
 		# Note that an older name for CC_FOR_BUILD is HOST_CC
 		PATH="$PATH" \
