@@ -85,13 +85,6 @@ function install_crosscompiler_sudo()
 			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;g' Makefile
 		
 		popd >/dev/null
-		
-		
-		XXXXXX:
-		
-		
-		
-		// go through all Makefiles and remove SSP_CFLAGS / SSP_LDFLAGS
 	}
 	
 	# config FAILS finding selinux (because it doesn't use the lib paths in configure)!
