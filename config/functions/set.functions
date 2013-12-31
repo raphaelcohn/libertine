@@ -49,6 +49,20 @@ function setRemainingPathsAfterIncludingMachineSettings()
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
 	
+	readonly helpersPath="$lfsConfigPath"/helpers
+	if [ ! -d "$helpersPath" ]; then
+		exitError "helpers path $helpersPath does not exist or is not a directory"
+	fi
+	
+	declare_for_chroot helperLfsLibtoolArchiveFixup
+	helperLfsLibtoolArchiveFixup="$helpersPath"/lfs-libtool-archive-fixup
+	if [ ! -f "$helperLfsLibtoolArchiveFixup" ]; then
+		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not a file"
+	fi
+	if [ ! -x "$helperLfsLibtoolArchiveFixup" ]; then
+		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not executable"
+	fi
+	
 	readonly mirrorsPath="$distributionConfigPath"/mirrors
 	if [ ! -d "$mirrorsPath" ]; then
 		exitError "Mirrors path $mirrorsPath does not exist or is not a directory"
@@ -62,20 +76,6 @@ function setRemainingPathsAfterIncludingMachineSettings()
 	readonly includesPath="$distributionConfigPath"/includes
 	if [ ! -d "$includesPath" ]; then
 		exitError "includes path $includesPath does not exist or is not a directory"
-	fi
-	
-	readonly helpersPath="$distributionConfigPath"/helpers
-	if [ ! -d "$helpersPath" ]; then
-		exitError "helpers path $helpersPath does not exist or is not a directory"
-	fi
-	
-	declare_for_chroot helperLfsLibtoolArchiveFixup
-	helperLfsLibtoolArchiveFixup="$helpersPath"/lfs-libtool-archive-fixup
-	if [ ! -f "$helperLfsLibtoolArchiveFixup" ]; then
-		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not a file"
-	fi
-	if [ ! -x "$helperLfsLibtoolArchiveFixup" ]; then
-		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not executable"
 	fi
 }
 
