@@ -660,6 +660,7 @@ function createFhsFoldersBeforeInstallation()
 	local path
 	for absoluteFolderPath in ${dependency_MakeFhsFoldersBeforeInstallPaths["$LFS_DEPENDENCY_KEY"]}
 	do
+		echo $absoluteFolderPath
 		path="${LFS}${absoluteFolderPath}"
 		mkdir -m 0755 -p "$path"
 		chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$path"
