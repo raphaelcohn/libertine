@@ -145,7 +145,7 @@ function main()
 	setDebugging
 	findOurNameAndPath
 	
-	if [ $# -le 2 ]; then
+	if [ $# -lt 2 ]; then
 		exitError "Not enough arguments, needs at least LFS and rootPath"
 	fi
 	
