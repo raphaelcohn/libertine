@@ -621,7 +621,9 @@ function fixLibtoolArchives()
 	
 	# TODO: Deal with .orig files
 	# TODO: Do we want two sets of files, rather than use an environment variable?
+	set -x
 	"$helperLfsLibtoolArchiveFixup" "$LFS" "$LFS_DEPENDENCY_INSTALL_PATH" ${dependency_LibtoolArchivePaths["$LFS_DEPENDENCY_KEY"]}
+	
 }
 
 function stripUnneeded()
