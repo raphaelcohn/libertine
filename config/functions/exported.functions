@@ -1189,7 +1189,7 @@ function make_fhs_folders_before_install()
 	local folder
 	local folderPath
 	local existingPaths
-	for folder in "$@"
+	for folderPath in "$@"
 	do
 		# The leading slash is deliberate
 		binaryPath=/"$relativeParentPath"/"$folderPath"
