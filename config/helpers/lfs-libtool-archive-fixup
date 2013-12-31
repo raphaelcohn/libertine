@@ -97,12 +97,8 @@ function outputVariables()
 
 function replaceDependencyLibsWithPrefix()
 {
-	set -x
 	# sed is supposed to support multiple expressions, but this seems broken with busybox
 	dependency_libs="$(sed -r -e "s; (-L|-l|)${LFS}/opt/; \1\${LFS_LIBTOOL_ROOT}/opt/;g" <<<"$dependency_libs" | sed -r -e "s; (-L|-l|)/opt/; \1\${LFS_LIBTOOL_ROOT}/opt/;g")"
-	
-	echo "${LFS}"
-	exit 50
 }
 
 function replaceLibDirWithPrefix()
