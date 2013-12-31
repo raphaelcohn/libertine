@@ -105,7 +105,7 @@ function install_crosscompiler_sudo()
 	
 		cp configure configure.orig
 		sed -i -e "s;PLUGINDIR=/usr/local/libexec/sudo;PLUGINDIR=${correctPluginDir};g" configure
-	
+				
 	popd >/dev/null
 	
 	# config FAILS finding selinux (because it doesn't use the lib paths in configure)!

@@ -1458,7 +1458,7 @@ function buildUsingAutotoolsExternal()
 		if [ -z "$LFS" ]; then
 			autotoolsConfiguredMakeWrapper install
 		else
-			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
+			autotoolsConfiguredMakeWrapper DESTDIR="$LFS"/ install
 		fi
 		
 	popdDependencyFolder
