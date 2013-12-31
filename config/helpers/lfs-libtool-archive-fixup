@@ -23,7 +23,7 @@ function outputCommentAndVariables()
 			continue
 		fi
 		# Strip 'declare -- ' prefix
-		awk '{print $3}' <<<"$variableFullDefinition"
+		echo "${variableFullDefinition/#declare -- /}"
 	done
 }
 
