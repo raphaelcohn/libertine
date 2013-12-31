@@ -79,6 +79,39 @@ version 1.1.8
 		pam_unix.la \
 		pam_warn.la
 	
+	libtool_archives lib \
+		libpam.la \
+		libpamc.la \
+		libpam_misc.la
+	
+	libtool_archives lib/security \
+		pam_access.la \
+		pam_cracklib.la \
+		pam_deny.la \
+		pam_echo.la \
+		pam_env.la \
+		pam_exec.la \
+		pam_faildelay.la \
+		pam_filter.la \
+		pam_keyinit.la \
+		pam_lastlog.la \
+		pam_limits.la \
+		pam_listfile.la \
+		pam_localuser.la \
+		pam_loginuid.la \
+		pam_mkhomedir.la \
+		pam_namespace.la \
+		pam_rootok.la \
+		pam_securetty.la \
+		pam_shells.la \
+		pam_stress.la \
+		pam_succeed_if.la \
+		pam_tally2.la \
+		pam_timestamp.la \
+		pam_umask.la \
+		pam_unix.la \
+		pam_warn.la
+	
 	strip_unneeded lib \
 		libpam.a \
 		libpamc.a \

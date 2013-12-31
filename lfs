@@ -349,17 +349,16 @@ function patchPackageSources()
 
 function removeAnyFailedPackagesFromPreviousRuns()
 {
-	local optPath="$LFS"/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
 	local phaseFolder
 	local dependencyName
 	local dependencyVersion
 	local dependencyHashes
 	
-	if [ ! -d "$optPath" ]; then
+	if [ ! -d "$LFS_OPT_PATH" ]; then
 		return 0
 	fi
 	
-	pushd "$optPath" >/dev/null
+	pushd "$LFS_OPT_PATH" >/dev/null
 		for phaseFolder in *
 		do
 			if [ ! -e "$phaseFolder" ]; then
@@ -446,7 +445,7 @@ function removeAnyFailedPackagesFromPreviousRuns()
 		done
 	popd  >/dev/null
 	
-	find "$optPath" -depth -mindepth 1 -maxdepth 4 -type d -empty -delete
+	find "$LFS_OPT_PATH" -depth -mindepth 1 -maxdepth 4 -type d -empty -delete
 }
 
 function loopOverDependenciesInAllPhasesAsynchronously()

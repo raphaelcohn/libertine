@@ -4,14 +4,17 @@ version 5.14
 {
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
+	doc_resources share \
+		man/man3
+	
 	compile_resources . include
 	
 	compile_resources lib \
 		libmagic.a \
 		libmagic.la
 	
-	compile_resources share \
-		man/man3
+	libtool_archives lib \
+		libmagic.la
 
 	strip_unneeded bin file
 	

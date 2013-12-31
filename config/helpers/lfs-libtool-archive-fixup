@@ -1,0 +1,115 @@
+
+#!/bin/bash -
+set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
+
+function outputCommentAndVariable()
+{
+	local -r variableComment="$1"
+	shift 1
+	
+	echo ""
+	echo "# $variableComment"
+	
+	local variableName
+	local variableFullDefinition
+	local -i result
+	for variableName in "$@"
+	do
+		set +e
+		variableFullDefinition="$(declare -p "$variableName")"
+		result=$?
+		set -e
+		if [ result -ne 0 ]; then
+			continue
+		fi
+		# Strip 'declare -- ' prefix
+		awk '{print $3}' <<<"$variableFullDefinition"
+	done
+}
+
+function outputHeaderRequiredByLibtool()
+{
+	head -n 5 "$libtoolArchiveFile"
+}
+
+function outputVariables()
+{		
+	outputCommentAndVariables 'The name that we can dlopen(3).' dlname
+
+	outputCommentAndVariables 'Names of this library.' library_names
+
+	outputCommentAndVariables 'The name of the static archive.' old_library
+
+	outputCommentAndVariables 'Linker flags that can not go in dependency_libs.' inherited_linker_flags
+
+	outputCommentAndVariables 'Libraries that this one depends upon.' dependency_libs
+
+	outputCommentAndVariables 'Names of additional weak libraries provided by this library' weak_library_names
+
+	outputCommentAndVariables "Version information for $libName." current age revision
+
+	outputCommentAndVariables 'Is this an already installed library?' installed
+
+	outputCommentAndVariables 'Should we warn about portability when linking against -modules?' shouldnotlink
+	
+	outputCommentAndVariables 'Files to dlopen/dlpreopen' dlopen dlpreopen
+
+	outputCommentAndVariables 'Directory that this library needs to be installed in:' libdir
+}
+
+function replaceDependencyLibsWithPrefix()
+{
+	# sed is supposed to support multiple expressions, but this seems broken with busybox
+	dependency_libs="$(sed -r -e "s; (-L|-l|)${LFS}/opt/; \1\${LFS_LIBTOOL_ROOT}/opt/;g" <<<"$dependency_libs" | sed -r -e "s; (-L|-l|)/opt/; \1\${LFS_LIBTOOL_ROOT}/opt/;g")"
+}
+
+function replaceLibDirWithPrefix()
+{
+	libdir="$(sed -r -e "s;(${LFS}|)/opt/;\${LFS}/opt/;g" <<<"$libdir")"
+}
+
+function processLibtoolArchive()
+{
+	if [ ! -f "$libtoolArchiveFile" ]; then
+		echo "Can not use $libtoolArchiveFile as it does not exist as a file" 1>&2
+		exit 1
+	fi
+		
+	local -r libtoolArchiveFileOrig="$libtoolArchiveFile".orig
+	if [ -e "$libtoolArchiveFileOrig" ]; then
+		echo "Can not create $libtoolArchiveFileOrig as it already exists" 1>&2
+		exit 1
+	fi
+
+	local -r libtoolArchiveFileNew="$libtoolArchiveFile".new
+	if [ -e "$libtoolArchiveFileNew" ]; then
+		echo "Can not create $libtoolArchiveFileNew as it already exists" 1>&2
+		exit 1
+	fi
+	
+	local -r libtoolArchiveFileName="$(basename "$libtoolArchiveFile")"
+	readonly libName="${libtoolArchiveFileName%%.*}"
+	
+	source "$libtoolArchiveFile"
+
+	replaceDependencyLibsWithPrefix
+	replaceLibDirWithPrefix
+	
+	outputHeaderRequiredByLibtool >>"$libtoolArchiveFileNew"
+	outputVariables >>"$libtoolArchiveFileNew"
+	mv "$libtoolArchiveFile" "$libtoolArchiveFileOrig"
+	mv "$libtoolArchiveFileNew" "$libtoolArchiveFile"
+}
+
+function main()
+{
+	readonly LFS="$1"
+	shift 1
+	
+	for libtoolArchiveFile in "$@"
+	do
+		processLibtoolArchive
+	done
+}
+
+main "$@"

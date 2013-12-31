@@ -15,6 +15,9 @@ version 5.9.5
 		libonig.la \
 		pkgconfig
 	
+	libtool_archives lib \
+		libonig.la
+	
 	strip_unneeded lib \
 		libonig.a \
 		libonig.so

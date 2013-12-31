@@ -74,6 +74,7 @@ declare_for_chroot -A dependency_MakeFhsFoldersBeforeInstallPaths
 declare_for_chroot -A dependency_RemoveResourcePaths
 declare_for_chroot -A dependency_DocResourcePaths
 declare_for_chroot -A dependency_CompileResourcePaths
+declare_for_chroot -A dependency_LibtoolArchivePaths
 declare_for_chroot -A dependency_BinaryStripPaths
 declare_for_chroot -A dependency_UidGidPaths
 declare_for_chroot -A dependency_BinaryPermissionBitsPaths
@@ -569,6 +570,7 @@ function version()
 	dependency_SkipInstall["$DependencyKey"]="0"
 	dependency_RemoveResourcePaths["$DependencyKey"]=""
 	dependency_CompileResourcePaths["$DependencyKey"]=""
+	dependency_LibtoolArchivePaths["$DependencyKey"]=""
 	dependency_BinaryStripPaths["$DependencyKey"]=""
 	dependency_UidGidPaths["$DependencyKey"]=""
 	dependency_BinaryPermissionBitsPaths["$DependencyKey"]=""
@@ -980,6 +982,30 @@ function compile_resources()
 			dependency_CompileResourcePaths["$DependencyKey"]="$filePath"
 		else
 			dependency_CompileResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function libtool_archives()
+{
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LFS_RECIPE_VERSION["${LFS_RECIPE_NAME}"]}"
+	dependency_key "$LFS_PHASE" "$LFS_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_LibtoolArchivePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_LibtoolArchivePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_LibtoolArchivePaths["$DependencyKey"]="$existingPaths $filePath"
 		fi
 	done
 }

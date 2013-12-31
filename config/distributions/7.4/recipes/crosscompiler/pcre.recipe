@@ -12,6 +12,30 @@ version 8.33
 	
 	doc_resources . share
 	
+	compile_resources . include
+	
+	compile_resources lib \
+		libpcre.a \
+		libpcre16.a \
+		libpcre32.a \
+		libpcrecpp.a \
+		libpcreposix.a
+	
+	compile_resources lib \
+		libpcre.la \
+		libpcre16.la \
+		libpcre32.la \
+		libpcrecpp.la \
+		libpcreposix.la \
+		pkgconfig
+	
+	libtool_archives lib \
+		libpcre.la \
+		libpcre16.la \
+		libpcre32.la \
+		libpcrecpp.la \
+		libpcreposix.la
+	
 	strip_unneeded bin \
 		pcregrep \
 		pcretest
@@ -27,21 +51,6 @@ version 8.33
 		libpcrecpp.so \
 		libpcreposix.a \
 		libpcreposix.so
-	
-	compile_resources . include
-	
-	compile_resources lib \
-		libpcre.a \
-		libpcre.la \
-		libpcre16.a \
-		libpcre16.la \
-		libpcre32.a \
-		libpcre32.la \
-		libpcrecpp.a \
-		libpcrecpp.la \
-		libpcreposix.a \
-		libpcreposix.la \
-		pkgconfig
 	
 	install_binaries bin \
 		pcregrep \

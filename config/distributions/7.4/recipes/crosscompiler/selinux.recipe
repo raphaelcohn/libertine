@@ -20,6 +20,13 @@ version 20131030
 	
 	doc_resources usr share
 	
+	compile_resources usr include
+	
+	compile_resources usr/lib \
+		libsepol.a \
+		libselinux.a \
+		pkgconfig
+	
 	strip_unneeded lib \
 		libsepol.so \
 		libselinux.so
@@ -29,13 +36,6 @@ version 20131030
 		libsepol.so \
 		libselinux.a \
 		libselinux.so
-	
-	compile_resources usr include
-	
-	compile_resources usr/lib \
-		libsepol.a \
-		libselinux.a \
-		pkgconfig
 }
 
 # libsepol depends on libselinux and libpcre; remember this when static linking (we're going to rapidly have some nasty problems)

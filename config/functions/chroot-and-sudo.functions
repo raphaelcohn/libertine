@@ -124,6 +124,7 @@ function createInstallScriptForMakefile()
 			fi
 		
 			removeUnwanted
+			fixLibtoolArchives
 			stripUnneeded
 			lockDownPermissions
 			setUidGidOnPaths
@@ -195,6 +196,12 @@ function continueInstallUnderSudo()
 			;;
 			
 		esac
+
+		if [ -z "$LFS" ]; then
+			export LFS_LIBTOOL_ROOT=""
+		else
+			export LFS_LIBTOOL_ROOT="$LFS"
+		fi
 		
 		set -x
 	EOF

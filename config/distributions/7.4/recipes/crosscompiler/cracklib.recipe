@@ -29,6 +29,9 @@ version 2.9.0
 		libcrack.a \
 		libcrack.la
 	
+	libtool_archives lib \
+		libcrack.la
+	
 	strip_unneeded lib \
 		libcrack.so
 	

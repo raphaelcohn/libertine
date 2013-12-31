@@ -63,6 +63,20 @@ function setRemainingPathsAfterIncludingMachineSettings()
 	if [ ! -d "$includesPath" ]; then
 		exitError "includes path $includesPath does not exist or is not a directory"
 	fi
+	
+	readonly helpersPath="$distributionConfigPath"/helpers
+	if [ ! -d "$helpersPath" ]; then
+		exitError "helpers path $helpersPath does not exist or is not a directory"
+	fi
+	
+	declare_for_chroot helperLfsLibtoolArchiveFixup
+	helperLfsLibtoolArchiveFixup="$helpersPath"/lfs-libtool-archive-fixup
+	if [ ! -f "$helperLfsLibtoolArchiveFixup" ]; then
+		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not a file"
+	fi
+	if [ ! -x "$helperLfsLibtoolArchiveFixup" ]; then
+		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not executable"
+	fi
 }
 
 function setLfsPaths()
@@ -70,7 +84,7 @@ function setLfsPaths()
 	if [ ! -d "$lfsPath" ]; then
 		mkdir -m 0755 -p "$lfsPath"
 	fi
-	pushd "$lfsPath">/dev/null
+	pushd "$lfsPath" >/dev/null
 	lfsPath="$(pwd)"
 	popd >/dev/null
 	
@@ -79,6 +93,8 @@ function setLfsPaths()
 	readonly lfsExtractsPath="$lfsPath"/extracts
 	
 	LFS="$lfsPath"/"$machine"
+	LFS_OPT_PATH="$LFS"/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
+	LFS_OPT_PATH_UNPREFIXED=/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
 }
 
 function setLocale()
