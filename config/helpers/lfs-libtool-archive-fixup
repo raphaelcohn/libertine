@@ -88,7 +88,7 @@ function processLibtoolArchive()
 	fi
 	
 	local -r libtoolArchiveFileName="$(basename "$libtoolArchiveFile")"
-	readonly libName="${libtoolArchiveFileName%%.*}"
+	local -r libName="${libtoolArchiveFileName%%.*}"
 	
 	source "$libtoolArchiveFile"
 
