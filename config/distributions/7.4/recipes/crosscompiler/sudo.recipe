@@ -108,7 +108,7 @@ function install_crosscompiler_sudo()
 		
 		# Debug install-sh
 		cp install-sh install-sh.orig
-		sed -i -e ';#! /bin/sh;aset -x' install-sh
+		sed -i -e 's;#! /bin/sh;#! /bin/sh\nset -x\npwd\nps -f;g' install-sh
 				
 	popd >/dev/null
 	
