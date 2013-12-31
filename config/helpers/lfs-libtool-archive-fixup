@@ -104,10 +104,13 @@ function processLibtoolArchive()
 function main()
 {
 	readonly LFS="$1"
-	shift 1
+	readonly rootPath="$2"
+	shift 2
 	
-	for libtoolArchiveFile in "$@"
+	local relativeLibtoolArchiveFile
+	for relativeLibtoolArchiveFile in "$@"
 	do
+		libtoolArchiveFile="$rootPath"/"$relativeLibtoolArchiveFile"
 		processLibtoolArchive
 	done
 }
