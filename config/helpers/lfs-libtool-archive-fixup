@@ -15,15 +15,13 @@ function outputCommentAndVariables()
 	local -i result
 	for variableName in "$@"
 	do
-		set +e
-		variableFullDefinition="$(declare -p "$variableName")"
-		result=$?
-		set -e
-		if [ $result -ne 0 ]; then
+		# Checks if variable is unset
+		if [[ ! $variableName && ${variableName-_} ]]; then
 			continue
 		fi
-		# Strip 'declare -- ' prefix
-		echo "${variableFullDefinition/#declare -- /}"
+		
+		# Doesn't work if value contains double quotes
+		echo "${variableName}=\"${!variableName}\""
 	done
 }
 
@@ -65,7 +63,7 @@ function replaceDependencyLibsWithPrefix()
 
 function replaceLibDirWithPrefix()
 {
-	libdir="$(sed -r -e "s;(${LFS}|)/opt/;\${LFS}/opt/;g" <<<"$libdir")"
+	libdir="$(sed -r -e "s;(${LFS}|)/opt/;\${LFS_LIBTOOL_ROOT}/opt/;g" <<<"$libdir")"
 }
 
 function processLibtoolArchive()
