@@ -59,7 +59,7 @@ function install_crosscompiler_sudo()
 		
 	popd >/dev/null
 	
-	# Remove all references to SSP_CFLAGS = @SSP_CFLAGS@ / SSP_LDFLAGS = @SSP_LDFLAGS@
+	# Remove all references to SSP_CFLAGS = @SSP_CFLAGS@ / SSP_LDFLAGS = @SSP_LDFLAGS@; might be better fixed using --disable-hardening in configure
 	pushd sudo >/dev/null
 		
 		local makefileInFile
@@ -87,6 +87,15 @@ function install_crosscompiler_sudo()
 		popd >/dev/null
 	}
 	
+	# configure does not set PLUGINDIR (with --with-plugindir) if --disable-shared is used, yet the install scripts still use it...
+	local -r correctPluginDir="$LFS_DEPENDENCY_PREFIX_PATH"/libexec/sudo
+	pushd sudo >/dev/null
+	
+		cp configure configure.orig
+		sed -i -e "s;PLUGINDIR=/usr/local/libexec/sudo;PLUGINDIR=${correctPluginDir};g" configure
+	
+	popd >/dev/null
+	
 	# config FAILS finding selinux (because it doesn't use the lib paths in configure)!
 	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" \
 	LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -L$selinuxAbsoluteInstallPath/usr/lib -L$prceAbsoluteInstallPath/lib -L$linuxPamAbsoluteInstallPath/lib -L$cracklibAbsoluteInstallPath/lib" buildUsingAutotoolsExternal package_crosscompiler_sudo_fixMakefiles \
@@ -104,7 +113,7 @@ function install_crosscompiler_sudo()
 		--with-sendmail="$busyboxBinRelativeInstallPath"/sendmail \
 		--with-iologdir=/var/log/sudo/io \
 		--with-logpath=/var/log/sudo/sudo.log \
-	    --with-plugindir="$LFS_DEPENDENCY_PREFIX_PATH"/libexec/sudo \
+	    --with-plugindir="$correctPluginDir" \
 		--sysconfdir="$LFS_DEPENDENCY_PREFIX_PATH"/etc \
 		--with-timedir=/var/lib/sudo \
 		--with-mail-if-no-user \
