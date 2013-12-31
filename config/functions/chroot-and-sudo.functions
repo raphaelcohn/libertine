@@ -116,10 +116,7 @@ function createInstallScriptForMakefile()
 		
 		pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 			
-			set -x
 			createFhsFoldersBeforeInstallation
-			exit 60
-			set +x
 			
 			if ! continueInstallUnderSudo "$LFS_DEPENDENCY_INSTALLER" 1>"$LFS_DEPENDENCY_LOG_OUT" 2>"$LFS_DEPENDENCY_LOG_ERR"; then
 				informationMessage "FAIL: Installing package for phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (check logs $LFS_DEPENDENCY_LOG_ERR and out) ($SECONDS seconds)"

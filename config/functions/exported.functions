@@ -1130,6 +1130,14 @@ function setgid_binaries()
 	_binaryPermissionBits g+s "$parentPath" "$@"
 }
 
+function explicit_filemode()
+{
+	local -r fileModeBits="$1"
+	local -r parentPath="$2"
+	shift 2
+	_binaryPermissionBits "$fileModeBits" "$parentPath" "$@"
+}
+
 function install_binaries()
 {
 	local -r relativeBinaryPath="$1"

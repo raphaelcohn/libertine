@@ -16,6 +16,18 @@ version 1.8.8
 	setuid_binaries bin sudo sudoedit
 	install_binaries bin sudo sudoedit sudoreplay
 	install_system_binaries sbin visudo
+	
+	# /opt/lfs/7.4/crosscompiler/sudo/current/current/install/
+	explicit_filemode 0700 ../../../../../../../../var \
+		lib/sudo \
+		log/sudo/io \
+		log/sudo
+	
+	uidgid_paths 0:0 ../../../../../../../../var \
+		lib/sudo \
+		log/sudo/io \
+		log/sudo
+	
 }
 
 function install_crosscompiler_sudo()
