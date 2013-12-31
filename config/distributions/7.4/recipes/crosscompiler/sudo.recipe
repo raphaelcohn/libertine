@@ -102,15 +102,17 @@ function install_crosscompiler_sudo()
 		--with-editor="$busyboxBinRelativeInstallPath"/vi:"$busyboxBinRelativeInstallPath"/ed \
 		--with-secure-path="$securePath" \
 		--with-sendmail="$busyboxBinRelativeInstallPath"/sendmail \
+		--with-iologdir=/var/log/sudo/io \
+		--with-logpath=/var/log/sudo/sudo.log \
+	    --with-plugindir="$LFS_DEPENDENCY_PREFIX_PATH"/libexec/sudo \
+		--sysconfdir="$LFS_DEPENDENCY_PREFIX_PATH"/etc \
+		--with-timedir=/var/lib/sudo \
 		--with-mail-if-no-user \
 		--with-mail-if-no-host \
 		--with-mail-if-noperms \
 		--disable-root-mailer \
 		--with-mailto="${settings_string[SUDO_MAIL_TO]}" \
 		--with-mailsubject="${settings_string[SUDO_MAIL_SUBJECT]}" \
-		--with-iologdir=/var/log/sudo/io \
-		--with-logpath=/var/log/sudo/sudo.log \
-		--with-timedir=/var/lib/sudo \
 		--with-loglen=0 \
 		--with-passprompt="${settings_string[SUDO_PASSWORD_PROMPT]}"
 		--with-badpass-message="${settings_string[SUDO_BAD_PASSWORD_MESSAGE]}" \
