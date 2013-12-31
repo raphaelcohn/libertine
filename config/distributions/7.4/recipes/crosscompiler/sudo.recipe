@@ -105,6 +105,10 @@ function install_crosscompiler_sudo()
 	
 		cp configure configure.orig
 		sed -i -e "s;PLUGINDIR=/usr/local/libexec/sudo;PLUGINDIR=${correctPluginDir};g" configure
+		
+		# Debug install-sh
+		cp install-sh install-sh.orig
+		sed -i -e ';#! /bin/sh;aset -x' install-sh
 				
 	popd >/dev/null
 	
