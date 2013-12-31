@@ -19,7 +19,7 @@ function outputCommentAndVariables()
 		variableFullDefinition="$(declare -p "$variableName")"
 		result=$?
 		set -e
-		if [ result -ne 0 ]; then
+		if [ $result -ne 0 ]; then
 			continue
 		fi
 		# Strip 'declare -- ' prefix
