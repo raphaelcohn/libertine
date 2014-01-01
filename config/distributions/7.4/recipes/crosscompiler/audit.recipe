@@ -16,27 +16,38 @@ version 2.3.2
 function install_crosscompiler_audit()
 {
 	# ./configure does not respect cross compilation flags!!!
-	pushd audit/lib >/dev/null
+	function package_crosscompiler_audit_fixMakefileIn()
+	{
+		local -r folder="$1"
+		shift 1
+		pushd audit/"$folder" >/dev/null
 	
-		cp Makefile.in Makefile.in.orig
+			cp Makefile.in Makefile.in.orig
 		
-		# Strip line continuation sequences, otherwise sed replacements (below) don't work reliably, eg gen_errtabs_h_LINK
-		sed -i -r -e ':a;N;$!ba;s/\\\n[\t]//g' Makefile.in
+			# Strip line continuation sequences, otherwise sed replacements (below) don't work reliably, eg gen_errtabs_h_LINK
+			sed -i -r -e ':a;N;$!ba;s/\\\n[\t]//g' Makefile.in
 				
-		local generatorProgram
-		local match
-		local replacement
-		for generatorProgram in aarch64_tables accesstabs actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390x_tables x86_64_tables
-		do
-			match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
-			replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
-			sed -i -e "s;${match};${replacement};g" Makefile.in
-		done
+			local generatorProgram
+			local match
+			local replacement
+			for generatorProgram in "$@"
+			do
+				match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
+				replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
+				sed -i -e "s;${match};${replacement};g" Makefile.in
+			done
 		
-		# Add CFLAGS_FOR_BUILD
-		sed -i -e "/CFLAGS = @CFLAGS@/aCFLAGS_FOR_BUILD = $LFS_C_HOST_CFLAGS" Makefile.in
-		
-	popd >/dev/null
+			# Add CFLAGS_FOR_BUILD
+			sed -i -e "/CFLAGS = @CFLAGS@/aCFLAGS_FOR_BUILD = $LFS_C_HOST_CFLAGS" Makefile.in
+			
+		popd >/dev/null
+	}
+	
+	package_crosscompiler_audit_fixMakefileIn lib aarch64_tables actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390x_tables x86_64_tables
+	package_crosscompiler_audit_fixMakefileIn auparse accesstabs captabs clock clone-flagtabs epoll_ctls famtabs fcntl-cmdtabs flagtabs icmptypetabs ipctabs ipccmdtabs ipoptnametabs ip6optnametabs nfprototabs mmaptabs mounttabs open-flagtabs persontabs prctl_opttabs pktoptnametabs prottabs recvtabs rlimit ptracetabs schedtabs seccomptabs seektabs shm_modetabs signals sockoptnametabs socktabs sockleveltabs socktypetabs tcpoptnametabs typetabs umounttabs
+	
+	
+	
 	
 	local -r libcapngRelativeInstallPath="$(dependencyPath libcap-ng)"/install
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
