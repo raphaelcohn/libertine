@@ -25,7 +25,9 @@ function install_crosscompiler_audit()
 			cp Makefile.in Makefile.in.orig
 		
 			# Strip line continuation sequences, otherwise sed replacements (below) don't work reliably, eg gen_errtabs_h_LINK
-			sed -i -r -e ':a;N;$!ba;s/\\\n[\t]//g' Makefile.in
+			sed -i -r -e ':a;N;$!ba;s/ \\\n[\t]//g' Makefile.in
+			# Malformed line continuation sequence (no preceding \)
+			sed -i -r -e ':a;N;$!ba;s/\\\n[\t]/ /g' Makefile.in
 				
 			local generatorProgram
 			local match
