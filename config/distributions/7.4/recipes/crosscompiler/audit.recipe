@@ -16,7 +16,7 @@ version 2.3.2
 function install_crosscompiler_audit()
 {
 	# ./configure does not respect cross compilation flags!!!
-	pushd audit/lib >dev/null
+	pushd audit/lib >/dev/null
 	
 		cp Makefile.in Makefile.in.orig
 		
