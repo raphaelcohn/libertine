@@ -59,7 +59,7 @@ function install_crosscompiler_audit()
 		cat auditctl.c.orig >>auditctl.c
 		
 		cp ausearch-lol.c ausearch-lol.c.orig
-		sed -i -e '/include <string.h>/a#define _GNU_SOURCE\n#define strdupa(x) strcpy(alloca(strlen(x)+1),x)' ausearch-lol.c
+		sed -i -e '/include <string.h>/a#define strndupa(x, t) strncpy(alloca(strlen(x)+1),x,t)' ausearch-lol.c
 		
 	popd >/dev/null
 	
