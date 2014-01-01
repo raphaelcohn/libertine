@@ -99,6 +99,7 @@ function install_crosscompiler_sudo()
 		popd >/dev/null
 		
 		# avoid escape interpreation
+		local -r redirection='1\>\&2'
 		local makefile
 		find -L . -name 'Makefile' | while IFS= read -r -d $'\n' makefile
 		do
@@ -107,7 +108,6 @@ function install_crosscompiler_sudo()
 			fi
 			
 			local name="$(dirname $makefile)"
-			local -r redirection='1\>\&2'
 			sed -i -r -e "/install-dirs:/a$'\t'echo HELLO ${name} ${redirection}" "$makefile"
 		done
 	}
