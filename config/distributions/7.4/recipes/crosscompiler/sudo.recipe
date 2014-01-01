@@ -6,6 +6,7 @@ version 1.8.8
 	depends zlib
 	depends linux-pam
 	depends selinux
+	depends audit
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
 	make_fhs_folders_before_install var \
