@@ -1,0 +1,36 @@
+set -o errexit +o hashall
+
+version 2.3.2
+{
+	depends musl-cross
+	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
+	include gnulib "${settings_string[LFS_AUTOTOOLS_GNULIB_VERSION]}"
+	
+	doc_resources . share
+	
+	strip_unneeded bin m4
+	
+	install_binaries bin m4
+}
+
+function install_crosscompiler_m4()
+{
+	fixUpGnulib
+	
+	xxxxxxxx
+	
+	buildUsingAutotoolsExternal callback_empty \
+		--disable-silent-rules \
+		--disable-dependency-tracking \
+		--enable-threads=posix \
+		--disable-gcc-warnings \
+		--enable-largefile \
+		--enable-c++ \
+		--enable-changeword \
+		--with-gnu-ld \
+		--without-libsigsegv-prefix \
+		--without-libpth-prefix \
+		--with-included-regex \
+		--with-syscmd-shell=/bin/sh \
+		--without-dmalloc
+}
