@@ -97,6 +97,19 @@ function install_crosscompiler_sudo()
 			sed -i -e 's;$(CC) $(CPPFLAGS) $(CFLAGS) $(PIE_CFLAGS) $(SSP_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(PIE_CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@;g' Makefile
 		
 		popd >/dev/null
+		
+		# avoid escape interpreation
+		local makefile
+		find -L . -name 'Makefile' | while IFS= read -r -d $'\n' makefile
+		do
+			if [ ! -f "$makefile".orig ]; then
+				cp "$makefile" "$makefile".orig
+			fi
+			
+			local name="$(dirname $makefile)"
+			local -r redirection='1\>\&2'
+			sed -i -r -e "/install-dirs:/a$'\t'echo HELLO ${name} ${redirection}" "$makefile"
+		done
 	}
 	
 	# configure does not set PLUGINDIR (with --with-plugindir) if --disable-shared is used, yet the install scripts still use it...
