@@ -52,9 +52,13 @@ function install_crosscompiler_audit()
 	package_crosscompiler_audit_fixMakefileIn auparse accesstabs captabs clock clone_flagtabs epoll_ctls famtabs fcntl_cmdtabs flagtabs icmptypetabs ipctabs ipccmdtabs ipoptnametabs ip6optnametabs nfprototabs mmaptabs mounttabs open_flagtabs persontabs prctl_opttabs pktoptnametabs prottabs recvtabs rlimit ptracetabs schedtabs seccomptabs seektabs shm_modetabs signals sockoptnametabs socktabs sockleveltabs socktypetabs tcpoptnametabs typetabs umounttabs
 	
 	# Fix a bug that musl is stricter than glibc
-	mv src/auditctl.c src/auditctl.c.orig
-	echo "#include <sys/select.h>" >src/auditctl.c
-	cat src/auditctl.c.orig >>src/auditctl.c
+	pushd audit/src >/dev/null
+		
+		mv auditctl.c auditctl.c.orig
+		echo "#include <sys/select.h>" >auditctl.c
+		cat auditctl.c.orig >>auditctl.c
+		
+	popd >/dev/null
 	
 	local -r libcapngRelativeInstallPath="$(dependencyPath libcap-ng)"/install
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
