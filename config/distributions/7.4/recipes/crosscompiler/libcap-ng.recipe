@@ -14,10 +14,14 @@ version 0.7.3
 
 function install_crosscompiler_libcap-ng()
 {
+	pwd 1>&2
 	pushd libcap-ng/utils >/dev/null
+		
 		cp proc-llist.h proc-llist.h.orig
 		# unistd.h contains standard unix definitions
 		sed -i -e '/#include "config.h"/a#include <unistd.h>' proc-llist.h
+		
+	popd >/dev/null
 	
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-dependency-tracking \
