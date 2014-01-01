@@ -26,10 +26,9 @@ function install_crosscompiler_audit()
 		--enable-systemd \
 		--disable-listener \
 		--with-gnu-ld \
-		--with-sysroot= \
-		--without-python \
 		--without-debug \
 		--without-warn \
+		--without-python \
 		--without-prelude \
 		--without-apparmor \
 		--without-libwrap \

@@ -14,25 +14,19 @@ version 0.7.3
 
 function install_crosscompiler_libcap-ng()
 {
-	xxxxxxx
-	
 	buildUsingAutotoolsExternal callback_empty \
-		--disable-silent-rules \
 		--disable-dependency-tracking \
-		--disable-shared \
+		--enable-shared \
 		--enable-static \
 		--enable-fast-install \
 		--disable-dependency-tracking \
-		--disable-gssapi-krb5 \
 		--enable-systemd \
 		--disable-listener \
 		--with-gnu-ld \
 		--with-sysroot= \
-		--without-python \
 		--without-debug \
 		--without-warn \
-		--without-prelude \
-		--without-apparmor \
-		--without-libwrap \
-		--with-libcap-ng=no
+		--without-python
+	
+	xxxxx
 }
