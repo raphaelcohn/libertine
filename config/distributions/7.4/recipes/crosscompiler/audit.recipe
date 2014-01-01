@@ -51,12 +51,16 @@ function install_crosscompiler_audit()
 	package_crosscompiler_audit_fixMakefileIn lib aarch64_tables actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390x_tables x86_64_tables
 	package_crosscompiler_audit_fixMakefileIn auparse accesstabs captabs clock clone_flagtabs epoll_ctls famtabs fcntl_cmdtabs flagtabs icmptypetabs ipctabs ipccmdtabs ipoptnametabs ip6optnametabs nfprototabs mmaptabs mounttabs open_flagtabs persontabs prctl_opttabs pktoptnametabs prottabs recvtabs rlimit ptracetabs schedtabs seccomptabs seektabs shm_modetabs signals sockoptnametabs socktabs sockleveltabs socktypetabs tcpoptnametabs typetabs umounttabs
 	
-	# Fix a bug that musl is stricter than glibc
+	# Fix bugs that musl is stricter than glibc
 	pushd audit/src >/dev/null
 		
 		mv auditctl.c auditctl.c.orig
 		echo "#include <sys/select.h>" >auditctl.c
 		cat auditctl.c.orig >>auditctl.c
+		
+		mv ausearch-lol.c ausearch-lol.c.orig
+		echo "#define _GNU_SOURCE" >ausearch-lol.c
+		cat ausearch-lol.c .orig >>ausearch-lol.c 
 		
 	popd >/dev/null
 	
