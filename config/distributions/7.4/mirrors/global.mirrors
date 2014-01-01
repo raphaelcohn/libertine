@@ -28,35 +28,36 @@ certificate_authority  root  DigiCertHACA3         DIGICERT  DigiCertHighAssuran
 # NOTE: Keyserver must be reliable and support options=mr or simple file-based URLs
 
 # Secure
-mirror  HKPS         'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x' SKS
-mirror  GNU          https://ftp.gnu.org/gnu/                                                      UtnUserFirstHardware
-mirror  SOURCEFORGE  https://prdownloads.sourceforge.net/                                          GeoTrustGlobal
-mirror  LINUX        https://www.kernel.org/pub/linux/                                             StartCom
-mirror  IANA         https://www.iana.org/                                                         ValiCertClass2
-mirror  GITHUB       https://codeload.github.com/                                                  DigiCertHACA3
-mirror  FEDORA       https://fedorahosted.org/releases/                                            GeoTrustGlobal
+mirror  HKPS          'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'  SKS
+mirror  GNU            https://ftp.gnu.org/gnu/                                                      UtnUserFirstHardware
+mirror  SOURCEFORGE    https://prdownloads.sourceforge.net/                                          GeoTrustGlobal
+mirror  LINUX          https://www.kernel.org/pub/linux/                                             StartCom
+mirror  IANA           https://www.iana.org/                                                         ValiCertClass2
+mirror  GITHUB         https://codeload.github.com/                                                  DigiCertHACA3
+mirror  FEDORA         https://fedorahosted.org/releases/                                            GeoTrustGlobal
+mirror  PEOPLE_REDHAT  https://people.redhat.com/                                                    GeoTrustGlobal
 
 # Intermediately Secure
-mirror  SUDO         https://www.sudo.ws/
+mirror  SUDO           https://www.sudo.ws/
 
 # Insecure
-mirror  PATCHES    http://www.linuxfromscratch.org/patches/lfs/$LFS_DISTRIBUTION_VERSION/
-mirror  PERL       http://www.cpan.org/src/
-mirror  BZIP       http://www.bzip.org/
-mirror  XZ         http://tukaani.org/
-mirror  FILE       ftp://ftp.astron.com/pub/
-mirror  MPFR       http://www.mpfr.org/
-mirror  GMP        ftp://ftp.gmplib.org/pub/
-mirror  MPC        http://www.multiprecision.org/mpc/download/
-mirror  ZLIB       http://www.zlib.net/
-mirror  MUSL       http://www.musl-libc.org/
-mirror  BUSYBOX    http://www.busybox.net/
-mirror  SELINUX    http://userspace.selinuxproject.org/releases/
-mirror  AMD       'http://developer.amd.com/amd-license-agreement/?f='
-mirror  SAVANNAH  'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
-mirror  LINUX_PAM  http://linux-pam.org/
-mirror  ONIGURUMA  http://www.geocities.jp/kosako3/
-mirror  COTSE      http://www.cotse.com/wordlists/
+mirror  PATCHES        http://www.linuxfromscratch.org/patches/lfs/$LFS_DISTRIBUTION_VERSION/
+mirror  PERL           http://www.cpan.org/src/
+mirror  BZIP           http://www.bzip.org/
+mirror  XZ             http://tukaani.org/
+mirror  FILE           ftp://ftp.astron.com/pub/
+mirror  MPFR           http://www.mpfr.org/
+mirror  GMP            ftp://ftp.gmplib.org/pub/
+mirror  MPC            http://www.multiprecision.org/mpc/download/
+mirror  ZLIB           http://www.zlib.net/
+mirror  MUSL           http://www.musl-libc.org/
+mirror  BUSYBOX        http://www.busybox.net/
+mirror  SELINUX        http://userspace.selinuxproject.org/releases/
+mirror  AMD           'http://developer.amd.com/amd-license-agreement/?f='
+mirror  SAVANNAH      'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
+mirror  LINUX_PAM      http://linux-pam.org/
+mirror  ONIGURUMA      http://www.geocities.jp/kosako3/
+mirror  COTSE          http://www.cotse.com/wordlists/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html
