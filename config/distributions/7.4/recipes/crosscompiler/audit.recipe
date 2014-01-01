@@ -27,7 +27,7 @@ function install_crosscompiler_audit()
 		--disable-listener \
 		--with-gnu-ld \
 		--without-debug \
-		--without-warn \
+		--with-warn \
 		--without-python \
 		--without-prelude \
 		--without-apparmor \

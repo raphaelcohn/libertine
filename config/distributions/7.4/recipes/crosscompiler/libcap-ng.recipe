@@ -30,7 +30,7 @@ function install_crosscompiler_libcap-ng()
 		--with-gnu-ld \
 		--with-sysroot= \
 		--without-debug \
-		--without-warn \
+		--with-warn \
 		--without-python
 	
 	xxxxx
