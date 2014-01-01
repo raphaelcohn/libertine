@@ -1,9 +1,8 @@
 set -o errexit +o hashall
 
-version 2.3.2
+version 0.7.3
 {
 	depends musl-cross
-	depends libcap-ng
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
 	doc_resources . share
@@ -13,8 +12,10 @@ version 2.3.2
 	install_binaries bin m4
 }
 
-function install_crosscompiler_audit()
+function install_crosscompiler_libcap-ng()
 {
+	xxxxxxx
+	
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-silent-rules \
 		--disable-dependency-tracking \
@@ -33,5 +34,5 @@ function install_crosscompiler_audit()
 		--without-prelude \
 		--without-apparmor \
 		--without-libwrap \
-		--with-libcap-ng=yes
+		--with-libcap-ng=no
 }
