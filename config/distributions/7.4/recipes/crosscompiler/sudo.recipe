@@ -138,7 +138,7 @@ function install_crosscompiler_sudo()
 		--with-mailto="${settings_string[SUDO_MAIL_TO]}" \
 		--with-mailsubject="${settings_string[SUDO_MAIL_SUBJECT]}" \
 		--with-loglen=0 \
-		--with-passprompt="${settings_string[SUDO_PASSWORD_PROMPT]}"
+		--with-passprompt="${settings_string[SUDO_PASSWORD_PROMPT]}" \
 		--with-badpass-message="${settings_string[SUDO_BAD_PASSWORD_MESSAGE]}" \
 		--disable-nls \
 		--disable-admin-flag \
