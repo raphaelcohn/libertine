@@ -60,7 +60,7 @@ function install_crosscompiler_audit()
 		
 		mv ausearch-lol.c ausearch-lol.c.orig
 		echo "#define _GNU_SOURCE" >ausearch-lol.c
-		cat ausearch-lol.c .orig >>ausearch-lol.c 
+		cat ausearch-lol.c.orig >>ausearch-lol.c 
 		
 	popd >/dev/null
 	
