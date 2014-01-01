@@ -5,16 +5,35 @@ version 0.7.3
 	depends musl-cross
 	include config "${settings_string[LFS_AUTOTOOLS_CONFIG_VERSION]}"
 	
-	doc_resources . share
+	doc_resources share man
 	
-	strip_unneeded bin m4
+	compile_resources . \
+		include
 	
-	install_binaries bin m4
+	compile_resources share \
+		aclocal
+	
+	compile_resources lib \
+		libcap-ng.a \
+		libcap-ng.la \
+		pkgconfig
+	
+	libtool_archives lib \
+		libcap-ng.la
+	
+	strip_unneeded lib \
+		libcap-ng.a \
+		libcap-ng.so
+	
+	strip_unneeded sbin \
+		captest filecap netcap pscap
+	
+	install_system_binaries sbin \
+		captest filecap netcap pscap
 }
 
 function install_crosscompiler_libcap-ng()
 {
-	pwd 1>&2
 	pushd libcap-ng/utils >/dev/null
 		
 		cp proc-llist.h proc-llist.h.orig
@@ -29,15 +48,21 @@ function install_crosscompiler_libcap-ng()
 		--enable-static \
 		--enable-fast-install \
 		--disable-dependency-tracking \
-		--enable-systemd \
-		--disable-listener \
 		--with-gnu-ld \
 		--with-sysroot= \
 		--without-debug \
 		--with-warn \
 		--without-python
 	
-	xxxxx
+	pushd ../install/bin >/dev/null
+		
+		local shortBinaryName
+		for shortBinaryName in captest filecap netcap pscap
+		do
+			mv "$LFS_FOREIGN_TRIPLE"-"$shortBinaryName" "$shortBinaryName"
+		done
+		
+	popd >/dev/null
 	
-	pid_t
+	mv ../install/bin ../install/sbin
 }
