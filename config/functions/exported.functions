@@ -1329,7 +1329,7 @@ function autotoolsConfiguredMakeWrapper()
 		--debug \
 		--print-directory \
 		V=1 \
-	"$@"
+	"$@" 1>&2
 }
 
 function buildUsingMakeExternal()
