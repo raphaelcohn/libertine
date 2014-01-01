@@ -58,8 +58,8 @@ function install_crosscompiler_audit()
 		echo "#include <sys/select.h>" >auditctl.c
 		cat auditctl.c.orig >>auditctl.c
 		
-		cp ausearch-lol.c ausearch-lol.c.orig
-		sed -i -e '/include <string.h>/a#define strndupa(x, t) strncpy(alloca(strlen(x)+1),x,t)' ausearch-lol.c
+		#cp ausearch-lol.c ausearch-lol.c.orig
+		#sed -i -e '/include <string.h>/a#define strndupa(x,t) strncpy(alloca(strlen(x)+1),x,t)' ausearch-lol.c
 		
 	popd >/dev/null
 	
@@ -67,8 +67,8 @@ function install_crosscompiler_audit()
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
 	
 	# -D_GNU_SOURCE is try to include strndupa()
-	LFS_C_TARGET_EXTERNAL_CPPFLAGS="-D_GNU_SOURCE $LFS_C_TARGET_EXTERNAL_CPPFLAGS" \
-	LFS_C_TARGET_EXTERNAL_CFLAGS="-D_GNU_SOURCE $LFS_C_TARGET_EXTERNAL_CFLAGS -I${libcapngAbsoluteInstallPath}/include" \
+	LFS_C_TARGET_EXTERNAL_CPPFLAGS="-D_GNU_SOURCE -D'strndupa(x,t)=strncpy(alloca(strlen(x)+1),x,t)' $LFS_C_TARGET_EXTERNAL_CPPFLAGS" \
+	LFS_C_TARGET_EXTERNAL_CFLAGS="-D_GNU_SOURCE -D'strndupa(x,t)=strncpy(alloca(strlen(x)+1),x,t)' $LFS_C_TARGET_EXTERNAL_CFLAGS -I${libcapngAbsoluteInstallPath}/include" \
 	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${libcapngAbsoluteInstallPath}/lib -Wl,-rpath-link=$libcapngAbsoluteInstallPath/lib -Wl,-rpath=$libcapngRelativeInstallPath/lib" \
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-silent-rules \
