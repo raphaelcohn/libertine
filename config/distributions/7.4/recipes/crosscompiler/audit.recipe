@@ -15,6 +15,11 @@ version 2.3.2
 
 function install_crosscompiler_audit()
 {
+	local -r libcapngRelativeInstallPath="$(dependencyPath libcap-ng)"/install
+	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
+	
+	LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -I${libcapngAbsoluteInstallPath}/include" \
+	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${libcapngAbsoluteInstallPath}/lib -Wl,-rpath-link=$libcapngAbsoluteInstallPath/lib -Wl,-rpath=$libcapngRelativeInstallPath/lib" \
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-silent-rules \
 		--disable-dependency-tracking \
