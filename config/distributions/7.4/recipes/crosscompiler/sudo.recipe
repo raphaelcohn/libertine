@@ -71,7 +71,8 @@ function install_crosscompiler_sudo()
 		
 	popd >/dev/null
 	
-	# Remove all references to SSP_CFLAGS = @SSP_CFLAGS@ / SSP_LDFLAGS = @SSP_LDFLAGS@; might be better fixed using --disable-hardening in configure
+	# 1) Remove all references to SSP_CFLAGS = @SSP_CFLAGS@ / SSP_LDFLAGS = @SSP_LDFLAGS@; might be better fixed using --disable-hardening in configure
+	# 2) Fix --with-noexec being set to no automatically [due to --disable-shared] (causing noexecdir to be set no, which mkinstalldirs then tries to install...)
 	pushd sudo >/dev/null
 		
 		local makefileInFile
@@ -80,6 +81,8 @@ function install_crosscompiler_sudo()
 			cp "$makefileInFile" "$makefileInFile".orig
 			sed -i -e 's/SSP_CFLAGS = @SSP_CFLAGS@/SSP_CFLAGS = /g' "$makefileInFile"
 			sed -i -e 's/SSP_LDFLAGS = @SSP_LDFLAGS@/SSP_LDFLAGS = /g' "$makefileInFile"
+			
+			sed -i -e "s;noexecdir = no;noexecdir = $LFS_DEPENDENCY_PREFIX_PATH/libexec;g"
 		done
 	
 	popd >/dev/null
@@ -105,10 +108,6 @@ function install_crosscompiler_sudo()
 	
 		cp configure configure.orig
 		sed -i -e "s;PLUGINDIR=/usr/local/libexec/sudo;PLUGINDIR=${correctPluginDir};g" configure
-		
-		# Debug install-sh
-		cp install-sh install-sh.orig
-		sed -i -e 's;#! /bin/sh;#! /bin/sh\nset -x\npwd\nps -f;g' install-sh
 		
 	popd >/dev/null
 	

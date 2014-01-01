@@ -1358,7 +1358,7 @@ function buildUsingMakeExternal()
 		CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS" \
 		CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS" \
 		LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS" \
-	"$@"
+	"$@" 1>&2
 }
 
 function callback_empty()
@@ -1397,17 +1397,13 @@ function buildUsingAutotoolsHost()
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_NATIVE_TRIPLE" \
 		--prefix="${LFS}${LFS_DEPENDENCY_PREFIX_PATH}"/build \
-		"$@"
+		"$@" 1>&2
 		
 		$callback
 		
 		autotoolsConfiguredMakeWrapper
-	
-		if [ -z "$LFS" ]; then
-			autotoolsConfiguredMakeWrapper install
-		else
-			autotoolsConfiguredMakeWrapper install
-		fi
+
+		autotoolsConfiguredMakeWrapper install
 		
 	popdDependencyFolder
 }
@@ -1449,7 +1445,7 @@ function buildUsingAutotoolsExternal()
 		--host="$LFS_NATIVE_TRIPLE" \
 		--target="$LFS_FOREIGN_TRIPLE" \
 		--prefix="$LFS_DEPENDENCY_PREFIX_PATH" \
-		"$@"
+		"$@" 1>&2
 		
 		$callback
 		
@@ -1458,7 +1454,7 @@ function buildUsingAutotoolsExternal()
 		if [ -z "$LFS" ]; then
 			autotoolsConfiguredMakeWrapper install
 		else
-			autotoolsConfiguredMakeWrapper DESTDIR="$LFS"/ install
+			autotoolsConfiguredMakeWrapper DESTDIR="$LFS" install
 		fi
 		
 	popdDependencyFolder
