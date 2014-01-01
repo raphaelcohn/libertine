@@ -13,7 +13,7 @@ version 2.3.2
 	install_binaries bin m4
 }
 
-function install_crosscompiler_m4()
+function install_crosscompiler_audit()
 {
 	fixUpGnulib
 	
