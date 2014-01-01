@@ -26,7 +26,7 @@ function install_crosscompiler_audit()
 		local generatorProgram
 		local match
 		local replacement
-		for generatorProgram in aarch64_tables actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390x_tables x86_64_tables
+		for generatorProgram in aarch64_tables accesstabs actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390x_tables x86_64_tables
 		do
 			match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
 			replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
