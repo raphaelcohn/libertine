@@ -58,10 +58,22 @@ function install_crosscompiler_audit()
 		echo "#include <sys/select.h>" >auditctl.c
 		cat auditctl.c.orig >>auditctl.c
 		
-		cp ausearch-lol.c ausearch-lol.c.orig
-		sed -i -e '/include <string.h>/a#define strndupa(x,t) strncpy(alloca(strlen(x)+1),x,t)' ausearch-lol.c
 		
 	popd >/dev/null
+	
+	function package_crosscompiler_audit_fix()
+	{
+		local -r folder="$1"
+		local -r cFile="$2"
+		pushd audit/"$folder" >/dev/null
+		
+		cp "$cFile" "$cFile".orig
+		sed -i -e '/include <string.h>/a#define strndupa(x,t) strncpy(alloca(strlen(x)+1),x,t)' "$cFile"
+			
+		popd >/dev/null
+	}
+	package_crosscompiler_audit_fix src ausearch-lol.c
+	package_crosscompiler_audit_fix auparse auparse.c
 	
 	local -r libcapngRelativeInstallPath="$(dependencyPath libcap-ng)"/install
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
