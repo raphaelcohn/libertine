@@ -32,8 +32,8 @@ function install_crosscompiler_audit()
 			local replacement
 			for generatorProgram in "$@"
 			do
-				match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
-				replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
+				match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o \$@"
+				replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_${generatorProgram}_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o \$@"
 				sed -i -e "s;${match};${replacement};g" Makefile.in
 			done
 		
