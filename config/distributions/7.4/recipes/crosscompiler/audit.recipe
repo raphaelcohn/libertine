@@ -15,6 +15,29 @@ version 2.3.2
 
 function install_crosscompiler_audit()
 {
+	# ./configure does not respect cross compilation flags!!!
+	pushd audit/lib >dev/null
+	
+		cp Makefile.in Makefile.in.orig
+		
+		# Strip line continuation sequences, otherwise sed replacements (below) don't work reliably, eg gen_errtabs_h_LINK
+		sed -r -e ':a;N;$!ba;s/\\\n[\t]//g' Makefile.in
+				
+		local generatorProgram
+		local match
+		local replacement
+		for generatorProgram in aarch64_tables actiontabs alpha_tables armeb_tables errtabs fieldtabs flagtabs ftypetabs i386_tables ia64_tables machinetabs msg_typetabs optabs ppc_tables s390_tables s390s_tables x86_64_tables
+		do
+			match="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_errtabs_h_CFLAGS) \$(CFLAGS) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
+			replacement="gen_${generatorProgram}_h_LINK = \$(LIBTOOL) \$(AM_V_lt) --tag=CC \$(AM_LIBTOOLFLAGS) \$(LIBTOOLFLAGS) --mode=link \$(CCLD) \$(gen_errtabs_h_CFLAGS) \$(CFLAGS_FOR_BUILD) \$(AM_LDFLAGS) \$(LDFLAGS) -o $@"
+			sed -i -e "s;${match};${replacement};g" Makefile.in
+		done
+		
+		# Add CFLAGS_FOR_BUILD
+		sed -i -e "/CFLAGS = @CFLAGS@/aCFLAGS_FOR_BUILD = $LFS_C_HOST_CFLAGS" Makefile.in
+		
+	popd >/dev/null
+	
 	local -r libcapngRelativeInstallPath="$(dependencyPath libcap-ng)"/install
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
 	
