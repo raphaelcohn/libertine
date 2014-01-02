@@ -25,12 +25,8 @@ function install_crosscompiler_audit()
 			cp Makefile.in Makefile.in.orig
 		
 			# Strip line continuation sequences, otherwise sed replacements (below) don't work reliably, eg gen_errtabs_h_LINK
-			# Before stripping, fix a 
+			# Make sure there is a preceeding space before \ (ie " \"); an example of this is ipccmdtabs.h\
 			sed -i -r -e ':a;N;$!ba;s/( |)\\\n[\t]/ /g' Makefile.in
-			
-			#ipccmdtabs.h\
-			
-			
 							
 			local generatorProgram
 			local match
@@ -58,7 +54,6 @@ function install_crosscompiler_audit()
 		echo "#include <sys/select.h>" >auditctl.c
 		cat auditctl.c.orig >>auditctl.c
 		
-		
 	popd >/dev/null
 	
 	function package_crosscompiler_audit_fix()
@@ -68,7 +63,7 @@ function install_crosscompiler_audit()
 		pushd audit/"$folder" >/dev/null
 		
 		cp "$cFile" "$cFile".orig
-		sed -i -e '/include <string.h>/a#define strndupa(x,t) strncpy(alloca(strlen(x)+1),x,t)' "$cFile"
+		sed -i -e '/include <string.h>/a#define strndupa(x,t) strncpy(alloca(strnlen(x,t)+1),x,t)' "$cFile"
 			
 		popd >/dev/null
 	}
@@ -79,9 +74,10 @@ function install_crosscompiler_audit()
 	local -r libcapngAbsoluteInstallPath="${LFS}${libcapngRelativeInstallPath}"
 	
 	# -D_GNU_SOURCE is try to include strndupa()
+	# -Wl,-zmuldefs is used to allow multiple definitions (eg of nvlist_create)
 	LFS_C_TARGET_EXTERNAL_CPPFLAGS="-D_GNU_SOURCE $LFS_C_TARGET_EXTERNAL_CPPFLAGS" \
 	LFS_C_TARGET_EXTERNAL_CFLAGS="-D_GNU_SOURCE $LFS_C_TARGET_EXTERNAL_CFLAGS -I${libcapngAbsoluteInstallPath}/include" \
-	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${libcapngAbsoluteInstallPath}/lib -Wl,-rpath-link=$libcapngAbsoluteInstallPath/lib -Wl,-rpath=$libcapngRelativeInstallPath/lib" \
+	LFS_C_TARGET_EXTERNAL_LDFLAGS="$LFS_C_TARGET_EXTERNAL_LDFLAGS -L${libcapngAbsoluteInstallPath}/lib -Wl,-rpath-link=$libcapngAbsoluteInstallPath/lib -Wl,-rpath=$libcapngRelativeInstallPath/lib -Wl,-zmuldefs" \
 	buildUsingAutotoolsExternal callback_empty \
 		--disable-silent-rules \
 		--disable-dependency-tracking \
