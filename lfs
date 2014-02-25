@@ -80,7 +80,7 @@ function findOurNameAndPath()
 function executeWithCleanEnvironment()
 {
 	essentialProgramCheck env sudo
-	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
+	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- bash "$crudeOurPath"/"$ourName" $@
 }
 
 function exitError()
