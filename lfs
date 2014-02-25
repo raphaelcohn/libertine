@@ -4,7 +4,7 @@ set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o 
 function ensureWhichInstalled()
 {
 	set +e
-	which
+	which bash 1>/dev/null 2>/dev/null
 	local -ir exitCode=$?
 	set -e
 	if [ $exitCode = 127 ]; then

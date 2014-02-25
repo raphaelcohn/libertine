@@ -1,11 +1,5 @@
 set -o errexit +o hashall
 
-essentialProgramCheck getent awk
-
-# Since this file is source'd inside a function, the declare builtin defaults to making variables local!
-declare -irg nobodyUid=$(getent passwd nobody | awk -v FS=: 'NR==1 {print $3}')
-declare -irg nogroupGid=$(getent group nogroup | awk -v FS=: 'NR==1 {print $3}')
-
 declare_for_chroot -a previousMirrors
 
 declare_for_chroot -A phase_PreviousRecipes
