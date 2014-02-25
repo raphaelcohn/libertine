@@ -43,6 +43,11 @@ function registerDebianPackage()
 	printf '%s' "$@" >>"$LFS_CURRENT_DEBIAN_PACKAGES_TEMP"
 }
 
+function registerHomebrewPackage()
+{
+	:
+}
+
 function verifyDependency()
 {
 	if [ $# -lt 2 ]; then

@@ -1,5 +1,6 @@
 set -o errexit +o hashall
 registerDebianPackage coreutils
+registerHomebrewPackage coreutils
 essentialProgramCheck chown awk
 
 chown --version | awk 'NR==1 { print $(NF) }' | verifyDependency coreutils 6.9

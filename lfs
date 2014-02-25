@@ -12,6 +12,15 @@ function ensureWhichInstalled()
 	fi
 }
 
+function ensureWeAreRunningBash4()
+{
+	if [ ${BASH_VERSINFO[0]} != "4" ]; then
+		echo "$ourName: You are not running bash 4. Attempting to upgrade bash using  brew install bash  ..."
+		essentialProgramCheck "brew"
+		brew install bash
+	fi
+}
+
 function essentialProgramCheck()
 {
 	# This nasty hack exists because source'd files override the set -xxxx options!
@@ -26,7 +35,7 @@ function essentialProgramCheck()
 		fi
 	done
 }
-
+Ï
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
 # Such a critical piece is code executed before and during command line arg parsing (eg exitError)
@@ -571,6 +580,7 @@ function main()
 	setDebugging
 	findOurNameAndPath
 	ensureWhichInstalled
+	ensureWeAreRunningBash4
 	parseCommandLine "$@"
 	setPaths
 

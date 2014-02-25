@@ -1,4 +1,5 @@
 set -o errexit +o hashall
 registerDebianPackage findutils
+registerHomebrewPackage findutils
 essentialProgramCheck find awk
 find --version | awk 'NR==1 { print $(NF) }' | verifyDependency findutils 4.2.31
