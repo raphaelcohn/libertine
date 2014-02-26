@@ -1,39 +1,11 @@
 #!/usr/bin/env bash -
 set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi +o xtrace;unset BASH_ENV;unset BASH_XTRACEFD;unset CDPATH;unset ENV;unset FCEDIT;unset FIGNORE;unset FUNCNEST;unset GLOBIGNORE;unset HISTCONTROL;unset HISTFILE;unset HISTFILESIZE;unset HISTIGNORE;unset HISTSIZE;unset HISTTIMEFORMAT;unset HOSTFILE;unset IGNOREEOF;unset INPUTRC;unset MAIL;unset MAILCHECK;unset MAILPATH;unset TMOUT;umask 022
 
-function ensureWhichInstalled()
-{
-	set +e
-	which bash 1>/dev/null 2>/dev/null
-	local -ir exitCode=$?
-	set -e
-	if [ $exitCode = 127 ]; then
-		exitError "Program which does not exist on path $PATH"
-	fi
-}
-
 function ensureWeAreRunningBash4()
 {
 	if [ ${BASH_VERSINFO[0]} != "4" ]; then
-		echo "$ourName: You are not running bash 4. Attempting to upgrade bash using  brew install bash  ..."
-		essentialProgramCheck "brew"
-		brew install bash
+		exitError "$ourName: You are not running bash 4."
 	fi
-}
-
-function essentialProgramCheck()
-{
-	# This nasty hack exists because source'd files override the set -xxxx options!
-	set -e
-	
-	local program
-	for program in "$@"
-	do
-		if ! which "$program" 1>/dev/null 2>/dev/null; then
-			echo "$ourName: FAIL: Program $program does not exist on path $PATH" 1>&2
-			return 100
-		fi
-	done
 }
 
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
@@ -80,8 +52,6 @@ function findOurNameAndPath()
 function executeWithCleanEnvironment()
 {
 	# We require env, sudo to be present
-	
-	essentialProgramCheck env sudo
 	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
 }
 
@@ -95,12 +65,13 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-o option] -- machine
+Usage: ${ourName} [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-p path] [-o option] -- machine
 
 Defaults
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
     mirrors            ${mirrors}
+    path               ${path}
     option             See below
 
 A machine defines machine settings in <lfsConfigPath>/settings/machines/<machine>.settings
@@ -114,6 +85,9 @@ the global mirrors first to provide defaults. mirrors may be symlinks.
 
 At this time we don't support the metalink (.meta4) protocol for mirrors (as it requires additional
 runtime dependencies).
+
+A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
+to automatically install any missing dependencies. The PATH variable is reset to the location of these programs.
 
 Options
 For options, prefix with either 'yes-' to turn it on
@@ -139,6 +113,11 @@ function parseCommandLine()
 	
 	mirrors="timezone"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('mirrors')
+	
+	path="debian"
+	if [ "${MACHTYPE:0:19}" = "x86_64-apple-darwin" ]; then
+		path="homebrew"
+	fi
 	
 	skipSignatureChecks="no"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('skipSignatureChecks')
@@ -251,7 +230,9 @@ function sourceFunctions()
 }
 
 function setPaths()
-{	
+{
+	ensureWeAreRunningBash4
+	
 	setLfsConfigPath
 	
 	sourceFunctions
@@ -577,11 +558,8 @@ function installPackages()
 
 function main()
 {
-	echo $PATH
 	setDebugging
 	findOurNameAndPath
-	ensureWhichInstalled
-	ensureWeAreRunningBash4
 	parseCommandLine "$@"
 	setPaths
 
@@ -594,11 +572,7 @@ function main()
 	
 	initialiseTraps
 	
-	
-	
-	echo "FIXME TO decide package manager"
-	xxxx
-	verifyHostSystemRequirementsUsingDependencyChecks "homebrew"
+	verifyHostSystemRequirementsUsingDependencyChecks "$path"
 	
 	doInclude
 	

@@ -104,8 +104,6 @@ function setLocale()
 
 function setMakeFlags()
 {
-	essentialProgramCheck make grep
-	
 	if [ -f /proc/cpuinfo ]; then
 		local -i cpuCount=$(grep -c '^processor'$'\t' /proc/cpuinfo)
 	else
