@@ -2,7 +2,7 @@ set -o errexit +o hashall
 registerDebianPackage bash
 registerHomebrewPackage bash
 essentialProgramCheck bash awk sed
-bash --version | awk 'NR==1 {print $(NF-1) }' | sed -e 's/-.*//g' -e 's/(\([0-9]*\))/\.\1/g' | verifyDependency bash 3.2
+bash --version | awk 'NR==1 {print $(NF-1) }' | sed -e 's/-.*//g' -e 's/(\([0-9]*\))/\.\1/g' | verifyDependency bash 4.2
 # /bin/sh should link to bash; on ubuntu, it points to dash
 #echo "/bin/sh -> $(readlink -f /bin/sh)"
 

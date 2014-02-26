@@ -1,0 +1,11 @@
+function packageManager()
+{
+	# eg diffutils
+	brew tap homebrew/dupes
+	
+	# eg gcc
+	brew tap homebrew/versions
+	
+	brew update
+	brew install "$@"
+}

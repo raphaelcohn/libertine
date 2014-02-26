@@ -1,0 +1,5 @@
+function packageManager()
+{
+	sudo apt-get --quiet --yes update
+	sudo apt-get --quiet --yes install "$@"
+}
