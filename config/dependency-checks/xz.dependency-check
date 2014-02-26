@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage xz-utils
-essentialProgramCheck xz awk sed
-xz --version | awk 'NR==1 { print $(NF) }' | sed -r 's/[a-z]+/\.0/g' | verifyDependency xz 5.0.0

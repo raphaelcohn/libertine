@@ -1,5 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage gcc
-
-essentialProgramCheck gcc awk
-gcc --version | awk 'NR==1 { print $(NF) }' | verifyDependency gcc 4.1.2 4.8.1

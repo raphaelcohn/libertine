@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage texinfo
-essentialProgramCheck makeinfo awk
-makeinfo --version | awk 'NR==1 { print $(NF) }' | verifyDependency texinfo 4.9

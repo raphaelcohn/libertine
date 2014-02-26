@@ -1,5 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage tar
-registerHomebrewPackage gnu-tar
-essentialProgramCheck tar awk
-tar --version | awk 'NR==1 { print $(NF) }' | verifyDependency tar 1.18

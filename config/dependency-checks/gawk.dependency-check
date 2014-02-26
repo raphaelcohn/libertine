@@ -1,5 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage gawk
-essentialProgramCheck gawk awk
-gawk --version | awk 'NR==1 { print $(NF) }' | verifyDependency gawk 4.0.1
-# echo "/usr/bin/awk -> `readlink -f /usr/bin/awk`";

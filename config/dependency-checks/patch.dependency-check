@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage patch
-essentialProgramCheck patch awk
-patch --version | awk 'NR==1 { print $(NF) }' | verifyDependency patch 2.5.4

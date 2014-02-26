@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage diffutils
-essentialProgramCheck diff awk
-diff --version | awk 'NR==1 { print $(NF) }' | verifyDependency diffutils 2.8.1

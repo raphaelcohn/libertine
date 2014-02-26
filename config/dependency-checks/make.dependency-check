@@ -1,5 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage make
-essentialProgramCheck make awk
-make --version | awk 'NR==1 { print $(NF) }' | verifyDependency make 3.81
-

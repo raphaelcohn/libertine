@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage bzip2
-essentialProgramCheck bzip2 awk sed
-bzip2 --version 2>&1 </dev/null | awk 'NR==1 { print $(NF-1) }' | sed -e 's/,$//g' | verifyDependency bzip2 1.0.4

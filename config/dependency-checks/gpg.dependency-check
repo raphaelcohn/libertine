@@ -1,6 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage gpg
-
-essentialProgramCheck gpg awk
-# 1.4.7 was released 2007
-gpg --version --no-options --lock-never 2>/dev/null | awk 'NR==1 { print $(NF) }' | verifyDependency gpg 1.4.7

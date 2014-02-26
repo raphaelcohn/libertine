@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage sudo
-essentialProgramCheck sudo awk
-sudo -V | awk 'NR==1 { print $(NF) }' | sed 's/p/\./g' | verifyDependency sudo 1.8

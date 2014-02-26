@@ -1,4 +1,0 @@
-set -o errexit +o hashall
-registerDebianPackage perl-base
-essentialProgramCheck perl cut
-perl -V:version | cut -d "'" -f2 | verifyDependency perl 5.8.8
