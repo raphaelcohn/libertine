@@ -52,7 +52,7 @@ function findOurNameAndPath()
 function executeWithCleanEnvironment()
 {
 	# We require env, sudo to be present
-	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
+	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' PATH="$PATH" sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
 }
 
 function exitError()
@@ -128,76 +128,72 @@ function parseCommandLine()
 	machine="simple"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('machine')
 	
-	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
-		executeWithCleanEnvironment "$@"
+	local OPTERR=1
+	local OPTIND=1
+	local OPTARG
+	local option
+	while getopts :hl:d:m:1:2:o: option
+	do
+		case "$option" in
+			
+			h)
+				exitHelp 2
+			;;
+			
+			l)
+				lfsPath="$OPTARG"
+			;;
+			
+			c)
+				lfsConfigPath="$OPTARG"
+			;;
+			
+			m)
+				mirrors="$OPTARG"
+			;;
+			
+			o)
+				if [ -z "$OPTARG" ]; then
+					exitError "Invalid option -o requires an argument"
+				fi
+			
+				case "$OPTARG" in
+					
+					no-skip-signature-checks)
+						skipSignatureChecks="no"
+					;;
+					
+					yes-skip-signature-checks)
+						skipSignatureChecks="yes"
+					;;
+					
+					no-parallel-make)
+						parallelMake="no"
+					;;
+					
+					yes-parallel-make)
+						parallelMake="yes"
+					;;
+					
+					*)
+						exitError "Invalid option -o ${OPTARG}"
+					;;
+					
+				esac
+			;;
+			
+			'?')
+				exitError "Invalid option -${OPTARG}"
+			;;
+			
+		esac
+	done
+	
+	shift $((OPTIND - 1))
+	if [ $# -eq 1 ]; then
+		machine="$1"
 	else
-		local OPTERR=1
-		local OPTIND=1
-		local OPTARG
-		local option
-		while getopts :hl:d:m:1:2:o: option
-		do
-			case "$option" in
-				
-				h)
-					exitHelp 2
-				;;
-				
-				l)
-					lfsPath="$OPTARG"
-				;;
-				
-				c)
-					lfsConfigPath="$OPTARG"
-				;;
-				
-				m)
-					mirrors="$OPTARG"
-				;;
-				
-				o)
-					if [ -z "$OPTARG" ]; then
-						exitError "Invalid option -o requires an argument"
-					fi
-				
-					case "$OPTARG" in
-						
-						no-skip-signature-checks)
-							skipSignatureChecks="no"
-						;;
-						
-						yes-skip-signature-checks)
-							skipSignatureChecks="yes"
-						;;
-						
-						no-parallel-make)
-							parallelMake="no"
-						;;
-						
-						yes-parallel-make)
-							parallelMake="yes"
-						;;
-						
-						*)
-							exitError "Invalid option -o ${OPTARG}"
-						;;
-						
-					esac
-				;;
-				
-				'?')
-					exitError "Invalid option -${OPTARG}"
-				;;
-				
-			esac
-		done
-		
-		shift $((OPTIND - 1))
-		if [ $# -eq 1 ]; then
-			machine="$1"
-		else
-			exitError "Please specify one machine"
-		fi
+		exitError "Please specify one machine"
 	fi
 }
 
@@ -561,6 +557,11 @@ function main()
 	setDebugging
 	findOurNameAndPath
 	parseCommandLine "$@"
+	
+	if [ "$LFS_CLEAN_ENVIRONMENT" != "yes" ]; then
+		executeWithCleanEnvironment "$@"
+	fi
+	
 	setPaths
 
 	# Defensive
