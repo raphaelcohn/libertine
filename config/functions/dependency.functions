@@ -15,7 +15,7 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 		exitError "path name $pathNames does not exist or is not a directory"
 	fi
 	
-	readonly pathNamesFunction="$pathFunctions"/"$pathName".paths
+	readonly pathNamesFunction="$pathFunctions"/"$pathName".path
 	if [ ! -f "$pathNamesFunction" ]; then
 		exitError "path name functions $pathNamesFunction does not exist or is not a directory"
 	fi
