@@ -1,45 +1,80 @@
 set -o errexit +o hashall
 
+function prepareWaitForJobs()
+{
+	declare -aig jobProcessIds=()
+}
+
+function waitForJobs()
+{
+	local jobProcessId
+	local -i failCount=0
+	for jobProcessId in ${jobProcessIds[@]}
+	do
+		if ! wait $jobProcessId; then
+			failCount=$((failCount+1))
+		fi
+	done
+	
+	if [ $failCount -ne 0 ]; then
+		if [ $failCount -eq 1 ]; then
+			local plural=""
+		else
+			local plural="s"
+		fi
+		exitError "EXIT: $failCount background task${plural} failed"
+	fi
+}
+
 function doDownloads()
 {
 	# Download certificate authorities in parallel
+	prepareWaitForJobs
 	local certificateAuthorityName
 	for certificateAuthorityName in "${!certificateAuthorities_Mirror[@]}"
 	do
 		( downloadFileAndCheckHash "certificate authority" "${certificateAuthorities_Mirror["${certificateAuthorityName}"]}" "${certificateAuthorities_RelativePath["${certificateAuthorityName}"]}" "$certificateAuthoritiesPath" "${certificateAuthorities_FileName["${certificateAuthorityName}"]}" "${certificateAuthorities_Compression["${certificateAuthorityName}"]}" "${certificateAuthorities_Post["${certificateAuthorityName}"]}" "${certificateAuthorities_ReferFrom["${certificateAuthorityName}"]}" "no" "${certificateAuthorities_Hashes["${certificateAuthorityName}"]}" ) &
+		jobProcessIds+=($!)
 	done
-	wait
+	waitForJobs
 	
 	# Download signatures, keyrings and keys in parallel
+	prepareWaitForJobs
 	local -i index
 	for index in ${!signatures_Mirror[@]}
 	do
 		( downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "${signatures_ReferFrom[$index]}" "yes" "" ) &
+		jobProcessIds+=($!)
 	done
 	local -i index
 	for index in ${!keyrings_Mirror[@]}
 	do
 		( downloadFileAndCheckHash "keyring" "${keyrings_Mirror[$index]}" "${keyrings_RelativePath[$index]}" "$keyringsPath" "${keyrings_FileName[$index]}" "${keyrings_Compression[$index]}" "${keyrings_Post[$index]}" "${keyrings_ReferFrom[$index]}" "no" "${keyrings_Hashes[$index]}" ) &
+		jobProcessIds+=($!)
 	done
 	local -i index
 	for index in ${!keys_Mirror[@]}
 	do
 		( downloadFileAndCheckHash "key" "${keys_Mirror[$index]}" "${keys_RelativePath[$index]}" "$keysPath" "${keys_FileName[$index]}" "${keys_Compression[$index]}" "${keys_Post[$index]}" "${keys_ReferFrom[$index]}" "yes" "${keys_Hashes[$index]}" ) &
+		jobProcessIds+=($!)
 	done
-	wait
+	waitForJobs
 	
 	# Download packages and patches in parallel
+	prepareWaitForJobs
 	local -i index
 	for index in ${!sourcePackages_Mirror[@]}
 	do
 		( downloadFileAndCheckHash "source package" "${sourcePackages_Mirror[$index]}" "${sourcePackages_RelativePath[$index]}" "/dev/null" "${sourcePackages_FileName[$index]}" "${sourcePackages_Compression[$index]}" "${sourcePackages_Post[$index]}" "${sourcePackages_ReferFrom[$index]}" "no" "${sourcePackages_Hashes[$index]}" ) &
+		jobProcessIds+=($!)
 	done
 	local -i index
 	for index in ${!patches_Mirror[@]}
 	do
 		( downloadFileAndCheckHash "patch" "${patches_Mirror[$index]}" "${patches_RelativePath[$index]}" "/dev/null" "${patches_FileName[$index]}" "${patches_Compression[$index]}" "${patches_Post[$index]}" "${patches_ReferFrom[$index]}" "no" "${patches_Hashes[$index]}" ) &
+		jobProcessIds+=($!)
 	done
-	wait
+	waitForJobs
 }
 
 function linkOrCopyFile()
