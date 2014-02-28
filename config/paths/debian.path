@@ -1,5 +1,5 @@
 function packageManager()
 {
-	sudo apt-get --quiet --yes update
-	sudo apt-get --quiet --yes install "$@"
+	apt-get --quiet --yes update
+	apt-get --quiet --yes install "$@"
 }

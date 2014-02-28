@@ -51,8 +51,7 @@ function findOurNameAndPath()
 
 function executeWithCleanEnvironment()
 {
-	# We require env, sudo to be present
-	exec env -i HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' PATH="$PATH" sudo -E -p "Password required to run as root: " -- "$crudeOurPath"/"$ourName" $@
+	exec sudo -p "Password required to run as root: " HOME="$HOME" TERM="$TERM" LFS_BASH_DEBUGGING="$LFS_BASH_DEBUGGING" LFS_CLEAN_ENVIRONMENT='yes' PATH="$PATH" -- "$crudeOurPath"/"$ourName" $@
 }
 
 function exitError()
@@ -116,6 +115,8 @@ function parseCommandLine()
 	
 	path="debian"
 	if [ "${MACHTYPE:0:19}" = "x86_64-apple-darwin" ]; then
+		path="homebrew"
+	elif [ "${MACHTYPE:0:17}" = "i386-apple-darwin" ]; then
 		path="homebrew"
 	fi
 	
@@ -232,6 +233,8 @@ function setPaths()
 	setLfsConfigPath
 	
 	sourceFunctions
+	
+	verifyHostSystemRequirementsUsingDependencyChecks "$path"
 	
 	setPathsAfterSourcingFunctions
 	
@@ -572,8 +575,6 @@ function main()
 	setMakeFlags
 	
 	initialiseTraps
-	
-	verifyHostSystemRequirementsUsingDependencyChecks "$path"
 	
 	doInclude
 	

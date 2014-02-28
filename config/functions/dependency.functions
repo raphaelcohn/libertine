@@ -32,7 +32,11 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 		if [ ! -d "$packagePath" ]; then
 			continue
 		fi
-		ourPath="$ourPath":"$packagePath"
+		if [ -z "$ourPath" ]; then
+			ourPath="$packagePath"
+		else
+			ourPath="$ourPath":"$packagePath"
+		fi
 		packageName="$(purebash_basename "$packagePath")"
 		
 		# Do not check dependencies that are already installed
@@ -52,7 +56,9 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 		done
 	done
 	
-	packageManager "$installPackages{[@]}"
+	if [ ${#installPackages[@]} -ne 0 ]; then
+		packageManager "${installPackages[@]}"
+	fi
 	
 	export PATH="$ourPath"
 }
@@ -204,19 +210,12 @@ function dependencyToPath()
 	rm -rf -- "$absoluteVersionPath"/current
 	ln -s recipe-settings-dependencies "$absoluteVersionPath"/current
 	
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/install
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/binpath
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/sbinpath
-	
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/log
-	
-	
-	# Copy in source and patches from download cache
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$absoluteCompletePath"/source
-	
+	local folderName
+	for folderName in install binpath sbinpath log source
+	do
+		mkdir -m 0755 "$absoluteCompletePath"/"$folderName"
+		chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/"$folderName"
+	done
 	
 	local -i index
 	for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}

@@ -1,10 +1,10 @@
 function packageManager()
 {
 	# eg diffutils
-	brew tap homebrew/dupes
+	brew tap homebrew/dupes 1>/dev/null 2>/dev/null
 	
 	# eg gcc
-	brew tap homebrew/versions
+	brew tap homebrew/versions 1>/dev/null 2>/dev/null
 	
 	brew update
 	brew install "$@"

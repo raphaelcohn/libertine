@@ -482,7 +482,7 @@ function extractFileForSignatureTest()
 		;;
 	esac
 }
-count=0
+
 function tarExtract()
 {
 	local -r sourcePackageName="$1"
@@ -506,17 +506,20 @@ function tarExtract()
 		fi
 		
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
-			mkdir -m 0755 -p "$tarballFolder"
+			mkdir -m 0755 "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
 				mv "$tarball" "$tarballFolder"
 			else
 				${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		else
-			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+			
+			mkdir -m 0755 "$tarballFolder"
+			chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mv "$tarball" "$tarballFolder"
 			else
+				# Using sudo ensures that there is never a chance the file exists as root
 				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		fi
@@ -525,9 +528,10 @@ function tarExtract()
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
-			mkdir -m 0755 -p "$tarballFolder"
-		else
-			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- mkdir -m 0755 -p "$tarballFolder"
+			mkdir -m 0755 "$tarballFolder"
+		else	
+			mkdir -m 0755 "$tarballFolder"
+			chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$tarballFolder"
 		fi
 		pushd "$tarballFolder" >/dev/null
 	fi
@@ -540,7 +544,8 @@ function tarExtract()
 		
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
 			tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
-		else
+		else	
+			# Using sudo ensures that there is never a chance the extracted tar ball exists as root
 			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -- tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
 		fi
 	
