@@ -25,10 +25,8 @@ certificate_authority  AddTrustExternal  UtnUserFirstHardware  COMODO    7      
 # https://www.digicert.com/digicert-root-certificates.htm
 certificate_authority  root  DigiCertHACA3         DIGICERT  DigiCertHighAssuranceEVRootCA.crt  MD5:d474de575c39b2d39c8583c5c065498a,SHA1:5fb7ee0633e259dbad0c4c9ae6d38f1a61c7dc25,SHA256:7431e5f4c3c1ce4690774f0b61e05440883ba9a01ed00ba6abd7806ed3b118cf,SHA512:7b9cf079b9769dfa9eb2e28cf5a4da9922b0f80e415097d326bf20547505a6ab1b7ac6a83846d0b8253e9168b1f915b8974aec844a9b31c3adcab3aec89fcd07  DigiCertHighAssuranceEVRootCA.crt  DER
 
-# NOTE: Keyserver must be reliable and support options=mr or simple file-based URLs
 
 # Secure
-mirror  HKPS          'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'  SKS
 mirror  GNU            https://ftp.gnu.org/gnu/                                                      UtnUserFirstHardware
 mirror  SOURCEFORGE    https://prdownloads.sourceforge.net/                                          GeoTrustGlobal
 mirror  LINUX          https://www.kernel.org/pub/linux/                                             StartCom
@@ -37,8 +35,16 @@ mirror  GITHUB         https://codeload.github.com/                             
 mirror  FEDORA         https://fedorahosted.org/releases/                                            GeoTrustGlobal
 mirror  PEOPLE_REDHAT  https://people.redhat.com/                                                    EquifaxSecure
 
+
+# Was secure, but seems to have issues
+# NOTE: Keyserver must be reliable and support options=mr or simple file-based URLs
+#mirror  HKPS          'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'  SKS
+mirror  HKPS          'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'
+
+
 # Intermediately Secure
 mirror  SUDO           https://www.sudo.ws/
+
 
 # Insecure
 mirror  PATCHES        http://www.linuxfromscratch.org/patches/lfs/$LFS_DISTRIBUTION_VERSION/
