@@ -253,6 +253,13 @@ function createSkeletonFolderStructure()
 	mkdir -m 0755 -p "$downloadsLogsPath"
 }
 
+function initialiseLogging()
+{
+	rm -rf "$lfsLogPath"/"$ourName".log
+	# Does not work for background tasks!
+	exec 1> >(tee --append "$lfsLogPath"/"$ourName".log)
+}
+
 function installPackageSkip()
 {
 	:
@@ -441,17 +448,17 @@ function loopOverDependenciesInAllPhasesAsynchronously()
 {
 	local -r callback="$1"
 	
+	prepareWaitForJobs
 	for LFS_PHASE in crosscompiler toolchain2 system
 	do
 		for LFS_DEPENDENCY_KEY in ${phase_InstallationOrder["${LFS_PHASE}"]}
 		do
 			setCommonLfsDependencyVariables
-
-			( $callback ) &
+			
+			parallelJob $callback
 		done
 	done
-	
-	wait
+	waitForJobs
 }
 
 function loopOverDependenciesInPhase()
@@ -566,7 +573,11 @@ function main()
 	fi
 	
 	setPaths
-
+	
+	createSkeletonFolderStructure
+	
+	initialiseLogging
+	
 	# Defensive
 	declare_for_chroot FUNCNEST
 	FUNCNEST=40
@@ -580,8 +591,6 @@ function main()
 	
 	# Suspended for now, as we are using --cacert instead of --capath
 	#rehashCertificateAuthorities
-	
-	createSkeletonFolderStructure
 	
 	doDownloads
 	

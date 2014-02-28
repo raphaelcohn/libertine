@@ -134,11 +134,12 @@ function createInstallScriptForMakefile()
 			installSystemBinariesToPackagePath
 			linkBinariesToPath
 			linkSystemBinariesToPath
-		
-			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install ) &
-			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath ) &
-			( recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath ) &
-			wait
+			
+			prepareWaitForJobs
+			parallelJob recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/install
+			parallelJob recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/binpath
+			parallelJob recordHashes "$LFS" "$LFS_DEPENDENCY_PATH"/sbinpath
+			waitForJobs
 	
 			touch "$LFS_DEPENDENCY_FINISHED_PATH"
 			lockDownPackage

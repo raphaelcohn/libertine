@@ -1,0 +1,37 @@
+set -o errexit +o hashall
+
+function prepareWaitForJobs()
+{
+	declare -aig jobProcessIds=()
+}
+
+function parallelJob()
+{
+	(
+		"$@"
+	) &
+	jobProcessIds+=($!)
+}
+
+function waitForJobs()
+{
+	local jobProcessId
+	local -i failCount=0
+	for jobProcessId in ${jobProcessIds[@]}
+	do
+		if ! wait $jobProcessId; then
+			failCount=$((failCount+1))
+		fi
+	done
+	
+	if [ $failCount -ne 0 ]; then
+		if [ $failCount -eq 1 ]; then
+			local plural=""
+		else
+			local plural="s"
+		fi
+		# Allow logging to catch up
+		sleep 2
+		exitError "EXIT: $failCount background task${plural} failed (grep FAIL $lfsLogPath/$ourName.log)"
+	fi
+}

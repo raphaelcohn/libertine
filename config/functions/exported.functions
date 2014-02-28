@@ -112,43 +112,6 @@ function informationMessage()
 	echo "$ourName: $1"
 }
 
-function progressMessage()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	SECONDS=0
-	printf '%s' "$ourName: $1"
-}
-
-function progressMessageUpdate()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	printf '%s' " $1"
-}
-
-function progressMessageFailed()
-{
-	if [ $# -ne 1 ]; then
-		exitError "Incorrect arguments"
-	fi
-	
-	echo " FAILED (in ${SECONDS}s: $1)"
-	exit 1
-}
-
-function progressMessageSucceeded()
-{
-	if [ $# -ne 0 ]; then
-		exitError "Too many arguments"
-	fi
-	echo " PASSED (in ${SECONDS}s)"
-}
-
 function dependency_key()
 {
 	# bash has problems with keys containing non-alphanumerics
