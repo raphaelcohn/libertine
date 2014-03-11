@@ -497,40 +497,12 @@ function tarExtract()
 	SECONDS=0
 	informationMessage "TASK: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball"
 	
-	
-	
-	echo "HELLO _ FAILURE"
-	
-	# Problem SEEMS to be that PATH is not passed across... but it is. So why can't we find programs?
-	#sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s /usr/local/opt/coreutils/bin/gls
-	# $BASH contains current bash executable
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s 'echo $PATH'
-	sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} /usr/local/opt/coreutils/bin/gls
-	# Is is a result of NOEXEC? doesn't seem so, but it would correlate
-	# Also, just calling say 'env' doesn't work - it can't find it - yet the PATH is correct and is passing through
-	# So what is going on? It is the same regardless of '-s' - just that -s runs /bin/bash and gives us a little more output...
-	sudo -E -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s '/Users/raph/Documents/xxxx'
-	sudo -E -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} $BASH -s <<-EOF
-		echo hello
-		echo again
-		set
-		/usr/bin/env
-		/usr/local/bin/gwhich bash
-		/Users/raph/Documents/lfs/config/paths/homebrew/gnu-which/which bash
-	EOF
-	
-	exit 50
-	
-	echo "SUCCESS!"
-	
-	
-	
-	
-	
-	
 	pushd "$(purebash_dirname "$tarball")" >/dev/null
 		
-		local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
+		# This slightly odd code is to overcome a problem on Mac OS X where tarballs contain ; and = (when downloaded from GNU's Savannah, eg config.git;h=23424234234 )
+		#local -r absoluteTarballPath="$(pwd)"/"$(purebash_basename "$tarball")"
+		ln -s "$(purebash_basename "$tarball")" temporary-tarball-name-to-fix-a-bug-in-mac-os-x-not-liking-semicolon-and-equals-in-filename-for-tar
+		local -r absoluteTarballPath="$(pwd)"/temporary-tarball-name-to-fix-a-bug-in-mac-os-x-not-liking-semicolon-and-equals-in-filename-for-tar
 		
 	popd >/dev/null
 	
@@ -540,7 +512,7 @@ function tarExtract()
 		fi
 		
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
-			mkdir -m 0755 "$tarballFolder"
+			mkdir -m 0755 -p "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
 				mv "$tarball" "$tarballFolder"
 			else
@@ -548,27 +520,28 @@ function tarExtract()
 			fi
 		else
 			
-			mkdir -m 0755 "$tarballFolder"
+			mkdir -m 0755 -p "$tarballFolder"
 			chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$tarballFolder"
 			if [ -z "$tarballCompression" ]; then
-				echo "STILL HERE X1-A"
-				sudo -E -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s mv "$tarball" "$tarballFolder"
-				echo "STILL HERE X1"
+				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s mv "$tarball" "$tarballFolder"
 			else
 				# Using sudo ensures that there is never a chance the file exists as root
-				echo "STILL HERE X2-A"
-				sudo -E -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
-				echo "STILL HERE X2"
+				sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s ${tarballCompression} -d -c "$tarball" >"$tarballFolder"/file
 			fi
 		fi
+		
+		rm -rf "$absoluteTarballPath"
+		
+		informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
+		
 		return 0
 	fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
-			mkdir -m 0755 "$tarballFolder"
+			mkdir -m 0755 -p "$tarballFolder"
 		else	
-			mkdir -m 0755 "$tarballFolder"
+			mkdir -m 0755 -p "$tarballFolder"
 			chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$tarballFolder"
 		fi
 		pushd "$tarballFolder" >/dev/null
@@ -581,10 +554,10 @@ function tarExtract()
 		fi
 		
 		if [ $UID -eq $LFS_DEPENDENCY_UID ]; then
-			tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
+			tar --extract --numeric-owner --preserve-permissions --no-same-owner${compressionOption} --file "$absoluteTarballPath"
 		else
 			# Using sudo ensures that there is never a chance the extracted tar ball exists as root
-			sudo -E -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$absoluteTarballPath"${compressionOption}
+			sudo -u \#${LFS_DEPENDENCY_UID} -g \#${LFS_DEPENDENCY_GID} -s tar --extract --numeric-owner --preserve-permissions --no-same-owner${compressionOption} --file "$absoluteTarballPath"
 		fi
 	
 	if [ "$isTarbomb" = "tarbomb" ]; then
@@ -594,6 +567,8 @@ function tarExtract()
 	if [ ! -e "$sourcePackageName" ]; then
 		ln -s "$tarballFolder" "$sourcePackageName"
 	fi
+	
+	rm -rf "$absoluteTarballPath"
 	
 	informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo x86_64-linux-musl-gcc "$@" >>/tmp/args
 
