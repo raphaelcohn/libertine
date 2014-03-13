@@ -50,6 +50,7 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 				# Not perfect; might point to non-exec but extant file
 				if [ ! -x "$symlink" ]; then
 					installPackages+=("$packageName")
+					informationMessage WARN "Uninstalled package $packageName"
 					break
 				fi
 			fi
@@ -57,7 +58,13 @@ function verifyHostSystemRequirementsUsingDependencyChecks()
 	done
 	
 	if [ ${#installPackages[@]} -ne 0 ]; then
-		packageManager "${installPackages[@]}"
+		informationMessage TASK "Installing missing packages"
+		if [ "$verbose" = "yes" ]; then
+			packageManager "${installPackages[@]}"
+		else
+			packageManager "${installPackages[@]}" 1>/dev/null
+		fi
+		informationMessage PASS "Installing missing packages"
 	fi
 	
 	export PATH="$ourPath"
@@ -188,9 +195,6 @@ function dependencyToPath()
 	dependency_RelativePath["$LFS_DEPENDENCY_KEY"]="$LFS_PHASE"/"$LFS_DEPENDENCY_NAME"/"$LFS_DEPENDENCY_VERSION"/"$recipeVersion"
 	dependency_RecipeSettingsDependencies["$LFS_DEPENDENCY_KEY"]="$recipeVersion"
 	
-	
-	
-	
 	if [ -f "$absoluteCompletePath"/finished ]; then
 		return 0
 	fi
@@ -230,7 +234,6 @@ function dependencyToPath()
 	# There may not have been any files copied
 	chmod 0644 -- "$absoluteCompletePath"/source/* 1>/dev/null 2>/dev/null || true
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} -- "$absoluteCompletePath"/source/* 1>/dev/null 2>/dev/null || true
-	
 	
 	cp "$dependenciesFileSorted" "$absoluteCompletePath"/dependencies.list
 	chown ${LFS_DEPENDENCY_UID}:${LFS_DEPENDENCY_GID} "$absoluteCompletePath"/dependencies.list
