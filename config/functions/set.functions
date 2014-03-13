@@ -19,35 +19,37 @@ function setPathsAfterSourcingFunctions()
 
 function setRemainingPathsAfterIncludingMachineSettings()
 {
-	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
-	if [ ! -d "$distributionConfigPath" ]; then
-		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
-	fi
-	
-	readonly certificateAuthoritiesPath="$lfsConfigPath"/certificate-authorities
-	if [ ! -d "$certificateAuthoritiesPath" ]; then
-		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
-	fi
 	
 	readonly gpghomePath="$lfsConfigPath"/gpghome
 	if [ ! -d "$gpghomePath" ]; then
 		exitError "gpghome path $gpghomePath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$lfsConfigPath"/keyrings
+	readonly cachePath="$lfsConfigPath"/cache
+	if [ ! -d "$cachePath" ]; then
+		exitError "cache path $cachePath does not exist or is not a directory"
+	fi
+	
+	readonly certificateAuthoritiesPath="$cachePath"/certificate-authorities
+	if [ ! -d "$certificateAuthoritiesPath" ]; then
+		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
+	fi
+	
+	readonly keyringsPath="$cachePath"/keyrings
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$lfsConfigPath"/keys
+	readonly keysPath="$cachePath"/keys
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$lfsConfigPath"/signatures
+	readonly signaturesPath="$cachePath"/signatures
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
 	fi
+	
 	
 	readonly helpersPath="$lfsConfigPath"/helpers
 	if [ ! -d "$helpersPath" ]; then
@@ -61,6 +63,12 @@ function setRemainingPathsAfterIncludingMachineSettings()
 	fi
 	if [ ! -x "$helperLfsLibtoolArchiveFixup" ]; then
 		exitError "helper $helperLfsLibtoolArchiveFixup does not exist or is not executable"
+	fi
+	
+	
+	readonly distributionConfigPath="$lfsConfigPath"/distributions/"$LFS_DISTRIBUTION_VERSION"
+	if [ ! -d "$distributionConfigPath" ]; then
+		exitError "distribution config path $distributionConfigPath does not exist or is not a directory"
 	fi
 	
 	readonly mirrorsPath="$distributionConfigPath"/mirrors
