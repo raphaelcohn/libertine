@@ -16,7 +16,7 @@ function doDownloads()
 	local -i index
 	for index in ${!signatures_Mirror[@]}
 	do
-		parallelJob "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "${signatures_ReferFrom[$index]}" "yes" ""
+		parallelJob downloadFileAndCheckHash "signature" "${signatures_Mirror[$index]}" "${signatures_RelativePath[$index]}" "$signaturesPath" "${signatures_FileName[$index]}" "${signatures_Compression[$index]}" "${signatures_Post[$index]}" "${signatures_ReferFrom[$index]}" "yes" ""
 	done
 	local -i index
 	for index in ${!keyrings_Mirror[@]}

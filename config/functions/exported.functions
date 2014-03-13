@@ -358,7 +358,6 @@ function source_package()
 				local -r ourCompression=bzip2
 			;;
 			
-			# Not included in dependencies by default
 			# A faster compressor still is lz4
 			lzo)
 				local -r ourCompression=lzop

@@ -51,9 +51,7 @@ mirror  PATCHES        http://www.linuxfromscratch.org/patches/lfs/$LFS_DISTRIBU
 mirror  PERL           http://www.cpan.org/src/
 mirror  BZIP           http://www.bzip.org/
 mirror  XZ             http://tukaani.org/
-mirror  FILE           ftp://ftp.astron.com/pub/
 mirror  MPFR           http://www.mpfr.org/
-mirror  GMP            ftp://ftp.gmplib.org/pub/
 mirror  MPC            http://www.multiprecision.org/mpc/download/
 mirror  ZLIB           http://www.zlib.net/
 mirror  MUSL           http://www.musl-libc.org/
@@ -64,6 +62,12 @@ mirror  SAVANNAH      'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p='
 mirror  LINUX_PAM      http://linux-pam.org/
 mirror  ONIGURUMA      http://www.geocities.jp/kosako3/
 mirror  COTSE          http://www.cotse.com/wordlists/
+
+# FTP servers are problematic
+#mirror  FILE           ftp://ftp.astron.com/pub/
+mirror  DEBIAN_MAIN    http://ftp.de.debian.org/debian/pool/main/
+#mirror  GMP            ftp://ftp.gmplib.org/pub/
+mirror  GMP            https://gmplib.org/download/
 
 # eg http://www.cvedetails.com/product/<5-digit-id>/Vendor-Product.html
 # eg http://www.cvedetails.com/product/21050/GNU-Bash.html

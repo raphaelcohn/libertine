@@ -1,11 +1,11 @@
 function packageManager()
 {
 	# eg diffutils
-	brew tap homebrew/dupes 1>/dev/null 2>/dev/null
+	sudo -u "$SUDO_USER" brew tap homebrew/dupes 1>/dev/null 2>/dev/null
 	
 	# eg gcc
-	brew tap homebrew/versions 1>/dev/null 2>/dev/null
+	sudo -u "$SUDO_USER" brew tap homebrew/versions 1>/dev/null 2>/dev/null
 	
-	brew update
-	brew install "$@"
+	sudo -u "$SUDO_USER" brew update
+	sudo -u "$SUDO_USER" brew install "$@"
 }
