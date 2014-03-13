@@ -72,6 +72,14 @@ function setRemainingPathsAfterIncludingMachineSettings()
 		exitError "Downloads path $lfsDownloadsPath does not exist or is not a directory"
 	fi
 	
+	readonly lfsExtractsPath="$lfsCachePath"/extracts
+	if [ ! -d "$lfsExtractsPath" ]; then
+		mkdir -m 0755 -p "$lfsExtractsPath"
+	fi
+	if [ ! -d "$lfsExtractsPath" ]; then
+		exitError "Extracts path $lfsExtractsPath does not exist or is not a directory"
+	fi
+	
 	
 	readonly helpersPath="$lfsConfigPath"/helpers
 	if [ ! -d "$helpersPath" ]; then
@@ -119,7 +127,6 @@ function setLfsPaths()
 	popd >/dev/null
 	
 	readonly lfsLogPath=/var/log/lfs/"$machine"
-	readonly lfsExtractsPath="$lfsPath"/extracts
 	
 	LFS="$lfsPath"/"$machine"
 	LFS_OPT_PATH="$LFS"/opt/lfs/"$LFS_DISTRIBUTION_VERSION"
