@@ -194,6 +194,7 @@ function downloadFileAndCheckHash()
 		set -e
 		if [ $exitCode -ne 0 ]; then
 			informationMessage FAIL "Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
+			exit 1
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 			informationMessage PASS "Downloading $downloadName $url to $mirrorName/$relativePath ($SECONDS seconds)"
