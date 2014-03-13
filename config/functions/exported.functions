@@ -109,7 +109,19 @@ function warning()
 
 function informationMessage()
 {
-	echo "$ourName: $1"
+	local messageKind="$1"
+	local message="$2"
+	
+	if [ "$messageKind" = "FAIL" ]; then
+		echo "$ourName: $messageKind: $message"
+		return 0
+	fi
+	
+	if [ "$verbose" = "no" ]; then
+		return 0
+	fi
+	
+	echo "$ourName: $messageKind: $message"
 }
 
 function dependency_key()

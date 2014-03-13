@@ -17,6 +17,11 @@ function addInstallationFailedTrapHandler()
 	addNextTrapHandler installationFailedTrapHandler
 }
 
+function installationFailedTrapHandler()
+{
+	informationMessage FAIL "$INSTALLATION_FAILED_MESSAGE ($SECONDS seconds)" 1>&6 2>&7
+}
+
 function runOnTrap()
 {
 	local trapHandler
@@ -36,11 +41,6 @@ function addNextTrapHandler()
 function removeLastTrapHandler()
 {
 	unset trapHandlers[$((${#trapHandlers[*]}-1))]
-}
-
-function installationFailedTrapHandler()
-{
-	informationMessage "$INSTALLATION_FAILED_MESSAGE ($SECONDS seconds)" 1>&6 2>&7
 }
 
 function removeFilesOnExit()

@@ -2,7 +2,7 @@ set -o errexit +o hashall
 
 function includeMirrors()
 {
-	informationMessage "TASK: Including mirror $mirrors"
+	informationMessage TASK "Including mirror $mirrors"
 	
 	pushd "$mirrorsPath" >/dev/null
 		
@@ -14,11 +14,11 @@ function includeMirrors()
 	for requiredMirrorName in "${!signatures_Mirror[@]}" "${!keyrings_Mirror[@]}" "${!keys_Mirror[@]}" "${!sourcePackages_Mirror[@]}" "${!patches_Mirror[@]}"
 	do
 		if ! mirrorExists "$requiredMirrorName"; then
-			informationMessage "FAIL: Including mirror $mirrors (Mirror $requiredMirrorName is not defined in mirrors $mirrors)"
+			informationMessage FAIL "Including mirror $mirrors (Mirror $requiredMirrorName is not defined in mirrors $mirrors)"
 		fi
 	done
 	
-	informationMessage "PASS: Including mirror $mirrors"
+	informationMessage PASS "Including mirror $mirrors"
 }
 
 function machineSettingDefaults()

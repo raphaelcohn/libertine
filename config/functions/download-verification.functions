@@ -104,16 +104,16 @@ function downloadFileAndCheckHash()
 
 	SECONDS=0
 	if [ -f "$extractsFilePath" ]; then
-		informationMessage "TASK: Using cached extracted $downloadName $url at $extractsFilePath"
-		informationMessage "PASS: Using cached extracted $downloadName $url at $extractsFilePath ($SECONDS seconds)"
+		informationMessage TASK "Using cached extracted $downloadName $url at $extractsFilePath"
+		informationMessage PASS "Using cached extracted $downloadName $url at $extractsFilePath ($SECONDS seconds)"
 	elif [ -f "$downloadFilePath" ]; then
-		informationMessage "TASK: Copying from cache $downloadName $url at $extractsFilePath"
+		informationMessage TASK "Copying from cache $downloadName $url at $extractsFilePath"
 		rm -rf -- "$extractsFilePath"
 		linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
 		
-		informationMessage "PASS: Copying from cache $downloadName $url at $extractsFilePath ($SECONDS seconds)"
+		informationMessage PASS "Copying from cache $downloadName $url at $extractsFilePath ($SECONDS seconds)"
 	else
-		informationMessage "TASK: Downloading $downloadName $url to $mirrorName/$relativePath"
+		informationMessage TASK "Downloading $downloadName $url to $mirrorName/$relativePath"
 		
 		rm -rf -- "$downloadFilePath"
 		rm -rf -- "$extractsFilePath"
@@ -193,10 +193,10 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			informationMessage "FAIL: Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
+			informationMessage FAIL "Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"
-			informationMessage "PASS: Downloading $downloadName $url to $mirrorName/$relativePath ($SECONDS seconds)"
+			informationMessage PASS "Downloading $downloadName $url to $mirrorName/$relativePath ($SECONDS seconds)"
 		fi
 	fi
 	
@@ -211,7 +211,7 @@ function downloadFileAndCheckHash()
 	fi
 	
 	SECONDS=0
-	informationMessage "TASK: Verifying $downloadName $url hashes of $downloadFilePath"
+	informationMessage TASK "Verifying $downloadName $url hashes of $downloadFilePath"
 	
 	local hashNameAndValue
 	local hashName
@@ -234,7 +234,7 @@ function downloadFileAndCheckHash()
 			SIZE)
 				hasHash=0
 				if ! verifySize "$downloadFolderPath" "$downloadFileName" "$hashValue"; then
-					informationMessage "FAIL: Verifying $downloadName $url size of $downloadFilePath ($progressMessage)"
+					informationMessage FAIL "Verifying $downloadName $url size of $downloadFilePath ($progressMessage)"
 				fi
 			;;
 			
@@ -242,7 +242,7 @@ function downloadFileAndCheckHash()
 				hashProgram=${hashName,,}sum
 				hasHash=0
 				if ! verifyHash "$downloadFolderPath" "$downloadFileName" "$hashProgram" "$hashValue"; then
-					informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath $hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log)"
+					informationMessage FAIL "Verifying $downloadName $url hashes of $downloadFilePath $hashName hash sum of $downloadName does not match, check logs $downloadsLogsPath/$fileName.$hashProgram.log)"
 					exit 1
 				fi
 			;;
@@ -259,21 +259,21 @@ function downloadFileAndCheckHash()
 				case "$hashName" in
 					KEYRING)
 						if ! verifyKeyringSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
+							informationMessage FAIL "Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					KEYFILE)
 						if ! verifyKeyFileSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
+							informationMessage FAIL "Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
 			
 					HKP)
 						if ! verifyHkpSignature "$downloadFolderPath" "$downloadFileName" "$hashValue" "$signatureFileName" "no"; then
-							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
+							informationMessage FAIL "Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -289,7 +289,7 @@ function downloadFileAndCheckHash()
 						fi
 						
 						if ! verifyHkpSignature "$extractsFolderPath" "$(purebash_basename "$extractsFilePath")" "$hashValue" "$signatureFileName" "yes"; then
-							informationMessage "FAIL: Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
+							informationMessage FAIL "Verifying $downloadName $url signature of $downloadFilePath ($progressMessage)"
 							exit 1
 						fi
 					;;
@@ -299,7 +299,7 @@ function downloadFileAndCheckHash()
 			
 			
 			*)
-				informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath (Unsupported hash algorithm $hashName for $toPath/$fileName)"
+				informationMessage FAIL "Verifying $downloadName $url hashes of $downloadFilePath (Unsupported hash algorithm $hashName for $toPath/$fileName)"
 				exit 1
 			;;
 			
@@ -307,11 +307,11 @@ function downloadFileAndCheckHash()
 	done
 	
 	if [ $hasHash -ne 0 ]; then
-		informationMessage "FAIL: Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
+		informationMessage FAIL "Verifying $downloadName $url hashes of $downloadFilePath (no hash algorithms specified)"
 		exit 1
 	fi
 
-	informationMessage "PASS: Verifying $downloadName $url hashes of $downloadFilePath ($SECONDS seconds)"
+	informationMessage PASS "Verifying $downloadName $url hashes of $downloadFilePath ($SECONDS seconds)"
 }
 
 function gpgVerifySignatureUsingKey()
@@ -495,7 +495,7 @@ function tarExtract()
 	local -r isTarbomb="$5"
 	
 	SECONDS=0
-	informationMessage "TASK: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball"
+	informationMessage TASK "Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball"
 	
 	pushd "$(purebash_dirname "$tarball")" >/dev/null
 		
@@ -532,7 +532,7 @@ function tarExtract()
 		
 		rm -rf "$absoluteTarballPath"
 		
-		informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
+		informationMessage PASS "Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
 		
 		return 0
 	fi
@@ -570,5 +570,5 @@ function tarExtract()
 	
 	rm -rf "$absoluteTarballPath"
 	
-	informationMessage "PASS: Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
+	informationMessage PASS "Extracting $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION tarball $tarball ($SECONDS seconds)"
 }

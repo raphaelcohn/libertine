@@ -100,6 +100,7 @@ Last setting wins.
 Options are as follows:-   Default
     skip-signature-checks  ${skipSignatureChecks}
     parallel-make          ${parallelMake}
+    verbose                ${verbose}
 " 1>&2
 	exit $1
 }
@@ -125,6 +126,9 @@ function parseCommandLine()
 	
 	parallelMake="yes"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('parallelMake')
+	
+	verbose="no"
+	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('verbose')
 	
 	machine="simple"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('machine')
@@ -174,6 +178,14 @@ function parseCommandLine()
 					
 					yes-parallel-make)
 						parallelMake="yes"
+					;;
+					
+					no-verbose)
+						verbose="no"
+					;;
+					
+					yes-verbose)
+						verbose="yes"
 					;;
 					
 					*)
@@ -299,11 +311,11 @@ function patchPackageSources()
 	fi
 	
 	SECONDS=0
-	informationMessage "TASK: Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
+	informationMessage TASK "Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION"
 	
 	pushd "$LFS_DEPENDENCY_SOURCE_PATH" >/dev/null
 		
-		INSTALLATION_FAILED_MESSAGE="FAIL: Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
+		INSTALLATION_FAILED_MESSAGE="Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION (logs in $LFS_DEPENDENCY_LOG_PATH/err and out)"
 		addInstallationFailedTrapHandler
 		
 			exec 6>&1 1>"$LFS_DEPENDENCY_LOG_OUT"
@@ -340,7 +352,7 @@ function patchPackageSources()
 		
 	popd >/dev/null
 	
-	informationMessage "PASS: Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
+	informationMessage PASS "Patching phase $LFS_PHASE dependency $LFS_DEPENDENCY_NAME version $LFS_DEPENDENCY_VERSION ($SECONDS seconds)"
 }
 
 function removeAnyFailedPackagesFromPreviousRuns()
@@ -485,13 +497,13 @@ function calculateDependencyPaths()
 function extractAndPatchAllPackageSources()
 {
 	SECONDS=0
-	informationMessage "TASK: Extracting packages"
+	informationMessage TASK "Extracting packages"
 	for LFS_PHASE in crosscompiler toolchain2 system
 	do
 		loopOverDependenciesInPhase extractPackageSources
 	done
 	wait
-	informationMessage "PASS: Extracting packages ($SECONDS seconds)"
+	informationMessage PASS "Extracting packages ($SECONDS seconds)"
 	
 	loopOverDependenciesInAllPhasesAsynchronously patchPackageSources
 }
@@ -515,8 +527,10 @@ function writeToMakeFile()
 		linkSystemBinariesToPath
 
 		echo "$LFS_DEPENDENCY_KEY: $makeDependencies" >>"$makeFile"
-		printf '\t%s\n' "@echo $ourName: TASK: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
-		printf '\t%s\n\n' "@echo $ourName: PASS: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
+		if [ "$verbose" = "yes" ]; then
+			printf '\t%s\n' "@echo $ourName: TASK: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
+			printf '\t%s\n\n' "@echo $ourName: PASS: Skipping $LFS_DEPENDENCY_NAME" >>"$makeFile"
+		fi
 		return 0
 	fi
 	
@@ -545,7 +559,7 @@ function installPackages()
 	loopOverDependenciesInPhase writeToMakeFile
 	
 	SECONDS=0
-	informationMessage "TASK: Phase $LFS_PHASE"
+	informationMessage TASK "Phase $LFS_PHASE"
 	cp $makeFile /tmp/Makefile
 		
 		if [ "$LFS_BASH_DEBUGGING" = "yes" ]; then
@@ -555,11 +569,11 @@ function installPackages()
 		fi
 		
 		if ! make --jobs $LFS_MAKE_PACKAGE_JOBS --load-average $LFS_MAKE_LOAD_AVERAGE --no-builtin-rules --no-builtin-variables --makefile "$makeFile" all; then
-			informationMessage "FAIL: Phase $LFS_PHASE"
+			informationMessage FAIL "Phase $LFS_PHASE"
 			exit 1
 		fi
 		
-	informationMessage "PASS: Phase $LFS_PHASE ($SECONDS seconds)"
+	informationMessage PASS "Phase $LFS_PHASE ($SECONDS seconds)"
 }
 
 function main()
