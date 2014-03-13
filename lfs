@@ -64,11 +64,12 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-l lfsPath] [-c lfsConfigPath] [-m mirrors] [-p path] [-o option] -- machine
+Usage: ${ourName} [-l lfsPath] [-c lfsConfigPath] [-s lfsCachePath] [-m mirrors] [-p path] [-o option] -- machine
 
 Defaults
     lfsPath            ${lfsPath}
     lfsConfigPath      ${lfsConfigPath}
+    lfsCachePath       ${lfsCachePath}
     mirrors            ${mirrors}
     path               ${path}
     option             See below
@@ -111,6 +112,8 @@ function parseCommandLine()
 	
 	lfsConfigPath="${crudeOurPath}/config"
 	
+	lfsCachePath="$lfsConfigPath"/cache
+	
 	mirrors="timezone"
 	LFS_GLOBAL_VARIABLES_TO_EXPORT_TO_CHROOT+=('mirrors')
 	
@@ -151,6 +154,10 @@ function parseCommandLine()
 			
 			c)
 				lfsConfigPath="$OPTARG"
+			;;
+
+			s)
+				lfsCachePath="$OPTARG"
 			;;
 			
 			m)

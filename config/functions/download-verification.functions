@@ -193,7 +193,7 @@ function downloadFileAndCheckHash()
 		exitCode=$?
 		set -e
 		if [ $exitCode -ne 0 ]; then
-			informationMessage FAIL "Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log)"
+			informationMessage FAIL "Downloading $downloadName $url to $mirrorName/$relativePath (logs: $downloadsLogsPath/$fileName.*.log) ($downloadFilePath)"
 			exit 1
 		else
 			linkOrCopyFile "$mirrorName" "$relativePath" "$toPath" "$fileName"

@@ -350,11 +350,20 @@ function source_package()
 				local -r ourCompression=''
 			;;
 			
+			Z|tz|taz)
+				# eg gzip downloads
+				local -r ourCompression=compress
+			;;
+			
 			gz|tgz)
 				local -r ourCompression=gzip
 			;;
 			
-			bz2|bz|tbz2|tbz)
+			bz|tbz)
+				local -r ourCompression=bzip2
+			;;
+		
+			bz2|tbz2)
 				local -r ourCompression=bzip2
 			;;
 			
@@ -373,11 +382,6 @@ function source_package()
 			
 			xz|txz)
 				local -r ourCompression=xz
-			;;
-			
-			Z|tz|taz)
-				# eg gzip downloads
-				local -r ourCompression=compress
 			;;
 			
 			*)

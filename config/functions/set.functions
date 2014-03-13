@@ -19,35 +19,57 @@ function setPathsAfterSourcingFunctions()
 
 function setRemainingPathsAfterIncludingMachineSettings()
 {
-	
 	readonly gpghomePath="$lfsConfigPath"/gpghome
 	if [ ! -d "$gpghomePath" ]; then
 		exitError "gpghome path $gpghomePath does not exist or is not a directory"
 	fi
 	
-	readonly cachePath="$lfsConfigPath"/cache
-	if [ ! -d "$cachePath" ]; then
-		exitError "cache path $cachePath does not exist or is not a directory"
+	
+	if [ ! -d "$lfsCachePath" ]; then
+		mkdir -m 0755 -p "$lfsCachePath"
+	fi
+	if [ ! -d "$lfsCachePath" ]; then
+		exitError "cache path $lfsCachePath does not exist or is not a directory"
 	fi
 	
-	readonly certificateAuthoritiesPath="$cachePath"/certificate-authorities
+	readonly certificateAuthoritiesPath="$lfsCachePath"/certificate-authorities
+	if [ ! -d "$certificateAuthoritiesPath" ]; then
+		mkdir -m 0755 -p "$certificateAuthoritiesPath"
+	fi
 	if [ ! -d "$certificateAuthoritiesPath" ]; then
 		exitError "certificate-authorities path $certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	readonly keyringsPath="$cachePath"/keyrings
+	readonly keyringsPath="$lfsCachePath"/keyrings
+	if [ ! -d "$keyringsPath" ]; then
+		mkdir -m 0755 -p "$keyringsPath"
+	fi
 	if [ ! -d "$keyringsPath" ]; then
 		exitError "Keyrings path $keyringsPath does not exist or is not a directory"
 	fi
 	
-	readonly keysPath="$cachePath"/keys
+	readonly keysPath="$lfsCachePath"/keys
+	if [ ! -d "$keysPath" ]; then
+		mkdir -m 0755 -p "$keysPath"
+	fi
 	if [ ! -d "$keysPath" ]; then
 		exitError "Keys path $keysPath does not exist or is not a directory"
 	fi
 	
-	readonly signaturesPath="$cachePath"/signatures
+	readonly signaturesPath="$lfsCachePath"/signatures
+	if [ ! -d "$signaturesPath" ]; then
+		mkdir -m 0755 -p "$signaturesPath"
+	fi
 	if [ ! -d "$signaturesPath" ]; then
 		exitError "Signatures path $signaturesPath does not exist or is not a directory"
+	fi
+	
+	readonly lfsDownloadsPath="$lfsCachePath"/downloads
+	if [ ! -d "$lfsDownloadsPath" ]; then
+		mkdir -m 0755 -p "$lfsDownloadsPath"
+	fi
+	if [ ! -d "$lfsDownloadsPath" ]; then
+		exitError "Downloads path $lfsDownloadsPath does not exist or is not a directory"
 	fi
 	
 	
@@ -97,7 +119,6 @@ function setLfsPaths()
 	popd >/dev/null
 	
 	readonly lfsLogPath=/var/log/lfs/"$machine"
-	readonly lfsDownloadsPath="$lfsPath"/downloads
 	readonly lfsExtractsPath="$lfsPath"/extracts
 	
 	LFS="$lfsPath"/"$machine"
