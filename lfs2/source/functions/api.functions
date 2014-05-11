@@ -370,6 +370,13 @@ function mirrors()
 	distributionMirrors="$1"
 }
 
+function requires()
+{
+	# really, we can map these to become dependencies
+	# we can map the machine to become a recipe
+	:
+}
+
 machineNativeArchitecture=""
 machineForeignArchicture=""
 function architecture()
@@ -378,9 +385,9 @@ function architecture()
 	machineForeignArchicture="$1"
 }
 
-function foreign()
+function native()
 {
-	machineForeignArchicture="$1"
+	machineNativeArchicture="$1"
 }
 
 
