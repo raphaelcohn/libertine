@@ -1,0 +1,563 @@
+
+
+
+api_download_kind=""
+api_download_index=-1
+api_downloads_name=()
+api_downloads_mirror=()
+api_downloads_path=()
+
+api_downloads_referrer=()
+api_downloads_post_data=()
+
+api_downloads_archive=()
+api_downloads_compression=()
+api_downloads_tarbomb=()
+api_downloads_archive_folder=()
+api_downloads_download_as=()
+
+api_downloads_size=()
+api_downloads_md5=()
+api_downloads_sha1=()
+api_downloads_sha224=()
+api_downloads_sha256=()
+api_downloads_sha384=()
+api_downloads_sha512=()
+api_downloads_signed_as=()
+api_downloads_signed_id=()
+api_downloads_signed_signatureFile=()
+
+api_downloads_keyring=()
+api_downloads_keyfile=()
+api_downloads_hkp=()
+api_downloads_hkp_uncompressed=()
+function api_download()
+{
+	local -r downloadKind="$1"
+	local -r downloadName="$2"
+	api_download_kind="$downloadKind"
+	api_download_index=${#api_downloads_name[@]}
+	api_downloads_name+=("$downloadName")
+	
+	api_downloads_mirror[$api_download_index]=""
+	api_downloads_path[$api_download_index]=""
+	
+	api_downloads_referrer[$api_download_index]=""
+	api_downloads_post_data[$api_download_index]=""
+	
+	api_downloads_archive[$api_download_index]="none"
+	api_downloads_compression[$api_download_index]="none"
+	api_downloads_tarbomb[$api_download_index]="no"
+	api_downloads_archive_folder[$api_download_index]=""
+	api_downloads_download_as[$api_download_index]=""
+	
+	api_downloads_size[$api_download_index]=-1
+	api_downloads_md5[$api_download_index]=""
+	api_downloads_sha1[$api_download_index]=""
+	api_downloads_sha224[$api_download_index]=""
+	api_downloads_sha256[$api_download_index]=""
+	api_downloads_sha384[$api_download_index]=""
+	api_downloads_sha512[$api_download_index]=""
+	api_downloads_signed_as[$api_download_index]="none"
+	api_downloads_signed_id[$api_download_index]=""
+	api_downloads_signed_signatureFile[$api_download_index]=""
+}
+
+function mirror()
+{
+	api_verifyOneArgument $#
+	
+	api_downloads_mirror[$api_download_index]="$1"
+}
+
+function path()
+{
+	api_verifyOneArgument $#
+	local -r relativePath="$1"
+	api_downloads_path[$api_download_index]="$relativePath"
+
+	# the defaults for these vary with the kind of resource in use
+	case "$api_download_kind" in
+		
+		certificate-authority|patch|file|keyring|key)
+			local -r compressionExtension="${ourFileName##*.}"
+			api_downloads_archive[$api_download_index]=file
+
+			if [ -z "$compressionExtension" ]; then
+				local -r ourCompression=none
+			else
+				case "$compressionExtension" in
+					Z)
+						# eg gzip downloads
+						local -r ourCompression=compress
+					;;
+		
+					gz)
+						local -r ourCompression=gzip
+					;;
+		
+					bz)
+						local -r ourCompression=bzip2
+					;;
+	
+					bz2)
+						local -r ourCompression=bzip2
+					;;
+		
+					# A faster compressor still is lz4
+					lzo)
+						local -r ourCompression=lzop
+					;;
+		
+					lz)
+						local -r ourCompression=lzip
+					;;
+		
+					lzma)
+						local -r ourCompression=lzma
+					;;
+		
+					xz)
+						local -r ourCompression=xz
+					;;
+		
+					*)
+						local -r ourCompression=none
+					;;
+				esac
+			fi
+			api_downloads_archive_folder[$api_download_index]=""
+			api_downloads_compression[$api_download_index]="$ourCompression"
+		;;
+		
+		package)
+			local -r ourFileName="$(lfs_basename "$relativePath")"
+			local -r compressionExtension="${ourFileName##*.}"
+			local -r withoutCompressionExtension="${ourFileName%.*}"
+			if [ -z "$compressionExtension" ]; then
+				local -r ourArchive="none"
+				local -r ourArchiveFolder="$withoutCompressionExtension"
+			else
+				case "$compressionExtension" in
+				
+					# The various abominations are also slackware packages (txz, tgz especially)
+					tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
+						local -r ourArchive="tarball"
+						local -r ourArchiveFolder="$withoutCompressionExtension"
+					;;
+					
+					zip)
+						local -r ourArchive="zip"
+						local -r ourArchiveFolder="$withoutCompressionExtension"
+					;;
+					
+					*)
+						local -r ourArchive="tarball"
+						local -r ourArchiveFolder="${withoutCompressionExtension%.*}"
+					;;
+				
+				esac
+			fi
+			case "$compressionExtension" in
+				tar)
+					local -r ourCompression=none
+				;;
+				
+				zip)
+					local -r ourCompression=none
+				;;
+		
+				Z|tz|taz)
+					# eg gzip downloads
+					local -r ourCompression=compress
+				;;
+		
+				gz|tgz)
+					local -r ourCompression=gzip
+				;;
+		
+				bz|tbz)
+					local -r ourCompression=bzip2
+				;;
+	
+				bz2|tbz2)
+					local -r ourCompression=bzip2
+				;;
+		
+				# A faster compressor still is lz4
+				lzo)
+					local -r ourCompression=lzop
+				;;
+		
+				lz|tlz)
+					local -r ourCompression=lzip
+				;;
+		
+				lzma|tlzma)
+					local -r ourCompression=lzma
+				;;
+		
+				xz|txz)
+					local -r ourCompression=xz
+				;;
+		
+				*)
+						local -r ourCompression=none
+				;;
+			esac
+		
+			api_downloads_archive[$api_download_index]="$ourArchive"
+			api_downloads_compression[$api_download_index]="$ourCompression"
+			api_downloads_archive_folder[$api_download_index]="$ourArchiveFolder"
+		;;
+		
+		*)
+			exitError "Unknown api_download_kind $api_download_kind"
+		;;
+		
+	esac
+	
+	api_downloads_download_as[$api_download_index]="$(lfs_basename "$relativePath")"
+}
+
+function referrer()
+{
+	api_verifyOneArgument $#
+	api_downloads_referrer[$api_download_index]="$1"
+}
+
+function post_data()
+{
+	api_verifyOneArgument $#
+	api_downloads_post_data[$api_download_index]="$1"
+}
+
+function archive()
+{
+	api_verifyOneArgument $#
+	api_downloads_archive[$api_download_index]="$1"
+}
+
+function compression()
+{
+	api_verifyOneArgument $#
+	api_downloads_compression[$api_download_index]="$1"
+}
+
+function tarbomb()
+{
+	api_verifyOneArgument $#
+	api_downloads_tarbomb[$api_download_index]="$1"
+}
+
+function archive_folder()
+{
+	api_verifyOneArgument $#
+	api_downloads_archive_folder[$api_download_index]="$1"
+}
+
+function download_as()
+{
+	api_verifyOneArgument $#
+	api_downloads_download_as[$api_download_index]="$1"
+}
+
+function size()
+{
+	api_verifyOneArgument $#
+	api_downloads_size[$api_download_index]=$1
+}
+
+function md5()
+{
+	api_verifyOneArgument $#
+	api_downloads_md5[$api_download_index]="$1"
+}
+
+function sha1()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha1[$api_download_index]="$1"
+}
+
+function sha224()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha224[$api_download_index]="$1"
+}
+
+function sha256()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha256[$api_download_index]="$1"
+}
+
+function sha384()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha284[$api_download_index]="$1"
+}
+
+function sha512()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha512[$api_download_index]="$1"
+}
+
+function signed_as()
+{
+	case "$1" in
+		
+		keyring|keyfile|hkp|hkp_uncompressed)
+			:
+		;;
+		
+		none)
+			:
+		;;
+		
+		*)
+			exitError "Unrecognised signed_as $1"
+		;;
+	esac
+	
+	api_downloads_signed_as[$api_download_index]="$1"
+	api_downloads_signed_id[$api_download_index]="$2"
+	
+	if [ $# -eq 3 ]; then
+		api_downloads_signed_signatureFile[$api_download_index]="$3"
+	else
+		# actually, assumes a default name and location. Clever but annoying.
+		api_downloads_signed_signatureFile[$api_download_index]=""
+	fi
+}
+
+
+
+function api_verifyOneArgument()
+{
+	if [ $1 -ne 1 ]; then
+		lfs_exitError "Please specify exactly one argument"
+	fi
+}
+
+function api_reset()
+{
+	recipeName=""
+	api_download_kind=""
+	api_download_index=-1
+	name=""
+	version=""
+}
+
+
+
+machineName=""
+function machine()
+{
+	machineName="$1"
+}
+
+function distribution()
+{
+	distributionName="$1"
+	distributionVersion="$2"
+	distributionMirrors="any"
+}
+
+function mirrors()
+{
+	distributionMirrors="$1"
+}
+
+machineNativeArchitecture=""
+machineForeignArchicture=""
+function architecture()
+{
+	machineNativeArchitecture="$1"
+	machineForeignArchicture="$1"
+}
+
+function foreign()
+{
+	machineForeignArchicture="$1"
+}
+
+
+declare -A api_recipes_uidgid
+declare -A api_recipes_dependsRecipeOurVersion
+declare -A api_recipes_dependsRecipeName
+declare -A api_recipes_dependsRecipeVersion
+recipeName=""
+function recipe()
+{
+	recipeName="$1"
+}
+
+# If we allow each package 256 uids, that gives 1 for the package as a whole and enough for every program in it
+function uidgid()
+{
+	api_verifyOneArgument $#
+	api_recipes_uidgid["${recipeName}"]=$1
+}
+
+recipeVersion=""
+function version()
+{
+	api_download_kind=""
+	api_download_index=-1
+	name=""
+	version=""
+}
+
+function depends()
+{
+	local -r dependsRecipeName="$1"
+	local -r dependsRecipeVersion="$2"
+	
+	# we should probably just gen temp files at this point
+	api_recipes_dependsRecipeOurVersion["$recipeName"]="${api_recipes_dependsRecipeOurVersion["$recipeName"]} $recipeVersion"
+	api_recipes_dependsRecipeName["$recipeName"]="${api_recipes_dependsRecipeName["$recipeName"]} $dependsRecipeName"
+	api_recipes_dependsRecipeVersion["$recipeName"]="${api_recipes_dependsRecipeVersion["$recipeName"]} $dependsRecipeVersion"
+}
+
+
+
+declare -A api_mirrors_Url
+declare -A api_mirrors_certificateAuthorityName
+function define_mirror()
+{
+	case $# in
+		
+		2|3)
+			local -r mirrorName="$1"
+			local -r url="$2"
+		;;
+		
+		*)
+			lfs_exitError "Needs 2 or 3 arguments"
+		;;
+		
+	esac
+	
+	api_mirrors_Url["${mirrorName}"]="$url"
+	
+	if [ $# -eq 3 ]; then
+		local -r certificateAuthorityName="$3"
+	else
+		local -r certificateAuthorityName=""
+	fi
+	api_mirrors_certificateAuthorityName["${mirrorName}"]="$certificateAuthorityName"
+}
+
+function cert_type()
+{
+	api_verifyOneArgument $#
+	api_certificateAuthorities_cert_type["$name"]="$1"
+}
+
+
+
+declare -A api_certificateAuthorities_download
+declare -A api_certificateAuthorities_parent
+declare -A api_certificateAuthorities_cert_type
+name=""
+function certificate-authority()
+{
+	name="$1"
+	
+	if [ "$name" = "root" ]; then
+		lfs_exitError "Certificate Authorities can not be called 'root'"
+	fi
+	
+	case $# in
+		
+		1)
+			local -r parentName="root"
+		;;
+		
+		2)
+			local -r parentName="$2"
+		;;
+		
+		*)
+			lfs_exitError "Needs 1 or 2 arguments"
+		;;
+		
+	esac
+	
+	api_download "certificate-authority" "$name"
+	
+	api_certificateAuthorities_download["$name"]=$api_download_index
+	api_certificateAuthorities_parent["$name"]="$parentName"
+	api_certificateAuthorities_cert_type["$name"]='PEM'
+}
+
+
+
+declare -A api_packages_download
+name=""
+version=""
+function package()
+{
+	name="$1"
+	version="$2"
+	
+	api_download "package" "$name"
+	
+	api_packages_download["$name"]=$api_download_index
+}
+
+
+
+declare -A api_patches_download
+name=""
+function patch()
+{
+	name="$1"
+	
+	api_download "patch" "$name"
+	
+	api_patches_download["$name"]=$api_download_index
+}
+
+
+
+declare -A api_files_download
+name=""
+function file()
+{
+	name="$1"
+	
+	api_download "file" "$name"
+	
+	api_files_download["$name"]=$api_download_index
+}
+
+
+
+declare -A api_keyrings_download
+name=""
+function keyring()
+{
+	name="$1"
+	
+	api_download "keyring" "$name"
+	
+	api_keyrings_download["$name"]=$api_download_index
+}
+
+
+
+declare -A api_keyfiles_download
+name=""
+function keyfile()
+{
+	api_verifyOneArgument $#
+	
+	name="$1"
+	
+	api_download "keyfile" "$name"
+	
+	api_keyfiles_download["$name"]=$api_download_index
+}

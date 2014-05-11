@@ -1,0 +1,36 @@
+machine_functions=()
+
+function machine_source()
+{
+	source "$lfs_machineFilePath"
+}
+machine_functions+=(machine_source)
+
+function machine_sourceRecipes()
+{
+	pushd "$distribution_recipesPath" 1>/dev/null 2>/dev/null
+
+		local recipeFile
+		for recipeFile in *.recipe
+		do
+			if [ -f "$recipeFile" ]; then
+				source "$recipeFile"
+				api_reset
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+machine_functions+=(distribution_sourceRecipes)
+
+function main_distributionFunctions()
+{
+	local distribution_function
+	for distribution_function in "${distribution_functions[@]}"
+	do
+		vsh_message INFO "${tab}${tab}${distribution_function}"
+		${distribution_function}
+	done
+}
+
+main_functions+=(main_distributionFunctions)

@@ -1,0 +1,28 @@
+machine example
+{
+	distribution lfs 7.4
+	{
+		# this should not affect machine configuration, but it does. problematic
+		mirrors uk
+		#requires kernel <version should be optional, even implict>
+		requires bash 4.2
+		requires xz 5.05
+	}
+	
+	architecture x86_64
+	{
+		foreign x86_64
+		#cflags_native "-march=native -mtune=generic"
+		#cflags_foreign "-march=native -mtune=generic"
+		#ldflags_debugging "-Wl,--strip-debug"
+		
+		# See http://gcc.gnu.org/onlinedocs/gcc/i386-and-x86_002d64-Options.html
+		# And gcc -march=native -v -E - 2>&1 <<<'' | grep "cc1" | egrep -o -e $'-m(arch|tune)=[^ "\']+' to determine best arch
+		# But gcc -c -Q -march=native --help=target | grep sse  seems to infer no SSE!
+		#cflags_foreign "-march=bdver1 -mcx16 -msahf -mno-movbe -maes -mpclmul -mpopcnt -mabm -mlwp -mfma -mfma4 -mxop -mno-bmi -mtbm -mavx -msse4.2 -msse4.1 --param l1-cache-size=16 --param l1-cache-line-size=64 --param l2-cache-size=2048 -mtune=bdver1"
+	}
+}
+
+# The problem with these settings is they ruin reproducibility
+# LFS_AUTOTOOLS_CONFIG_VERSION "5e4de70bb0064d974a848fbe3a445d5dafaf7b48"
+# LFS_AUTOTOOLS_GNULIB_VERSION "43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42"

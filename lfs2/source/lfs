@@ -1,0 +1,309 @@
+#!/usr/bin/env bash
+
+function lfs_message()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	case "$messageKind" in
+		
+		WARN|FAIL)
+			echo "$ourName: $messageKind: $message" 1>&2
+			if [ "$messageKind" = "FAIL" ]; then
+				exit 1
+			fi
+		;;
+		
+		INFO)
+			if [ "$lfs_beVerbose" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		DEBUG)
+			if [ "$lfs_beDebug" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		*)
+			echo "$ourName: $messageKind: $message" 1>&2
+			exit 3
+		;;
+	
+	esac
+}
+
+# The purpose of these functions is to provide internal implementations of logic we can't be 100%
+# sure of exists in the environment or is implemented as we would like for critical pieces of code.
+# Such a critical piece is code executed before and during command line arg parsing
+function lfs_dirname()
+{
+	local -r converted="${1%/*}"
+	if [ "$converted" = "$1" ]; then
+		echo "."
+	else
+		echo "$converted"
+	fi
+}
+
+function lfs_basename()
+{
+	echo "${1##*/}"
+}
+
+function lfs_setDebugging()
+{
+	# is set -x on?
+	if [[ "$-" == *x* ]]; then
+		export LFS_BASH_DEBUGGING="yes"
+	elif [ ! -z "$LFS_BASH_DEBUGGING" ]; then
+		if [ "$LFS_BASH_DEBUGGING" = "yes" ]; then
+			set -x
+		fi
+	fi
+}
+
+function lfs_setSaneEnvironmentDefaults()
+{
+	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
+	
+	unset BASH_ENV
+	unset BASH_XTRACEFD
+	unset CDPATH
+	unset ENV
+	unset FCEDIT
+	unset FIGNORE
+	unset FUNCNEST
+	unset GLOBIGNORE
+	unset HISTCONTROL
+	unset HISTFILE
+	unset HISTFILESIZE
+	unset HISTIGNORE
+	unset HISTSIZE
+	unset HISTTIMEFORMAT
+	unset HOSTFILE
+	unset IGNOREEOF
+	unset INPUTRC
+	unset MAIL
+	unset MAILCHECK
+	unset MAILPATH
+	unset TMOUT
+	
+	umask 022
+}
+
+function lfs_findOurNameAndPath()
+{
+	readonly ourName="$(lfs_basename "$0")"
+	pushd "$(lfs_dirname "$0")" >/dev/null
+		readonly crudeOurPath="$(pwd)"
+	popd >/dev/null
+}
+
+function lfs_exitError()
+{
+	lfs_message FAIL "$1"
+}
+
+function lfs_exitHelp()
+{
+	echo -n -E "Usage: ${ourName} -h
+Usage: ${ourName} [-v] [-d] [-c lfs_configPath] [-t lfs_cachePath] -- [machine files...]
+
+Argument-less Switches
+    Switch  Explanation            Default           Configuration*
+    -h      show this help
+    -v      be more verbose        ${lfs_beVerbose}  beVerbose
+    -d      output debug messages  ${lfs_beDebug}    beDebug
+
+Argumented Switches
+    Switch  Configuration*         Default
+    -c      lfs_configPath         ${lfs_configPath}
+	-t      lfs_cachePath          ${lfs_cachePath}
+    --                             End of arguments, beginning of machine files
+
+*See Switch Configuration below
+
+Defaults
+Defaults are used to control common use cases. Defaults for values are sourced as key=value pairs from the following locations:-
+    
+    Location                                   Currently
+    <lfs_configPath>/defaults               ${lfs_configPath}.d/defaults
+    <lfs_configPath>/defaults.d/*.defaults  ${lfs_configPath}.d/defaults.d/*.defaults
+
+The values that can be configured are:-
+    
+    Value                      Built-in Value
+    defaults_api_version       ${defaults_api_version}
+    defaults_curl_userAgent    ${defaults_curl_userAgent}
+    defaults_curl_maxRedirs    ${defaults_curl_maxRedirs}
+    defaults_curl_retries      ${defaults_curl_retries}
+    defaults_format_headings   ${defaults_format_headings} (no-heading or with-heading)
+    defaults_format_separator  ${defaults_format_separator} (tab)
+
+Paths
+A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
+to automatically install any missing dependencies. The PATH variable is reset to empty if they are used. Paths are used if a file
+<lfs_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
+" 1>&2
+	exit 2
+}
+
+function lfs_loadAnyConfiguration()
+{
+	readonly lfs_configPathOriginal="$crudeOurPath"/config
+	readonly lfs_cachePathOriginal="$crudeOurPath"/cache
+	
+	# Switch embedded defaults
+	lfs_language="en_GB.UTF-8"
+	lfs_beVerbose="no"
+	lfs_beDebug="no"
+	
+	lfs_machineFilePaths=()
+#start LFS_CONFIG_PATH
+	etcPath="/etc"
+	lfs_configPath="$lfs_configPathOriginal"
+#end LFS_CONFIG_PATH
+#start LFS_CACHE_PATH
+	cachePath=/var/cache/"${ourName}"
+	lfs_cachePath="$lfs_cachePathOriginal"
+#end LFS_CACHE_PATH
+#start LFS_DEFAULTS
+	# Insert all our defaults as shipped, too
+#end LFS_DEFAULTS
+	
+	function lfs_makeVariablesReadonly()
+	{
+		readonly lfs_language lfs_beVerbose lfs_beDebug etcPath lfs_configPath cachePath lfs_cachePath
+		readonly -a lfs_machines
+	}
+	
+	local -r etcSwitchConfiguration="${lfs_configPath}"/switch-configuration
+	if [ -f "$etcSwitchConfiguration" ]; then
+		source "$etcSwitchConfiguration"
+	fi
+	
+	local -r userSwitchConfiguration=~/."$ourName"
+	if [ -r "$userSwitchConfiguration" ]; then
+		source "$userSwitchConfiguration"
+	fi
+	
+	local -r environmentVariableSwitchConfiguration="$LFS_CONFIGURATION"
+	if [ -n "$environmentVariableSwitchConfiguration" ]; then
+		if [ -r "$environmentVariableSwitchConfiguration" ]; then
+			source "$environmentVariableSwitchConfiguration"
+		fi
+	fi
+}
+
+function lfs_parseCommandLine()
+{
+	local OPTERR=1
+	local OPTIND=1
+	local OPTARG
+	local option
+	while getopts :hvdc:t: option
+	do
+		case "$option" in
+			
+			h)
+				lfs_exitHelp
+			;;
+			
+			v)
+				lfs_beVerbose="yes"
+			;;
+			
+			d)
+				lfs_beDebug="yes"
+			;;
+			
+			c)
+				lfs_configPath="$OPTARG"
+			;;
+			
+			t)
+				lfs_cachePath="$OPTARG"
+			;;
+			
+			'?')
+				lfs_message FAIL "Invalid option -${OPTARG}"
+			;;
+			
+		esac
+	done
+	
+	shift $((OPTIND - 1))
+
+	lfs_machineFilePaths=("$@")
+}
+
+function lfs_validateCommandLineArguments()
+{
+	if [ ! -d "$lfs_configPath" ]; then
+		lfs_message FAIL "Config path $lfs_configPath does not exist or is not a directory"
+		pushd "$lfs_configPath" 1>/dev/null
+			lfs_configPath="$(pwd)"
+		popd 1>/dev/null
+	fi
+	
+	if [ ! -d "$lfs_cachePath" ]; then
+		lfs_message FAIL "Cache path $lfs_cachePath does not exist or is not a directory"
+		pushd "$lfs_cachePath" 1>/dev/null
+			$lfs_cachePath="$(pwd)"
+		popd 1>/dev/null
+	fi
+	
+	if [ "${lfs_machineFilePaths[@]}" -eq 0 ]; then
+		lfs_message FAIL "Please specify at least one machine file"
+	fi
+}
+
+
+#start LFS_SOURCE_FUNCTIONS
+function lfs_sourceFunctions()
+{
+	lfs_sourceFunctionsRecursively "$crudeOurPath"/functions
+}
+
+function lfs_sourceFunctionsRecursively()
+{
+	local -r pathToFunctions="$1"
+	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
+		
+		local functionFile
+		for functionFile in *.functions
+		do
+			if [ -f "$functionFile" ]; then
+				source "$functionFile"
+			fi
+		done
+		
+		local functionFolder
+		for functionFolder in *
+		do
+			if [ -d "$functionFolder" ]; then
+				lfs_sourceFunctionsRecursively "$functionFolder"
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+#end LFS_SOURCE_FUNCTIONS
+
+function lfs_main()
+{
+	lfs_setDebugging
+	lfs_setSaneEnvironmentDefaults
+	lfs_findOurNameAndPath
+	lfs_loadAnyConfiguration
+	lfs_parseCommandLine "$@"
+	lfs_validateCommandLineArguments
+	lfs_makeVariablesReadonly
+	lfs_sourceFunctions
+	
+	main_executeMainFunctions
+}
+
+lfs_main "$@"

@@ -1,0 +1,14 @@
+certificate-authority UtnUserFirstHardware AddTrustExternal
+{
+	mirror COMODO
+	path 7
+	md5 b07ca7401cdd19743cf9a8eda251d880
+	sha1 495d9fb3ad9b4d5019d41e66e6bdd2ee131f5dcb
+	sha224 5338aecaefae2cfff8ae05def9d22f297a93ce86bd76c13721884528
+	sha256 6fc52d285b3596a1e92f52497573d300434f01fc261c33815a069cde0da26bf1
+	sha384 8e9223c5866fc34188b54d94a36dd9d5a80fc6aa74cfbc04f8f484e208b695bab40fae9d253313b179c31c2c827935c7
+	sha512 b8fc96eea71f1571f35aa02145175964fbd5de8dbf851378e83fb51b0dce511e4bebfb684ac13d550cef06312d771500d7d6395b79581936d9f13aead6aa52fa
+	download_as UTN_USERFirst_Hardware_Root_CA.pem
+	
+	cert_type PEM
+}
