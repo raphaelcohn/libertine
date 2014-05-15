@@ -22,4 +22,14 @@ distribution lfs 7.4
 	
 	package_version_setting autotools-config 5e4de70bb0064d974a848fbe3a445d5dafaf7b48
 	package_version_setting gnulib 43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42
+	
+	function distribution_package_autotools-config()
+	{
+		mirror SAVANNAH
+		path config.git';h='"${version}"
+		archive tarball
+		archive_folder config-"${version:0:7}"
+		compression gzip
+		download_as "$name"."$version".tar.gz
+	}
 }

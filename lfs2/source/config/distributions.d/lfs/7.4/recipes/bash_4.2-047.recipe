@@ -14,12 +14,7 @@ recipe bash 4.2-047
 	
 	package autotools-config
 	{
-		mirror SAVANNAH
-		path config.git';h='"${version}"
-		archive tarball
-		archive_folder config-"${version:0:7}"
-		compression gzip
-		download_as "$name"."$version".tar.gz
+		distribution_package_autotools-config
 	}
 	
 	local -r reducedVersion="${recipeVersion//.}"
