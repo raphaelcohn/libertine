@@ -1,0 +1,35 @@
+
+local certificateAuthorityName="${mirrors_CertificateAuthority["${mirrorName}"]}"
+if [ -z "$certificateAuthorityName" ]; then
+	# Unless ssl hashing has occurred, capath will not reference any certificate authorities
+	local -ar certificateAuthorityOption=("--insecure" "--capath" "$certificateAuthoritiesPath")
+else
+	if [ "${certificateAuthorities_Parent["${certificateAuthorityName}"]}" = "root" ]; then
+		if [ "${certificateAuthorities_Format["${certificateAuthorityName}"]}" == "PEM" ]; then
+			local -r certificateAuthorityBundle="$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}"
+		else
+			# Assume DER, other formats are much rarer
+			temporaryFileToRemoveOnExit
+			local -r certificateAuthorityBundle="$TMP_FILE"
+			openssl x509 -in "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" -inform DER -outform PEM >"$certificateAuthorityBundle"
+		fi
+		local -r certType="${certificateAuthorities_Format["${certificateAuthorityName}"]}"
+	else
+		temporaryFileToRemoveOnExit
+		local -r certificateAuthorityBundle="$TMP_FILE"
+		
+		while [ "$certificateAuthorityName" != "root" ]
+		do
+			if [ "${certificateAuthorities_Format["${certificateAuthorityName}"]}" == "PEM" ]; then
+				cat "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" >>"$certificateAuthorityBundle"
+			else
+				# Assume DER, other formats are much rarer
+				openssl x509 -in "$certificateAuthoritiesPath"/"${certificateAuthorities_FileName["${certificateAuthorityName}"]}" -inform DER -outform PEM >>"$certificateAuthorityBundle"
+			fi
+			certificateAuthorityName="${certificateAuthorities_Parent["${certificateAuthorityName}"]}"
+		done
+		local -r certType=PEM
+	fi
+	local -ar certificateAuthorityOption=("--capath" "$certificateAuthoritiesPath" "--cacert" "$certificateAuthorityBundle" "--cert-type" "$certType")
+fi
+

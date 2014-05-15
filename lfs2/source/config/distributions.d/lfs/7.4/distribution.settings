@@ -1,0 +1,25 @@
+distribution lfs 7.4
+{
+	setting architecture x86_64
+	setting native_architecture x86_64
+	setting cpu_optimisation '-march=native -mtune=generic'
+	setting native_cpu_optimisation '-march=native -mtune=generic'
+	setting ldflags_debugging '-Wl,--strip-debug'
+	setting ldflags_musl '-Wl,--hash-style=both -Wl,--disable-new-dtags'
+	setting cflags_default_optimisation '-O2 -fno-omit-frame-pointer -pipe'
+	# musl ignores this value currently
+	setting cflags_hardening '-D_FORTIFY_SOURCE=2'
+	setting ldflags_default_optimisation '-Wl,-O1'
+	# http://tk-blog.blogspot.co.uk/2009/02/relro-not-so-well-known-memory.html
+	# http://www.tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
+	# https://wiki.debian.org/ToolChain/DSOLinking#Only_link_with_needed_libraries
+	# https://wiki.ubuntu.com/ToolChain/CompilerFlags?action=show&redirect=CompilerFlags
+	# https://wiki.gentoo.org/wiki/GCC_optimization
+	# http://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html#Submodel-Options
+	# --as-needed MAY cause a few problems for old packages
+	# --no-copy-dt-needed-entries is believed to now be default and so is not specified
+	setting ldflags_hardening '-Wl,-z,relro -Wl,-z,now -Wl,--as-needed'
+	
+	package_version_setting autotools-config 5e4de70bb0064d974a848fbe3a445d5dafaf7b48
+	package_version_setting gnulib 43fd1e7b5a01623bc59fcf68254ce5be8e0b8d42
+}

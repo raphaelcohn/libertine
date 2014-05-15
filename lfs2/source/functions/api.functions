@@ -1,42 +1,11 @@
-
-
-
-api_download_kind=""
-api_download_index=-1
-api_downloads_name=()
-api_downloads_mirror=()
-api_downloads_path=()
-
-api_downloads_referrer=()
-api_downloads_post_data=()
-
-api_downloads_archive=()
-api_downloads_compression=()
-api_downloads_tarbomb=()
-api_downloads_archive_folder=()
-api_downloads_download_as=()
-
-api_downloads_size=()
-api_downloads_md5=()
-api_downloads_sha1=()
-api_downloads_sha224=()
-api_downloads_sha256=()
-api_downloads_sha384=()
-api_downloads_sha512=()
-api_downloads_signed_as=()
-api_downloads_signed_id=()
-api_downloads_signed_signatureFile=()
-
-api_downloads_keyring=()
-api_downloads_keyfile=()
-api_downloads_hkp=()
-api_downloads_hkp_uncompressed=()
 function api_download()
 {
 	local -r downloadKind="$1"
 	local -r downloadName="$2"
 	api_download_kind="$downloadKind"
 	api_download_index=${#api_downloads_name[@]}
+	# there is the possibility of collision (eg autotools)
+	# normally this is wanted, although in those circumstances we should distinguish by mirror, path (and for packages, version)
 	api_downloads_name+=("$downloadName")
 	
 	api_downloads_mirror[$api_download_index]=""
@@ -61,6 +30,13 @@ function api_download()
 	api_downloads_signed_as[$api_download_index]="none"
 	api_downloads_signed_id[$api_download_index]=""
 	api_downloads_signed_signatureFile[$api_download_index]=""
+}
+
+function api_verifyOneArgument()
+{
+	if [ $1 -ne 1 ]; then
+		lfs_exitError "Please specify exactly one argument"
+	fi
 }
 
 function mirror()
@@ -332,239 +308,57 @@ function signed_as()
 	fi
 }
 
-
-
-function api_verifyOneArgument()
-{
-	if [ $1 -ne 1 ]; then
-		lfs_exitError "Please specify exactly one argument"
-	fi
-}
-
-function api_reset()
-{
-	recipeName=""
-	api_download_kind=""
-	api_download_index=-1
-	name=""
-	version=""
-}
-
-
-
-machineName=""
-function machine()
-{
-	machineName="$1"
-}
-
-function distribution()
-{
-	distributionName="$1"
-	distributionVersion="$2"
-	distributionMirrors="any"
-}
-
-function mirrors()
-{
-	distributionMirrors="$1"
-}
-
-function requires()
-{
-	# really, we can map these to become dependencies
-	# we can map the machine to become a recipe
-	:
-}
-
-machineNativeArchitecture=""
-machineForeignArchicture=""
-function architecture()
-{
-	machineNativeArchitecture="$1"
-	machineForeignArchicture="$1"
-}
-
-function native()
-{
-	machineNativeArchicture="$1"
-}
-
-
-declare -A api_recipes_uidgid
-declare -A api_recipes_dependsRecipeOurVersion
-declare -A api_recipes_dependsRecipeName
-declare -A api_recipes_dependsRecipeVersion
-recipeName=""
-function recipe()
-{
-	recipeName="$1"
-}
-
-# If we allow each package 256 uids, that gives 1 for the package as a whole and enough for every program in it
-function uidgid()
-{
-	api_verifyOneArgument $#
-	api_recipes_uidgid["${recipeName}"]=$1
-}
-
-recipeVersion=""
-function version()
-{
-	api_download_kind=""
-	api_download_index=-1
-	name=""
-	version=""
-}
-
-function depends()
-{
-	local -r dependsRecipeName="$1"
-	local -r dependsRecipeVersion="$2"
-	
-	# we should probably just gen temp files at this point
-	api_recipes_dependsRecipeOurVersion["$recipeName"]="${api_recipes_dependsRecipeOurVersion["$recipeName"]} $recipeVersion"
-	api_recipes_dependsRecipeName["$recipeName"]="${api_recipes_dependsRecipeName["$recipeName"]} $dependsRecipeName"
-	api_recipes_dependsRecipeVersion["$recipeName"]="${api_recipes_dependsRecipeVersion["$recipeName"]} $dependsRecipeVersion"
-}
-
-
-
-declare -A api_mirrors_Url
-declare -A api_mirrors_certificateAuthorityName
-function define_mirror()
-{
-	case $# in
-		
-		2|3)
-			local -r mirrorName="$1"
-			local -r url="$2"
-		;;
-		
-		*)
-			lfs_exitError "Needs 2 or 3 arguments"
-		;;
-		
-	esac
-	
-	api_mirrors_Url["${mirrorName}"]="$url"
-	
-	if [ $# -eq 3 ]; then
-		local -r certificateAuthorityName="$3"
-	else
-		local -r certificateAuthorityName=""
-	fi
-	api_mirrors_certificateAuthorityName["${mirrorName}"]="$certificateAuthorityName"
-}
-
-function cert_type()
-{
-	api_verifyOneArgument $#
-	api_certificateAuthorities_cert_type["$name"]="$1"
-}
-
-
-
-declare -A api_certificateAuthorities_download
-declare -A api_certificateAuthorities_parent
-declare -A api_certificateAuthorities_cert_type
-name=""
-function certificate-authority()
+function package()
 {
 	name="$1"
-	
-	if [ "$name" = "root" ]; then
-		lfs_exitError "Certificate Authorities can not be called 'root'"
-	fi
 	
 	case $# in
 		
 		1)
-			local -r parentName="root"
+			version="$(get_setting "$name")"
+			if [ -z "$version" ]; then
+				lfs_message FAIL "package $name defaulting to unset version"
+			fi
 		;;
 		
 		2)
-			local -r parentName="$2"
+			version="$2"
 		;;
 		
 		*)
-			lfs_exitError "Needs 1 or 2 arguments"
+			lfs_message FAIL "package must have one or two arguments"
 		;;
 		
 	esac
 	
-	api_download "certificate-authority" "$name"
-	
-	api_certificateAuthorities_download["$name"]=$api_download_index
-	api_certificateAuthorities_parent["$name"]="$parentName"
-	api_certificateAuthorities_cert_type["$name"]='PEM'
-}
-
-
-
-declare -A api_packages_download
-name=""
-version=""
-function package()
-{
-	name="$1"
-	version="$2"
-	
 	api_download "package" "$name"
-	
-	api_packages_download["$name"]=$api_download_index
 }
 
-
-
-declare -A api_patches_download
-name=""
 function patch()
 {
 	name="$1"
 	
 	api_download "patch" "$name"
-	
-	api_patches_download["$name"]=$api_download_index
 }
 
-
-
-declare -A api_files_download
-name=""
 function file()
 {
 	name="$1"
 	
 	api_download "file" "$name"
-	
-	api_files_download["$name"]=$api_download_index
 }
 
-
-
-declare -A api_keyrings_download
-name=""
 function keyring()
 {
 	name="$1"
 	
 	api_download "keyring" "$name"
-	
-	api_keyrings_download["$name"]=$api_download_index
 }
 
-
-
-declare -A api_keyfiles_download
-name=""
 function keyfile()
 {
-	api_verifyOneArgument $#
-	
 	name="$1"
 	
 	api_download "keyfile" "$name"
-	
-	api_keyfiles_download["$name"]=$api_download_index
 }
+

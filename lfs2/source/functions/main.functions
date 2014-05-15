@@ -51,7 +51,7 @@ function main_validateDefault()
 	local -r variableName="$1"
 	
 	if [ -z "${!variableName}" ]; then
-		vsh_message FAIL "Default $variableName has no value"
+		lfs_message FAIL "Default $variableName has no value"
 	fi
 }
 
@@ -62,24 +62,18 @@ function main_validateDefaults()
 }
 main_functions+=(main_validateDefaults)
 
-function main_makeDefaultsReadonly()
-{
-	# defaults_format_headings, defaults_format_separator can not be readonly
-	#readonly defaults_api_version defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption
-	:
-}
-main_functions+=(main_makeDefaultsReadonly)
-
 main_functions+=(dependency_installDependencies)
 
 function main_setDistributionsPath()
 {
-	distributionsFolder="$lfs_configPath"/distributions
-	if [ ! -f "$distributionsFolder" ]; then
+	distributionsFolder="$lfs_configPath"/distributions.d
+	if [ ! -d "$distributionsFolder" ]; then
 		lfs_exitError "distributions folder $distributionsFolder does not exist or is not a directory"
 	fi
 }
 main_functions+=(main_setDistributionsPath)
+
+# choice of distribution still matters, and the version of the machine to build
 
 readonly tab=$'\t'
 function main_machineFunctions()
@@ -88,10 +82,27 @@ function main_machineFunctions()
 	for lfs_machineFilePath in "${lfs_machineFilePaths[@]}"
 	do
 		(
+		set -x
+			declare -A api_package_version_settings
+			declare -A api_recipes_uidgid
+			declare -A api_settings
+			declare -A api_mirrors_Url
+			declare -A api_mirrors_certificateAuthorityName
+			declare -A api_certificateAuthorities_download
+			declare -A api_certificateAuthorities_parent
+			declare -A api_certificateAuthorities_cert_type
+			declare -A api_packages_download
+			declare -A api_patches_download
+			declare -A api_files_download
+			declare -A api_keyrings_download
+			declare -A api_keyfiles_download
+			
+			declare -a api_machine_depends=()
+			
 			local machine_function
 			for machine_function in "${machine_functions[@]}"
 			do
-				vsh_message INFO "${tab}${machine_function}"
+				lfs_message INFO "${tab}${machine_function}"
 				${machine_function}
 			done
 		)
@@ -104,7 +115,7 @@ function main_executeMainFunctions()
 	local main_function
 	for main_function in "${main_functions[@]}"
 	do
-		vsh_message INFO "${main_function}"
+		lfs_message INFO "${main_function}"
 		$main_function
 	done
 }

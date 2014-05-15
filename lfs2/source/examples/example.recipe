@@ -1,0 +1,12 @@
+recipe example 0
+{
+	uidgid 0
+	
+	#depends kernel xyz
+	depends bash 4
+	depends xz 5.05
+	
+	# TODO: Things like settings for other recipes (eg sudo)
+	# TODO: Kconfig files for kernel, busybox, buildroot
+	# Perhaps each recipe can have an override file - if the override changes, so does the recipe
+}

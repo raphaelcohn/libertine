@@ -1,0 +1,339 @@
+recipe bash 4.2
+{
+	uidgid 18
+	depends musl-cross
+	
+	package_version_setting bash "$recipeVersion"
+	package bash
+	{
+		mirror GNU
+		path "$name"/"$name"-"$version".tar.gz
+		md5 3fb927c7c33022f1c327f14a81c0d4b0
+		signed_as keyring GNU
+	}
+	
+	package autotools-config
+	{
+		mirror SAVANNAH
+		path config.git';h='"${version}"
+		archive tarball
+		archive_folder config-"${version:0:7}"
+		compression gzip
+		download_as "$name"."$version".tar.gz
+	}
+	
+	local -r reducedVersion="${recipeVersion//.}"
+	
+	# We should consider adding a download-index to patches...
+	patch "${recipeName}${reducedVersion}"-001
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+		# TODO: Adding .sig support for patches!
+	}
+	
+	patch "${recipeName}${reducedVersion}"-002
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-003
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-004
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-005
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-006
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-007
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-008
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-009
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-010
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-011
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-012
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-013
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-014
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-015
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-016
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-017
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-018
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-019
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-020
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-021
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-022
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-023
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-024
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-025
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-026
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-027
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-028
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-029
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-030
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-031
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-032
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-033
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-034
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-035
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-036
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-037
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-038
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-039
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-040
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-041
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-042
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-043
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-044
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-045
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-046
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	patch "${recipeName}${reducedVersion}"-047
+	{
+		mirror GNU
+		path "$recipeName"/"$recipeName"-"$recipeVersion"-patches/"$name"
+	}
+	
+	unset reducedVersion
+	
+	function recipe_install_bash()
+	{
+		LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
+			--enable-static-link \
+			--with-gnu-ld \
+			--disable-nls \
+			--without-libiconv-prefix \
+			--with-included-gettext \
+			--without-libintl-prefix \
+				--without-bash-malloc \
+				--enable-largefile \
+				--disable-net-redirections
+	}
+	
+	post-install
+	{
+		remove_unwanted bin bashbug
+
+		remove_unwanted share/man/man1 bashbug.1
+
+		doc_resources . share
+
+		strip_unneeded bin bash
+
+		install_binaries bin bash
+	}
+}

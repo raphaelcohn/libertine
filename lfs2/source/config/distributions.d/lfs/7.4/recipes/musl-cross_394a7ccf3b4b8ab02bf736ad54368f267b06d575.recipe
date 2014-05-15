@@ -1,0 +1,832 @@
+recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
+{
+	uidgid 17
+	
+	package musl-cross "$recipeVersion"
+	{
+		mirror GITHUB
+		path GregorR/"$name"/tar.gz/"$version"
+		archive_folder "$name"-"$version"
+		md5 043b0a536f577f78f947691a86d23839
+		sha1 25bf2f471b1eaf0cd93c03e6865e2522069f7d42
+		sha256 cf517384778a1e3c95c311db149081c5578324a189c01feece8c81fddba17a86
+		sha512 3d559a8b6f9fa574f597bc25fcd27f682a3ba2b168864cdcd89b710908fd809fb59c15ca90e8c66587543cf26f3ac70ce96a49857785f84cdbddc827b4a326ee
+	}
+
+	package binutils 2.3.2
+	{
+		mirror GNU
+		path "$name"/"$name"-"$version".tar.bz2
+		md5 4f8fa651e35ef262edc01d60fb45702e
+		signed_as keyring gnu-keyring.gpg
+	}
+
+	local -r gccVersion=4.8.1
+	package gcc $gccVersion
+	{
+		mirror GNU
+		path "$name"/"$name"-"$version"/"$name"-"$version".tar.bz2
+		md5 3b2386c114cd74185aa3754b58a79304
+		signed_as keyring gnu-keyring.gpg
+	}
+
+	package gmp 5.1.2
+	{
+		mirror GMP
+		path "$name"/"$name"-"$version".tar.lz
+		size 1817328
+		md5 32e0fbde54c71598228f1be1621e5927
+		sha1 30edb4239c89482c051699da9bcd8b22e74cef83
+		sha256 8893aca3761abfb96ccac66ef5641f002761677555b6eab93c7b8d638860141e
+		sha512 341cf8a23d2a8c9b717fc43ed16a5af77eb1adf3747760f5171459d0622234f1109116d7d5ce6fd3effdd3f6f5d956a2a6ded2c2ec3cbb0d72c92f2063441556
+		signed_as hkp 28C67298
+	}
+
+	#package elfutils 0.154
+	#	mirror FEDORA
+	#	path "${name:0:1}"/"${name:1:1}"/"$name"/"$version"/"$name"-"$version".tar.bz2
+	#	md5 e5b26ceaee67db40e742f13052087354
+	#	sha1 3a92a6f636cc3d14d4b3b00ba5c1e88a2a8d510b
+	#	sha256 3ef06dc0b599874bde09a529a05809dac656204ed1181eea9e89d531cea94af1
+	#	sha512 4d8a7fc7062d433d789f5a71d8b4428ae183302ad8049e5a6e7e1a58f83488f0842c0166bf7e19a19d2571ae36c296d8b81306efaa3c78a1de128819ab06df9e
+	#	hkp 57816A6A
+
+	# Used for its headers when building GCC
+	package linux 3.10.10
+	{
+		mirror LINUX
+		path kernel/v3.x/"$name"-"$version".tar.xz
+		md5 647f76225dd6bc112369ba573ba3de18
+		signed_as hkp_uncompressed 6092693E "$name"-3.10.10.tar.sign
+	}
+
+	package mpc 1.0.1
+	{
+		mirror MPC
+		path "$name"-"$version".tar.gz 
+		md5 b32a2e1a3daa392372fbd586d1ed3679
+	}
+
+	package mpfr 3.1.2
+	{
+		mirror MPFR
+		path "$name"-"$version"/"$name"-"$version".tar.xz 
+		md5 e3d203d188b8fe60bb6578dd3152e05c
+	}
+
+	package musl 0.9.14
+	{
+		mirror MUSL
+		path releases/"$name"-"$version".tar.gz
+		md5 bfb685695aa942e64c63170589e575b2
+		sha1 162b329bab1f1ec8d257cc401b6614aae23c902c
+		sha512 e5c3f7b1549dc2f9cbd3359cc413f761d5967607c23705f651c33d0ae93f00582193a41fe1f87158467d58d8eba2d7c09e0fe2f2b2c02c1dda78eee1a4cecff6
+	}
+
+	package zlib 1.2.8
+	{
+		mirror ZLIB
+		path "$name"-"$version".tar.xz
+		md5 28f1205d8dd2001f26fec1e8c2cebe37
+		sha1 b598beb7acc96347cbd1020b71aef7871d374677
+		sha256 831df043236df8e9a7667b9e3bb37e1fcb1220a0f163b6de2626774b9590d057
+		sha512 405fbb4fc9ca8a59f34488205f403e77d4f184b08d344efbec6a8f558cac0512ee6cda1dc01b7913d61d9bed04cc710e61db1081bb8782c139fcb727f586fa54
+	}
+
+	remove_unwanted . bootstrap
+
+	function recipe_private_musl-cross_binaries()
+	{
+		local -ir installLdd=$1
+		local -r triple="$2"
+		local -r prefix="$triple"-
+		local -r lib="$triple"/lib/gcc/"$triple"/"$gccVersion"
+		local -r libexec="$triple"/libexec/gcc/"$triple"/"$gccVersion"
+	
+		remove_unwanted "$triple"/bin \
+			${prefix}gcc-ar \
+			${prefix}gcc-nm \
+			${prefix}gcc-ranlib \
+			${prefix}gcc-"$gccVersion" \
+			${prefix}ld.bfd \
+			${prefix}c++
+	
+		remove_unwanted "$triple" \
+			extraconfig.sh \
+			info.txt
+	
+		remove_unwanted "$lib"/install-tools/include README
+	
+		remove_unwanted "$triple"/share \
+			gcc-"$gccVersion" \
+			locale
+	
+		remove_unwanted "$triple"/man/man1 \
+			${prefix}dlltool.1 \
+			${prefix}nlmconv.1 \
+			${prefix}windmc.1 \
+			${prefix}windres.1
+	
+		remove_unwanted "$triple"/"$triple"/lib libstdc++.so.6.0.18-gdb.py
+	
+		if [ "$LFS_FOREIGN_ARCHITECTURE" = "x86_64" ]; then
+			remove_unwanted "$triple"/"$triple"/lib/ldscripts \
+				elf32_x86_64.x \
+				elf32_x86_64.xbn \
+				elf32_x86_64.xc \
+				elf32_x86_64.xd \
+				elf32_x86_64.xdc \
+				elf32_x86_64.xdw \
+				elf32_x86_64.xn \
+				elf32_x86_64.xr \
+				elf32_x86_64.xs \
+				elf32_x86_64.xsc \
+				elf32_x86_64.xsw \
+				elf32_x86_64.xu \
+				elf32_x86_64.xw \
+				elf_i386.x \
+				elf_i386.xbn \
+				elf_i386.xc \
+				elf_i386.xd \
+				elf_i386.xdc \
+				elf_i386.xdw \
+				elf_i386.xn \
+				elf_i386.xr \
+				elf_i386.xs \
+				elf_i386.xsc \
+				elf_i386.xsw \
+				elf_i386.xu \
+				elf_i386.xw \
+				elf_k1om.x \
+				elf_k1om.xbn \
+				elf_k1om.xc \
+				elf_k1om.xd \
+				elf_k1om.xdc \
+				elf_k1om.xdw \
+				elf_k1om.xn \
+				elf_k1om.xr \
+				elf_k1om.xs \
+				elf_k1om.xsc \
+				elf_k1om.xsw \
+				elf_k1om.xu \
+				elf_k1om.xw \
+				elf_l1om.x \
+				elf_l1om.xbn \
+				elf_l1om.xc \
+				elf_l1om.xd \
+				elf_l1om.xdc \
+				elf_l1om.xdw \
+				elf_l1om.xn \
+				elf_l1om.xr \
+				elf_l1om.xs \
+				elf_l1om.xsc \
+				elf_l1om.xsw \
+				elf_l1om.xu \
+				elf_l1om.xw \
+				i386linux.x \
+				i386linux.xbn \
+				i386linux.xn \
+				i386linux.xr \
+				i386linux.xu
+		fi
+	
+		doc_resources "$triple" share
+	
+		compile_resources "$triple" include
+	
+		compile_resources "$triple"/lib \
+			libiberty.a \
+			gcc/"$triple" "$gccVersion"
+	
+		compile_resources "$triple"/"$triple" include
+	
+		compile_resources "$triple"/"$triple"/lib \
+			ldscripts \
+			crt1.o \
+			crti.o \
+			crtn.o \
+			libatomic.a \
+			libatomic.la \
+			libc.a \
+			libcrypt.a \
+			libdl.a \
+			libgomp.a \
+			libgomp.la \
+			libgomp.spec \
+			libitm.a \
+			libitm.la \
+			libitm.spec \
+			libm.a \
+			libpthread.a \
+			libquadmath.a \
+			libquadmath.la \
+			libresolv.a \
+			librt.a \
+			libssp.a \
+			libssp.la \
+			libssp_nonshared.a \
+			libssp_nonshared.la \
+			libstdc++.a \
+			libstdc++.la \
+			libsupc++.a \
+			libsupc++.la \
+			libutil.a \
+			libxnet.a \
+			Scrt1.o
+	
+		strip_unneeded "$triple"/lib libiberty.a
+	
+		strip_unneeded "$lib" \
+			libgcc.a \
+			libgcc_eh.a \
+			libgcov.a
+	
+		strip_unneeded "$libexec" \
+			cc1 \
+			cc1plus \
+			collect2 \
+			lto1 \
+			lto-wrapper \
+			install-tools/fixincl
+	
+		strip_unneeded "$triple"/"$triple"/lib \
+			libc.a \
+			libc.so \
+			libatomic.a \
+			libatomic.so \
+			libgcc_s.so \
+			libgomp.a \
+			libgomp.so \
+			libitm.a \
+			libitm.so \
+			libquadmath.a \
+			libquadmath.so \
+			libssp.a \
+			libssp.so \
+			libssp_nonshared.a \
+			libstdc++.a \
+			libstdc++.so \
+			libsupc++.a
+	
+		executable_binaries "$libexec" \
+			cc1 \
+			cc1plus \
+			collect2 \
+			lto1 \
+			lto-wrapper
+	
+		executable_binaries "$libexec"/install-tools \
+			fixincl \
+			fixinc.sh \
+			mkheaders \
+			mkinstalldirs
+	
+		executable_binaries "$triple"/"$triple"/lib libc.so
+
+		local -r binPath="$triple"/bin
+	
+		install_binaries "$binPath" \
+			"${prefix}"addr2line \
+			"${prefix}"ar \
+			"${prefix}"as \
+			"${prefix}"c++filt \
+			"${prefix}"cpp \
+			"${prefix}"elfedit \
+			"${prefix}"g++ \
+			"${prefix}"gcc \
+			"${prefix}"gcov \
+			"${prefix}"gprof \
+			"${prefix}"ld \
+			"${prefix}"nm \
+			"${prefix}"objcopy \
+			"${prefix}"objdump \
+			"${prefix}"ranlib \
+			"${prefix}"readelf \
+			"${prefix}"size \
+			"${prefix}"strings \
+			"${prefix}"strip \
+			"${prefix}"ldd
+	
+		if [ $installLdd -eq 1 ]; then
+			install_binaries "$binPath" ldd
+		fi
+	}
+	
+	if setting_is_not_cross_compiling; then
+		recipe_private_musl-cross_binaries 1 "$(setting_native_architecture_triple)"
+	else
+		recipe_private_musl-cross_binaries 0 "$(setting_native_architecture_triple)"
+		recipe_private_musl-cross_binaries 1 "$(setting_foreign_architecture_triple)"
+	fi
+	
+	# Where things get interesting is that we want to be able to export this function to a make file in some way
+	# That means generating a source file
+	function recipe_install_musl-cross()
+	{
+		local gccVersion=""
+		local zlibVersion=""
+		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
+		do
+			setLfsSourcePackageVariables $index
+			case "$LFS_SOURCE_PACKAGE_NAME" in
+		
+				gcc)
+					gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
+				;;
+		
+				zlib)
+					zlibVersion="$LFS_SOURCE_PACKAGE_VERSION"
+				;;
+		
+				*)
+		
+				;;
+			esac
+		done
+
+		if [ -z "$gccVersion" ]; then
+			lfs_exitError "No gcc version"
+		fi
+
+		if [ -z "$zlibVersion" ]; then
+			lfs_exitError "No zlib version"
+		fi
+
+		# Replace gcc's shipped zlib with our version
+		pushd gcc-"$gccVersion" >/dev/null
+
+			mv zlib zlib.orig
+			# Can't use a symlink because gcc walks the path .. and ../.. to find things!
+			mv ../zlib-"$zlibVersion" zlib
+			cp -f zlib.orig/configure zlib/configure
+			cp -f zlib.orig/Makefile.in zlib/Makefile.in
+			cp zlib.orig/configure.ac zlib
+			cp zlib.orig/acinclude.m4 zlib
+			cp zlib.orig/aclocal.m4 zlib
+			cp zlib.orig/minigzip.c zlib
+			cp zlib.orig/Makefile.am zlib
+	
+		popd >/dev/null
+
+		local dependency
+		local -i index
+		local originalCompressionExtension
+		local withoutCompressionExtension
+		local newCompressionExtension
+		local withNewCompressionExtension
+		for dependency in binutils gcc gmp linux mpfr mpc musl
+		do
+			for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
+			do
+				setLfsSourcePackageVariables $index
+				if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
+					# Override fetch
+					ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
+			
+					# This logic ensures that mismatches in tarball compression between us and musl-cross are handled
+					originalCompressionExtension="${LFS_SOURCE_PACKAGE_FILENAME##*.}"
+					withoutCompressionExtension="$(basename "$LFS_SOURCE_PACKAGE_FILENAME" ."$originalCompressionExtension")"
+					for newCompressionExtension in gz bz2 xz
+					do
+						if [ "$newCompressionExtension" = "$originalCompressionExtension" ]; then
+							continue
+						fi
+						withNewCompressionExtension="$withoutCompressionExtension"."$newCompressionExtension"
+						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
+					done
+			
+					local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
+					local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
+			
+					# Override extracted tarball
+					ln -s ../../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
+	
+					# Override extract file name
+					touch "$muslCrossExtractedPath"/extracted
+			
+					# gcc inner links (note binutils is NOT included, although it can be)
+					case "$dependency" in
+				
+						gmp|mpfr|mpc)
+							ln -s ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
+						;;
+				
+						*)
+							:
+						;;
+				
+					esac
+				fi
+			done
+		done
+
+		pushd musl >/dev/null
+
+			pushd src/ldso >/dev/null
+
+				# Prepare a copy of this file for later default search path replacement
+				cp dynlink.c dynlink.c.orig
+
+			popd >/dev/null
+	
+	
+			local -r SENDMAIL_PATH=
+			local -r VI_PATH=
+	
+			# Fix paths.h
+			# Fix correct UTMP, BTMP, WTMP AND LASTLOG paths
+			# Fix logwtmp
+			patch -Np1 <<-EOF
+			diff -N -u -r musl-0.9.14.orig/include/paths.h musl-0.9.14/include/paths.h
+			--- musl-0.9.14.orig/include/paths.h	2013-09-23 22:01:11.000000000 +0100
+			+++ musl-0.9.14/include/paths.h	2013-12-04 14:52:17.000000000 +0000
+			@@ -1,26 +1,26 @@
+			 #ifndef _PATHS_H
+			 #define _PATHS_H
+
+			-#define	_PATH_DEFPATH "/usr/local/bin:/bin:/usr/bin"
+			-#define	_PATH_STDPATH "/bin:/usr/bin:/sbin:/usr/sbin"
+			+#define	_PATH_DEFPATH "/bin"
+			+#define	_PATH_STDPATH "/bin:/sbin"
+
+			 #define	_PATH_BSHELL	"/bin/sh"
+			 #define	_PATH_CONSOLE	"/dev/console"
+			 #define	_PATH_DEVNULL	"/dev/null"
+			 #define	_PATH_KLOG	"/proc/kmsg"
+			 #define	_PATH_LASTLOG	"/var/log/lastlog"
+			-#define	_PATH_MAILDIR	"/var/mail"
+			+#define	_PATH_MAILDIR	"/var/spool/mail"
+			 #define	_PATH_MAN	"/usr/share/man"
+			 #define	_PATH_MNTTAB	"/etc/fstab"
+			 #define	_PATH_MOUNTED	"/etc/mtab"
+			 #define	_PATH_NOLOGIN	"/etc/nologin"
+			-#define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+			+#define	_PATH_SENDMAIL	"$SENDMAIL_PATH"
+			 #define	_PATH_SHADOW	"/etc/shadow"
+			 #define	_PATH_SHELLS	"/etc/shells"
+			 #define	_PATH_TTY	"/dev/tty"
+			-#define _PATH_UTMP	"/dev/null/utmp"
+			-#define	_PATH_VI	"/usr/bin/vi"
+			-#define _PATH_WTMP	"/dev/null/wtmp"
+			+#define _PATH_UTMP	"/var/run/utmp"
+			+#define	_PATH_VI	"$VI_PATH"
+			+#define _PATH_WTMP	"/var/log/wtmp"
+			 #define _PATH_LASTLOG   "/var/log/lastlog"
+
+			 #define	_PATH_DEV	"/dev/"
+			diff -N -u -r musl-0.9.14.orig/include/utmp.h musl-0.9.14/include/utmp.h
+			--- musl-0.9.14.orig/include/utmp.h	2013-09-23 22:01:11.000000000 +0100
+			+++ musl-0.9.14/include/utmp.h	2013-12-04 10:34:43.000000000 +0000
+			@@ -7,10 +7,6 @@
+
+			 #include <utmpx.h>
+
+			-#define ACCOUNTING 9
+			-#define UT_NAMESIZE 32
+			-#define UT_HOSTSIZE 256
+			-
+			 struct lastlog {
+			 	time_t ll_time;
+			 	char ll_line[UT_LINESIZE];
+			@@ -32,8 +28,11 @@
+
+			 void updwtmp(const char *, const struct utmp *);
+
+			-#define _PATH_UTMP "/dev/null/utmp"
+			-#define _PATH_WTMP "/dev/null/wtmp"
+			+void logwtmp(const char *, const char *, const char *);
+			+
+			+#define _PATH_UTMP "/var/run/utmp"
+			+#define _PATH_WTMP "/var/log/wtmp"
+			+#define _PATH_LASTLOG "/var/log/lastlog"
+
+			 #define UTMP_FILE _PATH_UTMP
+			 #define WTMP_FILE _PATH_WTMP
+			diff -N -u -r musl-0.9.14.orig/include/utmpx.h musl-0.9.14/include/utmpx.h
+			--- musl-0.9.14.orig/include/utmpx.h	2013-09-23 22:01:11.000000000 +0100
+			+++ musl-0.9.14/include/utmpx.h	2013-12-04 10:32:20.000000000 +0000
+			@@ -13,6 +13,8 @@
+			 #include <bits/alltypes.h>
+
+			 #define UT_LINESIZE 32
+			+#define UT_NAMESIZE 32
+			+#define UT_HOSTSIZE 256
+
+			 struct utmpx
+			 {
+			@@ -20,8 +22,8 @@
+			 	pid_t ut_pid;
+			 	char ut_line[UT_LINESIZE];
+			 	char ut_id[4];
+			-	char ut_user[32];
+			-	char ut_host[256];
+			+	char ut_user[UT_NAMESIZE];
+			+	char ut_host[UT_HOSTSIZE];
+			 	struct {
+			 		short e_termination;
+			 		short e_exit;
+			@@ -50,6 +52,7 @@
+			 #define LOGIN_PROCESS   6
+			 #define USER_PROCESS    7
+			 #define DEAD_PROCESS    8
+			+#define ACCOUNTING      9
+
+			 #ifdef __cplusplus
+			 }
+			diff -N -u -r musl-0.9.14.orig/src/legacy/utmp.c musl-0.9.14/src/legacy/utmp.c
+			--- musl-0.9.14.orig/src/legacy/utmp.c	1970-01-01 01:00:00.000000000 +0100
+			+++ musl-0.9.14/src/legacy/utmp.c	2013-12-04 14:25:40.000000000 +0000
+			@@ -0,0 +1,20 @@
+			+#include <utmp.h>
+			+#include <string.h>
+			+#include <unistd.h>
+			+#include <sys/time.h>
+			+#include "libc.h"
+			+
+			+void logwtmp(const char * line, const char * name, const char * host)
+			+{
+			+	struct utmp u;
+			+	memset(&u, 0, sizeof(u));
+			+	
+			+	u.ut_pid = getpid();
+			+	u.ut_type = name[0] ? USER_PROCESS : DEAD_PROCESS;
+			+	strncpy(u.ut_line, line, sizeof(u.ut_line));
+			+	strncpy(u.ut_name, name, sizeof(u.ut_name));
+			+	strncpy(u.ut_host, host, sizeof(u.ut_host));
+			+	gettimeofday(&(u.ut_tv), NULL);
+			+	
+			+	updwtmp(_PATH_WTMP, &u);
+			+}
+			EOF
+	
+		popd >/dev/null
+
+		pushd "$LFS_DEPENDENCY_NAME" >/dev/null
+		
+			# No longer create reverse symlinks
+			cp build.sh build.sh.orig
+			sed -i -e '/# make backwards-named compilers for easier cross-compiling/,+8d' build.sh
+
+			pushd extra >/dev/null
+
+				# 1 Fix HG_ID
+				# 2 Remove deletion of share/ folder
+				# 3 Remove tarball creation
+				cp build-tarballs.sh build-tarballs.sh.orig
+				sed -i -e "s/^HG_ID=.*$/HG_ID=$LFS_DEPENDENCY_VERSION/g" -e '/rm -rf "$TRIPLE/d' -e '/tar -cf - "$TRIPLE/d' build-tarballs.sh
+
+				mv build-gcc-deps.sh build-gcc-deps.sh.orig
+				#sed -i -e 's;^gitfetchextract '\''git://repo.or.cz/libelf-compat.git'\'' $LIBELF_VERSION libelf-$LIBELF_VERSION;fetchextract irrelevant elfutils-$LIBELF_VERSION .tar.gz;g' build-gcc-deps.sh
+				#sed -i -e 's; buildmake libelf-; build '\'\'' libelf-;g' build-gcc-deps.sh
+				#sed -i -e 's;libelf-$LIBELF_VERSION;elfutils-$LIBELF_VERSION;g' build-gcc-deps.sh
+				grep -v libelf build-gcc-deps.sh.orig >build-gcc-deps.sh
+				chmod +x build-gcc-deps.sh
+
+				cp extraconfig.sh extraconfig.sh.orig
+
+				cat >>extraconfig.sh <<-EOF
+					BINUTILS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["binutils"]}"
+					GCC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gcc"]}"
+					#GDB_VERSION=""
+					GMP_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["gmp"]}"
+					LIBELF_VERSION="N/A"
+					LINUX_HEADERS_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["linux"]}"
+					MPC_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpc"]}"
+					MPFR_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["mpfr"]}"
+	
+					MUSL_DEFAULT_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+					MUSL_GIT_VERSION=c47e7062ddc1c3aa24db071db0f4d1dca792f325
+					MUSL_VERSION="${LFS_DEPENDENCY_INCLUDE_VERSIONS["musl"]}"
+					MUSL_GIT=no
+	
+					LANG_CXX=yes
+					LANG_OBJC=no
+					LANG_FORTRAN=no
+	
+					# Affects the bootstrap (1st) compiler
+					GCC_BUILTIN_PREREQS=yes
+	
+					# Only affects the static cross-compilers; possibly might change
+					NO_GCC_DEPS=yes
+		
+					# Compilation optimisation (all except final cross compiler)
+					# -Wno-format-security added because libgcc doesn't compile on Ubuntu 13.04 and later ( https://wiki.ubuntu.com/ToolChain/CompilerFlags )
+					export MAKEFLAGS="--jobs $LFS_MAKE_COMPILE_JOBS --load-average $LFS_MAKE_LOAD_AVERAGE --debug --print-directory"
+					export CPPFLAGS="-Wno-format-security"
+					export CFLAGS="-pipe -Wno-format-security"
+					export CXXFLAGS="-pipe -Wno-format-security"
+		
+					# Added by us to defs.sh to try to force a chroot-local sysroot
+					LFS="$LFS"
+					LFS_DEPENDENCY_PREFIX_PATH="$LFS_DEPENDENCY_PREFIX_PATH"
+					LFS_DEPENDENCY_INSTALL_PATH="$LFS_DEPENDENCY_INSTALL_PATH"
+					LFS_NATIVE_TRIPLE="$LFS_NATIVE_TRIPLE"
+		
+					# Added by us for the final install to harden and optimise the compiler
+					LFS_NATIVE_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+					LFS_NATIVE_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_NATIVE_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+					LFS_FOREIGN_CFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_FOREIGN_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+					LFS_FOREIGN_CXXFLAGS="$LFS_LDFLAGS_MUSL $LFS_CFLAGS_FOREIGN_OPTIMISATION $LFS_CFLAGS_HARDENING $LFS_LDFLAGS_OPTIMISATION"
+				EOF
+	
+			popd >/dev/null
+		
+			function symlinkLibVariantsBeforeBuilding()
+			{
+				local -r triple="$1"
+		
+				mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib64
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/lib32
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/libx32
+		
+				mkdir -m 0755 -p "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib64
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/lib32
+				ln -s lib "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/libx32
+		
+				# For completeness, even though it's not used (note $triple/$triple/usr is created by musl-cross)
+				ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/usr
+		
+				# Just in case, ensures usr/local redirects
+				ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/local
+				ln -s . "$LFS_DEPENDENCY_INSTALL_PATH"/$triple/$triple/local
+			}
+	
+			symlinkLibVariantsBeforeBuilding "$LFS_NATIVE_TRIPLE"
+			if [ "$LFS_NATIVE_ARCHITECTURE" != "$LFS_FOREIGN_ARCHITECTURE" ]; then
+				symlinkLibVariantsBeforeBuilding "$LFS_FOREIGN_TRIPLE"
+			fi
+	
+			# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+			local patchFile=patches/gcc-"$gccVersion"-musl.diff
+			cp "$patchFile" "$patchFile".orig
+	
+			# Adjust sysroot and install
+			cat >>defs.sh <<-'EOF'
+	
+				unset CDPATH
+		
+				buildinstall()
+				{
+					echo "XXX buildinstall XXX $1 XXX $2 XXX $TRIPLE XXX $CC_PREFIX XXX"
+			
+					# Override musl build for non-bootstrap to specify dynamic linker search path
+					if [ "$1" = '' -a "$2" = musl-$MUSL_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+
+						echo "XXX musl XXX $TRIPLE XXX"
+				
+						# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+						# this dynamic linker path will only work inside the chroot
+						cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-cross/patches >/dev/null
+				
+							local patchFile=gcc-"$GCC_VERSION"-musl.diff
+							rm "$patchFile"
+							cp "$patchFile".orig "$patchFile"
+							sed -i -e "s;/lib/ld-musl-;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib/ld-musl-;g" "$patchFile"
+					
+						cd - >/dev/null
+
+						# replaces the default search path in ld-musl-XXX (the dynamic linker) so that we're safe from 'drop in /lib' attacks
+						# this search path will only work inside the chroot
+						cd "$LFS_DEPENDENCY_INSTALL_PATH"/../source/musl-"$MUSL_VERSION"/src/ldso >/dev/null
+
+							rm dynlink.c
+							cp dynlink.c.orig dynlink.c
+							# technically, we should have /lib64, but we symlink it (above)
+							sed -i -e "s;/lib:/usr/local/lib:/usr/lib;$LFS_DEPENDENCY_PREFIX_PATH/$TRIPLE/$TRIPLE/lib;g" dynlink.c
+				
+						cd - >/dev/null
+				
+						build "$@"
+						doinstall "$1" "$2"
+				
+					elif [ "$1" = "2" -a "$2" = gcc-$GCC_VERSION -a "$CC_PREFIX" != "$LFS_DEPENDENCY_INSTALL_PATH"/bootstrap ]; then
+
+						echo "XXX gcc XXX"
+				
+						# We are going to override sysroot, local prefix (and prefix)
+				
+						# We also need a final build of binutils with this corrected sysroot, so we link in the binaries for an in-tree build
+						# We do not need to build musl again, because it has no path dependencies (except for the musl-gcc wrapper and specs, which we won't require in any event)
+				
+						cd "$MUSL_CC_BASE"/../gcc-$GCC_VERSION >/dev/null
+					
+							make clean || true
+				
+							for binutilsFile in ../binutils-"$BINUTILS_VERSION"/*
+							do
+								# suppress existing entries
+								ln -sv "$binutilsFile" 2>/dev/null || true
+							done
+					
+							make clean || true
+				
+						cd - >/dev/null
+				
+						if [ "$CC_PREFIX" = "$LFS_DEPENDENCY_INSTALL_PATH"/"$LFS_NATIVE_TRIPLE" ]; then
+							local ourCFLAGS="$LFS_NATIVE_CFLAGS"
+							local ourCXXFLAGS="$LFS_NATIVE_CXXFLAGS"
+						else
+							local ourCFLAGS="$LFS_FOREIGN_CFLAGS"
+							local ourCXXFLAGS="$LFS_FOREIGN_CXXFLAGS"
+						fi
+				
+						# Was --with-lib-path="$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib64:"$SYSROOT_PREFIX_FOR_GCC"/"$TRIPLE"/lib \
+						# PREFIX is used inside build to do --prefix=$PREFIX, this should force it to be overridden
+						# --disable-werror and --with-lib-path for embedded binutils
+						# --with-lib-path did have =/lib64 but we now symlink =/lib64 to =/lib
+						# --sysroot seems to be ignored, and g++ is built with --with-build-sysroot !
+						local ourPrefix="$LFS_DEPENDENCY_PREFIX_PATH"/"$TRIPLE"
+				
+						PREFIX="$ourPrefix" build "$1" "$2" \
+							CFLAGS_FOR_BUILD="$ourCFLAGS" \
+							CXXFLAGS_FOR_BUILD="$ourCXXFLAGS" \
+							--target="$TRIPLE" \
+							--with-local-prefix="$ourPrefix" \
+							--with-sysroot="$ourPrefix" \
+							--with-build-sysroot="$PREFIX"/"$TRIPLE" \
+					        --enable-languages="${LANGUAGES}" \
+							--disable-multilib \
+							--disable-libmudflap \
+					        --disable-libsanitizer \
+							--enable-threads=posix \
+							--enable-tls \
+							--disable-nls \
+								--disable-werror \
+								--with-lib-path="=/lib" \
+				        $GCC_CONFFLAGS
+				
+						doinstall "$1" "$2" DESTDIR="$LFS"
+				
+					else
+
+						echo "XXX allothers XXX"
+				
+						build "$@"
+						doinstall "$1" "$2"
+				
+					fi
+				}
+			EOF
+	
+			pushd extra >/dev/null
+		
+				if [ "$LFS_NATIVE_ARCHITECTURE" = "$LFS_FOREIGN_ARCHITECTURE" ]; then
+					./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "prefix-" "-suffix" "$LFS_NATIVE_ARCHITECTURE"
+				else
+					./build-tarballs.sh "$LFS_DEPENDENCY_INSTALL_PATH" "prefix-" "-suffix" "$LFS_NATIVE_ARCHITECTURE" "$LFS_FOREIGN_ARCHITECTURE"
+				fi
+	
+			popd >/dev/null
+
+		popd >/dev/null
+
+		function recipe_private_musl-cross_patchUpFileSystem()
+		{
+			local -r architecture="$1"
+			local -r triple="$2"
+	
+			pushd "$triple" >/dev/null
+
+				# Remove gcc, g++, ar, ld, etc hardlinks and replace with softlinks (1)
+				local binary
+				for binary in addr2line ar as c++filt cpp elfedit gcov gprof ld nm objcopy objdump ranlib readelf size strings strip
+				do
+					ln -s ../../../../bin/"$triple"-"$binary" libexec/gcc/"$triple"/"$gccVersion"/"$binary"
+				done
+		
+				# Create libc.so
+				pushd "$triple" >/dev/null
+			
+					# Remove gcc, g++, ar, ld, etc hardlinks and replace with softlinks (2)
+					rm -rf bin/*
+			
+					pushd lib >/dev/null
+						chmod +x libc.so
+						ln -s libc.so ld-musl-"$architecture".so.1
+					popd >/dev/null
+			
+				popd >/dev/null
+		
+				pushd bin >/dev/null
+		
+					# Create ldd
+					ln -s ../"$triple"/lib/libc.so "$triple"-ldd
+					ln -s "$triple"-ldd ldd
+			
+				popd >/dev/null
+		
+			popd >/dev/null
+		}
+
+		pushd ../install >/dev/null
+	
+			recipe_private_musl-cross_patchUpFileSystem "$LFS_NATIVE_ARCHITECTURE" "$LFS_NATIVE_TRIPLE"
+			if [ "$LFS_NATIVE_ARCHITECTURE" != "$LFS_FOREIGN_ARCHITECTURE" ]; then
+				recipe_private_musl-cross_patchUpFileSystem "$LFS_FOREIGN_ARCHITECTURE" "$LFS_FOREIGN_TRIPLE"
+			fi
+	
+		popd >/dev/null
+	}
+}

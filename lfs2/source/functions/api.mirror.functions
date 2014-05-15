@@ -1,0 +1,24 @@
+function define_mirror()
+{
+	case $# in
+		
+		2|3)
+			local -r mirrorName="$1"
+			local -r url="$2"
+		;;
+		
+		*)
+			lfs_exitError "Needs 2 or 3 arguments"
+		;;
+		
+	esac
+	
+	api_mirrors_Url["${mirrorName}"]="$url"
+	
+	if [ $# -eq 3 ]; then
+		local -r certificateAuthorityName="$3"
+	else
+		local -r certificateAuthorityName=""
+	fi
+	api_mirrors_certificateAuthorityName["${mirrorName}"]="$certificateAuthorityName"
+}

@@ -1,0 +1,104 @@
+function get_setting()
+{
+	echo -nE "${api_settings["$1"]}"
+}
+
+function get_package_package_version_setting()
+{
+	echo -nE "${api_package_version_settings["$1"]}"
+}
+
+#LFS_AUTOTOOLS_CONFIG_VERSION (a key)
+function get_package_package_version_setting_autotools-config()
+{
+	get_package_package_version_setting autotools-config
+}
+
+#LFS_AUTOTOOLS_GNULIB_VERSION (a key)
+function get_package_package_version_setting_gnulib()
+{
+	get_package_package_version_setting gnulib
+}
+
+#LFS_FOREIGN_ARCHITECTURE (a key AND var)
+function get_setting_foreign_architecture()
+{
+	get_setting architecture
+}
+
+#LFS_NATIVE_ARCHITECTURE (a key AND var)
+function get_setting_native_architecture()
+{
+	get_setting native_architecture
+}
+
+#LFS_FOREIGN_TRIPLE
+function get_setting_foreign_architecture_triple()
+{
+	echo -nE "$(get_setting_foreign_architecture)-linux-musl"
+}
+
+#LFS_NATIVE_TRIPLE
+function get_setting_native_architecture_triple()
+{
+	echo -nE "$(get_setting_native_architecture)-linux-musl"
+}
+
+function get_setting_is_not_cross_compiling()
+{
+	test "$(get_setting_foreign_architecture_triple)" = "$(get_setting_native_architecture_triple)"
+}
+
+#LFS_LDFLAGS_DEBUGGING (a key)
+function get_setting_ldflags_musl()
+{
+	get_setting ldflags_debugging
+}
+
+#LFS_LDFLAGS_MUSL
+function get_setting_ldflags_musl()
+{
+	get_setting ldflags_musl
+}
+
+# was internal
+function get_setting_cflags_default_optimisation()
+{
+	get_setting cflags_default_optimisation
+}
+
+#LFS_CFLAGS_FOREIGN_OPTIMISATION
+function get_setting_cflags_optimisation()
+{
+	echo -nE "$(get_setting cpu_optimisation) $(get_setting_cflags_default_optimisation)"
+}
+
+#LFS_CFLAGS_NATIVE_OPTIMISATION
+function get_setting_native_cflags_optimisation()
+{
+	echo -nE "$(get_setting native_cpu_optimisation) $(get_setting_cflags_default_optimisation)"
+}
+
+#LFS_CFLAGS_HARDENING
+function get_setting_cflags_hardening()
+{
+	get_setting cflags_hardening
+}
+
+# was internal
+function get_setting_ldflags_default_optimisation()
+{
+	get_setting ldflags_default_optimisation
+}
+
+#LFS_LDFLAGS_OPTIMISATION
+function get_setting_ldflags_optimisation()
+{
+	echo -nE "$(get_setting_ldflags_default_optimisation) $(get_setting_ldflags_musl)"
+}
+
+#LFS_LDFLAGS_HARDENING
+function get_setting_ldflags_hardening()
+{
+	get_setting ldflags_hardening
+}

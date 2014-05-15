@@ -109,7 +109,7 @@ function lfs_exitError()
 function lfs_exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-c lfs_configPath] [-t lfs_cachePath] -- [machine files...]
+Usage: ${ourName} [-v] [-d] [-c lfs_configPath] [-t lfs_cachePath] [-n lfs_netrcFilePath ] [-r lfs_curlrcFilePath] [-m lfs_mirror] -- [machine files...]
 
 Argument-less Switches
     Switch  Explanation            Default           Configuration*
@@ -120,7 +120,10 @@ Argument-less Switches
 Argumented Switches
     Switch  Configuration*         Default
     -c      lfs_configPath         ${lfs_configPath}
-	-t      lfs_cachePath          ${lfs_cachePath}
+    -t      lfs_cachePath          ${lfs_cachePath}
+    -n      lfs_netrcFilePath      ${lfs_netrcFilePath}
+    -r      lfs_curlrcFilePath     ${lfs_curlrcFilePath}
+    -m      lfs_mirror             ${lfs_mirror}
     --                             End of arguments, beginning of machine files
 
 *See Switch Configuration below
@@ -134,13 +137,10 @@ Defaults are used to control common use cases. Defaults for values are sourced a
 
 The values that can be configured are:-
     
-    Value                      Built-in Value
-    defaults_api_version       ${defaults_api_version}
-    defaults_curl_userAgent    ${defaults_curl_userAgent}
-    defaults_curl_maxRedirs    ${defaults_curl_maxRedirs}
-    defaults_curl_retries      ${defaults_curl_retries}
-    defaults_format_headings   ${defaults_format_headings} (no-heading or with-heading)
-    defaults_format_separator  ${defaults_format_separator} (tab)
+    Value                                  Built-in Value
+    defaults_curl_supportsNetrcFileOption  ${defaults_curl_supportsNetrcFileOption}
+    defaults_curl_maxRedirs                ${defaults_curl_maxRedirs}
+    defaults_curl_retries                  ${defaults_curl_retries}
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
@@ -160,6 +160,9 @@ function lfs_loadAnyConfiguration()
 	lfs_beVerbose="no"
 	lfs_beDebug="no"
 	
+	lfs_netrcFilePath=""
+	lfs_curlrcFilePath=""
+	lfs_mirror="global"
 	lfs_machineFilePaths=()
 #start LFS_CONFIG_PATH
 	etcPath="/etc"
@@ -203,7 +206,7 @@ function lfs_parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:t: option
+	while getopts :hvdc:t:n:r:m: option
 	do
 		case "$option" in
 			
@@ -225,6 +228,18 @@ function lfs_parseCommandLine()
 			
 			t)
 				lfs_cachePath="$OPTARG"
+			;;
+			
+			n)
+				lfs_netrcFilePath="$OPTARG"
+			;;
+			
+			r)
+				lfs_curlrcFilePath="$OPTARG"
+			;;
+			
+			m)
+				lfs_mirror="$OPTARG"
 			;;
 			
 			'?')
@@ -255,7 +270,19 @@ function lfs_validateCommandLineArguments()
 		popd 1>/dev/null
 	fi
 	
-	if [ "${lfs_machineFilePaths[@]}" -eq 0 ]; then
+	if [ -n "$lfs_netrcFilePath" ]; then
+		if [ ! -f "$lfs_netrcFilePath" ]; then
+			lfs_message FAIL "-n lfs_netrcFilePath $lfs_netrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ -n "$lfs_curlrcFilePath" ]; then
+		if [ ! -f "$lfs_curlrcFilePath" ]; then
+			lfs_message FAIL "-r lfs_curlrcFilePath $lfs_curlrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ "${#lfs_machineFilePaths[@]}" -eq 0 ]; then
 		lfs_message FAIL "Please specify at least one machine file"
 	fi
 }

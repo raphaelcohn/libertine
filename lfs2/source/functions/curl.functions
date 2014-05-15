@@ -1,0 +1,200 @@
+
+# make sure curl_args and curl_requestHeaders is set
+# also uses curl_post, curl_put and curl_put_continueAt
+function curl_createCommandLine()
+{
+	local -r verb="$1"
+	local -r url="$2"
+	local -r referer="$3"
+	local -r downloadFilePath="$4"
+	local -r compression="$5"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r headersFilePath="$TMP_FILE"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r stderrFilePath="$TMP_FILE"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r downloadDetailsFilePath="$TMP_FILE"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r asciiTraceFilePath="$TMP_FILE"
+	
+	declare -a curl_args=()
+	
+	# -q as the first parameter prevents default configuration file loadings
+	curl_args+=('-q')
+	
+	curl_args+=('--user-agent')
+	curl_addQuotedArg "$ourName/$machineDistributionName/$machineDistributionVersion"
+	
+	curl_args+=('--referer')
+	curl_addQuotedArg "${referer};auto"
+	
+	# Arguments that can be overridden by configuration
+	curl_args+=('--max-redirs')
+	curl_addQuotedArg "$defaults_curl_maxRedirs"
+	
+	curl_args+=('--retry')
+	curl_addQuotedArg "$defaults_curl_retries"
+	
+	# NOTE: Whilst this sequences of commands can add multiple --netrc switches, only the last is acted upon, unlike --config, which is acted on multiple times
+	# Technically, .netrc only exists in $HOME, but we want to give a little more flexibility
+	# netrc files have lines likes machine host.domain.com login myself password secret (machine X, username Y, password X)
+	
+	if [ "$defaults_curl_supportsNetrcFileOption" = yes ]; then
+		if [ -z "$lfs_netrcFilePath" ]; then
+			curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
+			curl_wrapperConfigArg --netrc-file "$HOME" .netrc
+			curl_wrapperConfigArg --netrc-file "$etcPath" netrc
+			curl_wrapperConfigArg --netrc-file "$lfs_configPath" netrc
+			curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
+		else
+			curl_args+=('--netrc-file')
+			curl_addQuotedArg "$lfs_netrcFilePath"
+		fi
+	elif [ -f ~/.netrc ]; then
+		curl_args+=('--netrc')
+	fi
+	
+	# Overridding of configuration occurs after setting are options; machine-wide always wins
+	if [ -z "$lfs_curlrcFilePath" ]; then
+		curl_wrapperConfigArg --config "$CURL_HOME" .curlrc
+		curl_wrapperConfigArg --config "$HOME" .curlrc
+		curl_wrapperConfigArg --config "$etcPath" curlrc
+		curl_wrapperConfigArg --config "$lfs_configPath" curlrc
+		local configFile
+		for configFile in "$lfs_configPath"/curlrc.d/*.curlrc
+		do
+			if [ -f "$configFile" ]; then
+				curl_args+=('--config')
+				curl_addQuotedArg "$configFile"
+			fi
+		done
+		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
+	else
+		curl_args+=('--config')
+		curl_addQuotedArg "$lfs_curlrcFilePath"
+	fi
+	
+	# Override any setting of URL, TLS, etc after configuration loaded
+	
+	# more script-friendly output
+	curl_args+=('--silent' '--show-error')
+	
+	# Uses HTTP Date header if available to set the timestamp of any downloaded file
+	curl_args+=('--location')
+	
+	curl_args+=('--tlsv1')
+	
+	# Only enabled compression for uncompressed files, because a few badly configured servers (eg http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz) then stream the non-gz tarball
+	if [ "$compression" != "gzip" ]; then
+		curl_args+=('--compressed')
+	fi
+	
+	curl_args+=('--remote-time')
+	
+	local curl_requestHeader_name
+	for curl_requestHeader_name in "${!curl_requestHeaders[@]}"
+	do
+		# ,, converts to lowercase. Whilst headers are case insensitive, using consistent casing makes life easier when debugging
+		curl_args+=('--header')
+		curl_addQuotedArg "${curl_requestHeader_name,,}: ${curl_requestHeaders["$curl_requestHeader_name"]}"
+	done
+	
+	# Verb
+	case "$verb" in
+		
+		HEAD)
+			curl_args+=('--request')
+			curl_addQuotedArg 'HEAD'
+		;;
+		
+		GET)
+			:
+		;;
+		
+		POST)
+			curl_args+=('--data-binary')
+			curl_addQuotedArg "$curl_post"
+		;;
+		
+		PUT)
+			curl_args+=('--upload-file')
+			curl_addQuotedArg "$curl_put"
+			if [ -n "$curl_put_continueAt" ]; then
+				curl_args+=('--continue-at')
+				curl_addQuotedArg "$curl_put_continueAt"
+			fi
+		;;
+		
+		DELETE)
+			curl_args+=('--request')
+			curl_addQuotedArg 'DELETE'
+		;;
+		
+		*)
+			lfs_message FAIL "Verb $verb is not supported"
+		;;
+		
+	esac
+	
+	# URL
+	curl_args+=('--url')
+	curl_addQuotedArg "$url"
+	
+	curl_args+=('--output')
+	curl_addQuotedArg "$downloadFilePath"
+	
+	# Headers file
+	curl_args+=('--dump-header')
+	curl_addQuotedArg "$headersFilePath"
+	
+	# stderr file
+	curl_args+=('--stderr')
+	curl_addQuotedArg "$stderrFilePath"
+	
+	# useful if debugging
+	curl_args+=('--write-out')
+	curl_addQuotedArg '%{http_code}\t%{url_effective}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n'
+	
+	# tracing of the connection (useful if debugging)
+	curl_args+=('--trace-time' '--trace-ascii')
+	curl_addQuotedArg "$asciiTraceFilePath"
+}
+
+function curl_addQuotedArg()
+{
+	curl_args+=("$(curl_quoteForEval "$1")")
+}
+
+function curl_quoteForEval()
+{
+	printf "'%s'" "$1"
+}
+
+function curl_wrapperConfigArg()
+{
+	local -r configSwitch="$1"
+	local -r fileParentFolderEnvironmentVariable="$2"
+	local -r fileName="$3"
+	
+	if [ -z "$fileParentFolderEnvironmentVariable" ]; then
+		return 0
+	fi
+	
+	local -r filePath="${fileParentFolderEnvironmentVariable}"/"${fileName}"
+	
+	if [ ! -f "$filePath" ]; then
+		return 0
+	fi
+	if [ ! -r "$filePath" ]; then
+		return 0
+	fi
+	if [ ! -s "$filePath" ]; then
+		return 0
+	fi
+	curl_args+=("$configSwitch")
+	curl_addQuotedArg "$filePath"
+}
