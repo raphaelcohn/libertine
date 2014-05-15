@@ -1,4 +1,4 @@
-recipe bash 4.2
+recipe bash 4.2-047
 {
 	uidgid 18
 	depends musl-cross
