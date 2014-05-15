@@ -1,20 +1,3 @@
-function package_version_setting()
-{
-	local -r versionName="$1"
-	local -r versionValue="$2"
-	
-	local key
-	for key in "${!api_package_version_settings[@]}"
-	do
-		# Once a setting is made, it can not be overwritten
-		# This works well if we source machine, distribution and the recipes
-		if [ "$key" = "$versionName" ]; then
-			return 0
-		fi
-	done
-	api_package_version_settings["${versionName}"]="$versionValue"
-}
-
 function setting()
 {
 	local -r settingName="$1"

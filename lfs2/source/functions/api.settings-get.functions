@@ -3,22 +3,16 @@ function get_setting()
 	echo -nE "${api_settings["$1"]}"
 }
 
-function get_package_package_version_setting()
+function get_package_version_setting()
 {
 	echo -nE "${api_package_version_settings["$1"]}"
 }
 
 #LFS_AUTOTOOLS_CONFIG_VERSION (a key)
-function get_package_package_version_setting_autotools-config()
-{
-	get_package_package_version_setting autotools-config
-}
+#function get_package_version_setting_autotools-config() { get_package_version_setting autotools-config }
 
 #LFS_AUTOTOOLS_GNULIB_VERSION (a key)
-function get_package_package_version_setting_gnulib()
-{
-	get_package_package_version_setting gnulib
-}
+#function get_package_version_setting_gnulib() { get_package_version_setting gnulib }
 
 #LFS_FOREIGN_ARCHITECTURE (a key AND var)
 function get_setting_foreign_architecture()

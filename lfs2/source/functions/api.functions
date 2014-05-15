@@ -311,25 +311,27 @@ function signed_as()
 function package()
 {
 	name="$1"
+	package_version_setting "$name" "$2"
 	
-	case $# in
-		
-		1)
-			version="$(get_setting "$name")"
-			if [ -z "$version" ]; then
-				lfs_message FAIL "package $name defaulting to unset version"
-			fi
-		;;
-		
-		2)
-			version="$2"
-		;;
-		
-		*)
-			lfs_message FAIL "package must have one or two arguments"
-		;;
-		
-	esac
+	local -r versionName="$1"
+	local -r versionValue="$2"
+	local -i found=0
+	local key
+	for key in "${!api_package_version_settings[@]}"
+	do
+		# Once a setting is made, it can not be overwritten
+		# This works well if we source machine, distribution and the recipes
+		if [ "$key" = "$versionName" ]; then
+			found=1
+			break
+		fi
+	done
+	if [ $found -eq 0 ]; then
+		api_package_version_settings["$name"]="$2"
+		version="$2"
+	else
+		version="$(get_package_version_setting "$name")"
+	fi
 	
 	api_download "package" "$name"
 }

@@ -3,8 +3,7 @@ recipe bash 4.2-047
 	uidgid 18
 	depends musl-cross
 	
-	package_version_setting bash "$recipeVersion"
-	package bash
+	package bash "$recipeVersion"
 	{
 		mirror GNU
 		path "$name"/"$name"-"$version".tar.gz
@@ -12,9 +11,9 @@ recipe bash 4.2-047
 		signed_as keyring GNU
 	}
 	
-	package autotools-config
+	distribution_package_autotools-config
 	{
-		distribution_package_autotools-config
+		:
 	}
 	
 	local -r reducedVersion="${recipeVersion//.}"
