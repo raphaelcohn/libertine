@@ -19,133 +19,38 @@ function machine_distributionFunctions()
 }
 machine_functions+=(machine_distributionFunctions)
 
+machine_hash=""
 function machine_hashDistributionSettings()
 {
-	distribution_cacheRecipesDistributionSettingsPath="$distribution_cacheRecipesPath"/distribution.settings
-	mkdir -m 0755 -p "$distribution_cacheRecipesDistributionSettingsPath"
-	
-	local -r recipeName="$machineDistributionName"
-	local -r recipeVersion="$machineDistributionVersion"
-	local -r recipeHash="$(sha224sum "$distribution_distributionSettingsFilePath" | awk '{print $1}')"
-	# TODO: plus any settings file[s]
-	local -r uniqueVersionString="${recipeName}-${recipeVersion}-${recipeHash}"
-	# really, the only bit we care about is the 
+	machine_hash="$(hash_hashFile "$distribution_distributionSettingsFilePath")"
 }
 machine_functions+=(machine_hashDistributionSettings)
 
-function machine_exportInstallFunction()
+machine_distributionHash=""
+function machine_hashMachine()
 {
-	temporaryFiles_newFileToRemoveOnExit
-	local -r executableRecipe="$TMP_FILE"
-	
-	chmod +x "$executableRecipe"
-	
-	{
-		cat <<-EOF
-			#!/usr/bin/env bash
-			set -e
-			
-		EOF
-		declare -f "recipe_install_${recipeName}"
-	
-		local a
-		local b
-		local functionName
-		while IFS=' ' read -r a b functionName
-		do
-			if [ "${functionName:0:15}" = "recipe_private_" ]; then
-				declare -f "$functionName"
-			fi
-		done < <(declare -F)
-	} >"$TMP_FILE"
-	
-	# need to export download_as names, path locations, package names, versions
-	# need to support patching / export commonly used build functions
-	# need to export settings
-	# pre- and post- install scripts (eg all the stripping commands)
+	# We should include hashes of all files in sources... ie dependencies
+	machine_distributionHash="$(hash_hashFile "$distribution_distributionSettingsFilePath")"
 }
+machine_functions+=(machine_hashMachine)
 
-function machine_sourceDependantRecipes()
+function machine_setPaths()
 {
-	local dependentRecipeFileName
-	for dependentRecipeFileName in "$@"
-	do
-		machine_sourceRecipe "$distribution_recipesPath" "$dependentRecipeFileName"
-	done
+	readonly LFS_BUILD_ROOT_PATH=/var/tmp/"$ourName"
+	readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE="$machineName"-"$machine_hash"
+	readonly LFS_BUILD_ROOT_PATH_MACHINE="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"
+	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE="$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"/"$ourDistributionName"-"$ourDistributionVersion"-"$machine_distributionHash"
+	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"
 }
+machine_functions+=(machine_setPaths)
 
-function machine_sourceRecipe()
+function machine_makePaths()
 {
-	local -r parentFolder="$1"
-	local -r recipeFileName="$2"
-	
-	local recipeName=""
-	local recipeVersion=""
-	local name=""
-	local version=""
-	declare -a api_recipe_depends=()
-	
-	declare -a api_download_kind=""
-	declare -a api_download_index=-1
-	declare -a api_downloads_name=()
-	declare -a api_downloads_mirror=()
-	declare -a api_downloads_path=()
-	
-	declare -a api_downloads_referrer=()
-	declare -a api_downloads_post_data=()
-	
-	declare -a api_downloads_archive=()
-	declare -a api_downloads_compression=()
-	declare -a api_downloads_tarbomb=()
-	declare -a api_downloads_archive_folder=()
-	declare -a api_downloads_download_as=()
-	
-	# All the remaining values VALIDATE a download
-	declare -a api_downloads_size=()
-	declare -a api_downloads_md5=()
-	declare -a api_downloads_sha1=()
-	declare -a api_downloads_sha224=()
-	declare -a api_downloads_sha256=()
-	declare -a api_downloads_sha384=()
-	declare -a api_downloads_sha512=()
-	declare -a api_downloads_signed_as=()
-	declare -a api_downloads_signed_id=()
-	declare -a api_downloads_signed_signatureFile=()
-	
-	declare -a api_downloads_keyring=()
-	declare -a api_downloads_keyfile=()
-	declare -a api_downloads_hkp=()
-	declare -a api_downloads_hkp_uncompressed=()
-	
-	source "$parentFolder"/"$recipeFileName"
-	
-	# we should also have a downloads section
-	# downloadName is not distintive enough for versions of packages...
-	local -i downloadIndex
-	local name
-	local mirror
-	local path
-	local referrer
-	local post_data
-	local download_as
-	local compression
-	for downloadIndex in "${!api_downloads_name[@]}"
-	do
-		name="${api_downloads_name[$downloadIndex]}"
-		mirror="${api_downloads_mirror[$downloadIndex]}"
-		path="${api_downloads_path[$downloadIndex]}"
-		referrer="${api_downloads_referrer[$downloadIndex]}"
-		post_data="${api_downloads_post_data[$downloadIndex]}"
-		download_as="${api_downloads_download_as[$downloadIndex]}"
-		compression="${api_downloads_compression[$downloadIndex]}"
-		
-		make_downloadTarget "${resolvedMirror}/${path}"
-	done
-	
-	make_addDownloadTargets "${recipeName}_${recipeVersion}.recipe"
-	
-	machine_sourceDependantRecipes "${api_recipe_depends[@]}"
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH"
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_MACHINE"
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_DISTRIBUTION"
 }
+machine_functions+=(machine_makePaths)
 
 function machine_sourceRecipes()
 {
@@ -157,7 +62,7 @@ function machine_sourceRecipes()
 	
 	make_start
 	
-	machine_sourceRecipe "$(lfs_dirname "$lfs_machineFilePath")" "$machineName".recipe
+	recipe_sourceRecipe "$(lfs_dirname "$lfs_machineFilePath")" "$machineName".recipe
 	
 	make_finish
 }

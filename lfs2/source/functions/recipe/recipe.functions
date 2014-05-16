@@ -1,0 +1,99 @@
+function recipe_sourceRecipe()
+{
+	local -r parentFolder="$1"
+	local -r recipeFileName="$2"
+	
+	local recipeName=""
+	local recipeVersion=""
+	local name=""
+	local version=""
+	declare -a api_recipe_depends=()
+	
+	declare -a api_download_kind=""
+	declare -a api_download_index=-1
+	declare -a api_downloads_name=()
+	declare -a api_downloads_mirror=()
+	declare -a api_downloads_path=()
+	
+	declare -a api_downloads_referrer=()
+	declare -a api_downloads_post_data=()
+	
+	declare -a api_downloads_archive=()
+	declare -a api_downloads_compression=()
+	declare -a api_downloads_tarbomb=()
+	declare -a api_downloads_archive_folder=()
+	declare -a api_downloads_download_as=()
+	
+	# All the remaining values VALIDATE a download
+	declare -a api_downloads_size=()
+	declare -a api_downloads_md5=()
+	declare -a api_downloads_sha1=()
+	declare -a api_downloads_sha224=()
+	declare -a api_downloads_sha256=()
+	declare -a api_downloads_sha384=()
+	declare -a api_downloads_sha512=()
+	declare -a api_downloads_signed_as=()
+	declare -a api_downloads_signed_id=()
+	declare -a api_downloads_signed_signatureFile=()
+	
+	declare -a api_downloads_keyring=()
+	declare -a api_downloads_keyfile=()
+	declare -a api_downloads_hkp=()
+	declare -a api_downloads_hkp_uncompressed=()
+	
+	local -r recipe_file="$parentFolder"/"$recipeFileName"
+	source "$recipe_file"
+	
+	# we should also have a downloads section
+	# downloadName is not distintive enough for versions of packages...
+	local -i downloadIndex
+	local name
+	local mirror
+	local path
+	local referrer
+	local post_data
+	local download_as
+	local compression
+	for downloadIndex in "${!api_downloads_name[@]}"
+	do
+		name="${api_downloads_name[$downloadIndex]}"
+		mirror="${api_downloads_mirror[$downloadIndex]}"
+		path="${api_downloads_path[$downloadIndex]}"
+		referrer="${api_downloads_referrer[$downloadIndex]}"
+		post_data="${api_downloads_post_data[$downloadIndex]}"
+		download_as="${api_downloads_download_as[$downloadIndex]}"
+		compression="${api_downloads_compression[$downloadIndex]}"
+		
+		xxxx DO NOT add download targets if recipe_hash below is unchanged
+		make_downloadTarget "${resolvedMirror}/${path}"
+	done
+	
+	make_addDownloadTargets "${recipeName}_${recipeVersion}.recipe"
+	
+	local recipe_before_function
+	for recipe_before_function in "${recipe_before_functions[@]}"
+	do
+		$recipe_before_function
+	done
+	
+	# Source in subshell, so we don't affect our state
+	(
+		local dependentRecipeFileName
+		for dependentRecipeFileName in "${api_recipe_depends[@]}"
+		do
+			recipe_sourceRecipe "$distribution_recipesPath" "$dependentRecipeFileName"
+		done
+	)
+	
+	local recipe_hash_function
+	for recipe_hash_function in "${recipe_hash_functions[@]}"
+	do
+		$recipe_hash_function
+	done
+	
+	local recipe_after_function
+	for recipe_after_function in "${recipe_after_functions[@]}"
+	do
+		$recipe_after_function
+	done
+}

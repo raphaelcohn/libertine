@@ -1,0 +1,65 @@
+recipe_hash_functions=()
+
+function recipe_hash_resolveDependencies()
+{
+	local dependantRecipeFileName
+	local localRecipe
+	local localRecipeName
+	local localRecipeVersion
+	local dependentRecipeLinkValue
+	pushd "$distribution_recipesPath" 1>/dev/null 2>/dev/null
+		for dependantRecipeFileName in "${api_recipe_depends[@]}"
+		do
+			# TODO: A bit brittle
+			IFS=' ' read -r localRecipe localRecipeName localRecipeVersion <<<"$(head -n 1 "$dependantRecipeFileName")"
+			
+			# There's a relative symlink from "$recipeName"-"$recipeVersion" to "$recipeName"-"$recipeVersion"-"$recipeHash"
+			dependentRecipeLinkValue="$(readlink "$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$localRecipeName"-"$localRecipeVersion")"
+			
+			ln -s  "$recipe_temporaryRecipePath"/dependencies/versioned/"$dependantRecipeFileName"
+		done
+	popd 1>/dev/null 2>/dev/null
+}
+recipe_hash_functions+=(recipe_hash_resolveDependencies)
+
+function recipe_hash_compute()
+{
+	local -r recipeHashFile="$recipe_before_temporaryRecipePath"/dependencies-hashed
+	
+	ln "$recipe_file" "$recipe_before_temporaryRecipeDependenciesPath"/"$recipeName".recipe || cp "$recipe_file" "$recipe_before_temporaryRecipeDependenciesPath"/"$recipeName".recipe
+	
+	pushd "$dependenciesPath" 1>/dev/null 2>/dev/null
+	
+		local dependencyFileName
+		for dependencyFileName in *
+		do
+			# syntax should be name-version-hash
+			# should symlink to 
+			if [ ! -f "$dependencyFileName" ]; then
+				continue
+			elif [ -L "$dependencyFileName" ]; then
+				printf '%s\n' "$dependencyFileName" >>"$recipeHashFile"
+			else
+				hash_hashFile "$recipe_file" >>"$recipeHashFile"
+				printf '\n' >>"$recipeHashFile"
+			fi
+		done
+	
+	popd 1>/dev/null 2>/dev/null
+	
+	recipeHash="$(hash_hashFile "$recipeHashFile")"
+}
+recipe_hash_functions+=(recipe_hash_compute)
+
+function recipe_hash_setPaths()
+{
+	LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"/"${recipeName}"-"${recipeVersion}"-"${recipeHash}"
+	LFS_BUILD_ROOT_PATH_RECIPE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE"
+}
+recipe_hash_functions+=(recipe_hash_setPaths)
+
+function recipe_hash_checkIfIdentical()
+{
+	
+}
+recipe_hash_functions+=(recipe_hash_checkIfIdentical)

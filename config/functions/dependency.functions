@@ -429,7 +429,7 @@ function prepareMuslCrossPath()
 	# Not supported yet:-
 	# AFLAGS, YFLAGS (Yacc)
 	# Host AS, AR, RANLIB, etc
-		
+	
 	LFS_C_HOST_PREFIX="$LFS_NATIVE_TRIPLE"-
 	LFS_C_HOST_CC="${LFS_C_HOST_PREFIX}gcc"
 	LFS_C_HOST_CXX="${LFS_C_HOST_PREFIX}g++"

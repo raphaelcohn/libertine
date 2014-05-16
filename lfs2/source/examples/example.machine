@@ -1,4 +1,4 @@
-# This file is logically AFTER distribution and BEFORE recipes
+# This file is logically BEFORE distribution and BEFORE recipes
 machine example lfs 7.4
 {
 	setting cpu_optimisation '-march=bdver1 -mcx16 -msahf -mno-movbe -maes -mpclmul -mpopcnt -mabm -mlwp -mfma -mfma4 -mxop -mno-bmi -mtbm -mavx -msse4.2 -msse4.1 --param l1-cache-size=16 --param l1-cache-line-size=64 --param l2-cache-size=2048 -mtune=bdver1'

@@ -1,0 +1,4 @@
+function hash_hashFile()
+{
+	sha224sum "$1" | awk '{print $1}'
+}

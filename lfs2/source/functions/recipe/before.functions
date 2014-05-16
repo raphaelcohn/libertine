@@ -1,0 +1,81 @@
+recipe_before_functions=()
+
+function recipe_before_generateSymlinkedVersions()
+{
+	# generate symlinks for versions
+	# if already exists, but resolved link changes, then we need to rebuild
+	
+	pushd "$distribution_recipesPath" 1>/dev/null 2>/dev/null
+		
+		local linkingRecipeFileName
+		local linkingRecipeNameAndVersion
+		local linkingRecipeName
+		local linkingRecipeVersion
+		
+		local linkedRecipeFileName
+		local linkedRecipeNameAndVersion
+		local linkedRecipeName
+		local linkedRecipeVersion
+		
+		local fromRecipe
+		local toRecipe
+		local toRecipePath
+		
+		for linkingRecipeFileName in "${recipeName}"*.recipe
+		do
+			linkingRecipeNameAndVersion="${linkingRecipeFileName%%.recipe}"
+			linkingRecipeName="${linkingRecipeNameAndVersion%%_*}"
+			linkingRecipeVersion="${linkingRecipeNameAndVersion##*_}"
+			
+			# Works because bash.recipe resolves to 'bash' = 'bash'
+			if [ "$linkingRecipeName" = "$linkingRecipeVersion" ]; then
+				fromRecipe="$linkingRecipeName"
+			else
+				fromRecipe="${linkingRecipeName}-${linkingRecipeVersion}"
+			fi
+			
+			if [ -L "$recipeFileName" ]; then
+				linkedRecipeFileName="$(readlink "$linkingRecipeFileName")"
+				
+				linkedRecipeNameAndVersion="${linkedRecipeFileName%%.recipe}"
+				linkedRecipeName="${linkedRecipeNameAndVersion%%_*}"
+				linkedRecipeVersion="${linkedRecipeNameAndVersion##*_}"
+				
+				if [ "$linkedRecipeName" = "$linkedRecipeVersion" ]; then
+					toRecipe="$linkedRecipeName"
+				else
+					toRecipe="${linkedRecipeName}-${linkedRecipeVersion}"
+				fi
+				toRecipePath="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$toRecipe"
+				
+				# THIS IMPLIES A REBUILD IF, AND ONLY IF, "$toRecipe" != existing toRecipe
+				if [ -e "$toRecipePath" ]; then
+					rm -rf "$toRecipePath"
+				fi
+				ln -s "$fromRecipe" "$toRecipePath"
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+	
+	# TODO: Final symlink to generate is from recipe-version => recipe-version-hash
+}
+recipe_before_functions+=(recipe_before_generateSymlinkedVersions)
+
+recipe_before_temporaryRecipePath=""
+function recipe_before_temporaryPath()
+{
+	recipe_before_temporaryRecipePath="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"${recipeName}-${recipeVersion}.tmp"
+	if [ -e "$recipe_before_temporaryRecipePath" ]; then
+		rm -rf "$recipe_before_temporaryRecipePath"
+	fi
+}
+recipe_before_functions+=(recipe_before_temporaryPath)
+
+recipe_before_temporaryRecipeDependenciesPath=""
+function recipe_before_makeTemporaryPaths()
+{
+	recipe_before_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
+	mkdir -m 0755 -p "$recipe_before_temporaryRecipeDependenciesPath"
+}
+recipe_before_functions+=(recipe_before_makeTemporaryPaths)

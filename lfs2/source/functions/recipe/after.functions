@@ -1,0 +1,111 @@
+recipe_after_functions=()
+
+function recipe_after_moveAndSymlinkPaths()
+{
+	mv "$recipe_before_temporaryRecipePath" "$LFS_BUILD_ROOT_PATH_RECIPE"
+	unset recipe_before_temporaryRecipePath
+	
+	local -r mightExist="$LFS_BUILD_ROOT_PATH_RECIPE"/"${recipeName}-${recipeVersion}"
+	if [ -e "$mightExist" ]; then
+		# TODO: Implies REBUILD
+		rm -rf "$mightExist"
+	fi
+	ln -s "${recipeName}"-"${recipeVersion}"-"${recipeHash}" "$mightExist"
+}
+recipe_after_functions+=(recipe_after_moveAndSymlinkPaths)
+
+function recipe_after_exportBuildFile()
+{
+	# TODO: compute recipe hash! Must include hashes of dependendent recipes, distribution and machine!
+	temporaryFiles_newFolderToRemoveOnExit
+	local -r temporaryRecipeFolder="$TMP_FOLDER"
+	
+	local -r dependenciesPath="$temporaryRecipeFolder"/dependencies
+	mkdir -m 0755 -p "$dependenciesPath"
+	
+	# may not resolve to an actual version, but a symlink (eg bash_4.recipe or bash.recipe)... FIXME
+	local dependentRecipeFileName
+	for dependentRecipeName in "${api_recipe_depends[@]}"
+	do
+		# TODO: Find dependency - should be a folder in the file structure
+		# TODO: Read the name-version-hash, and use that
+		touch "$dependenciesPath"/"$dependentRecipeName"
+		
+		# how about two symlinks one is say  bash-4 (or whatever is the original dependency in the recipe) => bash-4.2-047
+		# other is bash-4.2-047-HASH => bash-4
+	done
+	
+	
+	
+	
+	
+	
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r buildFile="$TMP_FILE"
+	chmod +x "$buildFile"
+	
+	
+	
+	
+	{
+		cat <<-EOF
+			#!/usr/bin/env bash
+			set -e
+			
+			readonly LFS_MACHINE_NAME='$machineName'
+			readonly LFS_MACHINE_HASH='$machine_hash'
+			
+			readonly LFS_DISTRIBUTION_NAME='$ourDistributionName'
+			readonly LFS_DISTRIBUTION_VERSION='$ourDistributionVersion'
+			readonly LFS_DISTRIBUTION_HASH='$machine_distributionHash'
+			
+			readonly LFS_RECIPE_NAME='$recipeName'
+			readonly LFS_RECIPE_VERSION='$recipeVersion'
+			readonly LFS_RECIPE_HASH='$recipeHash'
+			
+			readonly LFS_BUILD_ROOT_PATH='$LFS_BUILD_ROOT_PATH'
+			readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE='$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE'
+			readonly LFS_BUILD_ROOT_PATH_MACHINE='$LFS_BUILD_ROOT_PATH_MACHINE'
+			readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE='$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE'
+			readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION='$LFS_BUILD_ROOT_PATH_DISTRIBUTION'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE='$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE='$LFS_BUILD_ROOT_PATH_RECIPE'
+			
+			readonly LFS_NATIVE_ARCHITECTURE='$(get_setting_native_architecture)'
+			readonly LFS_NATIVE_TRIPLE='$(get_setting_native_architecture_triple)'
+
+			readonly LFS_FOREIGN_ARCHITECTURE='$(get_setting_foreign_architecture)'
+			readonly LFS_FOREIGN_TRIPLE='$(get_setting_foreign_architecture_triple)'
+		}
+		EOF
+		
+		local sourceFile
+		for sourceFile in "$distribution_sourcesPath"/*
+		do
+			if [ -f "$sourceFile" ]; then
+				cat "$sourceFile"
+			fi
+		done
+		
+		
+		
+		declare -f "recipe_install_${recipeName}"
+	
+		local a
+		local b
+		local functionName
+		while IFS=' ' read -r a b functionName
+		do
+			if [ "${functionName:0:15}" = "recipe_private_" ]; then
+				declare -f "$functionName"
+			fi
+		done < <(declare -F)
+	} >"$buildFile"
+	
+	# need to export download_as names, path locations, package names, versions
+	# need to support patching / export commonly used build functions
+	# need to export settings
+	# pre- and post- install scripts (eg all the stripping commands)
+}
+recipe_after_functions+=(recipe_after_exportBuildFile)
