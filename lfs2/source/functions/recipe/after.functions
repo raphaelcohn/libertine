@@ -56,10 +56,12 @@ function recipe_after_exportBuildFile()
 			
 			readonly LFS_MACHINE_NAME='$machineName'
 			readonly LFS_MACHINE_HASH='$machine_hash'
+			readonly LFS_MACHINE_NAME_HASH='$LFS_MACHINE_NAME_HASH'
 			
 			readonly LFS_DISTRIBUTION_NAME='$ourDistributionName'
 			readonly LFS_DISTRIBUTION_VERSION='$ourDistributionVersion'
 			readonly LFS_DISTRIBUTION_HASH='$machine_distributionHash'
+			readonly LFS_DISTRIBUTION_NAME_VERSION_HASH='$LFS_DISTRIBUTION_NAME_VERSION_HASH'
 			
 			readonly LFS_RECIPE_NAME='$recipeName'
 			readonly LFS_RECIPE_VERSION='$recipeVersion'

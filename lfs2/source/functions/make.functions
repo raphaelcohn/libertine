@@ -101,6 +101,8 @@ function make_finish()
 	# TODO: Add a CA download section, so that we can use CAs...
 	
 	cat >>"$make_makeFile" <<-EOF
+		#!/usr/bin/env make
+		
 		all-download: ${make_downloadTargets[@]}
 		
 		all-verify: ${make_verifyTargets[@]}

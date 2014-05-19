@@ -3,7 +3,7 @@ recipe_hash_functions=()
 recipe_hash_temporaryRecipeDependenciesPath=""
 function recipe_hash_resolveDependencies()
 {
-	recipe_hash_temporaryRecipeDependenciesPath="$recipe_temporaryRecipePath"/dependencies
+	recipe_hash_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
 	mkdir -m 0755 -p "$recipe_hash_temporaryRecipeDependenciesPath"
 	
 	local dependantRecipeFileName
@@ -70,7 +70,7 @@ function recipe_hash_setPaths()
 	LFS_RECIPE_NAME_VERSION_HASH="$LFS_RECIPE_NAME_VERSION"-"${recipeHash}"
 	
 	LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"/"$LFS_RECIPE_NAME_VERSION_HASH"
-	LFS_BUILD_ROOT_PATH_RECIPE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE"
+	LFS_BUILD_ROOT_PATH_RECIPE="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE"
 	
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES="$LFS_DEPENDENCY_PATH_ROOT"/dependencies
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_DEPENDENCY_PATH_ROOT"/dependencies.hash
@@ -108,7 +108,9 @@ function recipe_hash_checkIfIdentical()
 			rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE"/build
 		fi
 	else
-		mv "$recipe_before_temporaryRecipePath" "$LFS_BUILD_ROOT_PATH_RECIPE"
+		pushd "$LFS_BUILD_ROOT_PATH_DISTRIBUTION" 1>/dev/null 2>/dev/null
+			mv -T "$recipe_before_temporaryRecipePath" "$LFS_RECIPE_NAME_VERSION_HASH"
+		popd 1>/dev/null 2>/dev/null
 	fi
 }
 recipe_hash_functions+=(recipe_hash_checkIfIdentical)

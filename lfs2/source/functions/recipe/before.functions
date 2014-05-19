@@ -34,7 +34,7 @@ function recipe_before_generateSymlinkedVersions()
 				fromRecipe="${linkingRecipeName}-${linkingRecipeVersion}"
 			fi
 			
-			if [ -L "$recipeFileName" ]; then
+			if [ -L "$linkingRecipeFileName" ]; then
 				linkedRecipeFileName="$(readlink "$linkingRecipeFileName")"
 				
 				linkedRecipeNameAndVersion="${linkedRecipeFileName%%.recipe}"
@@ -46,19 +46,17 @@ function recipe_before_generateSymlinkedVersions()
 				else
 					toRecipe="${linkedRecipeName}-${linkedRecipeVersion}"
 				fi
-				toRecipePath="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$toRecipe"
+				fromRecipePath="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$fromRecipe"
 				
 				# THIS IMPLIES A REBUILD IF, AND ONLY IF, "$toRecipe" != existing toRecipe
-				if [ -e "$toRecipePath" ]; then
-					rm -rf "$toRecipePath"
+				if [ -L "$fromRecipePath" ]; then
+					rm -rf "$fromRecipePath"
 				fi
-				ln -s "$fromRecipe" "$toRecipePath"
+				ln -s "$toRecipe" "$fromRecipePath"
 			fi
 		done
 		
 	popd 1>/dev/null 2>/dev/null
-	
-	# TODO: Final symlink to generate is from recipe-version => recipe-version-hash
 }
 recipe_before_functions+=(recipe_before_generateSymlinkedVersions)
 

@@ -37,10 +37,14 @@ machine_functions+=(machine_hashMachine)
 function machine_setPaths()
 {
 	readonly LFS_BUILD_ROOT_PATH=/var/tmp/"$ourName"
-	readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE="$machineName"-"$machine_hash"
+	
+	readonly LFS_MACHINE_NAME_HASH="$machineName"-"$machine_hash"
+	readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE="$LFS_MACHINE_NAME_HASH"
 	readonly LFS_BUILD_ROOT_PATH_MACHINE="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"
-	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE="$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"/"$ourDistributionName"-"$ourDistributionVersion"-"$machine_distributionHash"
-	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"
+	
+	readonly LFS_DISTRIBUTION_NAME_VERSION_HASH="$ourDistributionName"-"$ourDistributionVersion"-"$machine_distributionHash"
+	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE="$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"
+	readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"
 }
 machine_functions+=(machine_setPaths)
 
@@ -55,7 +59,7 @@ machine_functions+=(machine_makePaths)
 function machine_sourceRecipes()
 {
 	temporaryFiles_newFileToRemoveOnExit
-	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/makefile
+	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/Makefile
 	
 	rm -rf "$make_makeFile"
 	
