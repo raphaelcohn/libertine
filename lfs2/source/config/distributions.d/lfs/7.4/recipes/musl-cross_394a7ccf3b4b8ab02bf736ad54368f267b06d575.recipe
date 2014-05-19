@@ -312,11 +312,11 @@ recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 		fi
 	}
 	
-	if setting_is_not_cross_compiling; then
-		recipe_private_musl-cross_binaries 1 "$(setting_native_architecture_triple)"
+	if get_setting_is_not_cross_compiling; then
+		recipe_private_musl-cross_binaries 1 "$(get_setting_native_architecture_triple)"
 	else
-		recipe_private_musl-cross_binaries 0 "$(setting_native_architecture_triple)"
-		recipe_private_musl-cross_binaries 1 "$(setting_foreign_architecture_triple)"
+		recipe_private_musl-cross_binaries 0 "$(get_setting_native_architecture_triple)"
+		recipe_private_musl-cross_binaries 1 "$(get_setting_foreign_architecture_triple)"
 	fi
 	
 	# Where things get interesting is that we want to be able to export this function to a make file in some way

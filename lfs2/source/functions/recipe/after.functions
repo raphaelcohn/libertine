@@ -2,7 +2,7 @@ recipe_after_functions=()
 
 function recipe_after_symlinkPaths()
 {
-	local -r mightExist="$LFS_BUILD_ROOT_PATH_RECIPE"/"$LFS_RECIPE_NAME_VERSION"
+	local -r mightExist="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$LFS_RECIPE_NAME_VERSION"
 	if [ -e "$mightExist" ]; then
 		# TODO: Implies REBUILD
 		rm -rf "$mightExist"
@@ -47,7 +47,6 @@ recipe_after_functions+=(recipe_after_addDownloadTargets)
 function recipe_after_exportBuildFile()
 {
 	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
-	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	{
 		cat <<-EOF
@@ -101,7 +100,6 @@ function recipe_after_exportBuildFile()
 
 			readonly LFS_FOREIGN_ARCHITECTURE='$(get_setting_foreign_architecture)'
 			readonly LFS_FOREIGN_TRIPLE='$(get_setting_foreign_architecture_triple)'
-		}
 		EOF
 		
 		local sourceFile
@@ -125,6 +123,7 @@ function recipe_after_exportBuildFile()
 		done < <(declare -F)
 	} >"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
+	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	# need to export download_as names, path locations, package names, versions
 	# need to support patching / export commonly used build functions
 	# need to export settings

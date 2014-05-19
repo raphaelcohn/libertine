@@ -188,7 +188,7 @@ function path()
 		;;
 		
 		*)
-			exitError "Unknown api_download_kind $api_download_kind"
+			lfs_exitError "Unknown api_download_kind $api_download_kind"
 		;;
 		
 	esac
@@ -293,7 +293,7 @@ function signed_as()
 		;;
 		
 		*)
-			exitError "Unrecognised signed_as $1"
+			lfs_exitError "Unrecognised signed_as $1"
 		;;
 	esac
 	
