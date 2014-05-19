@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+function FIX()
+{
+	echo $@
+}
+
+FIX Clean up dead recipes by checking if our hash differs to theirs but version and name are the same
+FIX Detect whether to rebuild based on presence of .built
+
 function lfs_message()
 {
 	local messageKind="$1"

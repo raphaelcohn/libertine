@@ -22,8 +22,6 @@ function curl_createCommandLine()
 	local -r asciiTraceFilePath="$downloadFilePath".trace
 	rm -rf "$asciiTraceFilePath"
 	
-	declare -a curl_args=()
-	
 	# -q as the first parameter prevents default configuration file loadings
 	curl_args+=('-q')
 	

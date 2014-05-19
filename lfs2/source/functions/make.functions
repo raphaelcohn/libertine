@@ -7,22 +7,25 @@
 
 function make_addDownloadTargets()
 {
-	make_downloadTargets+=("$@")
+	echo -ne " $@" >>"$make_downloadTargets"
 }
 
 function make_addVerifyTargets()
 {
-	make_verifyTargets+=("$@")
+	echo -ne " $@" >>"$make_verifyTargets"
 }
 
 function make_addBuildTargets()
 {
-	make_buildTargets+=("$@")
+	echo -ne " $@" >>"$make_buildTargets"
 }
 
 function make_start()
 {
+	local -r whichMake="$(hash -t make || which make 2>/dev/null)"
 	cat >"$make_makeFile" <<-EOF
+		#!${whichMake}
+		
 		all: all-download all-verify all-build
 		
 	EOF
@@ -41,6 +44,16 @@ function make_downloadTargetIfRequired()
 	local -r cacheParentPath="$distribution_cacheDownloadsPath"/"$parentPath"
 	local -r downloadFilePath="$cacheParentPath"/"$fileName"
 	
+	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
+	if [ -z "$resolvedMirror" ]; then
+		lfs_exitError "No known mirror $mirror"
+	fi
+	local -r url="${resolvedMirror}${path}"
+	
+	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
+		LFS_DOWNLOADS_${download_kind^^}_PATHS['$name']='$downloadFilePath'
+	EOF
+	
 	if [ $size -eq -1 ]; then
 		if [ -f "$downloadFilePath" ]; then
 			return 0
@@ -48,7 +61,7 @@ function make_downloadTargetIfRequired()
 		local -ir continueAt=-1
 	else
 		if [ -f "$downloadFilePath" ]; then
-			local -ir actualSize=$(gstat --printf='%s' "$downloadFilePath")
+			local -ir actualSize=$(stat --printf='%s' "$downloadFilePath")
 			if [ $size = $actualSize ]; then
 				return 0
 			elif [ $actualSize -gt $size ]; then
@@ -61,6 +74,8 @@ function make_downloadTargetIfRequired()
 					local -ir continueAt=-1
 				fi
 			fi
+		else
+			local -ir continueAt=-1
 		fi
 	fi
 	
@@ -71,9 +86,6 @@ function make_downloadTargetIfRequired()
 		local -r curl_post="$post_data"
 	fi
 	
-	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
-	local -r url="${resolvedMirror}${path}"
-	
 	if [ -z "$referrer" ]; then
 		# Misspelling is correct - it is to mirror the typo in the HTTP/1.1 header definitions
 		local -r referer="$(dirname "$url")/"
@@ -83,7 +95,8 @@ function make_downloadTargetIfRequired()
 	
 	declare -a curl_args=()
 	declare -a curl_requestHeaders=()
-	curl_addQuotedArg "$(hash -t curl)"
+	
+	curl_addQuotedArg "$(hash -t curl || which curl 2>/dev/null)"
 	curl_createCommandLine "$verb" "$url" "$referer" "$downloadFilePath" "$compression" $continueAt
 	
 	local -r downloadTarget="download-${recipeName}_${recipeVersion}.${downloadIndex}"
@@ -91,9 +104,12 @@ function make_downloadTargetIfRequired()
 	{
 		printf '%s:\n' "${downloadTarget}"
 		printf '\t%s\n' "mkdir -m 0755 -p '${cacheParentPath}'"
-		printf '\t%s\n' "${curl_args[@]}"
-		printf '\n'
+		printf '\t'
+		echo -ne "${curl_args[@]}"
+		printf '\n\n'
 	} >>"$make_makeFile"
+	
+	chmod +x "$make_makeFile"
 }
 
 function make_finish()
@@ -101,15 +117,13 @@ function make_finish()
 	# TODO: Add a CA download section, so that we can use CAs...
 	
 	cat >>"$make_makeFile" <<-EOF
-		#!/usr/bin/env make
+		all-download:$(cat "$make_downloadTargets")
 		
-		all-download: ${make_downloadTargets[@]}
+		all-verify:$(cat "$make_verifyTargets")
 		
-		all-verify: ${make_verifyTargets[@]}
+		all-build:$(cat "$make_buildTargets")
 		
-		all-build: ${make_buildTargets[@]}
-		
-		.PHONY: all all-download all-build ${make_downloadTargets[@]} ${make_verifyTargets[@]} ${make_buildTargets[@]}
+		.PHONY: all all-download all-verify all-build$(cat "$make_downloadTargets")$(cat "$make_verifyTargets")$(cat "$make_buildTargets")
 		
 	EOF
 }

@@ -79,7 +79,7 @@ function distribution_sourceMirrors()
 	pushd "$distribution_mirrorsPath" 1>/dev/null 2>/dev/null
 
 		local mirrorFile
-		for mirrorFile in *.mirrors
+		for mirrorFile in *.mirror
 		do
 			if [ -f "$mirrorFile" ]; then
 				source "$mirrorFile"
@@ -89,7 +89,7 @@ function distribution_sourceMirrors()
 		if [ -f "$lfs_mirror" ]; then
 			pushd "$lfs_mirror" 1>/dev/null 2>/dev/null
 				
-				for mirrorFile in *.mirrors
+				for mirrorFile in *.mirror
 				do
 					if [ -f "$mirrorFile" ]; then
 						source "$mirrorFile"

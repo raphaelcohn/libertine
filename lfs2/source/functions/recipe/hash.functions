@@ -16,6 +16,9 @@ function recipe_hash_resolveDependencies()
 		do
 			# TODO: A bit brittle
 			IFS=' ' read -r localRecipe localRecipeName localRecipeVersion <<<"$(head -n 1 "$dependantRecipeFileName")"
+			if [ "$localRecipe" != "recipe" ]; then
+				lfs_exitError "Please make sure the first line in a recipe starts 'recipe NAME VERSION'"
+			fi
 			
 			# There's a relative symlink from "$recipeName"-"$recipeVersion" to "$recipeName"-"$recipeVersion"-"$recipeHash"
 			dependentRecipeLinkValue="$(readlink "$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$localRecipeName"-"$localRecipeVersion")"

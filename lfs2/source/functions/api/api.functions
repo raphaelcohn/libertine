@@ -7,6 +7,7 @@ function api_download()
 	# there is the possibility of collision (eg autotools)
 	# normally this is wanted, although in those circumstances we should distinguish by mirror, path (and for packages, version)
 	api_downloads_name+=("$downloadName")
+	api_downloads_kinds[$api_download_index]="$downloadKind"
 	
 	api_downloads_mirror[$api_download_index]=""
 	api_downloads_path[$api_download_index]=""
@@ -55,7 +56,7 @@ function path()
 	# the defaults for these vary with the kind of resource in use
 	case "$api_download_kind" in
 		
-		certificate-authority|patch|file|keyring|key)
+		certificate-authority|patch|file|keyring|keyfile)
 			local -r compressionExtension="${ourFileName##*.}"
 			api_downloads_archive[$api_download_index]=file
 

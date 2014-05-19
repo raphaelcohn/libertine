@@ -1,0 +1,1 @@
+define_mirror SAVANNAH 'http://git.savannah.gnu.org/gitweb/?sf=tgz;a=snapshot;p=' no

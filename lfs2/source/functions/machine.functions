@@ -29,7 +29,6 @@ machine_functions+=(machine_hashDistributionSettings)
 machine_distributionHash=""
 function machine_hashMachine()
 {
-	# We should include hashes of all files in sources... ie dependencies
 	machine_distributionHash="$(hash_hashFile "$distribution_distributionSettingsFilePath")"
 }
 machine_functions+=(machine_hashMachine)
@@ -58,14 +57,18 @@ machine_functions+=(machine_makePaths)
 
 function machine_sourceRecipes()
 {
-	temporaryFiles_newFileToRemoveOnExit
 	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/Makefile
 	
 	rm -rf "$make_makeFile"
 	
-	declare -a make_downloadTargets=()
-	declare -a make_verifyTargets=()
-	declare -a make_buildTargets=()
+	temporaryFiles_newFileToRemoveOnExit
+	readonly make_downloadTargets="$TMP_FILE"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	readonly make_verifyTargets="$TMP_FILE"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	readonly make_buildTargets="$TMP_FILE"
 	
 	make_start
 	

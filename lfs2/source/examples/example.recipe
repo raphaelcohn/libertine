@@ -9,4 +9,9 @@ recipe example 0.00
 	# TODO: Things like settings for other recipes (eg sudo)
 	# TODO: Kconfig files for kernel, busybox, buildroot
 	# Perhaps each recipe can have an override file - if the override changes, so does the recipe
+	
+	function recipe_install_example()
+	{
+		:
+	}
 }
