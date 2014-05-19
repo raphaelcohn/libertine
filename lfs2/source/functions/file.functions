@@ -1,0 +1,6 @@
+function file_hardlinkOrCopy()
+{
+	local -r from="$1"
+	local -r to="$2"
+	ln "$1" "$2" || cp "$" "$2"
+}

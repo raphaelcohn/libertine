@@ -44,32 +44,6 @@ function recipe_sourceRecipe()
 	local -r recipe_file="$parentFolder"/"$recipeFileName"
 	source "$recipe_file"
 	
-	# we should also have a downloads section
-	# downloadName is not distintive enough for versions of packages...
-	local -i downloadIndex
-	local name
-	local mirror
-	local path
-	local referrer
-	local post_data
-	local download_as
-	local compression
-	for downloadIndex in "${!api_downloads_name[@]}"
-	do
-		name="${api_downloads_name[$downloadIndex]}"
-		mirror="${api_downloads_mirror[$downloadIndex]}"
-		path="${api_downloads_path[$downloadIndex]}"
-		referrer="${api_downloads_referrer[$downloadIndex]}"
-		post_data="${api_downloads_post_data[$downloadIndex]}"
-		download_as="${api_downloads_download_as[$downloadIndex]}"
-		compression="${api_downloads_compression[$downloadIndex]}"
-		
-		xxxx DO NOT add download targets if recipe_hash below is unchanged
-		make_downloadTarget "${resolvedMirror}/${path}"
-	done
-	
-	make_addDownloadTargets "${recipeName}_${recipeVersion}.recipe"
-	
 	local recipe_before_function
 	for recipe_before_function in "${recipe_before_functions[@]}"
 	do

@@ -1,7 +1,11 @@
 recipe_hash_functions=()
 
+recipe_hash_temporaryRecipeDependenciesPath=""
 function recipe_hash_resolveDependencies()
 {
+	recipe_hash_temporaryRecipeDependenciesPath="$recipe_temporaryRecipePath"/dependencies
+	mkdir -m 0755 -p "$recipe_hash_temporaryRecipeDependenciesPath"
+	
 	local dependantRecipeFileName
 	local localRecipe
 	local localRecipeName
@@ -16,34 +20,43 @@ function recipe_hash_resolveDependencies()
 			# There's a relative symlink from "$recipeName"-"$recipeVersion" to "$recipeName"-"$recipeVersion"-"$recipeHash"
 			dependentRecipeLinkValue="$(readlink "$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$localRecipeName"-"$localRecipeVersion")"
 			
-			ln -s  "$recipe_temporaryRecipePath"/dependencies/versioned/"$dependantRecipeFileName"
+			ln -s ../../"$dependentRecipeLinkValue" "$recipe_hash_temporaryRecipeDependenciesPath"/"$dependantRecipeFileName"
 		done
 	popd 1>/dev/null 2>/dev/null
 }
 recipe_hash_functions+=(recipe_hash_resolveDependencies)
 
+function recipe_hash_installRecipeCopy()
+{
+	# Must be a copy, not a hardlink
+	cp "$recipe_file" "$recipe_hash_temporaryRecipeDependenciesPath"/"$recipeName".recipe
+}
+recipe_after_functions+=(recipe_hash_installRecipeCopy)
+
 function recipe_hash_compute()
 {
-	local -r recipeHashFile="$recipe_before_temporaryRecipePath"/dependencies-hashed
+	local -r recipeHashFile="$recipe_hash_temporaryRecipeDependenciesPath".hash
 	
-	ln "$recipe_file" "$recipe_before_temporaryRecipeDependenciesPath"/"$recipeName".recipe || cp "$recipe_file" "$recipe_before_temporaryRecipeDependenciesPath"/"$recipeName".recipe
-	
-	pushd "$dependenciesPath" 1>/dev/null 2>/dev/null
-	
-		local dependencyFileName
-		for dependencyFileName in *
-		do
-			# syntax should be name-version-hash
-			# should symlink to 
-			if [ ! -f "$dependencyFileName" ]; then
-				continue
-			elif [ -L "$dependencyFileName" ]; then
-				printf '%s\n' "$dependencyFileName" >>"$recipeHashFile"
-			else
-				hash_hashFile "$recipe_file" >>"$recipeHashFile"
-				printf '\n' >>"$recipeHashFile"
-			fi
-		done
+	pushd "$recipe_hash_temporaryRecipeDependenciesPath" 1>/dev/null 2>/dev/null
+		
+		{
+			local dependencyFileName
+			for dependencyFileName in *
+			do
+				# syntax should be name-version-hash
+				# should symlink to 
+				if [ ! -f "$dependencyFileName" ]; then
+					continue
+				else	
+					printf "${dependencyFileName} "
+					if [ -L "$dependencyFileName" ]; then
+						hash_hashFile "$dependencyFileName"/dependencies.hash
+					else
+						hash_hashFile "$dependencyFileName"
+					fi
+				fi
+			done
+		} >"$recipeHashFile"
 	
 	popd 1>/dev/null 2>/dev/null
 	
@@ -53,13 +66,56 @@ recipe_hash_functions+=(recipe_hash_compute)
 
 function recipe_hash_setPaths()
 {
-	LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"/"${recipeName}"-"${recipeVersion}"-"${recipeHash}"
+	LFS_RECIPE_NAME_VERSION="${recipeName}"-"${recipeVersion}"
+	LFS_RECIPE_NAME_VERSION_HASH="$LFS_RECIPE_NAME_VERSION"-"${recipeHash}"
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	LFS_BUILD_ROOT_PATH_RECIPE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE"
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES="$LFS_DEPENDENCY_PATH_ROOT"/dependencies
+	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_DEPENDENCY_PATH_ROOT"/dependencies.hash
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE="$LFS_DEPENDENCY_PATH_ROOT"/.downloaded
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE="$LFS_DEPENDENCY_PATH_ROOT"/.built
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS="$LFS_DEPENDENCY_PATH_ROOT"/downloads
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/package
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/patch
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT="$LFS_DEPENDENCY_PATH_ROOT"/build.bash
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILD="$LFS_DEPENDENCY_PATH_ROOT"/build
 }
 recipe_hash_functions+=(recipe_hash_setPaths)
 
 function recipe_hash_checkIfIdentical()
 {
-	
+	if [ -d "$LFS_BUILD_ROOT_PATH_RECIPE" ]; then
+		if [ -f "$LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE" ]; then
+			touch "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE"
+			# already built, no need to do again
+			return 0
+		fi
+		if [ -f "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE" ]; then
+			# downloads good, clean up any build garbage
+			rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE"/build
+		else
+			# TODO: Check for individual downloads
+			rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE"/build
+		fi
+	else
+		mv "$recipe_before_temporaryRecipePath" "$LFS_BUILD_ROOT_PATH_RECIPE"
+	fi
 }
 recipe_hash_functions+=(recipe_hash_checkIfIdentical)
+
+function recipe_hash_finish()
+{
+	rm -rf "$recipe_before_temporaryRecipePath"
+	unset recipe_before_temporaryRecipePath
+}
+recipe_hash_functions+=(recipe_hash_finish)

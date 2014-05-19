@@ -2,9 +2,10 @@ function define_mirror()
 {
 	case $# in
 		
-		2|3)
+		3|4)
 			local -r mirrorName="$1"
 			local -r url="$2"
+			local -r partialsSupported="$3"
 		;;
 		
 		*)
@@ -14,8 +15,9 @@ function define_mirror()
 	esac
 	
 	api_mirrors_Url["${mirrorName}"]="$url"
+	api_mirrors_PartialsSupported["${mirrorName}"]="$partialsSupported"
 	
-	if [ $# -eq 3 ]; then
+	if [ $# -eq 4 ]; then
 		local -r certificateAuthorityName="$3"
 	else
 		local -r certificateAuthorityName=""

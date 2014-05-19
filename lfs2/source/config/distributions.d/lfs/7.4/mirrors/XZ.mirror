@@ -1,1 +1,1 @@
-define_mirror XZ http://tukaani.org/
+define_mirror XZ yes http://tukaani.org/

@@ -1,55 +1,56 @@
 recipe_after_functions=()
 
-function recipe_after_moveAndSymlinkPaths()
+function recipe_after_symlinkPaths()
 {
-	mv "$recipe_before_temporaryRecipePath" "$LFS_BUILD_ROOT_PATH_RECIPE"
-	unset recipe_before_temporaryRecipePath
-	
-	local -r mightExist="$LFS_BUILD_ROOT_PATH_RECIPE"/"${recipeName}-${recipeVersion}"
+	local -r mightExist="$LFS_BUILD_ROOT_PATH_RECIPE"/"$LFS_RECIPE_NAME_VERSION"
 	if [ -e "$mightExist" ]; then
 		# TODO: Implies REBUILD
 		rm -rf "$mightExist"
 	fi
-	ln -s "${recipeName}"-"${recipeVersion}"-"${recipeHash}" "$mightExist"
+	ln -s "$LFS_RECIPE_NAME_VERSION_HASH" "$mightExist"
 }
-recipe_after_functions+=(recipe_after_moveAndSymlinkPaths)
+recipe_after_functions+=(recipe_after_symlinkPaths)
+
+function recipe_after_addDownloadTargets()
+{
+	if [ -f "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE" ]; then
+		return 0
+	fi
+	
+	# TODO: some downloads will be duplicated, eg gnulib, autotools-config. Too bad for now.
+	# TODO: downloads will be duplicated if a package changes version slightly, unless we use a downloads cache. Too bad for now.
+	local -i downloadIndex
+	local name
+	local mirror
+	local path
+	local referrer
+	local post_data
+	local download_as
+	local compression
+	local size
+	for downloadIndex in "${!api_downloads_name[@]}"
+	do
+		name="${api_downloads_name[$downloadIndex]}"
+		mirror="${api_downloads_mirror[$downloadIndex]}"
+		path="${api_downloads_path[$downloadIndex]}"
+		referrer="${api_downloads_referrer[$downloadIndex]}"
+		post_data="${api_downloads_post_data[$downloadIndex]}"
+		download_as="${api_downloads_download_as[$downloadIndex]}"
+		compression="${api_downloads_compression[$downloadIndex]}"
+		size="${api_downloads_size[$downloadIndex]}"
+		
+		make_downloadTargetIfRequired "${resolvedMirror}/${path}"
+	done
+}
+recipe_after_functions+=(recipe_after_addDownloadTargets)
 
 function recipe_after_exportBuildFile()
 {
-	# TODO: compute recipe hash! Must include hashes of dependendent recipes, distribution and machine!
-	temporaryFiles_newFolderToRemoveOnExit
-	local -r temporaryRecipeFolder="$TMP_FOLDER"
-	
-	local -r dependenciesPath="$temporaryRecipeFolder"/dependencies
-	mkdir -m 0755 -p "$dependenciesPath"
-	
-	# may not resolve to an actual version, but a symlink (eg bash_4.recipe or bash.recipe)... FIXME
-	local dependentRecipeFileName
-	for dependentRecipeName in "${api_recipe_depends[@]}"
-	do
-		# TODO: Find dependency - should be a folder in the file structure
-		# TODO: Read the name-version-hash, and use that
-		touch "$dependenciesPath"/"$dependentRecipeName"
-		
-		# how about two symlinks one is say  bash-4 (or whatever is the original dependency in the recipe) => bash-4.2-047
-		# other is bash-4.2-047-HASH => bash-4
-	done
-	
-	
-	
-	
-	
-	
-	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r buildFile="$TMP_FILE"
-	chmod +x "$buildFile"
-	
-	
-	
+	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	{
-		cat <<-EOF
+		cat ><<-EOF
 			#!/usr/bin/env bash
 			set -e
 			
@@ -63,14 +64,35 @@ function recipe_after_exportBuildFile()
 			readonly LFS_RECIPE_NAME='$recipeName'
 			readonly LFS_RECIPE_VERSION='$recipeVersion'
 			readonly LFS_RECIPE_HASH='$recipeHash'
+			readonly LFS_RECIPE_NAME_VERSION='$LFS_RECIPE_NAME_VERSION'
+			readonly LFS_RECIPE_NAME_VERSION_HASH='$LFS_RECIPE_NAME_VERSION_HASH'
 			
 			readonly LFS_BUILD_ROOT_PATH='$LFS_BUILD_ROOT_PATH'
+			
 			readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE='$LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE'
 			readonly LFS_BUILD_ROOT_PATH_MACHINE='$LFS_BUILD_ROOT_PATH_MACHINE'
+			
 			readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE='$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE'
 			readonly LFS_BUILD_ROOT_PATH_DISTRIBUTION='$LFS_BUILD_ROOT_PATH_DISTRIBUTION'
+			
 			readonly LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE='$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE'
 			readonly LFS_BUILD_ROOT_PATH_RECIPE='$LFS_BUILD_ROOT_PATH_RECIPE'
+			
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES='$LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE='$LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE'
+			
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE='$LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE'
+			
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE'
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING'
+			
+			readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILD='$LFS_BUILD_ROOT_PATH_RECIPE_BUILD'
 			
 			readonly LFS_NATIVE_ARCHITECTURE='$(get_setting_native_architecture)'
 			readonly LFS_NATIVE_TRIPLE='$(get_setting_native_architecture_triple)'
@@ -88,8 +110,6 @@ function recipe_after_exportBuildFile()
 			fi
 		done
 		
-		
-		
 		declare -f "recipe_install_${recipeName}"
 	
 		local a
@@ -101,7 +121,7 @@ function recipe_after_exportBuildFile()
 				declare -f "$functionName"
 			fi
 		done < <(declare -F)
-	} >"$buildFile"
+	} >"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	# need to export download_as names, path locations, package names, versions
 	# need to support patching / export commonly used build functions

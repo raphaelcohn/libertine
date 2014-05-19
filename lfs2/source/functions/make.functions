@@ -22,13 +22,13 @@ function make_addBuildTargets()
 
 function make_start()
 {
-	cat >>"$make_makeFile" <<-EOF
-		all: all-download all-download all-build
+	cat >"$make_makeFile" <<-EOF
+		all: all-download all-verify all-build
 		
 	EOF
 }
 
-function make_downloadTarget()
+function make_downloadTargetIfRequired()
 {
 	local -r parentPath="$(vsh_dirname "$path")"
 	
@@ -41,6 +41,29 @@ function make_downloadTarget()
 	local -r cacheParentPath="$distribution_cacheDownloadsPath"/"$parentPath"
 	local -r downloadFilePath="$cacheParentPath"/"$fileName"
 	
+	if [ $size -eq -1 ]; then
+		if [ -f "$downloadFilePath" ]; then
+			return 0
+		fi
+		local -ir continueAt=-1
+	else
+		if [ -f "$downloadFilePath" ]; then
+			local -ir actualSize=$(gstat --printf='%s' "$downloadFilePath")
+			if [ $size = $actualSize ]; then
+				return 0
+			elif [ $actualSize -gt $size ]; then
+				rm -rf "$downloadFilePath"
+				local -ir continueAt=-1
+			else
+				if [ "${api_mirrors_PartialsSupported["$mirror"]}" = "yes" ]; then
+					local -ir continueAt=$actualSize
+				else
+					local -ir continueAt=-1
+				fi
+			fi
+		fi
+	fi
+	
 	if [ -z "$post_data" ]; then
 		local -r verb=GET
 	else
@@ -51,18 +74,17 @@ function make_downloadTarget()
 	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
 	local -r url="${resolvedMirror}${path}"
 	
-	
 	if [ -z "$referrer" ]; then
-		# Misspelling is correct
+		# Misspelling is correct - it is to mirror the typo in the HTTP/1.1 header definitions
 		local -r referer="$(dirname "$url")/"
 	else
 		local -r referer="$referrer"
 	fi
 	
-	declare -a curl_requestHeaders=()
 	declare -a curl_args=()
+	declare -a curl_requestHeaders=()
 	curl_addQuotedArg "$(hash -t curl)"
-	curl_createCommandLine "$verb" "$url" "$referer" "$downloadFilePath" "$compression"
+	curl_createCommandLine "$verb" "$url" "$referer" "$downloadFilePath" "$compression" $continueAt
 	
 	local -r downloadTarget="download-${recipeName}_${recipeVersion}.${downloadIndex}"
 	make_addDownloadTargets "$downloadTarget"

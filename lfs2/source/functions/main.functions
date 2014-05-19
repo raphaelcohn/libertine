@@ -82,11 +82,11 @@ function main_machineFunctions()
 	for lfs_machineFilePath in "${lfs_machineFilePaths[@]}"
 	do
 		(
-		set -x
 			declare -A api_package_version_settings
 			declare -A api_recipes_uidgid
 			declare -A api_settings
 			declare -A api_mirrors_Url
+			declare -A api_mirrors_PartialsSupported
 			declare -A api_mirrors_certificateAuthorityName
 			declare -A api_certificateAuthorities_download
 			declare -A api_certificateAuthorities_parent

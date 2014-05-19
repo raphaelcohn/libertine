@@ -8,18 +8,19 @@ function curl_createCommandLine()
 	local -r referer="$3"
 	local -r downloadFilePath="$4"
 	local -r compression="$5"
+	local -r continueAt=$6
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r headersFilePath="$TMP_FILE"
+	local -r headersFilePath="$downloadFilePath".headers
+	rm -rf "$headersFilePath"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r stderrFilePath="$TMP_FILE"
+	local -r stderrFilePath="$downloadFilePath".stderr
+	rm -rf "$stderrFilePath"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r downloadDetailsFilePath="$TMP_FILE"
+	local -r downloadDetailsFilePath="$downloadFilePath".details
+	rm -rf "$downloadDetailsFilePath"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r asciiTraceFilePath="$TMP_FILE"
+	local -r asciiTraceFilePath="$downloadFilePath".trace
+	rm -rf "$asciiTraceFilePath"
 	
 	declare -a curl_args=()
 	
@@ -112,7 +113,10 @@ function curl_createCommandLine()
 		;;
 		
 		GET)
-			:
+			if [ $continueAt -ne -1 ]; then
+				curl_args+=('--continue-at')
+				curl_addQuotedArg $actualSize
+			fi
 		;;
 		
 		POST)

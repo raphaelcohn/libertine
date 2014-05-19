@@ -55,7 +55,10 @@ machine_functions+=(machine_makePaths)
 function machine_sourceRecipes()
 {
 	temporaryFiles_newFileToRemoveOnExit
-	readonly make_makeFile="$TMP_FILE"
+	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/makefile
+	
+	rm -rf "$make_makeFile"
+	
 	declare -a make_downloadTargets=()
 	declare -a make_verifyTargets=()
 	declare -a make_buildTargets=()
