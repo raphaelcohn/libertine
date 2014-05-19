@@ -50,7 +50,7 @@ function recipe_after_exportBuildFile()
 	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	{
-		cat ><<-EOF
+		cat <<-EOF
 			#!/usr/bin/env bash
 			set -e
 			

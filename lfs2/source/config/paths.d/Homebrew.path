@@ -132,7 +132,7 @@ e2fsprogs lsattr /usr/local/opt/e2fsprogs/bin/lsattr
 e2fsprogs uuidgen /usr/local/opt/e2fsprogs/bin/uuidgen
 findutils find /usr/local/opt/findutils/bin/gfind
 findutils xargs /usr/local/opt/findutils/bin/gxargs
-gawk awk gawk
+gawk awk /usr/local/bin/awk
 gawk gawk /usr/local/bin/gawk
 gcc48 c++ /usr/local/opt/gcc48/bin/c++-4.8
 gcc48 cpp /usr/local/opt/gcc48/bin/cpp-4.8

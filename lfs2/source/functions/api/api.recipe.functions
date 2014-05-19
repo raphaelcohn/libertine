@@ -37,6 +37,12 @@ function post-install()
 
 function remove_unwanted()
 {
+return 0
+
+
+
+
+
 	local -r parentPath="$1"
 	shift 1
 	
@@ -61,6 +67,12 @@ function remove_unwanted()
 
 function doc_resources()
 {
+return 0
+
+
+
+
+
 	local -r parentPath="$1"
 	shift 1
 	
@@ -85,6 +97,12 @@ function doc_resources()
 
 function compile_resources()
 {
+return 0
+
+
+
+
+
 	local -r parentPath="$1"
 	shift 1
 	
@@ -109,6 +127,12 @@ function compile_resources()
 
 function libtool_archives()
 {
+return 0
+
+
+
+
+
 	local -r parentPath="$1"
 	shift 1
 	
@@ -133,6 +157,12 @@ function libtool_archives()
 
 function strip_unneeded()
 {
+return 0
+
+
+
+
+
 	local -r parentPath="$1"
 	shift 1
 	
@@ -157,6 +187,12 @@ function strip_unneeded()
 
 function uidgid_paths()
 {
+return 0
+
+
+
+
+
 	local -r value="$1"
 	local -r parentPath="$2"
 	shift 2
@@ -182,6 +218,12 @@ function uidgid_paths()
 
 function capabilities_binaries()
 {
+return 0
+
+
+
+
+
 	local -r value="$1"
 	local -r parentPath="$2"
 	shift 2
@@ -207,6 +249,12 @@ function capabilities_binaries()
 
 function _binaryPermissionBits()
 {
+return 0
+
+
+
+
+
 	local -r value="$1"
 	local -r parentPath="$2"
 	shift 2
@@ -261,6 +309,12 @@ function explicit_filemode()
 
 function install_binaries()
 {
+return 0
+
+
+
+
+
 	local -r relativeBinaryPath="$1"
 	shift 1
 	
@@ -285,6 +339,12 @@ function install_binaries()
 
 function install_system_binaries()
 {
+return 0
+
+
+
+
+
 	local -r relativeBinaryPath="$1"
 	shift 1
 	
@@ -306,10 +366,3 @@ function install_system_binaries()
 		fi
 	done
 }
-
-
-
-
-
-
-

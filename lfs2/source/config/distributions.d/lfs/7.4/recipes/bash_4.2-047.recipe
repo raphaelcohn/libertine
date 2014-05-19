@@ -16,7 +16,7 @@ recipe bash 4.2-047
 		:
 	}
 	
-	local -r reducedVersion="${recipeVersion//.}"
+	local reducedVersion="${recipeVersion//.}"
 	
 	# We should consider adding a download-index to patches...
 	patch "${recipeName}${reducedVersion}"-001

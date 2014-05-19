@@ -25,12 +25,12 @@ main_functions+=(main_makeGlobalVariablesReadonly)
 
 function main_loadDefaults()
 {
-	local defaultsFile="$vsh_configPath"/defaults
+	local defaultsFile="$lfs_configPath"/defaults
 	if [ -r "$defaultsFile" ]; then
 		source "$defaultsFile"
 	fi
 	
-	local -r defaultsFolder="$vsh_configPath"/defaults.d
+	local -r defaultsFolder="$lfs_configPath"/defaults.d
 	if [ -d "$defaultsFolder" ]; then
 		pushd "$defaultsFolder" 1>/dev/null 2>/dev/null
 			

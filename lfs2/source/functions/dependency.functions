@@ -34,7 +34,7 @@ dependency_functions+=(dependency_determineDistributionName)
 
 function dependency_setUpAliases()
 {
-	local -r pathsFile="$vsh_configPath"/paths.d/"$distributionName".path
+	local -r pathsFile="$lfs_configPath"/paths.d/"$distributionName".path
 	if [ ! -f "$pathsFile" ]; then
 		return 0
 	fi

@@ -311,7 +311,6 @@ function signed_as()
 function package()
 {
 	name="$1"
-	package_version_setting "$name" "$2"
 	
 	local -r versionName="$1"
 	local -r versionValue="$2"

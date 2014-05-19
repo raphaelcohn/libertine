@@ -30,12 +30,12 @@ function make_start()
 
 function make_downloadTargetIfRequired()
 {
-	local -r parentPath="$(vsh_dirname "$path")"
+	local -r parentPath="$(lfs_dirname "$path")"
 	
 	if [ -n "$download_as" ]; then
 		local -r fileName="$download_as"
 	else
-		local -r fileName="$(vsh_basename "$path")"
+		local -r fileName="$(lfs_basename "$path")"
 	fi
 	
 	local -r cacheParentPath="$distribution_cacheDownloadsPath"/"$parentPath"
