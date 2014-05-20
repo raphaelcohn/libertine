@@ -4,3 +4,8 @@ function file_hardlinkOrCopy()
 	local -r to="$2"
 	ln "$1" "$2" || cp "$" "$2"
 }
+
+function file_pathToBinary()
+{
+	hash -t "$1" 2>/dev/null || which "$1" 2>/dev/null
+}

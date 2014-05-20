@@ -8,11 +8,13 @@
 function make_addDownloadTargets()
 {
 	echo -ne " $@" >>"$make_downloadTargets"
+	make_downloadTargetsSet+=("$@")
 }
 
 function make_addVerifyTargets()
 {
 	echo -ne " $@" >>"$make_verifyTargets"
+	make_verifyTargetsSet+=("$@")
 }
 
 function make_addBuildTargets()
@@ -22,27 +24,58 @@ function make_addBuildTargets()
 
 function make_start()
 {
-	local -r whichMake="$(hash -t make || which make 2>/dev/null)"
+	local -r whichMake="$(file_pathToBinary make)"
+	local -r whichBash="$(file_pathToBinary bash)"
 	cat >"$make_makeFile" <<-EOF
 		#!${whichMake}
+		
+		SHELL=${whichBash}
+		
+		.ONESHELL:
 		
 		all: all-download all-verify all-build
 		
 	EOF
+	
+	chmod +x "$make_makeFile"
+}
+
+function make_addTarget()
+{
+	local -r targetName="$1"
+	shift 1
+	
+	cat >"$make_makeFile" <<-EOF
+		${targetName}: $@
+		
+	EOF
+}
+
+function make_commonVariables()
+{
+	parentPath="$(lfs_dirname "$path")"
+	
+	if [ -n "$download_as" ]; then
+		fileName="$download_as"
+	else
+		fileName="$(lfs_basename "$path")"
+	fi
+	
+	cacheParentPath="$distribution_cacheDownloadsPath"/"$download_kind"/"$mirror"/"$name"
+	downloadFilePath="$cacheParentPath"/"$fileName"
 }
 
 function make_downloadTargetIfRequired()
 {
-	local -r parentPath="$(lfs_dirname "$path")"
+	local parentPath
+	local fileName
+	local cacheParentPath
+	local downloadFilePath
+	make_commonVariables
 	
-	if [ -n "$download_as" ]; then
-		local -r fileName="$download_as"
-	else
-		local -r fileName="$(lfs_basename "$path")"
+	if [ ! -d "$cacheParentPath" ]; then
+		mkdir -m -0755 -p "$cacheParentPath"
 	fi
-	
-	local -r cacheParentPath="$distribution_cacheDownloadsPath"/"$parentPath"
-	local -r downloadFilePath="$cacheParentPath"/"$fileName"
 	
 	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
 	if [ -z "$resolvedMirror" ]; then
@@ -96,20 +129,110 @@ function make_downloadTargetIfRequired()
 	declare -a curl_args=()
 	declare -a curl_requestHeaders=()
 	
-	curl_addQuotedArg "$(hash -t curl || which curl 2>/dev/null)"
+	curl_addQuotedArg "$(file_pathToBinary curl)"
 	curl_createCommandLine "$verb" "$url" "$referer" "$downloadFilePath" "$compression" $continueAt
 	
 	local -r downloadTarget="download-${recipeName}_${recipeVersion}.${downloadIndex}"
 	make_addDownloadTargets "$downloadTarget"
 	{
 		printf '%s:\n' "${downloadTarget}"
-		printf '\t%s\n' "mkdir -m 0755 -p '${cacheParentPath}'"
 		printf '\t'
 		echo -ne "${curl_args[@]}"
 		printf '\n\n'
 	} >>"$make_makeFile"
 	
-	chmod +x "$make_makeFile"
+	make_downloadTargetsSet "$downloadTarget"
+}
+
+function make_verifyTarget()
+{
+	local parentPath
+	local fileName
+	local cacheParentPath
+	local downloadFilePath
+	make_commonVariables
+	
+	local -r verifyScript="$cacheParentPath"/"$name".verify
+	if [ -e "$verifyScript" ]; then
+		rm -rf "$verifyScript"
+	fi
+	
+	cat >"$verifyScript" <<-EOF
+		#!$(file_pathToBinary bash)
+		set -e
+		
+		function $(declare -f lfs_dirname)
+		
+		function $(declare -f lfs_basename)
+		
+		function $(declare -f lfs_findOurNameAndPath)
+		
+		lfs_findOurNameAndPath
+		
+		readonly LFS_DOWNLOAD_FILENAME='$fileName'
+		
+		readonly LFS_BINARY_stat='$(file_pathToBinary stat)'
+		
+		readonly LFS_BINARY_md5='$(file_pathToBinary md5sum)'
+		
+		readonly LFS_BINARY_sha1='$(file_pathToBinary sha1sum)'
+		
+		readonly LFS_BINARY_sha224='$(file_pathToBinary sha224sum)'
+		
+		readonly LFS_BINARY_sha256='$(file_pathToBinary sha256sum)'
+		
+		readonly LFS_BINARY_sha384='$(file_pathToBinary sha384sum)'
+		
+		readonly LFS_BINARY_sha512='$(file_pathToBinary sha512sum)'
+		
+	EOF
+	
+	cat >"$verifyScript" <<-'EOF'
+		readonly LFS_DOWNLOAD_PATH='$crudeOurPath'/"$LFS_DOWNLOAD_FILENAME"
+		
+		function verifySize()
+		{
+			local -r size=$1
+			test "$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH")" -eq "$size"
+		}
+		
+		function verifyHash()
+		{
+			local -r hashAlgorithm="$1"
+			local -r hashValue="$2"
+			
+			local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+			${!hashProgramPathVariable} --check --strict --status <<-EOFX
+				$hashValue  $LFS_DOWNLOAD_PATH
+			EOFX
+		}
+	EOF
+	
+	{
+		if [ $size -ne -1 ]; then
+			echo -ne "verifySize $size"
+		fi
+		
+		local algorithm
+		for algorithm in md5 sha1 sha224 sha256 sha384 sha512
+		do
+			if [ -n "${!algorithm}" ]; then
+				echo -ne "verifyHash $algorithm ${!algorithm}"
+			fi
+		done
+	} >>"$verifyScript"
+	
+	chmod +x "$verifyScript"
+	
+	local -r verifyTarget="verify-${recipeName}_${recipeVersion}.${downloadIndex}"
+	make_addVerifyTargets "$verifyTarget"
+	{
+		printf '%s:\n\t' "${verifyTarget}"
+		echo -ne "'"
+		echo -ne "$verifyScript"
+		echo -ne "'"
+		printf '\n\n'
+	} >>"$make_makeFile"
 }
 
 function make_finish()

@@ -91,6 +91,8 @@ function recipe_after_addDownloadTargets()
 		return 0
 	fi
 	
+	declare -a make_downloadTargetsSet=()
+	
 	# TODO: some downloads will be duplicated, eg gnulib, autotools-config. Too bad for now.
 	# TODO: downloads will be duplicated if a package changes version slightly, unless we use a downloads cache. Too bad for now.
 	local -i downloadIndex
@@ -98,27 +100,71 @@ function recipe_after_addDownloadTargets()
 	local download_kind
 	local mirror
 	local path
+	local download_as
 	local referrer
 	local post_data
-	local download_as
 	local compression
 	local -i size
+	
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
 		name="${api_downloads_name[$downloadIndex]}"
 		download_kind="${api_downloads_kinds[$downloadIndex]}"
 		mirror="${api_downloads_mirror[$downloadIndex]}"
 		path="${api_downloads_path[$downloadIndex]}"
+		download_as="${api_downloads_download_as[$downloadIndex]}"
+		
 		referrer="${api_downloads_referrer[$downloadIndex]}"
 		post_data="${api_downloads_post_data[$downloadIndex]}"
-		download_as="${api_downloads_download_as[$downloadIndex]}"
 		compression="${api_downloads_compression[$downloadIndex]}"
+		
 		size=${api_downloads_size[$downloadIndex]}
 		
-		make_downloadTargetIfRequired "${resolvedMirror}/${path}"
+		make_downloadTargetIfRequired
 	done
+	
+	make_addTarget "download-${recipeName}_${recipeVersion}" "${make_downloadTargetsSet[@]}"
 }
 recipe_after_functions+=(recipe_after_addDownloadTargets)
+
+function recipe_after_addVerifyTargets()
+{
+	declare -a make_verifyTargetsSet=()
+	
+	local -i downloadIndex
+	local name
+	local download_kind
+	local mirror
+	local path
+	local -i size
+	local md5
+	local sha1
+	local sha224
+	local sha256
+	local sha384
+	local sha512
+	for downloadIndex in "${!api_downloads_name[@]}"
+	do
+		name="${api_downloads_name[$downloadIndex]}"
+		download_kind="${api_downloads_kinds[$downloadIndex]}"
+		mirror="${api_downloads_mirror[$downloadIndex]}"
+		path="${api_downloads_path[$downloadIndex]}"
+		download_as="${api_downloads_download_as[$downloadIndex]}"
+		
+		size=${api_downloads_size[$downloadIndex]}
+		md5="${api_downloads_md5[$downloadIndex]}"
+		sha1="${api_downloads_sha1[$downloadIndex]}"
+		sha244="${api_downloads_sha224[$downloadIndex]}"
+		sha256="${api_downloads_sha256[$downloadIndex]}"
+		sha384="${api_downloads_sha384[$downloadIndex]}"
+		sha512="${api_downloads_sha512[$downloadIndex]}"
+	
+		make_verifyTarget
+	done
+	
+	make_addTarget "verify-${recipeName}_${recipeVersion}" "${make_verifyTargetsSet[@]}"
+}
+recipe_after_functions+=(recipe_after_addVerifyTargets)
 
 function recipe_after_exportBuildFile()
 {
