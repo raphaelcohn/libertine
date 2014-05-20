@@ -74,7 +74,7 @@ function make_downloadTargetIfRequired()
 	make_commonVariables
 	
 	if [ ! -d "$cacheParentPath" ]; then
-		mkdir -m -0755 -p "$cacheParentPath"
+		mkdir -m 0755 -p "$cacheParentPath"
 	fi
 	
 	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
@@ -141,7 +141,7 @@ function make_downloadTargetIfRequired()
 		printf '\n\n'
 	} >>"$make_makeFile"
 	
-	make_downloadTargetsSet "$downloadTarget"
+	make_downloadTargetsSet+=("$downloadTarget")
 }
 
 function make_verifyTarget()
@@ -233,6 +233,8 @@ function make_verifyTarget()
 		echo -ne "'"
 		printf '\n\n'
 	} >>"$make_makeFile"
+	
+	make_verifyTargetsSet+=("$verifyTarget")
 }
 
 function make_finish()
