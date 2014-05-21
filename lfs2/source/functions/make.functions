@@ -235,6 +235,7 @@ function make_downloadTargetIfRequired()
 		EOF
 		
 		cat "$distribution_snippetsPath"/*.download.snippet 2>/dev/null || true
+		echo ""
 		
 		cat <<-'EOF'
 			curl_download '$LFS_BINARY_curl' '$verb' '$url' '$referer' '$fileName' '$compression' $continueAt
@@ -291,16 +292,17 @@ function make_verifyTarget()
 		EOF
 		
 		cat "$distribution_snippetsPath"/*.verify.snippet 2>/dev/null || true
+		echo ""
 		
 		if [ $size -ne -1 ]; then
-			echo -ne "verifySize $size"
+			echo -e "verifySize $size"
 		fi
 		
 		local algorithm
 		for algorithm in md5 sha1 sha224 sha256 sha384 sha512
 		do
 			if [ -n "${!algorithm}" ]; then
-				echo -ne "verifyHash $algorithm ${!algorithm}"
+				echo -e "verifyHash $algorithm ${!algorithm}"
 			fi
 		done
 	} >"$verifyScript"
