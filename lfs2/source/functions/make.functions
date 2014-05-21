@@ -13,7 +13,7 @@ function make_addTargetDownloadItem()
 		make_addTarget
 		
 		if [ "$isEmpty" = "yes" ]; then
-			printf '\t%s:\n\n' "$target"
+			printf '%s:\n\n' "$target"
 		else
 			# Add download target - non-unique, might be shared
 			printf '%s:\n\t' "$target"
@@ -114,7 +114,7 @@ function make_addTargetBuild()
 function make_start()
 {
 	cat <<-EOF
-		#!$(file_pathToBinary make)
+		#!$(file_pathToBinary make) --jobs all
 		
 		SHELL=$(file_pathToBinary bash)
 		
