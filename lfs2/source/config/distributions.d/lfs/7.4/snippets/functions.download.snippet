@@ -20,7 +20,7 @@ function curl_download()
 	declare -a curl_requestHeaders=()
 	
 	# -q as the first parameter prevents default configuration file loadings
-	curl_args+=('-q')
+	curl_args+=('-q' '--silent' '--show-error')
 	
 	curl_args+=('--user-agent')
 	curl_args+=("$LFS_CURL_USERAGENT")
