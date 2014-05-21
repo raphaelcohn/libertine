@@ -3,7 +3,7 @@ recipe bash 4.2-047
 	uidgid 18
 	depends musl-cross
 	
-	package bash "$recipeVersion"
+	package bash 4.2
 	{
 		mirror GNU
 		path "$name"/"$name"-"$version".tar.gz
