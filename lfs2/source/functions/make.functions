@@ -237,6 +237,8 @@ function make_downloadTargetIfRequired()
 		echo ""
 		
 		cat <<-'EOF'
+			readonly downloadFilePath="$crudeOurPath"/"$fileName"
+			
 			curl_download
 		EOF
 	} >"$downloadScript"
