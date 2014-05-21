@@ -14,7 +14,7 @@ function make_addTargetDownloadItem()
 		
 		# Add download target - non-unique, might be shared
 		printf '%s:\n\t' "$target"
-		echo -ne "'"
+		echo -ne "@'"
 		echo -ne "$downloadScript"
 		echo -ne "'"
 		printf '\n\n'
@@ -39,7 +39,7 @@ function make_addTargetDownloadItem()
 
 function make_addTargetDownload()
 {
-	local -r target="download-${recipeName}_${recipeVersion}"
+	local -r target="download-recipe-${recipeName}_${recipeVersion}"
 	
 	make_addTarget
 	make_targetsDownload+=("$target")
@@ -61,7 +61,7 @@ function make_addTargetVerifyItem()
 	make_addTarget
 	
 	printf '%s: %s\n\t' "$target" "download-recipe-${recipeName}_${recipeVersion}.${downloadIndex}"
-	echo -ne "'"
+	echo -ne "@'"
 	echo -ne "$verifyScript"
 	echo -ne "'"
 	printf '\n\n'
@@ -78,20 +78,20 @@ function make_addTargetVerify()
 	local -i downloadIndex
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
-		echo -ne " verify-recipe-${recipeName}_${recipeVersion}.${downloadIndex}"
+		echo -ne " verify-${recipeName}_${recipeVersion}.${downloadIndex}"
 	done
 	printf '\n\n'
 }
 
 function make_addTargetBuild()
 {
-	local -r target="build-recipe-${recipeName}_${recipeVersion}"
+	local -r target="build-${recipeName}_${recipeVersion}"
 	
 	make_addTarget
 	make_targetsBuild+=("$target")
 	
 	# depends on our verify tartget
-	printf '%s: %s' "$target" "verify-recipe-${recipeName}_${recipeVersion}"
+	printf '%s: %s' "$target" "verify-${recipeName}_${recipeVersion}"
 	local -i index
 	for index in "${!api_recipe_dependsRecipeName[@]}"
 	do
@@ -99,7 +99,7 @@ function make_addTargetBuild()
 	done
 	printf '\n\t'
 	
-	echo -ne "'"
+	echo -ne "@'"
 	echo -ne "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	echo -ne "'"
 	printf '\n\n'
@@ -147,6 +147,7 @@ function make_downloadTargetIfRequired()
 	if [ -z "$resolvedMirror" ]; then
 		lfs_exitError "No known mirror $mirror"
 	fi
+	
 	local -r url="${resolvedMirror}${path}"
 	
 	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
@@ -178,6 +179,8 @@ function make_downloadTargetIfRequired()
 			local -ir continueAt=-1
 		fi
 	fi
+	
+	local -r continueAtSupported="${api_mirrors_PartialsSupported["$mirror"]}"
 	
 	if [ -z "$post_data" ]; then
 		local -r verb=GET
@@ -226,6 +229,7 @@ function make_downloadTargetIfRequired()
 			readonly referer='$referer'
 			readonly fileName='$fileName'
 			readonly compression='$compression'
+			readonly continueAtSupported='$continueAtSupported'
 			readonly continueAt=$continueAt
 			readonly size=$size
 		EOF
@@ -235,6 +239,8 @@ function make_downloadTargetIfRequired()
 		
 		cat <<-'EOF'
 			curl_download
+			
+			echo "Downloaded $fileName"
 		EOF
 	} >"$downloadScript"
 	
@@ -301,6 +307,8 @@ function make_verifyTarget()
 				echo -e "verifyHash $algorithm ${!algorithm}"
 			fi
 		done
+		
+		echo -e 'echo "Verified $LFS_DOWNLOAD_FILENAME"'
 	} >"$verifyScript"
 	
 	chmod +x "$verifyScript"

@@ -1,1 +1,1 @@
-define_mirror GNU yes http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/
+define_mirror GNU http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/ yes

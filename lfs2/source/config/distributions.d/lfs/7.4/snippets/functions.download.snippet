@@ -4,8 +4,10 @@ cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
-	if [ $continueAt -eq $size ]; then
-		return 0
+	if [ $continueAt -ne -1 ]; then
+		if [ $continueAt -eq $size ]; then
+			return 0
+		fi
 	fi
 	
 	local -r headersFilePath="$fileName".headers
@@ -27,7 +29,7 @@ function curl_download()
 	declare -a curl_requestHeaders=()
 	
 	# -q as the first parameter prevents default configuration file loadings
-	curl_args+=('-q' '--silent' '--show-error')
+	curl_args+=('-q' '--silent' '--show-error' '--fail')
 	
 	curl_args+=('--user-agent')
 	curl_args+=("$LFS_CURL_USERAGENT")
@@ -115,9 +117,13 @@ function curl_download()
 		;;
 		
 		GET)
-			if [ $continueAt -ne -1 ]; then
-				curl_args+=('--continue-at')
-				curl_args+=($continueAt)
+			if [ "$continueAtSupported" = "yes" ]; then
+				if [ $size -ne -1 ]; then
+					if [ $continueAt -ne -1 ]; then
+						curl_args+=('--continue-at')
+						curl_args+=($continueAt)
+					fi
+				fi
 			fi
 		;;
 		

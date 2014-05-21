@@ -13,7 +13,7 @@ recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 		sha512 3d559a8b6f9fa574f597bc25fcd27f682a3ba2b168864cdcd89b710908fd809fb59c15ca90e8c66587543cf26f3ac70ce96a49857785f84cdbddc827b4a326ee
 	}
 
-	package binutils 2.3.2
+	package binutils 2.23.2
 	{
 		mirror GNU
 		path "$name"/"$name"-"$version".tar.bz2

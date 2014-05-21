@@ -5,16 +5,40 @@ cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 function verifySize()
 {
 	local -r size=$1
-	test "$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH")" -eq "$size"
+	local -r actualSize=$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH") 
+	set +e
+	test $actualSize -eq $size
+	local -ir exitCode=$?
+	set -e
+	if [ $exitCode -ne 0 ]; then
+		echo "$ourName: $LFS_DOWNLOAD_PATH verifySize failed (actual was $actualSize, expected was $size)"
+		if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
+			rm -rf "$LFS_DOWNLOAD_PATH"
+		fi
+		exit 1
+	fi
 }
 
 function verifyHash()
 {
 	local -r hashAlgorithm="$1"
 	local -r hashValue="$2"
-
+	
 	local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+	set +e
 	${!hashProgramPathVariable} --check --strict --status <<-EOF
 		$hashValue  $LFS_DOWNLOAD_PATH
 	EOF
+	local -ir exitCode=$?
+	set -e
+	if [ $exitCode -ne 0 ]; then
+		local hashValueActual irrelevant
+		IFS=' ' read -r hashValueActual irrelevant <<<"$(${!hashProgramPathVariable} "$LFS_DOWNLOAD_PATH")"
+		
+		echo "$ourName: $LFS_DOWNLOAD_PATH verifyHash $hashAlgorithm failed (actual was $hashValueActual, expected was $hashValue)"
+		if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
+			rm -rf "$LFS_DOWNLOAD_PATH"
+		fi
+		exit 1
+	fi
 }
