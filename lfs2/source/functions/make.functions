@@ -225,7 +225,6 @@ function make_downloadTargetIfRequired()
 			readonly LFS_CURL_SUPPORTS_NETRC_OPTION='$defaults_curl_supportsNetrcFileOption'
 			
 			readonly LFS_BINARY_curl='$(file_pathToBinary curl)'
-			readonly fileName='$fileName'
 			readonly verb='$verb'
 			readonly url='$url'
 			readonly referer='$referer'
@@ -238,7 +237,7 @@ function make_downloadTargetIfRequired()
 		echo ""
 		
 		cat <<-'EOF'
-			curl_download '$LFS_BINARY_curl' '$verb' '$url' '$referer' '$fileName' '$compression' $continueAt
+			curl_download
 		EOF
 	} >"$downloadScript"
 	

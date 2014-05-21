@@ -4,14 +4,6 @@ cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
-	local -r pathToCurl="$1"
-	local -r verb="$2"
-	local -r url="$3"
-	local -r referer="$4"
-	local -r downloadFilePath="$5"
-	local -r compression="$6"
-	local -r continueAt=$7
-	
 	local -r headersFilePath="$downloadFilePath".headers
 	rm -rf "$headersFilePath"
 	
@@ -170,7 +162,7 @@ function curl_download()
 	curl_args+=('--trace-time' '--trace-ascii')
 	curl_args+=("$asciiTraceFilePath")
 	
-	$pathToCurl "$@"
+	$LFS_BINARY_curl "$@"
 }
 
 function curl_argumentConfig()
