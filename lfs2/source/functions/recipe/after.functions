@@ -1,9 +1,8 @@
 recipe_after_functions=()
 
-
-recipe_after_temporaryRecipeDependenciesPath=""
 function recipe_after_resolveDependencies()
 {
+	# Has to be made local in source
 	recipe_after_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
 	mkdir -m 0755 -p "$recipe_after_temporaryRecipeDependenciesPath"
 	

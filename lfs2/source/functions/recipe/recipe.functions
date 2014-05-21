@@ -54,6 +54,8 @@ function recipe_sourceRecipe()
 	
 	source "$actualRecipeFile"
 	
+	local recipe_before_temporaryRecipePath
+	local recipe_before_temporaryRecipeDependenciesPath
 	local recipe_before_function
 	for recipe_before_function in "${recipe_before_functions[@]}"
 	do
@@ -76,6 +78,7 @@ function recipe_sourceRecipe()
 		recipe_sourceRecipe "$distribution_recipesPath" "$dependantRecipeFileName"
 	done
 	
+	local recipe_after_temporaryRecipeDependenciesPath
 	local recipe_after_function
 	for recipe_after_function in "${recipe_after_functions[@]}"
 	do

@@ -60,7 +60,6 @@ function recipe_before_generateSymlinkedVersions()
 }
 recipe_before_functions+=(recipe_before_generateSymlinkedVersions)
 
-recipe_before_temporaryRecipePath=""
 function recipe_before_temporaryPath()
 {
 	recipe_before_temporaryRecipePath="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"${recipeName}-${recipeVersion}.tmp"
@@ -70,7 +69,6 @@ function recipe_before_temporaryPath()
 }
 recipe_before_functions+=(recipe_before_temporaryPath)
 
-recipe_before_temporaryRecipeDependenciesPath=""
 function recipe_before_makeTemporaryPaths()
 {
 	recipe_before_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
