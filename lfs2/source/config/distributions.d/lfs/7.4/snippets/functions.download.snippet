@@ -4,16 +4,16 @@ cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
-	local -r headersFilePath="$downloadFilePath".headers
+	local -r headersFilePath="$fileName".headers
 	rm -rf "$headersFilePath"
 	
-	local -r stderrFilePath="$downloadFilePath".stderr
+	local -r stderrFilePath="$fileName".stderr
 	rm -rf "$stderrFilePath"
 	
-	local -r downloadDetailsFilePath="$downloadFilePath".details
+	local -r downloadDetailsFilePath="$fileName".details
 	rm -rf "$downloadDetailsFilePath"
 	
-	local -r asciiTraceFilePath="$downloadFilePath".trace
+	local -r asciiTraceFilePath="$fileName".trace
 	rm -rf "$asciiTraceFilePath"
 	
 	declare -a curl_args=()
@@ -144,7 +144,7 @@ function curl_download()
 	curl_args+=("$url")
 	
 	curl_args+=('--output')
-	curl_args+=("$downloadFilePath")
+	curl_args+=("$fileName")
 	
 	# Headers file
 	curl_args+=('--dump-header')
