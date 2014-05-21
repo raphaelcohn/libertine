@@ -13,9 +13,10 @@ function make_addTargetDownloadItem()
 	if [ "$isEmpty" = "yes" ]; then
 		printf '\t%s:\n\n' "$target"
 	else
-		printf '%s:\n' "$target"
-		printf '\t'
+		printf '%s:\n\t' "$target"
+		echo -ne "'"
 		echo -ne "$downloadScript"
+		echo -ne "'"
 		printf '\n\n'
 	fi
 }
@@ -110,7 +111,8 @@ function make_commonVariables()
 		fileName="$(lfs_basename "$path")"
 	fi
 	
-	cacheParentPath="$distribution_cacheDownloadsPath"/"$download_kind"/"$mirror"/"$name"
+	# version only exists for packages
+	cacheParentPath="$LFS_BUILD_ROOT_PATH_MACHINE"/"$download_kind"/"$mirror"/"$name"
 	downloadFilePath="$cacheParentPath"/"$fileName"
 }
 
@@ -177,7 +179,7 @@ function make_downloadTargetIfRequired()
 		local -r referer="$referrer"
 	fi
 	
-	local -r downloadScript="$cacheParentPath"/"$name".download
+	local -r downloadScript="$cacheParentPath"/"$fileName".download
 	if [ -e "$downloadScript" ]; then
 		rm -rf "$downloadScript"
 	fi
@@ -225,7 +227,7 @@ function make_verifyTarget()
 	local downloadFilePath
 	make_commonVariables
 	
-	local -r verifyScript="$cacheParentPath"/"$name".verify
+	local -r verifyScript="$cacheParentPath"/"$fileName".verify
 	if [ -e "$verifyScript" ]; then
 		rm -rf "$verifyScript"
 	fi
