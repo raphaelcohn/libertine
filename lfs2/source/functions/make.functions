@@ -30,9 +30,12 @@ function make_addTargetDownloadItem()
 	
 	local -r usersPath="$cacheParentPath"/users/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"
 	mkdir -m 0755 -p "$usersPath"
+	
 	local -r userLinkPath="$usersPath"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	rm -rf "$userLinkPath"
-	ln -s "$LFS_BUILD_ROOT_PATH_RECIPE" "$userLinkPath"
+	
+	local -r symlinkTargetPath="$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/../../../../../../../../distributions.d/"$ourDistributionName"/"$ourDistributionVersion"/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/"$LFS_RECIPE_NAME_VERSION_HASH"
+	ln -s "$symlinkTargetPath" "$userLinkPath"
 	
 	local dependsTarget="$target"
 	target="download-recipe-${recipeName}_${recipeVersion}.${downloadIndex}"
