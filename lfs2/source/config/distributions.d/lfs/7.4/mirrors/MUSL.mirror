@@ -1,1 +1,1 @@
-define_mirror MUSL http://www.musl-libc.org/ yes
+define_mirror MUSL http://www.musl-libc.org/ no

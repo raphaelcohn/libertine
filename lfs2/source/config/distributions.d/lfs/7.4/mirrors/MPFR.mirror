@@ -1,1 +1,1 @@
-define_mirror MPFR http://www.mpfr.org/ yes
+define_mirror MPFR http://www.mpfr.org/ no

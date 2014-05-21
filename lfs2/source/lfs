@@ -2,15 +2,13 @@
 
 function FIX()
 {
-	echo $@
+	echo FIX: $@
 }
 
 FIX Clean up dead recipes by checking if our hash differs to theirs but version and name are the same
 FIX Detect whether to rebuild based on presence of .built
 FIX 'xxxx do a touch of .downloaded when finished with curl...  and for .built, too and ? for .verified (new concept)'
-FIX 'Add downloads dep symlinks so we know when to delete... symlink to machine entries!'
 FIX "Check for .built file!"
-FIX "Do not output build dependency targets for already built recipes"
 
 function lfs_message()
 {

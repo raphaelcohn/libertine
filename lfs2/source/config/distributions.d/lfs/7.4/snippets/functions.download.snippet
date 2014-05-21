@@ -4,6 +4,10 @@ cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
+	if [ $continueAt -eq $size ]; then
+		return 0
+	fi
+	
 	local -r headersFilePath="$fileName".headers
 	rm -rf "$headersFilePath"
 	
@@ -113,7 +117,7 @@ function curl_download()
 		GET)
 			if [ $continueAt -ne -1 ]; then
 				curl_args+=('--continue-at')
-				curl_args+=($actualSize)
+				curl_args+=($continueAt)
 			fi
 		;;
 		

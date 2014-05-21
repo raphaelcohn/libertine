@@ -12,20 +12,14 @@ function make_addTargetDownloadItem()
 		
 		make_addTarget
 		
-		if [ "$isEmpty" = "yes" ]; then
-			printf '%s:\n\n' "$target"
-		else
-			# Add download target - non-unique, might be shared
-			printf '%s:\n\t' "$target"
-			echo -ne "'"
-			echo -ne "$downloadScript"
-			echo -ne "'"
-			printf '\n\n'
-		fi
+		# Add download target - non-unique, might be shared
+		printf '%s:\n\t' "$target"
+		echo -ne "'"
+		echo -ne "$downloadScript"
+		echo -ne "'"
+		printf '\n\n'
 		
 		make_targetsDownloadItem["$target"]=1
-		
-		# Add a download dep link...
 	fi
 	
 	local -r usersPath="$cacheParentPath"/users/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"
@@ -161,16 +155,15 @@ function make_downloadTargetIfRequired()
 	
 	if [ $size -eq -1 ]; then
 		if [ -f "$downloadFilePath" ]; then
-			make_addTargetDownloadItem "yes"
-			return 0
+			local -ir continueAt=$(stat --printf='%s' "$downloadFilePath")
+		else
+			local -ir continueAt=-1
 		fi
-		local -ir continueAt=-1
 	else
 		if [ -f "$downloadFilePath" ]; then
 			local -ir actualSize=$(stat --printf='%s' "$downloadFilePath")
 			if [ $size = $actualSize ]; then
-				make_addTargetDownloadItem "yes"
-				return 0
+				local -ir continueAt=$actualSize
 			elif [ $actualSize -gt $size ]; then
 				rm -rf "$downloadFilePath"
 				local -ir continueAt=-1
@@ -234,6 +227,7 @@ function make_downloadTargetIfRequired()
 			readonly fileName='$fileName'
 			readonly compression='$compression'
 			readonly continueAt=$continueAt
+			readonly size=$size
 		EOF
 		
 		cat "$distribution_snippetsPath"/*.download.snippet 2>/dev/null || true
@@ -246,7 +240,7 @@ function make_downloadTargetIfRequired()
 	
 	chmod +x "$downloadScript"
 	
-	make_addTargetDownloadItem "no"
+	make_addTargetDownloadItem
 }
 
 function make_verifyTarget()
