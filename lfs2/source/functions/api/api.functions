@@ -2,11 +2,13 @@ function api_download()
 {
 	local -r downloadKind="$1"
 	local -r downloadName="$2"
+	local -r downloadVersion="$3"
 	api_download_kind="$downloadKind"
 	api_download_index=${#api_downloads_name[@]}
 	# there is the possibility of collision (eg autotools)
 	# normally this is wanted, although in those circumstances we should distinguish by mirror, path (and for packages, version)
 	api_downloads_name+=("$downloadName")
+	api_downloads_version[$api_download_index]="$downloadVersion"
 	api_downloads_kinds[$api_download_index]="$downloadKind"
 	
 	api_downloads_mirror[$api_download_index]=""
@@ -333,34 +335,34 @@ function package()
 		version="$(get_package_version_setting "$name")"
 	fi
 	
-	api_download "package" "$name"
+	api_download "package" "$name" "$version"
 }
 
 function patch()
 {
 	name="$1"
 	
-	api_download "patch" "$name"
+	api_download "patch" "$name" 0
 }
 
 function file()
 {
 	name="$1"
 	
-	api_download "file" "$name"
+	api_download "file" "$name" 0
 }
 
 function keyring()
 {
 	name="$1"
 	
-	api_download "keyring" "$name"
+	api_download "keyring" "$name" 0
 }
 
 function keyfile()
 {
 	name="$1"
 	
-	api_download "keyfile" "$name"
+	api_download "keyfile" "$name" 0
 }
 

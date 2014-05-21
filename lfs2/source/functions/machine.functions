@@ -60,6 +60,7 @@ function machine_sourceRecipes()
 	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/Makefile
 	rm -rf "$make_makeFile"
 	
+	declare -A make_targetsDownloadItem=()
 	declare -a make_targetsDownload=()
 	declare -a make_targetsVerify=()
 	declare -a make_targetsBuild=()

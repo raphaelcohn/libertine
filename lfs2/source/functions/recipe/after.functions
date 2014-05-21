@@ -6,8 +6,6 @@ function recipe_after_resolveDependencies()
 	recipe_after_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
 	mkdir -m 0755 -p "$recipe_after_temporaryRecipeDependenciesPath"
 	
-	FIX "Do not output build dependency targets for already built recipes"
-	
 	local dependantRecipeName
 	local dependantRecipeVersion
 	local dependantRecipeFileName
@@ -163,8 +161,6 @@ function recipe_after_beginBuildScript()
 {
 	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
-	FIX "Check for .built file!"
-	
 	# need to export download_as names, path locations, package names, versions
 	# need to support extraction, patching
 	# need to export settings
@@ -251,6 +247,7 @@ function recipe_after_addDownloadTargets()
 	# TODO: downloads will be duplicated if a package changes version slightly, unless we use a downloads cache. Too bad for now.
 	local -i downloadIndex
 	local name
+	local version
 	local download_kind
 	local mirror
 	local path
@@ -263,6 +260,7 @@ function recipe_after_addDownloadTargets()
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
 		name="${api_downloads_name[$downloadIndex]}"
+		version="${api_downloads_version[$downloadIndex]}"
 		download_kind="${api_downloads_kinds[$downloadIndex]}"
 		mirror="${api_downloads_mirror[$downloadIndex]}"
 		path="${api_downloads_path[$downloadIndex]}"
@@ -287,6 +285,7 @@ function recipe_after_addVerifyTargets()
 	
 	local -i downloadIndex
 	local name
+	local version
 	local download_kind
 	local mirror
 	local path
@@ -300,6 +299,7 @@ function recipe_after_addVerifyTargets()
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
 		name="${api_downloads_name[$downloadIndex]}"
+		version="${api_downloads_version[$downloadIndex]}"
 		download_kind="${api_downloads_kinds[$downloadIndex]}"
 		mirror="${api_downloads_mirror[$downloadIndex]}"
 		path="${api_downloads_path[$downloadIndex]}"

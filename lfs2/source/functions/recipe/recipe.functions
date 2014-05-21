@@ -22,6 +22,7 @@ function recipe_sourceRecipe()
 	declare -a api_download_kind=""
 	declare -a api_download_index=-1
 	declare -a api_downloads_name=()
+	declare -a api_downloads_version=()
 	declare -a api_downloads_kinds=()
 	declare -a api_downloads_mirror=()
 	declare -a api_downloads_path=()
