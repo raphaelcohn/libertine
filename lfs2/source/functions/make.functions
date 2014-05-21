@@ -1,52 +1,101 @@
-
-# Declare before use:-
-#   make_makeFile
-#   make_downloadTargets
-#   make_verifyTargets
-#   make_buildTargets
-
-function make_addDownloadTargets()
+function make_addTarget()
 {
-	echo -ne " $@" >>"$make_downloadTargets"
-	make_downloadTargetsSet+=("$@")
+	make_targetsPhony+=("$target")
 }
 
-function make_addVerifyTargets()
+function make_addTargetDownloadItem()
 {
-	echo -ne " $@" >>"$make_verifyTargets"
-	make_verifyTargetsSet+=("$@")
+	local -r target="download-${recipeName}_${recipeVersion}.${downloadIndex}"
+	local -r isEmpty="$1"
+	
+	make_addTarget
+	
+	if [ "$isEmpty" = "yes" ]; then
+		printf '\t%s:\n\n' "$target"
+	else
+		printf '%s:\n' "$target"
+		printf '\t'
+		echo -ne "$downloadScript"
+		printf '\n\n'
+	fi
 }
 
-function make_addBuildTargets()
+function make_addTargetDownload()
 {
-	echo -ne " $@" >>"$make_buildTargets"
+	local -r target="download-${recipeName}_${recipeVersion}"
+	
+	make_addTarget
+	make_targetsDownload+=("$target")
+	
+	# If we remove 'download' here, then we make things faster... but with builds happening whilst downloading
+	printf '%s:' "$target"
+	local -i downloadIndex
+	for downloadIndex in "${!api_downloads_name[@]}"
+	do
+		echo -ne " download-${recipeName}_${recipeVersion}.${downloadIndex}"
+	done
+	printf '\n\n'
+}
+
+function make_addTargetVerifyItem()
+{
+	local -r target="verify-${recipeName}_${recipeVersion}.${downloadIndex}"
+	
+	make_addTarget
+	
+	printf '%s: %s\n\t' "$target" "download-${recipeName}_${recipeVersion}.${downloadIndex}"
+	echo -ne "'"
+	echo -ne "$verifyScript"
+	echo -ne "'"
+	printf '\n\n'
+}
+
+function make_addTargetVerify()
+{
+	local -r target="verify-${recipeName}_${recipeVersion}"
+	
+	make_addTarget
+	make_targetsVerify+=("$target")
+	
+	printf '%s: %s' "$target" "download-${recipeName}_${recipeVersion}"
+	local -i downloadIndex
+	for downloadIndex in "${!api_downloads_name[@]}"
+	do
+		echo -ne " verify-${recipeName}_${recipeVersion}.${downloadIndex}"
+	done
+	printf '\n\n'
+}
+
+function make_addTargetBuild()
+{
+	local -r target="build-${recipeName}_${recipeVersion}"
+	
+	make_addTarget
+	make_targetsBuild+=("$target")
+	
+	# depends on our verify tartget
+	printf '%s: %s' "$target" "verify-${recipeName}_${recipeVersion}"
+	local -i index
+	for index in "${!api_recipe_dependsRecipeName[@]}"
+	do
+		echo -ne " build-${api_recipe_dependsRecipeName[$index]}_${api_recipe_dependsRecipeVersion[$index]}"
+	done
+	printf '\n\t'
+	
+	echo -ne "'"
+	echo -ne "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	echo -ne "'"
+	printf '\n\n'
 }
 
 function make_start()
 {
-	local -r whichMake="$(file_pathToBinary make)"
-	local -r whichBash="$(file_pathToBinary bash)"
-	cat >"$make_makeFile" <<-EOF
-		#!${whichMake}
+	cat <<-EOF
+		#!$(file_pathToBinary make)
 		
-		SHELL=${whichBash}
+		SHELL=$(file_pathToBinary bash)
 		
-		.ONESHELL:
-		
-		all: all-download all-verify all-build
-		
-	EOF
-	
-	chmod +x "$make_makeFile"
-}
-
-function make_addTarget()
-{
-	local -r targetName="$1"
-	shift 1
-	
-	cat >"$make_makeFile" <<-EOF
-		${targetName}: $@
+		all: download verify build
 		
 	EOF
 }
@@ -89,6 +138,7 @@ function make_downloadTargetIfRequired()
 	
 	if [ $size -eq -1 ]; then
 		if [ -f "$downloadFilePath" ]; then
+			make_addTargetDownloadItem "yes"
 			return 0
 		fi
 		local -ir continueAt=-1
@@ -96,6 +146,7 @@ function make_downloadTargetIfRequired()
 		if [ -f "$downloadFilePath" ]; then
 			local -ir actualSize=$(stat --printf='%s' "$downloadFilePath")
 			if [ $size = $actualSize ]; then
+				make_addTargetDownloadItem "yes"
 				return 0
 			elif [ $actualSize -gt $size ]; then
 				rm -rf "$downloadFilePath"
@@ -126,22 +177,44 @@ function make_downloadTargetIfRequired()
 		local -r referer="$referrer"
 	fi
 	
-	declare -a curl_args=()
-	declare -a curl_requestHeaders=()
-	
-	curl_addQuotedArg "$(file_pathToBinary curl)"
-	curl_createCommandLine "$verb" "$url" "$referer" "$downloadFilePath" "$compression" $continueAt
-	
-	local -r downloadTarget="download-${recipeName}_${recipeVersion}.${downloadIndex}"
-	make_addDownloadTargets "$downloadTarget"
+	local -r downloadScript="$cacheParentPath"/"$name".download
+	if [ -e "$downloadScript" ]; then
+		rm -rf "$downloadScript"
+	fi
 	{
-		printf '%s:\n' "${downloadTarget}"
-		printf '\t'
-		echo -ne "${curl_args[@]}"
-		printf '\n\n'
-	} >>"$make_makeFile"
+		cat <<-EOF
+			#!$(file_pathToBinary bash)
+			set -e
+			
+			function $(declare -f lfs_dirname)
+			
+			function $(declare -f lfs_basename)
+			
+			function $(declare -f lfs_findOurNameAndPath)
+			
+			lfs_findOurNameAndPath
+			
+			readonly etcPath='$etcPath'
+			readonly lfs_configPath='$lfs_configPath'
+			readonly lfs_netrcFilePath='$lfs_netrcFilePath'
+			readonly lfs_curlrcFilePath='$lfs_curlrcFilePath'
+			readonly LFS_PROGRAM_NAME='$ourName'
+			readonly LFS_CURL_USERAGENT="$ourName/$machineDistributionName/$machineDistributionVersion"
+			readonly LFS_CURL_MAX_REDIRECTS='$defaults_curl_maxRedirs'
+			readonly LFS_CURL_RETRIES='$defaults_curl_retries'
+			readonly LFS_CURL_SUPPORTS_NETRC_OPTION='$defaults_curl_supportsNetrcFileOption'
+		EOF
+		
+		cat "$distribution_snippetsPath"/*.download.snippet 2>/dev/null || true
+		
+		cat <<-EOF
+			curl_download '$(file_pathToBinary curl)' '$verb' '$url' '$referer' '$crudeOurPath/$fileName' '$compression' $continueAt
+		EOF
+	} >"$downloadScript"
 	
-	make_downloadTargetsSet+=("$downloadTarget")
+	chmod +x "$downloadScript"
+	
+	make_addTargetDownloadItem "no"
 }
 
 function make_verifyTarget()
@@ -157,58 +230,39 @@ function make_verifyTarget()
 		rm -rf "$verifyScript"
 	fi
 	
-	cat >"$verifyScript" <<-EOF
-		#!$(file_pathToBinary bash)
-		set -e
-		
-		function $(declare -f lfs_dirname)
-		
-		function $(declare -f lfs_basename)
-		
-		function $(declare -f lfs_findOurNameAndPath)
-		
-		lfs_findOurNameAndPath
-		
-		readonly LFS_DOWNLOAD_FILENAME='$fileName'
-		
-		readonly LFS_BINARY_stat='$(file_pathToBinary stat)'
-		
-		readonly LFS_BINARY_md5='$(file_pathToBinary md5sum)'
-		
-		readonly LFS_BINARY_sha1='$(file_pathToBinary sha1sum)'
-		
-		readonly LFS_BINARY_sha224='$(file_pathToBinary sha224sum)'
-		
-		readonly LFS_BINARY_sha256='$(file_pathToBinary sha256sum)'
-		
-		readonly LFS_BINARY_sha384='$(file_pathToBinary sha384sum)'
-		
-		readonly LFS_BINARY_sha512='$(file_pathToBinary sha512sum)'
-		
-	EOF
-	
-	cat >"$verifyScript" <<-'EOF'
-		readonly LFS_DOWNLOAD_PATH='$crudeOurPath'/"$LFS_DOWNLOAD_FILENAME"
-		
-		function verifySize()
-		{
-			local -r size=$1
-			test "$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH")" -eq "$size"
-		}
-		
-		function verifyHash()
-		{
-			local -r hashAlgorithm="$1"
-			local -r hashValue="$2"
-			
-			local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
-			${!hashProgramPathVariable} --check --strict --status <<-EOFX
-				$hashValue  $LFS_DOWNLOAD_PATH
-			EOFX
-		}
-	EOF
-	
 	{
+		cat <<-EOF
+			#!$(file_pathToBinary bash)
+			set -e
+		
+			function $(declare -f lfs_dirname)
+		
+			function $(declare -f lfs_basename)
+		
+			function $(declare -f lfs_findOurNameAndPath)
+		
+			lfs_findOurNameAndPath
+		
+			readonly LFS_BINARY_stat='$(file_pathToBinary stat)'
+		
+			readonly LFS_BINARY_md5='$(file_pathToBinary md5sum)'
+		
+			readonly LFS_BINARY_sha1='$(file_pathToBinary sha1sum)'
+		
+			readonly LFS_BINARY_sha224='$(file_pathToBinary sha224sum)'
+		
+			readonly LFS_BINARY_sha256='$(file_pathToBinary sha256sum)'
+		
+			readonly LFS_BINARY_sha384='$(file_pathToBinary sha384sum)'
+		
+			readonly LFS_BINARY_sha512='$(file_pathToBinary sha512sum)'
+		
+			readonly LFS_DOWNLOAD_FILENAME='$fileName'
+		
+		EOF
+		
+		cat "$distribution_snippetsPath"/*.verify.snippet 2>/dev/null || true
+		
 		if [ $size -ne -1 ]; then
 			echo -ne "verifySize $size"
 		fi
@@ -220,35 +274,25 @@ function make_verifyTarget()
 				echo -ne "verifyHash $algorithm ${!algorithm}"
 			fi
 		done
-	} >>"$verifyScript"
+	} >"$verifyScript"
 	
 	chmod +x "$verifyScript"
 	
-	local -r verifyTarget="verify-${recipeName}_${recipeVersion}.${downloadIndex}"
-	make_addVerifyTargets "$verifyTarget"
-	{
-		printf '%s:\n\t' "${verifyTarget}"
-		echo -ne "'"
-		echo -ne "$verifyScript"
-		echo -ne "'"
-		printf '\n\n'
-	} >>"$make_makeFile"
-	
-	make_verifyTargetsSet+=("$verifyTarget")
+	make_addTargetVerifyItem
 }
 
 function make_finish()
 {
 	# TODO: Add a CA download section, so that we can use CAs...
 	
-	cat >>"$make_makeFile" <<-EOF
-		all-download:$(cat "$make_downloadTargets")
+	cat <<-EOF
+		download: ${make_targetsDownload[@]}
 		
-		all-verify:$(cat "$make_verifyTargets")
+		verify: ${make_targetsVerify[@]}
 		
-		all-build:$(cat "$make_buildTargets")
+		build :${make_targetsBuild[@]}
 		
-		.PHONY: all all-download all-verify all-build$(cat "$make_downloadTargets")$(cat "$make_verifyTargets")$(cat "$make_buildTargets")
+		.PHONY: all download verify build ${make_targetsPhony[@]}
 		
 	EOF
 }

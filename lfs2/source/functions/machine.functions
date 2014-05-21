@@ -2,9 +2,7 @@ machine_functions=()
 
 function machine_sourceMachineFile()
 {
-	declare -a api_recipe_depends=()
 	source "$lfs_machineFilePath"
-	api_machine_depends=("${api_recipe_depends[@]}")
 }
 machine_functions+=(machine_sourceMachineFile)
 
@@ -57,23 +55,23 @@ machine_functions+=(machine_makePaths)
 
 function machine_sourceRecipes()
 {
-	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/Makefile
+	declare -A machine_alreadySourcedRecipes=()
 	
+	readonly make_makeFile="$LFS_BUILD_ROOT_PATH_MACHINE"/Makefile
 	rm -rf "$make_makeFile"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	readonly make_downloadTargets="$TMP_FILE"
+	declare -a make_targetsDownload=()
+	declare -a make_targetsVerify=()
+	declare -a make_targetsBuild=()
+	declare -a make_targetsPhony=()
 	
-	temporaryFiles_newFileToRemoveOnExit
-	readonly make_verifyTargets="$TMP_FILE"
+	{
+		make_start
 	
-	temporaryFiles_newFileToRemoveOnExit
-	readonly make_buildTargets="$TMP_FILE"
+		recipe_sourceRecipe "$(lfs_dirname "$lfs_machineFilePath")" "$machineName".recipe
 	
-	make_start
-	
-	recipe_sourceRecipe "$(lfs_dirname "$lfs_machineFilePath")" "$machineName".recipe
-	
-	make_finish
+		make_finish
+	} >"$make_makeFile"
+	chmod +x "$make_makeFile"
 }
 machine_functions+=(machine_sourceRecipes)

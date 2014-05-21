@@ -4,7 +4,7 @@ recipe example 0.00
 	
 	#depends kernel xyz
 	depends bash 4
-	depends xz 5.05
+	depends xz
 	
 	# TODO: Things like settings for other recipes (eg sudo)
 	# TODO: Kconfig files for kernel, busybox, buildroot

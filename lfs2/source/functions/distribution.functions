@@ -7,7 +7,7 @@ distribution_mirrorsPath=""
 distribution_certificateAuthoritiesPath=""
 distribution_keyringsPath=""
 distribution_recipesPath=""
-distribution_sourcesPath=""
+distribution_snippetsPath=""
 function distribution_checkDistributionPaths()
 {
 	distribution_namePath="$distributionsFolder"/"$machineDistributionName"
@@ -45,9 +45,9 @@ function distribution_checkDistributionPaths()
 		lfs_exitError "Distribution recipes path $distribution_recipesPath does not exist or is not a directory"
 	fi
 	
-	distribution_sourcesPath="$distribution_nameVersionPath"/sources
-	if [ ! -d "$distribution_sourcesPath" ]; then
-		lfs_exitError "Distribution sources path $distribution_sourcesPath does not exist or is not a directory"
+	distribution_snippetsPath="$distribution_nameVersionPath"/snippets
+	if [ ! -d "$distribution_snippetsPath" ]; then
+		lfs_exitError "Distribution snippets path $distribution_snippetsPath does not exist or is not a directory"
 	fi
 }
 distribution_functions+=(distribution_checkDistributionPaths)

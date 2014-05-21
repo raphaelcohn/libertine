@@ -1,0 +1,20 @@
+readonly LFS_DOWNLOAD_PATH="$LFS_DOWNLOAD_FILENAME"
+
+cd "$crudeOurPath" 1>/dev/null 2>/dev/null
+
+function verifySize()
+{
+	local -r size=$1
+	test "$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH")" -eq "$size"
+}
+
+function verifyHash()
+{
+	local -r hashAlgorithm="$1"
+	local -r hashValue="$2"
+
+	local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+	${!hashProgramPathVariable} --check --strict --status <<-EOF
+		$hashValue  $LFS_DOWNLOAD_PATH
+	EOF
+}

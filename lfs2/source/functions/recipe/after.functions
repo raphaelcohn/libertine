@@ -1,5 +1,145 @@
 recipe_after_functions=()
 
+
+recipe_after_temporaryRecipeDependenciesPath=""
+function recipe_after_resolveDependencies()
+{
+	recipe_after_temporaryRecipeDependenciesPath="$recipe_before_temporaryRecipePath"/dependencies
+	mkdir -m 0755 -p "$recipe_after_temporaryRecipeDependenciesPath"
+	
+	FIX "Do not output build dependency targets for already built recipes"
+	
+	local dependantRecipeName
+	local dependantRecipeVersion
+	local dependantRecipeFileName
+	local localRecipe
+	local localRecipeName
+	local localRecipeVersion
+	local dependentRecipeLinkValue
+	local -i index
+	pushd "$distribution_recipesPath" 1>/dev/null 2>/dev/null
+		for index in "${!api_recipe_dependsRecipeName[@]}"
+		do
+			dependantRecipeName="${api_recipe_dependsRecipeName[$index]}"
+			dependantRecipeVersion="${api_recipe_dependsRecipeVersion[$index]}"
+			if [ -z "$dependantRecipeVersion" ]; then
+				dependantRecipeFileName="${dependantRecipeName}.recipe"
+			else
+				dependantRecipeFileName="${dependantRecipeName}_${dependantRecipeVersion}.recipe"
+			fi
+			
+			# TODO: A bit brittle
+			IFS=' ' read -r localRecipe localRecipeName localRecipeVersion <<<"$(head -n 1 "$dependantRecipeFileName")"
+			if [ "$localRecipe" != "recipe" ]; then
+				lfs_exitError "Please make sure the first line in a recipe starts 'recipe NAME VERSION'"
+			fi
+			api_recipe_dependsRecipeVersion[$index]="$localRecipeVersion"
+			
+			# There's a relative symlink from "$recipeName"-"$recipeVersion" to "$recipeName"-"$recipeVersion"-"$recipeHash"
+			dependentRecipeLinkValue="$(readlink "$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$localRecipeName"-"$localRecipeVersion")"
+			
+			ln -s ../../"$dependentRecipeLinkValue" "$recipe_after_temporaryRecipeDependenciesPath"/"$dependantRecipeFileName"
+		done
+	popd 1>/dev/null 2>/dev/null
+}
+recipe_after_functions+=(recipe_after_resolveDependencies)
+
+function recipe_after_installRecipeCopy()
+{
+	# Must be a copy, not a hardlink
+	cp "$actualRecipeFile" "$recipe_after_temporaryRecipeDependenciesPath"/"$recipeName".recipe
+}
+recipe_after_functions+=(recipe_after_installRecipeCopy)
+
+function recipe_after_computeHash()
+{
+	local -r recipeHashFile="$recipe_after_temporaryRecipeDependenciesPath".hash
+	
+	pushd "$recipe_after_temporaryRecipeDependenciesPath" 1>/dev/null 2>/dev/null
+		
+		{
+			local dependencyFileName
+			for dependencyFileName in *
+			do
+				# syntax should be name-version-hash
+				# should symlink to 
+				if [ ! -f "$dependencyFileName" ]; then
+					continue
+				else	
+					printf "${dependencyFileName} "
+					if [ -L "$dependencyFileName" ]; then
+						hash_hashFile "$dependencyFileName"/dependencies.hash
+					else
+						hash_hashFile "$dependencyFileName"
+					fi
+				fi
+			done
+		} >"$recipeHashFile"
+	
+	popd 1>/dev/null 2>/dev/null
+	
+	recipeHash="$(hash_hashFile "$recipeHashFile")"
+}
+recipe_after_functions+=(recipe_after_computeHash)
+
+function recipe_after_setPaths()
+{
+	LFS_RECIPE_NAME_VERSION="${recipeName}"-"${recipeVersion}"
+	LFS_RECIPE_NAME_VERSION_HASH="$LFS_RECIPE_NAME_VERSION"-"${recipeHash}"
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE="$LFS_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"/"$LFS_RECIPE_NAME_VERSION_HASH"
+	LFS_BUILD_ROOT_PATH_RECIPE="$LFS_BUILD_ROOT_PATH"/"$LFS_BUILD_ROOT_PATH_RECIPE_RELATIVE"
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies
+	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies.hash
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/.downloaded
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/.built
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS="$LFS_BUILD_ROOT_PATH_RECIPE"/downloads
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/package
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/patch
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
+	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT="$LFS_BUILD_ROOT_PATH_RECIPE"/build.bash
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILD="$LFS_BUILD_ROOT_PATH_RECIPE"/build
+}
+recipe_after_functions+=(recipe_after_setPaths)
+
+function recipe_after_checkIfIdentical()
+{
+	if [ -d "$LFS_BUILD_ROOT_PATH_RECIPE" ]; then
+		if [ -f "$LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE" ]; then
+			touch "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE"
+			# already built, no need to do again
+			return 0
+		fi
+		if [ -f "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE" ]; then
+			# downloads good, clean up any build garbage
+			rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE"/build
+		else
+			# TODO: Check for individual downloads
+			rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE"/build
+		fi
+	else
+		pushd "$LFS_BUILD_ROOT_PATH_DISTRIBUTION" 1>/dev/null 2>/dev/null
+			mv -T "$recipe_before_temporaryRecipePath" "$LFS_RECIPE_NAME_VERSION_HASH"
+		popd 1>/dev/null 2>/dev/null
+	fi
+}
+recipe_after_functions+=(recipe_after_checkIfIdentical)
+
+function recipe_after_removeTemporaryOutput()
+{
+	rm -rf "$recipe_before_temporaryRecipePath"
+	unset recipe_before_temporaryRecipePath
+}
+recipe_after_functions+=(recipe_after_removeTemporaryOutput)
+
 function recipe_after_symlinkPaths()
 {
 	local mightExist="$LFS_BUILD_ROOT_PATH_DISTRIBUTION"/"$LFS_RECIPE_NAME_VERSION"
@@ -24,9 +164,24 @@ function recipe_after_beginBuildScript()
 {
 	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
-	cat >"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
-		#!/usr/bin/env bash
+	FIX "Check for .built file!"
+	
+	# need to export download_as names, path locations, package names, versions
+	# need to support extraction, patching
+	# need to export settings
+	# pre- and post- install scripts (eg all the stripping commands)
+	
+	cat >"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF	
+		#!$(file_pathToBinary bash)
 		set -e
+	
+		function $(declare -f lfs_dirname)
+	
+		function $(declare -f lfs_basename)
+	
+		function $(declare -f lfs_findOurNameAndPath)
+	
+		lfs_findOurNameAndPath
 		
 		readonly LFS_MACHINE_NAME='$machineName'
 		readonly LFS_MACHINE_HASH='$machine_hash'
@@ -123,7 +278,7 @@ function recipe_after_addDownloadTargets()
 		make_downloadTargetIfRequired
 	done
 	
-	make_addTarget "download-${recipeName}_${recipeVersion}" "${make_downloadTargetsSet[@]}"
+	make_addTargetDownload
 }
 recipe_after_functions+=(recipe_after_addDownloadTargets)
 
@@ -162,22 +317,16 @@ function recipe_after_addVerifyTargets()
 		make_verifyTarget
 	done
 	
-	make_addTarget "verify-${recipeName}_${recipeVersion}" "${make_verifyTargetsSet[@]}"
+	make_addTargetVerify
 }
 recipe_after_functions+=(recipe_after_addVerifyTargets)
 
-function recipe_after_exportBuildFile()
+function recipe_after_finishBuildFile()
 {
 	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	{
-		local sourceFile
-		for sourceFile in "$distribution_sourcesPath"/*
-		do
-			if [ -f "$sourceFile" ]; then
-				cat "$sourceFile"
-			fi
-		done
+		cat "$distribution_snippetsPath"/*.build.snippet 2>/dev/null || true
 		
 		declare -f "recipe_install_${recipeName}" || lfs_exitError "Make sure recipe $recipeName contains a function called recipe_install_$recipeName, even if it does nothing"
 		
@@ -192,12 +341,12 @@ function recipe_after_exportBuildFile()
 				declare -f "$functionName"
 			fi
 		done < <(declare -F)
+		
+		echo "recipe_install_${recipeName}"
 	} >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
-	# need to export download_as names, path locations, package names, versions
-	# need to support patching / export commonly used build functions
-	# need to export settings
-	# pre- and post- install scripts (eg all the stripping commands)
+	
+	make_addTargetBuild
 }
-recipe_after_functions+=(recipe_after_exportBuildFile)
+recipe_after_functions+=(recipe_after_finishBuildFile)

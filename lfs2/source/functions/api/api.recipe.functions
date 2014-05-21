@@ -16,12 +16,8 @@ function depends()
 	local -r dependsRecipeName="$1"
 	# might be empty
 	local -r dependsRecipeVersion="$2"
-	if [ -z "$dependsRecipeVersion" ]; then
-		local -r key="${dependsRecipeName}.recipe"
-	else
-		local -r key="${dependsRecipeName}_${dependsRecipeVersion}.recipe"
-	fi
-	api_recipe_depends+=("$key")
+	api_recipe_dependsRecipeName+=("$dependsRecipeName")
+	api_recipe_dependsRecipeValue+=("$dependsRecipeVersion")
 }
 
 
