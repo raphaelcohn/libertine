@@ -146,13 +146,12 @@ function make_downloadTargetIfRequired()
 		mkdir -m 0755 -p "$cacheParentPath"
 	fi
 	
-	set -x
 	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
 	if [ -z "$resolvedMirror" ]; then
 		lfs_exitError "No known mirror $mirror"
 	fi
 	local -r url="${resolvedMirror}${path}"
-	set +x
+	
 	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
 		LFS_DOWNLOADS_${download_kind^^}_PATHS['$name']='$downloadFilePath'
 	EOF
