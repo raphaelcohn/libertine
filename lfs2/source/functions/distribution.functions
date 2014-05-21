@@ -59,10 +59,14 @@ function distribution_sourceDistributionSettingsFilePath()
 distribution_functions+=(distribution_sourceDistributionSettingsFilePath)
 
 distribution_cachePath=""
+distribution_downloadsCachePath=""
 function distribution_makeCacheFolders()
 {
 	distribution_cachePath="$lfs_cachePath"/distributions.d/"$machineDistributionName"/"$machineDistributionVersion"
 	mkdir -m 0755 -p "$distribution_cachePath"
+	
+	distribution_downloadsCachePath="$lfs_cachePath"/downloads
+	mkdir -m 0755 -p "$distribution_downloadsCachePath"
 }
 distribution_functions+=(distribution_makeCacheFolders)
 

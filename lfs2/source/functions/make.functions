@@ -5,20 +5,30 @@ function make_addTarget()
 
 function make_addTargetDownloadItem()
 {
-	local -r target="download-${recipeName}_${recipeVersion}.${downloadIndex}"
 	local -r isEmpty="$1"
+	local target="download-${download_kind}-${name}"
 	
-	make_addTarget
-	
-	if [ "$isEmpty" = "yes" ]; then
-		printf '\t%s:\n\n' "$target"
-	else
-		printf '%s:\n\t' "$target"
-		echo -ne "'"
-		echo -ne "$downloadScript"
-		echo -ne "'"
-		printf '\n\n'
+	if [ -z "${make_targetsDownloadItem["$target"]}" ]; then
+		
+		make_addTarget
+		
+		if [ "$isEmpty" = "yes" ]; then
+			printf '\t%s:\n\n' "$target"
+		else
+			# Add download target - non-unique, might be shared
+			printf '%s:\n\t' "$target"
+			echo -ne "'"
+			echo -ne "$downloadScript"
+			echo -ne "'"
+			printf '\n\n'
+		fi
+		
+		make_targetsDownloadItem["$target"]=1
 	fi
+	
+	target="download-${recipeName}_${recipeVersion}.${downloadIndex}"
+	make_addTarget
+	printf '%s:\n\n' "$target"
 }
 
 function make_addTargetDownload()
@@ -112,7 +122,8 @@ function make_commonVariables()
 	fi
 	
 	# version only exists for packages
-	cacheParentPath="$LFS_BUILD_ROOT_PATH_MACHINE"/"$download_kind"/"$mirror"/"$name"
+	
+	cacheParentPath="$distribution_downloadsCachePath"/"$download_kind"/"$mirror"/"$name"
 	downloadFilePath="$cacheParentPath"/"$fileName"
 }
 
