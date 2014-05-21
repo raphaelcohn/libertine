@@ -34,7 +34,7 @@ function make_addTargetDownloadItem()
 	local -r userLinkPath="$usersPath"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	rm -rf "$userLinkPath"
 	
-	local -r symlinkTargetPath="$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/../../../../../../../../distributions.d/"$ourDistributionName"/"$ourDistributionVersion"/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/"$LFS_RECIPE_NAME_VERSION_HASH"
+	local -r symlinkTargetPath=../../../../../../../../distributions.d/"$ourDistributionName"/"$ourDistributionVersion"/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	ln -s "$symlinkTargetPath" "$userLinkPath"
 	
 	local dependsTarget="$target"
