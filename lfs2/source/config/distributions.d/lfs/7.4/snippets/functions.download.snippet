@@ -16,6 +16,9 @@ function curl_download()
 	local -r asciiTraceFilePath="$fileName".trace
 	rm -rf "$asciiTraceFilePath"
 	
+	local -r writeOutFilePath="$fileName".write-out
+	rm -rf "$writeOutFilePath"
+	
 	declare -a curl_args=()
 	declare -a curl_requestHeaders=()
 	
@@ -162,7 +165,7 @@ function curl_download()
 	curl_args+=('--trace-time' '--trace-ascii')
 	curl_args+=("$asciiTraceFilePath")
 	
-	$LFS_BINARY_curl "${curl_args[@]}"
+	$LFS_BINARY_curl "${curl_args[@]}" 1>"$writeOutFilePath"
 }
 
 function curl_argumentConfig()
