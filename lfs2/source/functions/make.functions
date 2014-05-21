@@ -205,12 +205,21 @@ function make_downloadTargetIfRequired()
 			readonly LFS_CURL_MAX_REDIRECTS='$defaults_curl_maxRedirs'
 			readonly LFS_CURL_RETRIES='$defaults_curl_retries'
 			readonly LFS_CURL_SUPPORTS_NETRC_OPTION='$defaults_curl_supportsNetrcFileOption'
+			
+			readonly LFS_BINARY_curl='$(file_pathToBinary curl)'
+			readonly fileName='$fileName'
+			readonly verb='$verb'
+			readonly url='$url'
+			readonly referer='$referer'
+			readonly fileName='$fileName'
+			readonly compression='$compression'
+			readonly continueAt=$continueAt
 		EOF
 		
 		cat "$distribution_snippetsPath"/*.download.snippet 2>/dev/null || true
 		
-		cat <<-EOF
-			curl_download '$(file_pathToBinary curl)' '$verb' '$url' '$referer' '$crudeOurPath/$fileName' '$compression' $continueAt
+		cat <<-'EOF'
+			curl_download '$LFS_BINARY_curl' '$verb' '$url' '$referer' '$fileName' '$compression' $continueAt
 		EOF
 	} >"$downloadScript"
 	
