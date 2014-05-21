@@ -169,23 +169,23 @@ function curl_argumentConfig()
 {
 	local -r configSwitch="$1"
 	local -r fileParentFolderEnvironmentVariable="$2"
-	local -r fileName="$3"
+	local -r configFileName="$3"
 	
 	if [ -z "$fileParentFolderEnvironmentVariable" ]; then
 		return 0
 	fi
 	
-	local -r filePath="${fileParentFolderEnvironmentVariable}"/"${fileName}"
+	local -r configFilePath="${fileParentFolderEnvironmentVariable}"/"${configFileName}"
 	
-	if [ ! -f "$filePath" ]; then
+	if [ ! -f "$configFilePath" ]; then
 		return 0
 	fi
-	if [ ! -r "$filePath" ]; then
+	if [ ! -r "$configFilePath" ]; then
 		return 0
 	fi
-	if [ ! -s "$filePath" ]; then
+	if [ ! -s "$configFilePath" ]; then
 		return 0
 	fi
 	curl_args+=("$configSwitch")
-	curl_args+=("$filePath")
+	curl_args+=("$configFilePath")
 }
