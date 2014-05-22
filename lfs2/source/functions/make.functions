@@ -127,7 +127,9 @@ function make_commonVariables()
 		fileName="$(lfs_basename "$path")"
 	fi
 	
-	cacheParentPath="$distribution_downloadsCachePath"/"$download_kind"/"$mirror"/"$name"/"$version"
+	local -r relativeDownloadParentPath="$download_kind"/"$mirror"/"$name"/"$version"
+	relativeDownloadFilePath="$relativeDownloadParentPath"/"$fileName"
+	cacheParentPath="$distribution_downloadsCachePath"/"$relativeDownloadParentPath"
 	downloadFilePath="$cacheParentPath"/"$fileName"
 }
 
@@ -136,6 +138,7 @@ function make_downloadTargetIfRequired()
 	local parentPath
 	local fileName
 	local cacheParentPath
+	local relativeDownloadFilePath
 	local downloadFilePath
 	make_commonVariables
 	
@@ -151,8 +154,20 @@ function make_downloadTargetIfRequired()
 	local -r url="${resolvedMirror}${path}"
 	
 	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
-		LFS_DOWNLOADS_${download_kind^^}_PATHS['$name']='$downloadFilePath'
+		LFS_DOWNLOADS_${download_kind^^}_NAMES+=('$name')
+		LFS_DOWNLOADS_${download_kind^^}_FILENAMES['$name']='$fileName'
+		LFS_DOWNLOADS_${download_kind^^}_VERSIONS['$name']='$version'
+		LFS_DOWNLOADS_${download_kind^^}_COMPRESSIONS['$name']='$compression'
+		LFS_DOWNLOADS_${download_kind^^}_ARCHIVES['$name']='$archive'
+		LFS_DOWNLOADS_${download_kind^^}_ARCHIVE_FOLDERS['$name']='$archive_folder'
+		LFS_DOWNLOADS_${download_kind^^}_TARBOMBS['$name']='$tarbomb'
 	EOF
+	
+	local -r downloadSymlinkLocation="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/"$download_kind"/"$name"
+	if [ -e "$downloadSymlinkLocation" ]; then
+		rm -rf "$downloadSymlinkLocation"
+	fi
+	ln -s ../../../../../downloads/"$relativeDownloadFilePath" "$downloadSymlinkLocation"
 	
 	if [ $size -eq -1 ]; then
 		if [ -f "$downloadFilePath" ]; then
@@ -254,6 +269,7 @@ function make_verifyTarget()
 	local parentPath
 	local fileName
 	local cacheParentPath
+	local relativeDownloadFilePath
 	local downloadFilePath
 	make_commonVariables
 	

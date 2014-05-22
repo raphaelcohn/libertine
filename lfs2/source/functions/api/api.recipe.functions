@@ -25,7 +25,7 @@ function depends()
 
 
 
-function post-install()
+function install()
 {
 	# could check that an install function is defined!
 	:

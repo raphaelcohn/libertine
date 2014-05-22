@@ -304,7 +304,7 @@ recipe bash 4.2-047
 	
 	unset reducedVersion
 	
-	function recipe_install_bash()
+	recipe_build_bash()
 	{
 		LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
 			--enable-static-link \
@@ -318,7 +318,7 @@ recipe bash 4.2-047
 				--disable-net-redirections
 	}
 	
-	post-install
+	install
 	{
 		remove_unwanted bin bashbug
 

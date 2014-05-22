@@ -26,7 +26,12 @@ recipe xz 5.05
 		signed_as keyfile LASSE_COLLIN
 	}
 
-	function recipe_install_xz()
+	recipe_build_xz()
+	{
+		:
+	}
+	
+	install
 	{
 		:
 	}

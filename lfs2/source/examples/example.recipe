@@ -10,7 +10,7 @@ recipe example 0.00
 	# TODO: Kconfig files for kernel, busybox, buildroot
 	# Perhaps each recipe can have an override file - if the override changes, so does the recipe
 	
-	function recipe_install_example()
+	function recipe_build_example()
 	{
 		:
 	}

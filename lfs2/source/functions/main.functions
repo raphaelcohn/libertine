@@ -91,13 +91,6 @@ function main_machineFunctions()
 			declare -A api_certificateAuthorities_download
 			declare -A api_certificateAuthorities_parent
 			declare -A api_certificateAuthorities_cert_type
-			declare -A api_packages_download
-			declare -A api_patches_download
-			declare -A api_files_download
-			declare -A api_keyrings_download
-			declare -A api_keyfiles_download
-			
-			declare -a api_machine_depends=()
 			
 			local machine_function
 			for machine_function in "${machine_functions[@]}"

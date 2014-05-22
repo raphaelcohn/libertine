@@ -90,20 +90,10 @@ function recipe_after_setPaths()
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies.hash
 	
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADEDFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/.downloaded
-	LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/.built
-	
 	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS="$LFS_BUILD_ROOT_PATH_RECIPE"/downloads
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/package
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/patch
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
-	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
-	
-	LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT="$LFS_BUILD_ROOT_PATH_RECIPE"/build.bash
-	
 	LFS_BUILD_ROOT_PATH_RECIPE_BUILD="$LFS_BUILD_ROOT_PATH_RECIPE"/build
+	
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT="$LFS_BUILD_ROOT_PATH_RECIPE"/buildscript
 }
 recipe_after_functions+=(recipe_after_setPaths)
 
@@ -156,6 +146,19 @@ function recipe_after_symlinkPaths()
 	fi
 }
 recipe_after_functions+=(recipe_after_symlinkPaths)
+
+function recipe_after_addAdditionalFolders()
+{
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/package
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/patch
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_BUILD"
+}
+recipe_after_functions+=(recipe_after_addAdditionalFolders)
 
 function recipe_after_beginBuildScript()
 {
@@ -211,12 +214,6 @@ function recipe_after_beginBuildScript()
 		readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE='$LFS_BUILD_ROOT_PATH_RECIPE_BUILTFILE'
 		
 		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PACKAGE'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_PATCH'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_FILE'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_SIGNATURE'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYFILE'
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS_KEYRING'
 		
 		readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILD='$LFS_BUILD_ROOT_PATH_RECIPE_BUILD'
 		
@@ -226,11 +223,54 @@ function recipe_after_beginBuildScript()
 		readonly LFS_FOREIGN_ARCHITECTURE='$(get_setting_foreign_architecture)'
 		readonly LFS_FOREIGN_TRIPLE='$(get_setting_foreign_architecture_triple)'
 		
-		declare -A LFS_DOWNLOADS_PACKAGE_PATHS=()
-		declare -A LFS_DOWNLOADS_PATCH_PATHS=()
-		declare -A LFS_DOWNLOADS_FILE_PATHS=()
-		declare -A LFS_DOWNLOADS_KEYRING_PATHS=()
-		declare -A LFS_DOWNLOADS_KEYFILE_PATHS=()
+		declare -a LFS_DOWNLOADS_PACKAGE_NAMES=()
+		declare -a LFS_DOWNLOADS_PATCH_NAMES=()
+		declare -a LFS_DOWNLOADS_FILE_NAMES=()
+		declare -a LFS_DOWNLOADS_KEYRING_NAMES=()
+		declare -a LFS_DOWNLOADS_KEYFILE_NAMES=()
+		declare -a LFS_DOWNLOADS_SIGNATURE_NAMES=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_FILENAMES=()
+		declare -A LFS_DOWNLOADS_PATCH_FILENAMES=()
+		declare -A LFS_DOWNLOADS_FILE_FILENAMES=()
+		declare -A LFS_DOWNLOADS_KEYRING_FILENAMES=()
+		declare -A LFS_DOWNLOADS_KEYFILE_FILENAMES=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_FILENAMES=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_VERSIONS=()
+		declare -A LFS_DOWNLOADS_PATCH_VERSIONS=()
+		declare -A LFS_DOWNLOADS_FILE_VERSIONS=()
+		declare -A LFS_DOWNLOADS_KEYRING_VERSIONS=()
+		declare -A LFS_DOWNLOADS_KEYFILE_VERSIONS=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_VERSIONS=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_COMPRESSIONS=()
+		declare -A LFS_DOWNLOADS_PATCH_COMPRESSIONS=()
+		declare -A LFS_DOWNLOADS_FILE_COMPRESSIONS=()
+		declare -A LFS_DOWNLOADS_KEYRING_COMPRESSIONS=()
+		declare -A LFS_DOWNLOADS_KEYFILE_COMPRESSIONS=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_COMPRESSIONS=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_ARCHIVES=()
+		declare -A LFS_DOWNLOADS_PATCH_ARCHIVES=()
+		declare -A LFS_DOWNLOADS_FILE_ARCHIVES=()
+		declare -A LFS_DOWNLOADS_KEYRING_ARCHIVES=()
+		declare -A LFS_DOWNLOADS_KEYFILE_ARCHIVES=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_ARCHIVES=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_ARCHIVE_FOLDERS=()
+		declare -A LFS_DOWNLOADS_PATCH_ARCHIVE_FOLDERS=()
+		declare -A LFS_DOWNLOADS_FILE_ARCHIVE_FOLDERS=()
+		declare -A LFS_DOWNLOADS_KEYRING_ARCHIVE_FOLDERS=()
+		declare -A LFS_DOWNLOADS_KEYFILE_ARCHIVE_FOLDERS=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_ARCHIVE_FOLDERS()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_TARBOMBS=()
+		declare -A LFS_DOWNLOADS_PATCH_TARBOMBS=()
+		declare -A LFS_DOWNLOADS_FILE_TARBOMBS=()
+		declare -A LFS_DOWNLOADS_KEYRING_TARBOMBS=()
+		declare -A LFS_DOWNLOADS_KEYFILE_TARBOMBS=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_TARBOMBS=()
 	EOF
 }
 recipe_after_functions+=(recipe_after_beginBuildScript)
@@ -257,6 +297,10 @@ function recipe_after_addDownloadTargets()
 	local compression
 	local -i size
 	
+	local archive
+	local tarbomb
+	local archive_folder
+	
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
 		name="${api_downloads_name[$downloadIndex]}"
@@ -271,6 +315,10 @@ function recipe_after_addDownloadTargets()
 		compression="${api_downloads_compression[$downloadIndex]}"
 		
 		size=${api_downloads_size[$downloadIndex]}
+		
+		archive=${api_downloads_archive[$downloadIndex]}
+		tarbomb=${api_downloads_tarbomb[$downloadIndex]}
+		archive_folder=${api_downloads_archive_folder[$downloadIndex]}
 		
 		make_downloadTargetIfRequired
 	done
@@ -327,9 +375,9 @@ function recipe_after_finishBuildFile()
 	{
 		cat "$distribution_snippetsPath"/*.build.snippet 2>/dev/null || true
 		
-		declare -f "recipe_install_${recipeName}" || lfs_exitError "Make sure recipe $recipeName contains a function called recipe_install_$recipeName, even if it does nothing"
+		declare -f "recipe_build_${recipeName}" || lfs_exitError "Make sure recipe $recipeName contains a function called recipe_build_$recipeName, even if it does nothing"
 		
-		local -r privatePrefix="_recipe_install_${recipeName}"
+		local -r privatePrefix="_recipe_build_${recipeName}"
 		local -ir privatePrefixLength=${#privatePrefix}
 		local a
 		local b
@@ -341,7 +389,7 @@ function recipe_after_finishBuildFile()
 			fi
 		done < <(declare -F)
 		
-		echo "recipe_install_${recipeName}"
+		echo "recipe_build_${recipeName}"
 	} >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
 	
 	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"

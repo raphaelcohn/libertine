@@ -58,7 +58,7 @@ function path()
 	# the defaults for these vary with the kind of resource in use
 	case "$api_download_kind" in
 		
-		certificate-authority|patch|file|keyring|keyfile)
+		certificate-authority|patch|file|keyring|keyfile|signature)
 			local -r compressionExtension="${ourFileName##*.}"
 			api_downloads_archive[$api_download_index]=file
 
@@ -366,3 +366,9 @@ function keyfile()
 	api_download "keyfile" "$name" 0
 }
 
+function signature()
+{
+	name="$1"
+	
+	api_download "signature" "$name" 0
+}
