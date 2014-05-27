@@ -91,9 +91,9 @@ function recipe_after_setPaths()
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies.hash
 	
 	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS="$LFS_BUILD_ROOT_PATH_RECIPE"/downloads
-	LFS_BUILD_ROOT_PATH_RECIPE_BUILD="$LFS_BUILD_ROOT_PATH_RECIPE"/build
+	LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP="$LFS_BUILD_ROOT_PATH_RECIPE"/build.tmp
 	
-	LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT="$LFS_BUILD_ROOT_PATH_RECIPE"/buildscript
+	LFS_BUILD_ROOT_PATH_RECIPE_XXX="$LFS_BUILD_ROOT_PATH_RECIPE"/build
 }
 recipe_after_functions+=(recipe_after_setPaths)
 
@@ -157,20 +157,20 @@ function recipe_after_addAdditionalFolders()
 	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
 	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
 	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_BUILD"
+	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP"
 }
 recipe_after_functions+=(recipe_after_addAdditionalFolders)
 
 function recipe_after_beginBuildScript()
 {
-	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_XXX"
 	
 	# need to export download_as names, path locations, package names, versions
 	# need to support extraction, patching
 	# need to export settings
 	# pre- and post- install scripts (eg all the stripping commands)
 	
-	cat >"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF	
+	cat >"$LFS_BUILD_ROOT_PATH_RECIPE_XXX" <<-EOF	
 		#!$(file_pathToBinary bash)
 		set -e
 	
@@ -220,7 +220,7 @@ function recipe_after_beginBuildScript()
 		
 		readonly LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS='$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS'
 		
-		readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILD='$LFS_BUILD_ROOT_PATH_RECIPE_BUILD'
+		readonly LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP='$LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP'
 		
 		readonly LFS_NATIVE_ARCHITECTURE='$(get_setting_native_architecture)'
 		readonly LFS_NATIVE_TRIPLE='$(get_setting_native_architecture_triple)'
@@ -295,8 +295,6 @@ function recipe_after_addDownloadTargets()
 	
 	declare -a make_downloadTargetsSet=()
 	
-	# TODO: some downloads will be duplicated, eg gnulib, autotools-config. Too bad for now.
-	# TODO: downloads will be duplicated if a package changes version slightly, unless we use a downloads cache. Too bad for now.
 	local -i downloadIndex
 	local name
 	local version
@@ -412,8 +410,6 @@ recipe_after_functions+=(recipe_after_addVerifyTargets)
 
 function recipe_after_finishBuildFile()
 {
-	rm -rf "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
-	
 	{
 		cat "$distribution_snippetsPath"/*.build.snippet 2>/dev/null || true
 		
@@ -432,9 +428,9 @@ function recipe_after_finishBuildFile()
 		done < <(declare -F)
 		
 		echo "recipe_build_${recipeName}"
-	} >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	} >>"$LFS_BUILD_ROOT_PATH_RECIPE_XXX"
 	
-	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	chmod +x "$LFS_BUILD_ROOT_PATH_RECIPE_XXX"
 	
 	make_addTargetBuild
 }

@@ -22,14 +22,21 @@ function make_addTargetDownloadItem()
 		make_targetsDownloadItem["$target"]=1
 	fi
 	
+	# Add symlink from download => recipe
 	local -r usersPath="$cacheParentPath"/users/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"
 	mkdir -m 0755 -p "$usersPath"
-	
 	local -r userLinkPath="$usersPath"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	rm -rf "$userLinkPath"
-	
 	local -r symlinkTargetPath=../../../../../../../../machines/"$LFS_MACHINE_NAME_HASH"/"$LFS_DISTRIBUTION_NAME_VERSION_HASH"/"$LFS_RECIPE_NAME_VERSION_HASH"
 	ln -s "$symlinkTargetPath" "$userLinkPath"
+	
+	# Add symlink from recipe => download
+	local -r downloadsParentPath="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/"$download_kind"/"$name"
+	mkdir -m 0755 -p "$downloadsParentPath"
+	local -r downloadLinkPath="$downloadsParentPath"/"$version"
+	rm -rf "$downloadLinkPath"
+	local -r downloadSymlinkTargetPath=../../../../../../../downloads/"$download_kind"/"$mirror"/"$name"/"$version"/"$fileName".decompressed
+	ln -s "$downloadSymlinkTargetPath" "$downloadLinkPath"
 	
 	local dependsTarget="$target"
 	target="download-recipe-${recipeName}_${recipeVersion}.${downloadIndex}"
@@ -100,7 +107,7 @@ function make_addTargetBuild()
 	printf '\n\t'
 	
 	echo -ne "@'"
-	echo -ne "$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT"
+	echo -ne "$LFS_BUILD_ROOT_PATH_RECIPE_XXX"
 	echo -ne "'"
 	printf '\n\n'
 }
@@ -156,7 +163,7 @@ function make_downloadTargetIfRequired()
 	
 	local -r url="${resolvedMirror}${path}"
 	
-	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_BUILDSCRIPT" <<-EOF
+	cat >>"$LFS_BUILD_ROOT_PATH_RECIPE_XXX" <<-EOF
 		LFS_DOWNLOADS_${download_kind^^}_NAMES+=('$name')
 		LFS_DOWNLOADS_${download_kind^^}_FILENAMES['$name']='$fileName'
 		LFS_DOWNLOADS_${download_kind^^}_VERSIONS['$name']='$version'
@@ -165,10 +172,6 @@ function make_downloadTargetIfRequired()
 		LFS_DOWNLOADS_${download_kind^^}_ARCHIVE_FOLDERS['$name']='$archive_folder'
 		LFS_DOWNLOADS_${download_kind^^}_TARBOMBS['$name']='$tarbomb'
 	EOF
-	
-	local -r downloadSymlinkLocation="$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/"$download_kind"/"$name"
-	rm -rf "$downloadSymlinkLocation"
-	ln -s ../../../../../downloads/"$relativeDownloadFilePath" "$downloadSymlinkLocation"
 	
 	if [ $size -eq -1 ]; then
 		if [ -f "$downloadFilePath" ]; then
