@@ -2,6 +2,17 @@ readonly LFS_DOWNLOAD_PATH="$LFS_DOWNLOAD_FILENAME"
 
 cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 
+function lfs_message()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	echo "Verify:${LFS_DOWNLOAD_FILENAME}:${messageKind}:${message}" 1>&2
+	if [ "$messageKind" = "FAIL" ]; then
+		exit 1
+	fi
+}
+
 function verifySize()
 {
 	local -r size=$1
@@ -131,7 +142,6 @@ function verifyHashDecompressed()
 
 function recordHashes()
 {
-	set -x
 	local -r hashesFile="$LFS_DOWNLOAD_PATH".hashes
 	rm -rf "$hashesFile"
 	{

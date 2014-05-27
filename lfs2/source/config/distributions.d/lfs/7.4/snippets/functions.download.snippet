@@ -1,14 +1,22 @@
 
 cd "$crudeOurPath" 1>/dev/null 2>/dev/null
 
-${LFS_DOWNLOAD_PATH}: 
-curl_download_message="Downloaded"
+curl_download_message="done"
+
+function lfs_message()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	echo "Download:${fileName}:${messageKind}:${message}" 1>&2
+	if [ "$messageKind" = "FAIL" ]; then
+		exit 1
+	fi
+}
+
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
-	rm -rf artifact
-	ln -s "$fileName" artifact
-	
 	if [ $continueAt -ne -1 ]; then
 		if [ $continueAt -eq $size ]; then
 			curl_download_message="Using already downloaded"
