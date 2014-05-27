@@ -91,7 +91,9 @@ function recipe_after_setPaths()
 	LFS_BUILD_ROOT_PATH_RECIPE_DEPENDENCIES_HASHFILE="$LFS_BUILD_ROOT_PATH_RECIPE"/dependencies.hash
 	
 	LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS="$LFS_BUILD_ROOT_PATH_RECIPE"/downloads
+	LFS_BUILD_ROOT_PATH_RECIPE_EXTRACTS="$LFS_BUILD_ROOT_PATH_RECIPE"/extracts
 	LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP="$LFS_BUILD_ROOT_PATH_RECIPE"/build.tmp
+	LFS_BUILD_ROOT_PATH_RECIPE_PATHS="$LFS_BUILD_ROOT_PATH_RECIPE"/paths
 	
 	LFS_BUILD_ROOT_PATH_RECIPE_XXX="$LFS_BUILD_ROOT_PATH_RECIPE"/build
 }
@@ -150,13 +152,19 @@ recipe_after_functions+=(recipe_after_symlinkPaths)
 # We should be looking at symlinks
 function recipe_after_addAdditionalFolders()
 {
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/package
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/patch
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyring
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/keyfile
-	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/signature
+	local download_kind
+	for download_kind in package patch file keyring keyfile signature
+	do
+		mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/"$download_kind"
+		mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_EXTRACTS"/"$download_kind"
+	done
+	
+	local path_kind
+	for path_kind in build
+	do
+		mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_PATHS"/"$path_kind"
+	done
+	
 	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_BUILD_TMP"
 }
 recipe_after_functions+=(recipe_after_addAdditionalFolders)
@@ -173,18 +181,26 @@ function recipe_after_beginBuildScript()
 	cat >"$LFS_BUILD_ROOT_PATH_RECIPE_XXX" <<-EOF	
 		#!$(file_pathToBinary bash)
 		set -e
-	
-		function $(declare -f lfs_dirname)
-	
-		function $(declare -f lfs_basename)
-	
-		function $(declare -f lfs_findOurNameAndPath)
 		
 		function $(declare -f lfs_message)
 		
+		
 		function $(declare -f lfs_exitError)
 		
+		function $(declare -f lfs_dirname)
+		
+		function $(declare -f lfs_basename)
+		
+		function $(declare -f lfs_setSaneEnvironmentDefaults)
+		
+		function $(declare -f lfs_findOurNameAndPath)
+			
+		export PATH='$PATH':'$LFS_BUILD_ROOT_PATH_MACHINE_PATH_BUILD'
+		
 		lfs_findOurNameAndPath
+		lfs_setSaneEnvironmentDefaults
+		
+		function $(declare -f file_hardlinkOrCopy)
 		
 		readonly LFS_MACHINE_NAME='$machineName'
 		readonly LFS_MACHINE_HASH='$machine_hash'

@@ -16,7 +16,7 @@ function lfs_message()
 function verifySize()
 {
 	local -r size=$1
-	local -r actualSize=$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH") 
+	local -r actualSize=$(stat --printf='%s' "$LFS_DOWNLOAD_PATH") 
 	set +e
 	test $actualSize -eq $size
 	local -ir exitCode=$?
@@ -34,7 +34,7 @@ function verifyHash()
 	local -r hashAlgorithm="$1"
 	local -r hashValue="$2"
 	
-	local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+	local -r hashProgramPathVariable=${hashAlgorithm}
 	set +e
 	${!hashProgramPathVariable} --check --strict --status <<-EOF
 		$hashValue  $LFS_DOWNLOAD_PATH
@@ -103,7 +103,7 @@ function decompress()
 function verifySizeDecompressed()
 {
 	local -r size=$1
-	local -r actualSize=$("$LFS_BINARY_stat" --printf='%s' "$decompressedPath") 
+	local -r actualSize=$(stat --printf='%s' "$decompressedPath") 
 	set +e
 	test $actualSize -eq $size
 	local -ir exitCode=$?
@@ -122,7 +122,7 @@ function verifyHashDecompressed()
 	local -r hashAlgorithm="$1"
 	local -r hashValue="$2"
 	
-	local -r hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+	local -r hashProgramPathVariable=${hashAlgorithm}
 	set +e
 	${!hashProgramPathVariable} --check --strict --status <<-EOF
 		$hashValue  $LFS_DOWNLOAD_PATH
@@ -145,8 +145,8 @@ function recordHashes()
 	local -r hashesFile="$LFS_DOWNLOAD_PATH".hashes
 	rm -rf "$hashesFile"
 	{
-		printf '\t\t%s %s' "size" "$("$LFS_BINARY_stat" --printf='%s' "$LFS_DOWNLOAD_PATH")"
-		printf '\t\t%s %s' "decompressed_size" "$("$LFS_BINARY_stat" --printf='%s' "$decompressedPath")"
+		printf '\t\t%s %s\n' "size" "$(stat --printf='%s' "$LFS_DOWNLOAD_PATH")"
+		printf '\t\t%s %s\n' "decompressed_size" "$(stat --printf='%s' "$decompressedPath")"
 		
 		local hashAlgorithm
 		local hashProgramPathVariable
@@ -156,7 +156,7 @@ function recordHashes()
 		
 		for hashAlgorithm in md5 sha1 sha224 sha256 sha384 sha512
 		do
-			hashProgramPathVariable=LFS_BINARY_${hashAlgorithm}
+			hashProgramPathVariable=${hashAlgorithm}
 			
 			IFS=' ' read -r hashValue irrelevant <<<"$(${!hashProgramPathVariable} "$LFS_DOWNLOAD_PATH")"
 			printf '\t\t%s %s\n' "$hashAlgorithm" "$hashValue"

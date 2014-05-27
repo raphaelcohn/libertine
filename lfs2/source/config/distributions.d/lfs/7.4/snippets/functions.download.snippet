@@ -189,7 +189,7 @@ function curl_download()
 	curl_args+=('--trace-time' '--trace-ascii')
 	curl_args+=("$asciiTraceFilePath")
 	
-	$LFS_BINARY_curl "${curl_args[@]}" 1>"$writeOutFilePath"
+	curl "${curl_args[@]}" 1>"$writeOutFilePath"
 }
 
 function curl_argumentConfig()
