@@ -28,7 +28,7 @@ function recipe_after_resolveDependencies()
 			# TODO: A bit brittle
 			IFS=' ' read -r localRecipe localRecipeName localRecipeVersion <<<"$(head -n 1 "$dependantRecipeFileName")"
 			if [ "$localRecipe" != "recipe" ]; then
-				lfs_exitError "Please make sure the first line in a recipe starts 'recipe NAME VERSION'"
+				lfs_exitError "Please make sure the first line in a recipe sts 'recipe NAME VERSION'"
 			fi
 			api_recipe_dependsRecipeVersion[$index]="$localRecipeVersion"
 			
@@ -178,7 +178,11 @@ function recipe_after_beginBuildScript()
 		function $(declare -f lfs_basename)
 	
 		function $(declare -f lfs_findOurNameAndPath)
-	
+		
+		function $(declare -f lfs_message)
+		
+		function $(declare -f lfs_exitError)
+		
 		lfs_findOurNameAndPath
 		
 		readonly LFS_MACHINE_NAME='$machineName'
@@ -271,6 +275,13 @@ function recipe_after_beginBuildScript()
 		declare -A LFS_DOWNLOADS_KEYRING_TARBOMBS=()
 		declare -A LFS_DOWNLOADS_KEYFILE_TARBOMBS=()
 		declare -A LFS_DOWNLOADS_SIGNATURE_TARBOMBS=()
+		
+		declare -A LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS=()
+		declare -A LFS_DOWNLOADS_PATCH_EXTRACT_PATHS=()
+		declare -A LFS_DOWNLOADS_FILE_EXTRACT_PATHS=()
+		declare -A LFS_DOWNLOADS_KEYRING_EXTRACT_PATHS=()
+		declare -A LFS_DOWNLOADS_KEYFILE_EXTRACT_PATHS=()
+		declare -A LFS_DOWNLOADS_SIGNATURE_EXTRACT_PATHS=()
 	EOF
 }
 recipe_after_functions+=(recipe_after_beginBuildScript)
@@ -317,7 +328,7 @@ function recipe_after_addDownloadTargets()
 		size=${api_downloads_size[$downloadIndex]}
 		
 		archive=${api_downloads_archive[$downloadIndex]}
-		tarbomb=${api_downloads_tarbomb[$downloadIndex]}
+		tarbomb=${api_downloads_bomb[$downloadIndex]}
 		archive_folder=${api_downloads_archive_folder[$downloadIndex]}
 		
 		make_downloadTargetIfRequired
@@ -337,6 +348,9 @@ function recipe_after_addVerifyTargets()
 	local download_kind
 	local mirror
 	local path
+	
+	local compression
+	
 	local -i size
 	local md5
 	local sha1
@@ -344,6 +358,19 @@ function recipe_after_addVerifyTargets()
 	local sha256
 	local sha384
 	local sha512
+	
+	local -i decompressed_size
+	local decompressed_md5
+	local decompressed_sha1
+	local decompressed_sha224
+	local decompressed_sha256
+	local decompressed_sha384
+	local decompressed_sha512
+	
+	local archive
+	local bomb
+	local archive_folder
+	
 	for downloadIndex in "${!api_downloads_name[@]}"
 	do
 		name="${api_downloads_name[$downloadIndex]}"
@@ -353,6 +380,8 @@ function recipe_after_addVerifyTargets()
 		path="${api_downloads_path[$downloadIndex]}"
 		download_as="${api_downloads_download_as[$downloadIndex]}"
 		
+		compression="${api_downloads_compression[$downloadIndex]}"
+		
 		size=${api_downloads_size[$downloadIndex]}
 		md5="${api_downloads_md5[$downloadIndex]}"
 		sha1="${api_downloads_sha1[$downloadIndex]}"
@@ -360,6 +389,18 @@ function recipe_after_addVerifyTargets()
 		sha256="${api_downloads_sha256[$downloadIndex]}"
 		sha384="${api_downloads_sha384[$downloadIndex]}"
 		sha512="${api_downloads_sha512[$downloadIndex]}"
+		
+		decompressed_size=${api_downloads_decompressed_size[$downloadIndex]}
+		decompressed_md5="${api_downloads_decompressed_md5[$downloadIndex]}"
+		decompressed_sha1="${api_downloads_decompressed_sha1[$downloadIndex]}"
+		decompressed_sha244="${api_downloads_decompressed_sha224[$downloadIndex]}"
+		decompressed_sha256="${api_downloads_decompressed_sha256[$downloadIndex]}"
+		decompressed_sha384="${api_downloads_decompressed_sha384[$downloadIndex]}"
+		decompressed_sha512="${api_downloads_decompressed_sha512[$downloadIndex]}"
+		
+		archive=${api_downloads_archive[$downloadIndex]}
+		bomb=${api_downloads_bomb[$downloadIndex]}
+		archive_folder=${api_downloads_archive_folder[$downloadIndex]}
 	
 		make_verifyTarget
 	done

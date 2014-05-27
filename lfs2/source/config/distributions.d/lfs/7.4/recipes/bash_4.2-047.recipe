@@ -306,6 +306,12 @@ recipe bash 4.2-047
 	
 	recipe_build_bash()
 	{
+		local patchName
+		for patchName in "${LFS_DOWNLOADS_PATCH_NAMES[@]}"
+		do
+			build_patchPackage bash "$patchName"
+		done
+		
 		LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS -static" LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CXXFLAGS -static" buildUsingAutotoolsExternal callback_empty \
 			--enable-static-link \
 			--with-gnu-ld \

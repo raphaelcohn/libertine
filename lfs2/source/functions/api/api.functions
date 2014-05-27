@@ -30,6 +30,15 @@ function api_download()
 	api_downloads_sha256[$api_download_index]=""
 	api_downloads_sha384[$api_download_index]=""
 	api_downloads_sha512[$api_download_index]=""
+	
+	api_downloads_decompressed_size[$api_download_index]=-1
+	api_downloads_decompressed_md5[$api_download_index]=""
+	api_downloads_decompressed_sha1[$api_download_index]=""
+	api_downloads_decompressed_sha224[$api_download_index]=""
+	api_downloads_decompressed_sha256[$api_download_index]=""
+	api_downloads_decompressed_sha384[$api_download_index]=""
+	api_downloads_decompressed_sha512[$api_download_index]=""
+	
 	api_downloads_signed_as[$api_download_index]="none"
 	api_downloads_signed_id[$api_download_index]=""
 	api_downloads_signed_signatureFile[$api_download_index]=""
@@ -281,6 +290,48 @@ function sha512()
 {
 	api_verifyOneArgument $#
 	api_downloads_sha512[$api_download_index]="$1"
+}
+
+function decompressed_size()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_size[$api_download_index]=$1
+}
+
+function decompressed_md5()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_md5[$api_download_index]="$1"
+}
+
+function decompressed_sha1()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha1[$api_download_index]="$1"
+}
+
+function decompressed_sha224()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha224[$api_download_index]="$1"
+}
+
+function decompressed_sha256()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha256[$api_download_index]="$1"
+}
+
+function decompressed_sha384()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha284[$api_download_index]="$1"
+}
+
+function decompressed_sha512()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha512[$api_download_index]="$1"
 }
 
 function signed_as()

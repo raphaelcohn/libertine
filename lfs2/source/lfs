@@ -5,6 +5,10 @@ function FIX()
 	echo FIX: $@
 }
 
+FIX 'Signatures & signature verification incl hkp / uncompressed'
+FIX 'CAs'
+FIX 'decompress before / after / during verify'
+FIX 'extract tarballs once?'
 FIX Clean up dead recipes by checking if our hash differs to theirs but version and name are the same
 FIX Detect whether to rebuild based on presence of .built
 FIX 'xxxx do a touch of .downloaded when finished with curl...  and for .built, too and ? for .verified (new concept)'
@@ -17,7 +21,7 @@ function lfs_message()
 	
 	case "$messageKind" in
 		
-		WARN|FAIL)
+		WARN|FAIL|PASS)
 			echo "$ourName: $messageKind: $message" 1>&2
 			if [ "$messageKind" = "FAIL" ]; then
 				exit 1
@@ -118,8 +122,12 @@ function lfs_exitError()
 
 function lfs_exitHelp()
 {
-	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-c lfs_configPath] [-t lfs_cachePath] [-n lfs_netrcFilePath ] [-r lfs_curlrcFilePath] [-m lfs_mirror] -- [machine files...]
+	echo -n -E "Usage 1: ${ourName} -h
+Usage 2: ${ourName} [-v] [-d] [-c lfs_configPath] [-t lfs_cachePath] [-n lfs_netrcFilePath ] [-r lfs_curlrcFilePath] [-m lfs_mirror] -- [machine files...]
+
+Usages
+    1       Show Help
+    2       Download, verify and build a machine from scratch for each machine file
 
 Argument-less Switches
     Switch  Explanation            Default           Configuration*

@@ -1,0 +1,136 @@
+size_functions=()
+
+function _size_file()
+{
+	local artifactLink
+	local artifact
+	local -i size
+	local hashAlgorithm
+	local hashAlgorithmBinary
+	local hashValue
+	local irrelevant
+		
+	artifactLink="$name".artifact
+	if [ ! -L "$artifactLink" ]; then
+		return 0
+	fi
+	
+	artifact="$(readlink "$artifactLink")"
+	if [ ! -f "$artifact" ]; then
+		return 0
+	fi
+	
+	{
+		printf '\t%s %s %s\n' "$download_kind" "$name" "$version"
+		
+		printf '\t{\n'
+		
+		size=$(stat --printf='%s' "$artifact")
+		printf '\t\t%s %s\n' 'size' $size
+	
+		for hashAlgorithm in md5 sha1 sha224 sha256 sha384 sha512
+		do
+			hashAlgorithmBinary=${hashAlgorithm}sum
+			IFS=' ' read -r hashValue irrelevant <<<"$(${hashAlgorithmBinary} "$artifact")"
+		
+			printf '\t\t%s %s\n' "$hashAlgorithm" "$hashValue"
+		
+		done
+		
+		printf '\t}\n\n'
+	}
+}
+
+function _size_version()
+{
+	local version
+	for version in *
+	do
+		if [ ! -d "$version" ]; then
+			continue
+		fi
+		
+		pushd "$version" 1>/dev/null 2>/dev/null
+			
+			_size_file
+			
+		popd 1>/dev/null 2>/dev/null
+		
+	done
+}
+
+function _size_name()
+{
+	local name
+	
+	for name in *
+	do
+		if [ ! -d "$name" ]; then
+			continue
+		fi
+	
+		pushd "$name" 1>/dev/null 2>/dev/null
+			
+			_size_version
+			
+		popd 1>/dev/null 2>/dev/null
+	done
+}
+
+function _size_mirror()
+{
+	local mirror
+	
+	for mirror in *
+	do
+		if [ ! -d "$mirror" ]; then
+			continue
+		fi
+		
+		pushd "$mirror" 1>/dev/null 2>/dev/null
+		
+			_size_name
+			
+		popd 1>/dev/null 2>/dev/null
+		
+	done
+}
+
+function _size_downloadKind()
+{
+	local download_kind
+	
+	for download_kind in *
+	do
+		if [ ! -d "$download_kind" ]; then
+			continue
+		fi
+		
+		pushd "$download_kind" 1>/dev/null 2>/dev/null
+			
+			_size_mirror
+			
+		popd 1>/dev/null 2>/dev/null
+		
+	done
+}
+
+function size_x()
+{
+	pushd "$main_downloadsCachePath" 1>/dev/null 2>/dev/null
+		
+		_size_downloadKind
+		
+	popd 1>/dev/null 2>/dev/null
+}
+size_functions+=(size_x)
+
+function size_executeSizeFunctions()
+{
+	local size_function
+	for size_function in "${size_functions[@]}"
+	do
+		lfs_message INFO "${tab}${size_function}"
+		${size_function}
+	done
+}

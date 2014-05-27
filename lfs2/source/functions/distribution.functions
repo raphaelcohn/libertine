@@ -5,7 +5,6 @@ distribution_nameVersionPath=""
 distribution_distributionSettingsFilePath=""
 distribution_mirrorsPath=""
 distribution_certificateAuthoritiesPath=""
-distribution_keyringsPath=""
 distribution_recipesPath=""
 distribution_snippetsPath=""
 function distribution_checkDistributionPaths()
@@ -35,11 +34,6 @@ function distribution_checkDistributionPaths()
 		lfs_exitError "Distribution certificate-authorities path $distribution_certificateAuthoritiesPath does not exist or is not a directory"
 	fi
 	
-	distribution_keyringsPath="$distribution_nameVersionPath"/keyrings
-	if [ ! -d "$distribution_keyringsPath" ]; then
-		lfs_exitError "Distribution keyrings path $distribution_keyringsPath does not exist or is not a directory"
-	fi
-	
 	distribution_recipesPath="$distribution_nameVersionPath"/recipes
 	if [ ! -d "$distribution_recipesPath" ]; then
 		lfs_exitError "Distribution recipes path $distribution_recipesPath does not exist or is not a directory"
@@ -57,18 +51,6 @@ function distribution_sourceDistributionSettingsFilePath()
 	source "$distribution_distributionSettingsFilePath"
 }
 distribution_functions+=(distribution_sourceDistributionSettingsFilePath)
-
-distribution_cachePath=""
-distribution_downloadsCachePath=""
-function distribution_makeCacheFolders()
-{
-	distribution_cachePath="$lfs_cachePath"/machines
-	mkdir -m 0755 -p "$distribution_cachePath"
-	
-	distribution_downloadsCachePath="$lfs_cachePath"/downloads
-	mkdir -m 0755 -p "$distribution_downloadsCachePath"
-}
-distribution_functions+=(distribution_makeCacheFolders)
 
 function distribution_sourceMirrors()
 {

@@ -73,7 +73,17 @@ function main_setDistributionsPath()
 }
 main_functions+=(main_setDistributionsPath)
 
-# choice of distribution still matters, and the version of the machine to build
+main_cachePath=""
+main_downloadsCachePath=""
+function main_makeCachePaths()
+{
+	main_cachePath="$lfs_cachePath"/machines
+	mkdir -m 0755 -p "$main_cachePath"
+
+	main_downloadsCachePath="$lfs_cachePath"/downloads
+	mkdir -m 0755 -p "$main_downloadsCachePath"
+}
+main_functions+=(main_makeCachePaths)
 
 readonly tab=$'\t'
 function main_machineFunctions()

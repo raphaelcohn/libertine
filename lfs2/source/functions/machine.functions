@@ -33,7 +33,7 @@ machine_functions+=(machine_hashMachine)
 
 function machine_setPaths()
 {
-	readonly LFS_BUILD_ROOT_PATH="$distribution_cachePath"
+	readonly LFS_BUILD_ROOT_PATH="$main_cachePath"
 	
 	readonly LFS_MACHINE_NAME_HASH="$machineName"-"$machine_hash"
 	readonly LFS_BUILD_ROOT_PATH_MACHINE_RELATIVE="$LFS_MACHINE_NAME_HASH"

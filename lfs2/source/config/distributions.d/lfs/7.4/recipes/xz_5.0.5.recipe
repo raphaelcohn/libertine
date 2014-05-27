@@ -1,4 +1,4 @@
-recipe xz 5.05
+recipe xz 5.0.5
 {
 	uidgid 18
 

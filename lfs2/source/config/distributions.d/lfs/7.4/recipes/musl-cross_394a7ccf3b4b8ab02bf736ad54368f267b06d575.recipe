@@ -326,41 +326,28 @@ recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 	# That means generating a source file
 	recipe_build_musl-cross()
 	{
-		local gccVersion=""
-		local zlibVersion=""
-		for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
-		do
-			setLfsSourcePackageVariables $index
-			case "$LFS_SOURCE_PACKAGE_NAME" in
+		local gccVersion="${LFS_DOWNLOADS_PACKAGE_VERSIONS[gcc]}"
+		local zlibVersion="${LFS_DOWNLOADS_PACKAGE_VERSIONS[zlib]}"
 		
-				gcc)
-					gccVersion="$LFS_SOURCE_PACKAGE_VERSION"
-				;;
-		
-				zlib)
-					zlibVersion="$LFS_SOURCE_PACKAGE_VERSION"
-				;;
-		
-				*)
-		
-				;;
-			esac
-		done
-
 		if [ -z "$gccVersion" ]; then
 			lfs_exitError "No gcc version"
 		fi
-
+		
 		if [ -z "$zlibVersion" ]; then
 			lfs_exitError "No zlib version"
 		fi
-
+		
 		# Replace gcc's shipped zlib with our version
-		pushd gcc-"$gccVersion" >/dev/null
-
+		pushd "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS[gcc]}" 1>dev/null 2>/dev/null
+			
 			mv zlib zlib.orig
+			
+			mkdir -m 0755 zlib
+			cp -a "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS[zlib]}"/* zlib/
+			
 			# Can't use a symlink because gcc walks the path .. and ../.. to find things!
 			mv ../zlib-"$zlibVersion" zlib
+			
 			cp -f zlib.orig/configure zlib/configure
 			cp -f zlib.orig/Makefile.in zlib/Makefile.in
 			cp zlib.orig/configure.ac zlib
@@ -368,59 +355,62 @@ recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 			cp zlib.orig/aclocal.m4 zlib
 			cp zlib.orig/minigzip.c zlib
 			cp zlib.orig/Makefile.am zlib
-	
-		popd >/dev/null
-
-		local dependency
+			
+		popd 1>/dev/null 2>/dev/null
+		
+		local -r muslCrossExtractFolder="${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS[musl-cross]}"
+		local packageName
+		local packageVersion
+		
 		local -i index
 		local originalCompressionExtension
 		local withoutCompressionExtension
 		local newCompressionExtension
 		local withNewCompressionExtension
-		for dependency in binutils gcc gmp linux mpfr mpc musl
+		
+		exit 50
+		
+		for packageName in binutils gcc gmp linux mpfr mpc musl
 		do
-			for index in ${dependency_SourcePackageIndices["$LFS_DEPENDENCY_KEY"]}
-			do
-				setLfsSourcePackageVariables $index
-				if [ "$LFS_SOURCE_PACKAGE_NAME" = "$dependency" ]; then
-					# Override fetch
-					ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
+			# Override fetch logic in musl-cross
+			ln -s ../../XXXXX "$muslCrossExtractFolder"/tarballs/"${packageName}"
+			ln -s ../../"$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$LFS_SOURCE_PACKAGE_FILENAME"
 			
-					# This logic ensures that mismatches in tarball compression between us and musl-cross are handled
-					originalCompressionExtension="${LFS_SOURCE_PACKAGE_FILENAME##*.}"
-					withoutCompressionExtension="$(basename "$LFS_SOURCE_PACKAGE_FILENAME" ."$originalCompressionExtension")"
-					for newCompressionExtension in gz bz2 xz
-					do
-						if [ "$newCompressionExtension" = "$originalCompressionExtension" ]; then
-							continue
-						fi
-						withNewCompressionExtension="$withoutCompressionExtension"."$newCompressionExtension"
-						ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
-					done
+			#		# This logic ensures that mismatches in tarball compression between us and musl-cross are handled
+			#		originalCompressionExtension="${LFS_SOURCE_PACKAGE_FILENAME##*.}"
+			#		withoutCompressionExtension="$(basename "$LFS_SOURCE_PACKAGE_FILENAME" ."$originalCompressionExtension")"
+			#		for newCompressionExtension in gz bz2 xz
+			#		do
+			#			if [ "$newCompressionExtension" = "$originalCompressionExtension" ]; then
+			#				continue
+			#			fi
+			#			withNewCompressionExtension="$withoutCompressionExtension"."$newCompressionExtension"
+			#			ln -s "$LFS_SOURCE_PACKAGE_FILENAME" "$LFS_DEPENDENCY_NAME"/tarballs/"$withNewCompressionExtension"
+			#		done
 			
-					local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
-					local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
+			#		local muslCrossExtractedFolderName="$LFS_SOURCE_PACKAGE_NAME"-"$LFS_SOURCE_PACKAGE_VERSION"
+			#		local muslCrossExtractedPath="$LFS_DEPENDENCY_NAME"/extra/"$muslCrossExtractedFolderName"
 			
-					# Override extracted tarball
-					ln -s ../../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
+			#		# Override extracted tarball
+			#		ln -s ../../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$muslCrossExtractedPath"
 	
-					# Override extract file name
-					touch "$muslCrossExtractedPath"/extracted
+			#		# Override extract file name
+			#		touch "$muslCrossExtractedPath"/extracted
 			
-					# gcc inner links (note binutils is NOT included, although it can be)
-					case "$dependency" in
+			#		# gcc inner links (note binutils is NOT included, although it can be)
+			#		case "$dependency" in
 				
-						gmp|mpfr|mpc)
-							ln -s ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
-						;;
+			#			gmp|mpfr|mpc)
+			#				ln -s ../"$LFS_SOURCE_PACKAGE_EXTRACTED_TARBALL_FOLDER" "$LFS_DEPENDENCY_NAME"/extra/gcc-"$gccVersion"/"$LFS_SOURCE_PACKAGE_NAME"
+			#			;;
 				
-						*)
-							:
-						;;
-				
-					esac
-				fi
-			done
+			#			*)
+			#				:
+			#			;;
+			#	
+			#		esac
+			#	fi
+			#done
 		done
 
 		pushd musl >/dev/null
