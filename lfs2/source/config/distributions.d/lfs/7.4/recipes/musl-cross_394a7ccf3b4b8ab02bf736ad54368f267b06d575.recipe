@@ -322,10 +322,10 @@ recipe musl-cross 394a7ccf3b4b8ab02bf736ad54368f267b06d575
 		fi
 	}
 	
-	# Where things get interesting is that we want to be able to export this function to a make file in some way
-	# That means generating a source file
 	recipe_build_musl-cross()
 	{
+		build_extractPackages
+		
 		local gccVersion="${LFS_DOWNLOADS_PACKAGE_VERSIONS[gcc]}"
 		local zlibVersion="${LFS_DOWNLOADS_PACKAGE_VERSIONS[zlib]}"
 		

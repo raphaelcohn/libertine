@@ -4,8 +4,6 @@
 #LFS_FOREIGN_TRIPLE
 #LFS_BUILD_ROOT_PATH_RECIPE
 
-set -e
-
 readonly LFS_DEPENDENCY_PATH_ROOT="$LFS_BUILD_ROOT_PATH_RECIPE"/root
 readonly LFS_DEPENDENCY_PATH_BIN="$LFS_DEPENDENCY_PATH_ROOT"/bin
 readonly LFS_DEPENDENCY_PATH_SBIN="$LFS_DEPENDENCY_PATH_ROOT"/sbin
@@ -78,59 +76,67 @@ readonly LFS_C_TARGET_EXTERNAL_CFLAGS="$LFS_C_TARGET_EXTERNAL_SPECS $LFS_LDFLAGS
 readonly LFS_C_TARGET_EXTERNAL_CXXFLAGS="$LFS_C_TARGET_EXTERNAL_CFLAGS"
 readonly LFS_C_TARGET_EXTERNAL_LDFLAGS=""
 
+function build_extract()
+{
+	local -r name="$1"
+	local -r download_kind="$2"
+	local -r version="$3"
+	local -r archive="$4"
+	local -r tarbomb="$5"
+	local -r archiveFolder="$6"
+	
+	local -r decompressedDownloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/"$download_kind"/"$name"/"$version")"
+		
+	local -r extractParentFolder="$LFS_BUILD_ROOT_PATH_RECIPE"/extracts/"$download_kind"/"$name"/"$version"
+	rm -rf "$extractParentFolder"
+	
+	case "$archive" in
+		
+		none)
+			file_hardlinkOrCopy "$decompressedDownloadPath" "$extractParentFolder"
+			
+			LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]="$extractParentFolder"
+		;;
+		
+		tarball)
+			local extractFolderPath
+			if [ "$tarbomb" = "yes" ]; then
+				extractFolderPath="$extractParentFolder"/"$archiveFolder"
+			else
+				extractFolderPath="$extractParentFolder"
+			fi
+			
+			mkdir -m 0755 -p "$extractFolderPath"
+
+			pushd "$extractParentFolder" 1>/dev/null 2>/dev/null
+
+				tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$decompressedDownloadPath"
+
+			popd 1>/dev/null 2>/dev/null
+		;;
+		
+		zip)
+			lfs_exitError "Zip is not supported at this time for extract ($name)"
+		;;
+		
+		*)
+			lfs_exitError "Unknown archive format '$archive' for $download_kind $name"
+		;;
+		
+	esac
+}
+
+function build_extractPackage()
+{
+	build_extract "$name" "package"  "${LFS_DOWNLOADS_PACKAGE_VERSIONS["$name"]}" "${LFS_DOWNLOADS_PACKAGE_ARCHIVES["$name"]}" "$LFS_DOWNLOADS_PACKAGE_TARBOMBS{["$name"]}" "${LFS_DOWNLOADS_PACKAGE_ARCHIVE_FOLDERS["$name"]}"
+}
+
 function build_extractPackages()
 {
-	local -r extractsFolder="$LFS_BUILD_ROOT_PATH_RECIPE"/extracts/package
-	rm -rf "$extractsFolder"
-	mkdir -m 0755 -p "$extractsFolder"
-	
 	local name
-	local packagePath
-	local decompressedPackagePath
-	
-	local extractFolderPath
 	for name in "${LFS_DOWNLOADS_PACKAGE_NAMES[@]}"
 	do
-		downloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/package/"${LFS_DOWNLOADS_PACKAGE_FILENAMES['$name']}")"
-		decompressedDownloadPath="$downloadPath".decompressed
-		
-		case "${LFS_DOWNLOADS_PACKAGE_ARCHIVES['$name']}" in
-			
-			none)
-				extractFolderPath="$extractsFolder"/"$name"
-				mkdir -m 0755 -p "$extractFolderPath"
-				
-				ln "$decompressedDownloadPath" "$extractFolderPath"/"${LFS_DOWNLOADS_PACKAGE_FILENAMES['$name']}"
-				
-				LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]="$extractFolderPath"
-			;;
-			
-			zip)
-				lfs_exitError "Zip is not supported at this time"
-			;;
-			
-			tarball)
-				if [ "$LFS_DOWNLOADS_PACKAGE_TARBOMBS{["$name"]}" ]; then
-					extractFolderPath="$extractsFolder"/"$name"/"${LFS_DOWNLOADS_PACKAGE_ARCHIVE_FOLDERS["$name"]}"
-				else
-					extractFolderPath="$extractsFolder"/"$name"
-				fi
-				
-				mkdir -m 0755 -p "$extractFolderPath"
-				LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]="$extractFolderPath"
-
-				pushd "$extractFolderPath" 1>/dev/null 2>/dev/null
-
-					tar --extract --numeric-owner --preserve-permissions --no-same-owner --file "$decompressedDownloadPath"
-
-				popd 1>/dev/null 2>/dev/null
-			;;
-		
-			*)
-				lfs_exitError "Unknown archive format '${LFS_DOWNLOADS_PACKAGE_ARCHIVES["$name"]}' for $download_kind $name"
-			;;
-			
-		esac
+		build_extractPackage
 	done
 }
 

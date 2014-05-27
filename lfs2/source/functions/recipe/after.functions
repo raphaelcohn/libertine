@@ -268,7 +268,7 @@ function recipe_after_beginBuildScript()
 		declare -A LFS_DOWNLOADS_FILE_ARCHIVE_FOLDERS=()
 		declare -A LFS_DOWNLOADS_KEYRING_ARCHIVE_FOLDERS=()
 		declare -A LFS_DOWNLOADS_KEYFILE_ARCHIVE_FOLDERS=()
-		declare -A LFS_DOWNLOADS_SIGNATURE_ARCHIVE_FOLDERS()
+		declare -A LFS_DOWNLOADS_SIGNATURE_ARCHIVE_FOLDERS=()
 		
 		declare -A LFS_DOWNLOADS_PACKAGE_TARBOMBS=()
 		declare -A LFS_DOWNLOADS_PATCH_TARBOMBS=()
@@ -283,6 +283,7 @@ function recipe_after_beginBuildScript()
 		declare -A LFS_DOWNLOADS_KEYRING_EXTRACT_PATHS=()
 		declare -A LFS_DOWNLOADS_KEYFILE_EXTRACT_PATHS=()
 		declare -A LFS_DOWNLOADS_SIGNATURE_EXTRACT_PATHS=()
+		
 	EOF
 }
 recipe_after_functions+=(recipe_after_beginBuildScript)
