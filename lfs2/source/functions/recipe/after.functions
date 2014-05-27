@@ -147,6 +147,7 @@ function recipe_after_symlinkPaths()
 }
 recipe_after_functions+=(recipe_after_symlinkPaths)
 
+# We should be looking at symlinks
 function recipe_after_addAdditionalFolders()
 {
 	mkdir -m 0755 -p "$LFS_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"

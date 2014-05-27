@@ -19,7 +19,7 @@ function curl_download()
 {
 	if [ $continueAt -ne -1 ]; then
 		if [ $continueAt -eq $size ]; then
-			curl_download_message="Using already downloaded"
+			curl_download_message="complete"
 			return 0
 		fi
 	fi

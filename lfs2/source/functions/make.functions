@@ -223,6 +223,17 @@ function make_downloadTargetIfRequired()
 			
 			function $(declare -f lfs_exitError)
 			
+			function $(declare -f lfs_dirname)
+			
+			function $(declare -f lfs_basename)
+			
+			function $(declare -f lfs_setSaneEnvironmentDefaults)
+			
+			function $(declare -f lfs_findOurNameAndPath)
+			
+			lfs_findOurNameAndPath
+			lfs_setSaneEnvironmentDefaults
+			
 			readonly etcPath='$etcPath'
 			readonly lfs_configPath='$lfs_configPath'
 			readonly lfs_netrcFilePath='$lfs_netrcFilePath'
@@ -303,6 +314,17 @@ function make_verifyTarget()
 			set -e
 			
 			function $(declare -f lfs_exitError)
+			
+			function $(declare -f lfs_dirname)
+			
+			function $(declare -f lfs_basename)
+			
+			function $(declare -f lfs_setSaneEnvironmentDefaults)
+			
+			function $(declare -f lfs_findOurNameAndPath)
+			
+			lfs_findOurNameAndPath
+			lfs_setSaneEnvironmentDefaults
 			
 			function $(declare -f file_hardlinkOrCopy)
 			
