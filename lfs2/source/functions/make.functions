@@ -234,7 +234,7 @@ function make_downloadTargetIfRequired()
 			
 			function $(declare -f lfs_findOurNameAndPath)
 			
-			export PATH='$PATH':'$LFS_BUILD_ROOT_PATH_MACHINE_PATH_BUILD'
+			export PATH='$LFS_BUILD_ROOT_PATH_MACHINE_PATH_BUILD':'$PATH'
 			
 			lfs_findOurNameAndPath
 			lfs_setSaneEnvironmentDefaults
@@ -312,7 +312,7 @@ function make_verifyTarget()
 			
 			function $(declare -f lfs_findOurNameAndPath)
 			
-			export PATH='$PATH':'$LFS_BUILD_ROOT_PATH_MACHINE_PATH_BUILD'
+			export PATH='$LFS_BUILD_ROOT_PATH_MACHINE_PATH_BUILD':'$PATH'
 			
 			lfs_findOurNameAndPath
 			lfs_setSaneEnvironmentDefaults

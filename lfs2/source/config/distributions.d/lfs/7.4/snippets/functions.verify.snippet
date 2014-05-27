@@ -34,16 +34,16 @@ function verifyHash()
 	local -r hashAlgorithm="$1"
 	local -r hashValue="$2"
 	
-	local -r hashProgramPathVariable=${hashAlgorithm}
+	local -r hashProgram=${hashAlgorithm}sum
 	set +e
-	${!hashProgramPathVariable} --check --strict --status <<-EOF
+	${hashProgram} --check --strict --status <<-EOF
 		$hashValue  $LFS_DOWNLOAD_PATH
 	EOF
 	local -ir exitCode=$?
 	set -e
 	if [ $exitCode -ne 0 ]; then
 		local hashValueActual irrelevant
-		IFS=' ' read -r hashValueActual irrelevant <<<"$(${!hashProgramPathVariable} "$LFS_DOWNLOAD_PATH")"
+		IFS=' ' read -r hashValueActual irrelevant <<<"$(${hashProgram} "$LFS_DOWNLOAD_PATH")"
 		
 		if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
 			rm -rf "$LFS_DOWNLOAD_PATH"
@@ -53,11 +53,11 @@ function verifyHash()
 }
 
 readonly decompressedPath="$LFS_DOWNLOAD_PATH".decompressed
-readonly decompressedSuccessPath="$LFS_DOWNLOAD_PATH".decompressed.success
+readonly decompressedDonePath="$LFS_DOWNLOAD_PATH.decompressed.done"
 
 function decompress()
 {
-	if [ -f "$decompressedSuccessPath" ]; then
+	if [ -f "$decompressedDonePath" ]; then
 		return 0
 	fi
 	
@@ -97,7 +97,7 @@ function decompress()
 		esac
 	fi
 	
-	touch "$decompressedSuccessPath"
+	touch "$decompressedDonePath"
 }
 
 function verifySizeDecompressed()
@@ -122,16 +122,16 @@ function verifyHashDecompressed()
 	local -r hashAlgorithm="$1"
 	local -r hashValue="$2"
 	
-	local -r hashProgramPathVariable=${hashAlgorithm}
+	local -r hashProgram=${hashAlgorithm}sum
 	set +e
-	${!hashProgramPathVariable} --check --strict --status <<-EOF
+	${hashProgram} --check --strict --status <<-EOF
 		$hashValue  $LFS_DOWNLOAD_PATH
 	EOF
 	local -ir exitCode=$?
 	set -e
 	if [ $exitCode -ne 0 ]; then
 		local hashValueActual irrelevant
-		IFS=' ' read -r hashValueActual irrelevant <<<"$(${!hashProgramPathVariable} "$decompressedPath")"
+		IFS=' ' read -r hashValueActual irrelevant <<<"$(${hashProgram} "$decompressedPath")"
 		
 		if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
 			rm -rf "$decompressedPath"
@@ -149,18 +149,18 @@ function recordHashes()
 		printf '\t\t%s %s\n' "decompressed_size" "$(stat --printf='%s' "$decompressedPath")"
 		
 		local hashAlgorithm
-		local hashProgramPathVariable
+		local hashProgram
 		local hashBinary
 		local hashValue
 		local irrelevant
 		
 		for hashAlgorithm in md5 sha1 sha224 sha256 sha384 sha512
 		do
-			hashProgramPathVariable=${hashAlgorithm}
+			hashProgram=${hashAlgorithm}sum
 			
-			IFS=' ' read -r hashValue irrelevant <<<"$(${!hashProgramPathVariable} "$LFS_DOWNLOAD_PATH")"
+			IFS=' ' read -r hashValue irrelevant <<<"$(${hashProgram} "$LFS_DOWNLOAD_PATH")"
 			printf '\t\t%s %s\n' "$hashAlgorithm" "$hashValue"
-			IFS=' ' read -r hashValue irrelevant <<<"$(${!hashProgramPathVariable} "$decompressedPath")"
+			IFS=' ' read -r hashValue irrelevant <<<"$(${hashProgram} "$decompressedPath")"
 			printf '\t\t%s %s\n' "decompressed_${hashAlgorithm}" "$hashValue"
 		done
 	} >"$hashesFile"

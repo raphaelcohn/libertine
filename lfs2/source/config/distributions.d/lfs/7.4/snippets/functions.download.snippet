@@ -17,8 +17,15 @@ function lfs_message()
 # also uses curl_post, curl_put and curl_put_continueAt
 function curl_download()
 {
+	local -r downloadedStampFile="$fileName".downloaded
+	if [ -f "$downloadedStampFile" ]; then
+		curl_download_message="complete"
+		return 0
+	fi
+	
 	if [ $continueAt -ne -1 ]; then
 		if [ $continueAt -eq $size ]; then
+			touch "$downloadedStampFile"
 			curl_download_message="complete"
 			return 0
 		fi
@@ -190,6 +197,8 @@ function curl_download()
 	curl_args+=("$asciiTraceFilePath")
 	
 	curl "${curl_args[@]}" 1>"$writeOutFilePath"
+	
+	touch "$downloadedStampFile"
 }
 
 function curl_argumentConfig()
