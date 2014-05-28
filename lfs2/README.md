@@ -9,3 +9,16 @@
 * Annotate downloads so we know for which distributions / machines they are for (so we can work out when to remove them)
 * Do not generate build scripts for already built recipes (check .built)
 * ? Do not generate verify scripts for already verified recipes (check .verified)
+
+
+### Hard-coded binary locations
+
+* /sbin/sendmail (was /usr/sbin/sendmail)
+* /bin/vi (was /usr/bin/vi)
+* /bin/sh
+
+### Assumed locations
+
+* /usr/bin/env
+* /bin/sh
+* /bin/bash (not as common, but fairly common)

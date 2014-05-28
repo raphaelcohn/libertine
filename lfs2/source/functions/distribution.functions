@@ -3,8 +3,9 @@ distribution_functions=()
 distribution_namePath=""
 distribution_nameVersionPath=""
 distribution_distributionSettingsFilePath=""
-distribution_mirrorsPath=""
 distribution_certificateAuthoritiesPath=""
+distribution_internalMirrorPath=""
+distribution_mirrorsPath=""
 distribution_recipesPath=""
 distribution_snippetsPath=""
 function distribution_checkDistributionPaths()
@@ -24,14 +25,19 @@ function distribution_checkDistributionPaths()
 		lfs_exitError "Distribution settings file path $distribution_distributionSettingsFilePath does not exist or is not a file"
 	fi
 	
-	distribution_mirrorsPath="$distribution_nameVersionPath"/mirrors
-	if [ ! -d "$distribution_mirrorsPath" ]; then
-		lfs_exitError "Distribution mirrors path $distribution_mirrorsPath does not exist or is not a directory"
-	fi
-	
 	distribution_certificateAuthoritiesPath="$distribution_nameVersionPath"/certificate-authorities
 	if [ ! -d "$distribution_certificateAuthoritiesPath" ]; then
 		lfs_exitError "Distribution certificate-authorities path $distribution_certificateAuthoritiesPath does not exist or is not a directory"
+	fi
+	
+	distribution_internalMirrorPath="$distribution_nameVersionPath"/internal-mirror
+	if [ ! -d "$distribution_internalMirrorPath" ]; then
+		lfs_exitError "Distribution internal-mirror path $distribution_internalMirrorPath does not exist or is not a directory"
+	fi
+	
+	distribution_mirrorsPath="$distribution_nameVersionPath"/mirrors
+	if [ ! -d "$distribution_mirrorsPath" ]; then
+		lfs_exitError "Distribution mirrors path $distribution_mirrorsPath does not exist or is not a directory"
 	fi
 	
 	distribution_recipesPath="$distribution_nameVersionPath"/recipes
@@ -54,6 +60,9 @@ distribution_functions+=(distribution_sourceDistributionSettingsFilePath)
 
 function distribution_sourceMirrors()
 {
+	# May be technically invalid as we are not URI escaping
+	define_mirror INTERNAL "file://${distribution_internalMirrorPath}/" no
+	
 	pushd "$distribution_mirrorsPath" 1>/dev/null 2>/dev/null
 
 		local mirrorFile
