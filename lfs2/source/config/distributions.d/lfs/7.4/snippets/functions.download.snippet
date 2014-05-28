@@ -196,7 +196,15 @@ function curl_download()
 	curl_args+=('--trace-time' '--trace-ascii')
 	curl_args+=("$asciiTraceFilePath")
 	
+	set +e
 	curl "${curl_args[@]}" 1>"$writeOutFilePath"
+	local -r exitCode=$?
+	set -e
+	
+	if [ $exitCode -ne 0 ]; then
+		lfs_message FAIL "${fileName}: Failed to download using curl, error code was $exitCode, check ${fileName}.stderr et al"
+		exit 1
+	fi
 	
 	touch "$downloadedStampFile"
 }
@@ -225,3 +233,7 @@ function curl_argumentConfig()
 	curl_args+=("$configSwitch")
 	curl_args+=("$configFilePath")
 }
+
+curl_download
+
+lfs_message PASS "${curl_download_message}"

@@ -262,20 +262,6 @@ function make_downloadTargetIfRequired()
 		
 		cat "$distribution_snippetsPath"/*.download.snippet 2>/dev/null || true
 		echo ""
-		
-		cat <<-'EOF'
-			set +e
-			curl_download
-			readonly exitCode=$?
-			set -e
-			
-			if [ $exitCode -ne 0 ]; then
-				lfs_message FAIL "${fileName}: Failed to download using curl, error code was $exitCode, check ${fileName}.stderr et al"
-				exit 1
-			fi
-			
-			lfs_message PASS "${curl_download_message}"
-		EOF
 	} >"$downloadScript"
 	
 	chmod +x "$downloadScript"

@@ -137,7 +137,7 @@ function build_patchPackage()
 	local -r packageName="$1"
 	local -r patchName="$2"
 	
-	local -r downloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/patch/"$patchName")"
+	local -r downloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/patch/"$patchName"/0)"
 	local -r decompressedDownloadPath="$downloadPath".decompressed
 	
 	# Won't work too well!

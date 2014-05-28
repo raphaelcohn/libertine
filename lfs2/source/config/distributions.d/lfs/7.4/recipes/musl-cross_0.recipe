@@ -13,7 +13,7 @@ recipe musl-cross 0
 	patch binutils
 	{
 		mirror INTERNAL
-		path patch/"$name"-2.23.2.diff
+		path patch/"$recipeName"/"$name"-2.23.2.diff
 	}
 
 	local -r gccVersion=4.8.1
@@ -28,7 +28,7 @@ recipe musl-cross 0
 	patch gcc
 	{
 		mirror INTERNAL
-		path patch/"$name"-4.8.1.diff
+		path patch/"$recipeName"/"$name"-4.8.1.diff
 	}
 
 	package gmp 5.1.2
@@ -78,7 +78,7 @@ recipe musl-cross 0
 	patch musl
 	{
 		mirror INTERNAL
-		path patch/"$name"-0.9.1.4.diff
+		path patch/"$recipeName"/"$name"-0.9.1.4.diff
 	}
 
 	package zlib 1.2.8
@@ -322,9 +322,9 @@ recipe musl-cross 0
 	
 	function recipe_build_musl-cross()
 	{
-		build_patchPackage binutils binutils-2.32.2.diff
-		build_patchPackage gcc gcc-4.8.1.diff
-		build_patchPackage musl musl-0.9.1.4.diff
+		build_patchPackage binutils binutils
+		build_patchPackage gcc gcc
+		build_patchPackage musl musl
 	
 		# Compilation optimisation (all except final cross compiler)
 		# -Wno-format-security added because libgcc doesn't compile on Ubuntu 13.04 and later ( https://wiki.ubuntu.com/ToolChain/CompilerFlags )
