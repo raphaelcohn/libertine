@@ -164,6 +164,29 @@ function build_patchPackageFromIndex()
 	build_patchPackage "$packageName" "${LFS_DOWNLOADS_PATCH_NAMES[$patchIndex]}"
 }
 
+function build_pushPackage()
+{
+	local -r name="$1"
+	pushd "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]}" 1>/dev/null 2>/dev/null
+}
+
+function build_popPackage()
+{
+	local -r name="$1"
+	popd 1>/dev/null 2>/dev/null
+}
+
+function build_push()
+{
+	pushd "$1" 1>/dev/null
+}
+
+function build_pop()
+{
+	popd 1>/dev/null 2>/dev/null
+}
+
+
 function build_fixUpGnulib()
 {
 	pushdDependencyFolder

@@ -1,5 +1,6 @@
 distribution lfs 7.4
 {
+	# Also: armhf, arm*
 	setting architecture x86_64
 	setting native_architecture x86_64
 	setting cpu_optimisation '-march=native -mtune=generic'
