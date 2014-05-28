@@ -354,7 +354,9 @@ function make_verifyTarget()
 			fi
 		done
 		
-		echo -e 'recordHashes'
+		if [ "$beDebug" = "yes" ]; then
+			echo -e 'recordHashes'
+		fi
 		
 		echo -e 'lfs_message PASS "done"'
 	} >"$verifyScript"
