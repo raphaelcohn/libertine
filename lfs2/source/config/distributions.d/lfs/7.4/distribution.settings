@@ -21,6 +21,16 @@ distribution lfs 7.4
 	# --no-copy-dt-needed-entries is believed to now be default and so is not specified
 	setting ldflags_hardening '-Wl,-z,relro -Wl,-z,now -Wl,--as-needed'
 	
+	function distribution_keyring_GNU()
+	{
+		# Problem: keyring regularly changes and isn't versioned
+		keyring GNU
+		{
+			mirror GNU
+			path gnu-keyring.gpg
+		}
+	}
+	
 	function distribution_package_autotools-config()
 	{
 		package autotools-config 5e4de70bb0064d974a848fbe3a445d5dafaf7b48

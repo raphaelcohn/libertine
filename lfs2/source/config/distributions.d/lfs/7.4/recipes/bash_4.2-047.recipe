@@ -3,11 +3,9 @@ recipe bash 4.2-047
 	uidgid 18
 	depends musl-cross
 	
-	# Problem: keyring regularly changes and isn't versioned
-	keyring GNU
+	distribution_keyring_GNU
 	{
-		mirror GNU
-		path gnu-keyring.gpg
+		:
 	}
 	
 	package bash 4.2
@@ -35,283 +33,470 @@ recipe bash 4.2-047
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
-		FIX 'Adding .sig support for patches!'
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-002
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-003
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-004
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-005
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-006
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-007
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-008
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-009
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-010
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-011
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-012
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-013
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-014
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-015
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-016
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-017
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-018
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-019
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-020
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-021
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-022
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-023
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-024
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-025
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-026
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-027
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-028
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-029
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-030
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-031
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-032
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-033
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-034
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-035
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-036
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-037
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-038
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-039
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-040
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-041
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-042
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-043
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-044
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-045
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-046
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	patch "${recipeName}${reducedVersion}"-047
 	{
 		mirror GNU
 		path "$recipeName"/"$recipeName"-"$bashVersion"-patches/"$name"
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	unset reducedVersion
