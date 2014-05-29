@@ -22,7 +22,7 @@ function certificate-authority()
 		
 	esac
 	
-	api_download "certificate-authority" "$name"
+	api_download "certificate-authority" "$name" 0
 	
 	api_certificateAuthorities_download["$name"]=$api_download_index
 	api_certificateAuthorities_parent["$name"]="$parentName"

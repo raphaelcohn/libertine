@@ -1,1 +1,4 @@
-define_mirror GNU http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/ yes
+define_mirror GNU http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/
+{
+	supports_range yes
+}

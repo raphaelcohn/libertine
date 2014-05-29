@@ -95,9 +95,11 @@ function main_machineFunctions()
 			declare -A api_package_version_settings
 			declare -A api_recipes_uidgid
 			declare -A api_settings
-			declare -A api_mirrors_Url
-			declare -A api_mirrors_PartialsSupported
+			
+			declare -A api_mirrors_url
+			declare -A api_mirrors_partialsSupported
 			declare -A api_mirrors_certificateAuthorityName
+			
 			declare -A api_certificateAuthorities_download
 			declare -A api_certificateAuthorities_parent
 			declare -A api_certificateAuthorities_cert_type

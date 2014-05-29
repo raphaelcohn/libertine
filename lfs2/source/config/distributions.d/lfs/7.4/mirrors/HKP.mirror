@@ -1,1 +1,4 @@
-define_mirror HKP 'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x' no SKS
+define_mirror HKP 'https://hkps.pool.sks-keyservers.net/pks/lookup?op=get&options=mr&search=0x'
+{
+	ca_name SKS
+}

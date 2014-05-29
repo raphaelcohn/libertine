@@ -1,26 +1,37 @@
 function define_mirror()
 {
-	case $# in
+	if [ $# -ne 2 ]; then
+		lfs_exitError "define_mirror requires <name> <url>"
+	fi
+	
+	mirror="$1"
+	url="$2"
+	
+	api_mirrors_url["$mirror"]="$url"
+	api_mirrors_certificateAuthorityName["$mirror"]=''
+	api_mirrors_partialsSupported["$mirror"]='no'
+}
+
+function supports_range()
+{
+	api_verifyOneArgument $#
+	case "$1" in
+		yes)
+			api_mirrors_partialsSupported["$mirror"]=yes
+		;;
 		
-		3|4)
-			local -r mirrorName="$1"
-			local -r url="$2"
-			local -r partialsSupported="$3"
+		no)
+			api_mirrors_partialsSupported["$mirror"]=no
 		;;
 		
 		*)
-			lfs_exitError "Needs 2 or 3 arguments"
+			lfs_exitError "supports_range '$1' is unsupported"
 		;;
-		
 	esac
-	
-	api_mirrors_Url["${mirrorName}"]="$url"
-	api_mirrors_PartialsSupported["${mirrorName}"]="$partialsSupported"
-	
-	if [ $# -eq 4 ]; then
-		local -r certificateAuthorityName="$3"
-	else
-		local -r certificateAuthorityName=""
-	fi
-	api_mirrors_certificateAuthorityName["${mirrorName}"]="$certificateAuthorityName"
+}
+
+function ca_name()
+{
+	api_verifyOneArgument $#
+	api_mirrors_certificateAuthorityName["$mirror"]="$1"
 }

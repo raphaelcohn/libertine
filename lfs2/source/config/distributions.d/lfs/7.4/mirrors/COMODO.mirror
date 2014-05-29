@@ -1,1 +1,4 @@
-define_mirror COMODO no 'https://support.comodo.com/index.php?_m=downloads&_a=downloadfile&downloaditemid='
+define_mirror COMODO 'https://support.comodo.com/index.php?_m=downloads&_a=downloadfile&downloaditemid='
+{
+	:
+}

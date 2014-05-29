@@ -59,6 +59,9 @@ function mirror()
 
 	mirror="$1"
 	api_downloads_mirror[$api_download_index]="$mirror"
+	
+	# Add a CA download for this mirror. Note that this doesn
+	xxxxxx
 }
 
 function path()

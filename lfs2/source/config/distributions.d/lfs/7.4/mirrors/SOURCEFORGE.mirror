@@ -1,1 +1,5 @@
-define_mirror SOURCEFORGE yes https://prdownloads.sourceforge.net/ GeoTrustGlobal
+define_mirror SOURCEFORGE https://prdownloads.sourceforge.net/
+{
+	supports_range yes
+	ca_name GeoTrustGlobal
+}

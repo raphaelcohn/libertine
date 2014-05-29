@@ -1,1 +1,4 @@
-define_mirror GITHUB https://codeload.github.com/ no DigiCertHACA3
+define_mirror GITHUB https://codeload.github.com/
+{
+	ca_name DigiCertHACA3
+}

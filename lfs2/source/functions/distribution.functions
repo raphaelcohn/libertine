@@ -64,10 +64,33 @@ function distribution_sourceDistributionSettingsFilePath()
 }
 distribution_functions+=(distribution_sourceDistributionSettingsFilePath)
 
+function distribution_sourceCertificateAuthorities()
+{
+	pushd "$distribution_certificateAuthoritiesPath" 1>/dev/null 2>/dev/null
+
+		local certificateAuthorityFile
+		for certificateAuthorityFile in *.certificate-authority
+		do
+			if [ -f "$certificateAuthorityFile" ]; then
+				
+				# also uses api-downloads!
+				
+				declare -a api_certificateAuthorities_download=()
+				declare -a api_certificateAuthorities_parent=()
+				declare -a api_certificateAuthorities_cert_type=()
+				
+				source "$certificateAuthorityFile"
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+distribution_functions+=(distribution_sourceCertificateAuthorities)
+
 function distribution_sourceMirrors()
 {
 	# May be technically invalid as we are not URI escaping
-	define_mirror INTERNAL "file://${distribution_internalMirrorPath}/" no
+	define_mirror INTERNAL "file://${distribution_internalMirrorPath}/"
 	
 	pushd "$distribution_mirrorsPath" 1>/dev/null 2>/dev/null
 
@@ -99,35 +122,3 @@ function distribution_sourceMirrors()
 	popd 1>/dev/null 2>/dev/null
 }
 distribution_functions+=(distribution_sourceMirrors)
-
-function distribution_sourceCertificateAuthorities()
-{
-	pushd "$distribution_certificateAuthoritiesPath" 1>/dev/null 2>/dev/null
-
-		local certificateAuthorityFile
-		for certificateAuthorityFile in *.certificate-authority
-		do
-			if [ -f "$certificateAuthorityFile" ]; then
-				source "$certificateAuthorityFile"
-			fi
-		done
-		
-	popd 1>/dev/null 2>/dev/null
-}
-distribution_functions+=(distribution_sourceCertificateAuthorities)
-
-function distribution_sourceKeyrings()
-{
-	pushd "$distribution_keyringsPath" 1>/dev/null 2>/dev/null
-
-		local keyringFile
-		for keyringFile in *.keyring
-		do
-			if [ -f "$keyringFile" ]; then
-				source "$keyringFile"
-			fi
-		done
-		
-	popd 1>/dev/null 2>/dev/null
-}
-distribution_functions+=(distribution_sourceKeyrings)

@@ -153,7 +153,7 @@ function make_downloadTargetIfRequired()
 		mkdir -m 0755 -p "$cacheParentPath"
 	fi
 	
-	local -r resolvedMirror="${api_mirrors_Url["$mirror"]}"
+	local -r resolvedMirror="${api_mirrors_url["$mirror"]}"
 	if [ -z "$resolvedMirror" ]; then
 		lfs_exitError "No known mirror $mirror"
 	fi
@@ -188,7 +188,7 @@ function make_downloadTargetIfRequired()
 				rm -rf "$downloadFilePath"
 				local -ir continueAt=-1
 			else
-				if [ "${api_mirrors_PartialsSupported["$mirror"]}" = "yes" ]; then
+				if [ "${api_mirrors_partialsSupported["$mirror"]}" = "yes" ]; then
 					local -ir continueAt=$actualSize
 				else
 					local -ir continueAt=-1
@@ -199,7 +199,7 @@ function make_downloadTargetIfRequired()
 		fi
 	fi
 	
-	local -r continueAtSupported="${api_mirrors_PartialsSupported["$mirror"]}"
+	local -r continueAtSupported="${api_mirrors_partialsSupported["$mirror"]}"
 	
 	if [ -z "$post_data" ]; then
 		local -r verb=GET

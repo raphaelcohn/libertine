@@ -1,2 +1,4 @@
-define_mirror GMP https://gmplib.org/download/ yes
-#define_mirror GMP ftp://ftp.gmplib.org/pub/ no
+define_mirror GMP https://gmplib.org/download/
+{
+	supports_range yes
+}

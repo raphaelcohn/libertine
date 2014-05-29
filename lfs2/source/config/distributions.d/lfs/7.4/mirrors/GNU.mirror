@@ -1,1 +1,5 @@
-define_mirror GNU https://ftp.gnu.org/gnu/ yes UtnUserFirstHardware
+define_mirror GNU https://ftp.gnu.org/gnu/
+{
+	supports_range yes
+	ca_name UtnUserFirstHardware
+}

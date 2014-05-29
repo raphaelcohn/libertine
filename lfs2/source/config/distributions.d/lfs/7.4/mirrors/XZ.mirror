@@ -1,1 +1,4 @@
-define_mirror XZ http://tukaani.org/ yes
+define_mirror XZ http://tukaani.org/
+{
+	supports_range yes
+}

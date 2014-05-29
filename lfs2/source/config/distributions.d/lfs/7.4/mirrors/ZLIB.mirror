@@ -1,1 +1,4 @@
-define_mirror ZLIB http://www.zlib.net/ yes
+define_mirror ZLIB http://www.zlib.net/
+{
+	supports_range yes
+}

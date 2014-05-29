@@ -1,1 +1,4 @@
-define_mirror PERL yes http://mirror.bytemark.co.uk/CPAN/src/
+define_mirror PERL http://mirror.bytemark.co.uk/CPAN/src/
+{
+	supports_range yes
+}
