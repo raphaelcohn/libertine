@@ -3,12 +3,24 @@ recipe bash 4.2-047
 	uidgid 18
 	depends musl-cross
 	
+	# Problem: keyring regularly changes and isn't versioned
+	keyring GNU
+	{
+		mirror GNU
+		path gnu-keyring.gpg
+	}
+	
 	package bash 4.2
 	{
 		mirror GNU
 		path "$name"/"$name"-"$version".tar.gz
 		md5 3fb927c7c33022f1c327f14a81c0d4b0
 		signed_as keyring GNU
+	
+		signature keyring GNU
+		{
+			:
+		}
 	}
 	
 	distribution_package_autotools-config

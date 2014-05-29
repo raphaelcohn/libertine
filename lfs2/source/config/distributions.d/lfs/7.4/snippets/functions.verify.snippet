@@ -52,6 +52,80 @@ function verifyHash()
 	fi
 }
 
+function verifySignature()
+{
+	local -r keyKind="$1"
+	local -r downloadPath="$2"
+	local -r keyFileOrKeyringFilePath="$3"
+	local -r signaturePath="$4"
+	local -r gpgFilesPath="$5"
+	
+	# Make gpgHome
+	pushd "$keyFileOrKeyringFilePath"/.. 1>/dev/null
+		
+		local -r gpgHomePath="$(pwd)"/gpg-home
+		rm -rf "$gpgHomePath"
+		cp "$gpgFilesPath"/* "$gpgHomePath"/
+		
+	popd 1>/dev/null
+	
+	local -i exitCode
+	
+	case "$keyKind" in
+		
+		keyring)
+			local -r publicKeyring="$keyFileOrKeyringFilePath"
+		;;
+		
+		keyfile|hkp)
+			local -r publicKeyring=pubring.gpg
+			touch "$publicKeyring"
+	
+			# gpg mucks with its trustdb when importing, which is a nuisance
+			# it also creates a back up of pubring.gpg, pubring.gpg~
+			set +e
+			gpg --no-options --no-greeting --no-permission-warning --no-secmem-warning \
+			--no-random-seed-file --ignore-time-conflict \
+			--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+			--lock-never --no-auto-check-trustdb --no-sig-cache \
+			--homedir "$gpgHomePath" --trustdb-name trustdb.gpg \
+			--no-default-keyring --secret-keyring secring.gpg \
+			--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
+			--import "$keyFileOrKeyringFilePath" </dev/null 1>/dev/null 2>&1
+			exitCode=$?
+			set -e
+			
+			if [ $exitCode -ne 0 ]; then
+				lfs_exitError "${downloadPath}: could not import keyfile"
+				if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
+					rm -rf "${downloadPath}"
+				fi
+				exit 1
+			fi
+		;;
+		
+	esac
+	
+	set -e
+	gpg --no-options --no-greeting --no-permission-warning --no-secmem-warning \
+	--no-random-seed-file --ignore-time-conflict \
+	--no-verbose --quiet --batch --no-tty --exit-on-status-write-error \
+	--lock-never --no-auto-check-trustdb --no-sig-cache \
+	--homedir "$gpgHomePath" --trustdb-name trustdb.gpg \
+	--no-default-keyring --secret-keyring secring.gpg \
+	--primary-keyring "$publicKeyring" --keyring "$publicKeyring" \
+	--verify "$signaturePath" "${downloadPath}" </dev/null 1>/dev/nulll 2>&1
+	set +e
+	
+	if [ $exitCode -ne 0 ]; then
+		lfs_exitError "${downloadPath}: could not verify signature"
+		if [ "$LFS_DELETE_IF_UNVERIFIED" = "yes" ]; then
+			rm -rf "${downloadPath}"
+		fi
+		exit 1
+	fi
+}
+
 readonly decompressedPath="$LFS_DOWNLOAD_PATH".decompressed
 readonly decompressedDonePath="$LFS_DOWNLOAD_PATH.decompressed.done"
 

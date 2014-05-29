@@ -79,15 +79,13 @@ function build_extract()
 	
 	local -r decompressedDownloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/"$download_kind"/"$name"/"$version")"
 		
-	local -r extractParentFolder="$LFS_BUILD_ROOT_PATH_RECIPE"/extracts/"$download_kind"/"$name"/"$version"
+	extractParentFolder="$LFS_BUILD_ROOT_PATH_RECIPE"/extracts/"$download_kind"/"$name"/"$version"
 	rm -rf "$extractParentFolder"
 	
 	case "$archive" in
 		
 		none)
 			file_hardlinkOrCopy "$decompressedDownloadPath" "$extractParentFolder"
-			
-			LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]="$extractParentFolder"
 		;;
 		
 		tarball)
@@ -120,7 +118,11 @@ function build_extract()
 
 function build_extractPackage()
 {
+	local extractParentFolder
+	
 	build_extract "$name" "package"  "${LFS_DOWNLOADS_PACKAGE_VERSIONS["$name"]}" "${LFS_DOWNLOADS_PACKAGE_ARCHIVES["$name"]}" "${LFS_DOWNLOADS_PACKAGE_TARBOMBS["$name"]}" "${LFS_DOWNLOADS_PACKAGE_ARCHIVE_FOLDERS["$name"]}"
+	
+	LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$name"]="$extractParentFolder"
 }
 
 function build_extractPackages()
@@ -138,12 +140,11 @@ function build_patchPackage()
 	local -r patchName="$2"
 	
 	local -r downloadPath="$(readlink --canonicalize "$LFS_BUILD_ROOT_PATH_RECIPE"/downloads/patch/"$patchName"/0)"
-	local -r decompressedDownloadPath="$downloadPath".decompressed
 	
 	# Won't work too well!
 	pushd "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS["$packageName"]}" 1>/dev/null 2>/dev/null
 		
-		patch -N -p1 -i "$decompressedDownloadPath"
+		patch -N -p1 -i "$downloadPath"
 		
 	popd 1>/dev/null 2>/dev/null
 }

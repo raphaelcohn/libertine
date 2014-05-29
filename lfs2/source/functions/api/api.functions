@@ -1,17 +1,19 @@
 function api_download()
 {
-	local -r downloadKind="$1"
-	local -r downloadName="$2"
-	local -r downloadVersion="$3"
-	api_download_kind="$downloadKind"
+	download_kind="$1"
+	name="$2"
+	version="$3"
+	mirror="INTERNAL"
+	path=''
+	
 	api_download_index=${#api_downloads_name[@]}
 	# there is the possibility of collision (eg autotools)
 	# normally this is wanted, although in those circumstances we should distinguish by mirror, path (and for packages, version)
-	api_downloads_name+=("$downloadName")
-	api_downloads_version[$api_download_index]="$downloadVersion"
-	api_downloads_kinds[$api_download_index]="$downloadKind"
+	api_downloads_name+=("$name")
+	api_downloads_version[$api_download_index]="$version"
+	api_downloads_kinds[$api_download_index]="$download_kind"
 	
-	api_downloads_mirror[$api_download_index]=""
+	api_downloads_mirror[$api_download_index]="$mirror"
 	api_downloads_path[$api_download_index]=""
 	
 	api_downloads_referrer[$api_download_index]=""
@@ -39,9 +41,9 @@ function api_download()
 	api_downloads_decompressed_sha384[$api_download_index]=""
 	api_downloads_decompressed_sha512[$api_download_index]=""
 	
-	api_downloads_signed_as[$api_download_index]="none"
-	api_downloads_signed_id[$api_download_index]=""
-	api_downloads_signed_signatureFile[$api_download_index]=""
+	api_downloads_signature_key_kind[$api_download_index]=''
+	api_downloads_signature_key_name[$api_download_index]=''
+	api_downloads_signature_compression[$api_download_index]=''
 }
 
 function api_verifyOneArgument()
@@ -54,18 +56,19 @@ function api_verifyOneArgument()
 function mirror()
 {
 	api_verifyOneArgument $#
-	
-	api_downloads_mirror[$api_download_index]="$1"
+
+	mirror="$1"
+	api_downloads_mirror[$api_download_index]="$mirror"
 }
 
 function path()
 {
 	api_verifyOneArgument $#
-	local -r relativePath="$1"
-	api_downloads_path[$api_download_index]="$relativePath"
+	path="$1"
+	api_downloads_path[$api_download_index]="$path"
 
 	# the defaults for these vary with the kind of resource in use
-	case "$api_download_kind" in
+	case "$download_kind" in
 		
 		certificate-authority|patch|file|keyring|keyfile|signature)
 			local -r compressionExtension="${ourFileName##*.}"
@@ -119,7 +122,7 @@ function path()
 		;;
 		
 		package)
-			local -r ourFileName="$(lfs_basename "$relativePath")"
+			local -r ourFileName="$(lfs_basename "$path")"
 			local -r compressionExtension="${ourFileName##*.}"
 			local -r withoutCompressionExtension="${ourFileName%.*}"
 			if [ -z "$compressionExtension" ]; then
@@ -200,12 +203,12 @@ function path()
 		;;
 		
 		*)
-			lfs_exitError "Unknown api_download_kind $api_download_kind"
+			lfs_exitError "Unknown download_kind $download_kind"
 		;;
 		
 	esac
 	
-	api_downloads_download_as[$api_download_index]="$(lfs_basename "$relativePath")"
+	api_downloads_download_as[$api_download_index]="$(lfs_basename "$path")"
 }
 
 function referrer()
@@ -334,34 +337,6 @@ function decompressed_sha512()
 	api_downloads_decompressed_sha512[$api_download_index]="$1"
 }
 
-function signed_as()
-{
-	case "$1" in
-		
-		keyring|keyfile|hkp|hkp_uncompressed)
-			:
-		;;
-		
-		none)
-			:
-		;;
-		
-		*)
-			lfs_exitError "Unrecognised signed_as $1"
-		;;
-	esac
-	
-	api_downloads_signed_as[$api_download_index]="$1"
-	api_downloads_signed_id[$api_download_index]="$2"
-	
-	if [ $# -eq 3 ]; then
-		api_downloads_signed_signatureFile[$api_download_index]="$3"
-	else
-		# actually, assumes a default name and location. Clever but annoying.
-		api_downloads_signed_signatureFile[$api_download_index]=""
-	fi
-}
-
 function package()
 {
 	name="$1"
@@ -391,35 +366,104 @@ function package()
 
 function patch()
 {
-	name="$1"
-	
-	api_download "patch" "$name" 0
+	api_download "patch" "$1" 0
 }
 
 function file()
 {
-	name="$1"
-	
-	api_download "file" "$name" 0
+	api_download "file" "$1" 0
 }
 
 function keyring()
 {
-	name="$1"
-	
-	api_download "keyring" "$name" 0
+	api_download "keyring" "$1" 0
 }
 
 function keyfile()
 {
-	name="$1"
-	
-	api_download "keyfile" "$name" 0
+	api_download "keyfile" "$1" 0
 }
 
+function hkp()
+{
+	if [ "${context[0]}" != "recipe" ]; then
+		lfs_exitError "keyfile must be inside a recipe"
+	fi
+	keyfile "$1"
+
+	mirror HKP
+	path "$1"
+}
+
+# Intended to be used INSIDE another section
 function signature()
 {
-	name="$1"
+	case "${context[1]}" in
+		
+		package|patch|file|keyring|keyfile)
+			:
+		;;
+		
+		*)
+			lfs_exitError "signature must be inside a package, patch, file, keyring or keyfile in a recipe"
+		;;
+		
+	esac
 	
-	api_download "signature" "$name" 0
+	local -r parentName="$name"
+	local -r parentVersion="$version"
+	local -r parentDownloadKind="$download_kind"
+	local -r parentMirror="$mirror"
+	local -r parentPath="$path"
+	
+	local -r keyKind="$1"
+	local -r keyName="$2"
+	local -r keyCompression="$3"
+	
+	case "$keyKind" in
+		
+		keyring|keyfile)
+			local -r convertedKeyKind="$keyKind"
+		;;
+		
+		hkp)
+			local -i index
+			local downloadName
+			local -i alreadyExists=0
+			for index in ${!api_downloads_name[@]}
+			do
+				downloadName="${api_downloads_name[$index]}"
+				if [ "$downloadName" = "$keyName" ]; then
+					if [ "${api_downloads_kinds[$index]}" = "keyfile" ]; then
+						alreadyExists=1
+						break
+					fi
+				fi
+			done
+			if [ $alreadyExists -eq 0 ]; then
+				hkp "$keyName"
+			fi
+			local -r convertedKeyKind=keyfile
+		;;
+		
+		*)
+			lfs_exitError "Unknown key kind $keyKind"
+		;;
+		
+	esac
+	
+	# some signatures are verified against the decompressed tarball
+	if [ -n "$keyCompression" ]; then
+		if [ "$keyCompression" != "decompressed" ]; then
+			lfs_exitError "Unknown signature compression $1"
+		fi
+	fi
+	
+	api_downloads_signature_key_kind[$api_download_index]="$convertedKeyKind"
+	api_downloads_signature_key_name[$api_download_index]="$keyName"
+	api_downloads_signature_compression[$api_download_index]="$keyCompression"
+	
+	api_download "signature" "${parentName}.${parentVersion}.${parentDownloadKind}" "0"
+	mirror "$parentMirror"
+	path "$parentPath".sig
 }

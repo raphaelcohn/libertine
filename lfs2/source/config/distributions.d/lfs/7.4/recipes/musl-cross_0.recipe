@@ -322,10 +322,14 @@ recipe musl-cross 0
 	
 	function recipe_build_musl-cross()
 	{
+		build_extractPackages
+		
 		build_patchPackage binutils binutils
 		build_patchPackage gcc gcc
 		build_patchPackage musl musl
 	
+		sed -i 's,MAKEINFO="$MISSING makeinfo",MAKEINFO=true,g' "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS[binutils]}"/configure
+		
 		# Compilation optimisation (all except final cross compiler)
 		# -Wno-format-security added because libgcc doesn't compile on Ubuntu 13.04 and later ( https://wiki.ubuntu.com/ToolChain/CompilerFlags )
 		export CPPFLAGS="-Wno-format-security"
@@ -503,8 +507,7 @@ recipe musl-cross 0
 	
 		mkdir -m 0755 -p "$sysrootPath"
 		ln -s . "$sysrootPath"/usr
-	
-		sed -i 's,MAKEINFO="$MISSING makeinfo",MAKEINFO=true,g' "${LFS_DOWNLOADS_PACKAGE_EXTRACT_PATHS[binutils]}"/configure
+		
 		build_outOfTree binutils 1 --prefix="$buildPath" --target="$triple" --disable-werror --with-sysroot="$sysrootPath" "${binutilsConfigureFlags[@]}"
 	
 		recipe_private_musl-cross_copyGccBuildDependenciesIntoTree

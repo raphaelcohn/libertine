@@ -23,7 +23,10 @@ recipe xz 5.0.5
 		mirror XZ
 		path "$name"/"$name"-"$version".tar.xz
 		md5 aa17280f4521dbeebed0fbd11cd7fa30
-		signed_as keyfile LASSE_COLLIN
+		signature keyfile LASSE_COLLIN
+		{
+			:
+		}
 	}
 
 	recipe_build_xz()

@@ -1,5 +1,9 @@
 function recipe()
 {
+	if [ $# -ne 2 ]; then
+		lfs_exitError "recipe must have two arguments, name and version"
+	fi
+	
 	recipeName="$1"
 	recipeVersion="$2"
 }

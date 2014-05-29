@@ -16,6 +16,9 @@ function recipe_sourceRecipe()
 	local recipeVersion=""
 	local name=""
 	local version=""
+	local download_kind=""
+	local mirror=""
+	local path=""
 	declare -a api_recipe_dependsRecipeName=()
 	declare -a api_recipe_dependsRecipeVersion=()
 	
@@ -53,14 +56,9 @@ function recipe_sourceRecipe()
 	declare -a api_downloads_decompressed_sha384=()
 	declare -a api_downloads_decompressed_sha512=()
 	
-	declare -a api_downloads_signed_as=()
-	declare -a api_downloads_signed_id=()
-	declare -a api_downloads_signed_signatureFile=()
-	
-	declare -a api_downloads_keyring=()
-	declare -a api_downloads_keyfile=()
-	declare -a api_downloads_hkp=()
-	declare -a api_downloads_hkp_uncompressed=()
+	declare -a api_downloads_signature_key_kind=()
+	declare -a api_downloads_signature_key_name=()
+	declare -a api_downloads_signature_compression=()
 	
 	source "$actualRecipeFile"
 	

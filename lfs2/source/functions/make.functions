@@ -325,7 +325,44 @@ function make_verifyTarget()
 			fi
 		done
 		
-		echo -e "decompress"
+		if [ -z "$signature_key_kind" ]; then
+			local iterationName
+			local signatureName="${name}.${version}.${download_kind}"
+			local keyIndex
+			local keyFileOrKeyringFilePath
+			local signaturePath
+			for keyIndex in "${!api_downloads_name[@]}"
+			do
+				iterationName="${api_downloads_names[$keyIndex]}"
+				if [ "$iterationName" = "$signature_key_name" ]; then
+					if [ "${api_downloads_kinds[$keyIndex]}" = "$signature_key_kind" ]; then
+						keyFileOrKeyringFilePath=../../../../"$signature_key_kind"/"${api_downloads_mirror[$keyIndex]}"/"$signature_key_name"/0/"${api_downloads_download_as[$keyIndex]}"
+					fi
+				fi
+				if [ "$iterationName" = "$signatureName" ]; then
+					if [ "${api_downloads_kinds[$keyIndex]}" = "signature" ]; then
+						signaturePath=../../../../signature/"${api_downloads_mirror[$keyIndex]}"/"$signatureName"/0/"${api_downloads_download_as[$keyIndex]}"
+					fi
+				fi
+			done
+			if [ -z "$keyFileOrKeyringFilePath" ]; then
+				lfs_exitError "No known keyfile (hkp) or keyring"
+			fi
+			if [ -z "$signaturePath" ]; then
+				lfs_exitError "No known signature"
+			fi
+			if [ -z "$signature_compression" ]; then
+				echo -e "verifySignature '$signature_key_kind' '$LFS_DOWNLOAD_FILENAME' '$keyFileOrKeyringFilePath' '$signaturePath' '$distribution_gpgPath'"
+				echo -e "decompress"
+			elif [ "$signature_compression" = "decompressed" ]; then
+				echo -e "decompress"
+				echo -e "verifySignatureDecompressed '$signature_key_kind' '$LFS_DOWNLOAD_FILENAME' '$keyFileOrKeyringFilePath' '$signaturePath' '$distribution_gpgPath'"
+			else
+				lfs_exitError "Unsupported signature compression, $signature_compression"
+			fi
+		else
+			echo -e "decompress"
+		fi
 		
 		if [ $decompressed_size -ne -1 ]; then
 			echo -e "verifySizeDecompressed $decompressed_size"

@@ -383,6 +383,10 @@ function recipe_after_addVerifyTargets()
 	local decompressed_sha384
 	local decompressed_sha512
 	
+	local signature_key_kind
+	local signature_key_name
+	local signature_compression
+	
 	local archive
 	local bomb
 	local archive_folder
@@ -413,6 +417,10 @@ function recipe_after_addVerifyTargets()
 		decompressed_sha256="${api_downloads_decompressed_sha256[$downloadIndex]}"
 		decompressed_sha384="${api_downloads_decompressed_sha384[$downloadIndex]}"
 		decompressed_sha512="${api_downloads_decompressed_sha512[$downloadIndex]}"
+
+		signature_key_kind="${api_downloads_signature_key_kind[$downloadIndex]}"
+		signature_key_name="${api_downloads_signature_key_name[$downloadIndex]}"
+		signature_compression="${api_downloads_signature_compression[$downloadIndex]}"
 		
 		archive=${api_downloads_archive[$downloadIndex]}
 		bomb=${api_downloads_bomb[$downloadIndex]}

@@ -4,6 +4,7 @@ distribution_namePath=""
 distribution_nameVersionPath=""
 distribution_distributionSettingsFilePath=""
 distribution_certificateAuthoritiesPath=""
+distribution_gpgPath=""
 distribution_internalMirrorPath=""
 distribution_mirrorsPath=""
 distribution_recipesPath=""
@@ -28,6 +29,11 @@ function distribution_checkDistributionPaths()
 	distribution_certificateAuthoritiesPath="$distribution_nameVersionPath"/certificate-authorities
 	if [ ! -d "$distribution_certificateAuthoritiesPath" ]; then
 		lfs_exitError "Distribution certificate-authorities path $distribution_certificateAuthoritiesPath does not exist or is not a directory"
+	fi
+	
+	distribution_gpgPath="$distribution_nameVersionPath"/gpg
+	if [ ! -d "$distribution_gpgPath" ]; then
+		lfs_exitError "Distribution gpg path $distribution_gpgPath does not exist or is not a directory"
 	fi
 	
 	distribution_internalMirrorPath="$distribution_nameVersionPath"/internal-mirror
