@@ -356,7 +356,7 @@ function make_verifyTarget()
 				echo -e "decompress"
 			elif [ "$signature_compression" = "decompressed" ]; then
 				echo -e "decompress"
-				echo -e "verifySignatureDecompressed '$signature_key_kind' '$LFS_DOWNLOAD_FILENAME' '$keyFileOrKeyringFilePath' '$signaturePath' '$distribution_gpgPath'"
+				echo -e "verifySignature '$signature_key_kind' '$LFS_DOWNLOAD_FILENAME.decompressed' '$keyFileOrKeyringFilePath' '$signaturePath' '$distribution_gpgPath'"
 			else
 				lfs_exitError "Unsupported signature compression, $signature_compression"
 			fi
