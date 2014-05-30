@@ -1,0 +1,9 @@
+function machine()
+{
+	if [ -n "$machineName" ]; then
+		libertine_message "machine can only be called once"
+	fi
+	readonly machineName="$1"
+	readonly machineDistributionName="$2"
+	readonly machineDistributionVersion="$3"
+}

@@ -1,0 +1,69 @@
+function define_mirror()
+{
+	if [ $# -ne 2 ]; then
+		libertine_exitError "define_mirror requires <name> <url>"
+	fi
+	
+	mirror="$1"
+	url="$2"
+	
+	api_mirrors_url["$mirror"]="$url"
+	api_mirrors_certificateAuthorityName["$mirror"]=''
+	api_mirrors_partialsSupported["$mirror"]='no'
+}
+
+function supports_range()
+{
+	api_verifyOneArgument $#
+	case "$1" in
+		yes)
+			api_mirrors_partialsSupported["$mirror"]=yes
+		;;
+		
+		no)
+			api_mirrors_partialsSupported["$mirror"]=no
+		;;
+		
+		*)
+			libertine_exitError "supports_range '$1' is unsupported"
+		;;
+	esac
+}
+
+function certificate_authority()
+{
+	name="$1"
+	api_mirrors_certificateAuthorityName["$mirror"]="$name"
+	
+	api_download "certificate-authority" "$name" 0
+	
+	api_certificateAuthorities_download["$name"]=$api_download_index
+	api_certificateAuthorities_parent["$name"]=''
+	api_certificateAuthorities_cert_type["$name"]='PEM'
+}
+
+function cert_parent()
+{
+	api_verifyOneArgument $#
+	
+	api_certificateAuthorities_parent["$name"]="$1"
+}
+
+function cert_type()
+{
+	api_verifyOneArgument $#
+	
+	case "$1" in
+		
+		PEM|DER)
+			:
+		;;
+		
+		*)
+			libertine_exitError "Unsupported cert_type $1"
+		;;
+		
+	esac
+	
+	api_certificateAuthorities_cert_type["$name"]="$1"
+}

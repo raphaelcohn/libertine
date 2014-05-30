@@ -1,0 +1,472 @@
+function api_download()
+{
+	download_kind="$1"
+	name="$2"
+	version="$3"
+	mirror="INTERNAL"
+	path=''
+	
+	api_download_index=${#api_downloads_name[@]}
+	# there is the possibility of collision (eg autotools)
+	# normally this is wanted, although in those circumstances we should distinguish by mirror, path (and for packages, version)
+	api_downloads_name+=("$name")
+	api_downloads_version[$api_download_index]="$version"
+	api_downloads_kinds[$api_download_index]="$download_kind"
+	
+	api_downloads_mirror[$api_download_index]="$mirror"
+	api_downloads_path[$api_download_index]=""
+	
+	api_downloads_referrer[$api_download_index]=""
+	api_downloads_post_data[$api_download_index]=""
+	
+	api_downloads_archive[$api_download_index]="none"
+	api_downloads_compression[$api_download_index]="none"
+	api_downloads_tarbomb[$api_download_index]="no"
+	api_downloads_archive_folder[$api_download_index]=""
+	api_downloads_download_as[$api_download_index]=""
+	
+	api_downloads_size[$api_download_index]=-1
+	api_downloads_md5[$api_download_index]=""
+	api_downloads_sha1[$api_download_index]=""
+	api_downloads_sha224[$api_download_index]=""
+	api_downloads_sha256[$api_download_index]=""
+	api_downloads_sha384[$api_download_index]=""
+	api_downloads_sha512[$api_download_index]=""
+	
+	api_downloads_decompressed_size[$api_download_index]=-1
+	api_downloads_decompressed_md5[$api_download_index]=""
+	api_downloads_decompressed_sha1[$api_download_index]=""
+	api_downloads_decompressed_sha224[$api_download_index]=""
+	api_downloads_decompressed_sha256[$api_download_index]=""
+	api_downloads_decompressed_sha384[$api_download_index]=""
+	api_downloads_decompressed_sha512[$api_download_index]=""
+	
+	api_downloads_signature_key_kind[$api_download_index]=''
+	api_downloads_signature_key_name[$api_download_index]=''
+	api_downloads_signature_compression[$api_download_index]=''
+}
+
+function api_verifyOneArgument()
+{
+	if [ $1 -ne 1 ]; then
+		libertine_exitError "Please specify exactly one argument"
+	fi
+}
+
+function mirror()
+{
+	api_verifyOneArgument $#
+
+	mirror="$1"
+	api_downloads_mirror[$api_download_index]="$mirror"
+	
+	# Add a CA download for this mirror. Note that this doesn
+	xxxxxx
+}
+
+function path()
+{
+	api_verifyOneArgument $#
+	path="$1"
+	api_downloads_path[$api_download_index]="$path"
+
+	# the defaults for these vary with the kind of resource in use
+	case "$download_kind" in
+		
+		certificate-authority|patch|file|keyring|keyfile|signature)
+			local -r compressionExtension="${ourFileName##*.}"
+			api_downloads_archive[$api_download_index]=file
+
+			if [ -z "$compressionExtension" ]; then
+				local -r ourCompression=none
+			else
+				case "$compressionExtension" in
+					Z)
+						# eg gzip downloads
+						local -r ourCompression=compress
+					;;
+		
+					gz)
+						local -r ourCompression=gzip
+					;;
+		
+					bz)
+						local -r ourCompression=bzip2
+					;;
+	
+					bz2)
+						local -r ourCompression=bzip2
+					;;
+		
+					# A faster compressor still is lz4
+					lzo)
+						local -r ourCompression=lzop
+					;;
+		
+					lz)
+						local -r ourCompression=lzip
+					;;
+		
+					lzma)
+						local -r ourCompression=lzma
+					;;
+		
+					xz)
+						local -r ourCompression=xz
+					;;
+		
+					*)
+						local -r ourCompression=none
+					;;
+				esac
+			fi
+			api_downloads_archive_folder[$api_download_index]=""
+			api_downloads_compression[$api_download_index]="$ourCompression"
+		;;
+		
+		package)
+			local -r ourFileName="$(libertine_basename "$path")"
+			local -r compressionExtension="${ourFileName##*.}"
+			local -r withoutCompressionExtension="${ourFileName%.*}"
+			if [ -z "$compressionExtension" ]; then
+				local -r ourArchive="none"
+				local -r ourArchiveFolder="$withoutCompressionExtension"
+			else
+				case "$compressionExtension" in
+				
+					# The various abominations are also slackware packages (txz, tgz especially)
+					tar|tgz|tbz|tbz2|txz|tlz|tlzma|tz|taz)
+						local -r ourArchive="tarball"
+						local -r ourArchiveFolder="$withoutCompressionExtension"
+					;;
+					
+					zip)
+						local -r ourArchive="zip"
+						local -r ourArchiveFolder="$withoutCompressionExtension"
+					;;
+					
+					*)
+						local -r ourArchive="tarball"
+						local -r ourArchiveFolder="${withoutCompressionExtension%.*}"
+					;;
+				
+				esac
+			fi
+			case "$compressionExtension" in
+				tar)
+					local -r ourCompression=none
+				;;
+				
+				zip)
+					local -r ourCompression=none
+				;;
+		
+				Z|tz|taz)
+					# eg gzip downloads
+					local -r ourCompression=compress
+				;;
+		
+				gz|tgz)
+					local -r ourCompression=gzip
+				;;
+		
+				bz|tbz)
+					local -r ourCompression=bzip2
+				;;
+	
+				bz2|tbz2)
+					local -r ourCompression=bzip2
+				;;
+		
+				# A faster compressor still is lz4
+				lzo)
+					local -r ourCompression=lzop
+				;;
+		
+				lz|tlz)
+					local -r ourCompression=lzip
+				;;
+		
+				lzma|tlzma)
+					local -r ourCompression=lzma
+				;;
+		
+				xz|txz)
+					local -r ourCompression=xz
+				;;
+		
+				*)
+						local -r ourCompression=none
+				;;
+			esac
+		
+			api_downloads_archive[$api_download_index]="$ourArchive"
+			api_downloads_compression[$api_download_index]="$ourCompression"
+			api_downloads_archive_folder[$api_download_index]="$ourArchiveFolder"
+		;;
+		
+		*)
+			libertine_exitError "Unknown download_kind $download_kind"
+		;;
+		
+	esac
+	
+	api_downloads_download_as[$api_download_index]="$(libertine_basename "$path")"
+}
+
+function referrer()
+{
+	api_verifyOneArgument $#
+	api_downloads_referrer[$api_download_index]="$1"
+}
+
+function post_data()
+{
+	api_verifyOneArgument $#
+	api_downloads_post_data[$api_download_index]="$1"
+}
+
+function archive()
+{
+	api_verifyOneArgument $#
+	api_downloads_archive[$api_download_index]="$1"
+}
+
+function compression()
+{
+	api_verifyOneArgument $#
+	api_downloads_compression[$api_download_index]="$1"
+}
+
+function tarbomb()
+{
+	api_verifyOneArgument $#
+	api_downloads_tarbomb[$api_download_index]="$1"
+}
+
+function archive_folder()
+{
+	api_verifyOneArgument $#
+	api_downloads_archive_folder[$api_download_index]="$1"
+}
+
+function download_as()
+{
+	api_verifyOneArgument $#
+	api_downloads_download_as[$api_download_index]="$1"
+}
+
+function size()
+{
+	api_verifyOneArgument $#
+	api_downloads_size[$api_download_index]=$1
+}
+
+function md5()
+{
+	api_verifyOneArgument $#
+	api_downloads_md5[$api_download_index]="$1"
+}
+
+function sha1()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha1[$api_download_index]="$1"
+}
+
+function sha224()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha224[$api_download_index]="$1"
+}
+
+function sha256()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha256[$api_download_index]="$1"
+}
+
+function sha384()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha284[$api_download_index]="$1"
+}
+
+function sha512()
+{
+	api_verifyOneArgument $#
+	api_downloads_sha512[$api_download_index]="$1"
+}
+
+function decompressed_size()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_size[$api_download_index]=$1
+}
+
+function decompressed_md5()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_md5[$api_download_index]="$1"
+}
+
+function decompressed_sha1()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha1[$api_download_index]="$1"
+}
+
+function decompressed_sha224()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha224[$api_download_index]="$1"
+}
+
+function decompressed_sha256()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha256[$api_download_index]="$1"
+}
+
+function decompressed_sha384()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha284[$api_download_index]="$1"
+}
+
+function decompressed_sha512()
+{
+	api_verifyOneArgument $#
+	api_downloads_decompressed_sha512[$api_download_index]="$1"
+}
+
+function package()
+{
+	name="$1"
+	
+	local -r versionName="$1"
+	local -r versionValue="$2"
+	local -i found=0
+	local key
+	for key in "${!api_package_version_settings[@]}"
+	do
+		# Once a setting is made, it can not be overwritten
+		# This works well if we source machine, distribution and the recipes
+		if [ "$key" = "$versionName" ]; then
+			found=1
+			break
+		fi
+	done
+	if [ $found -eq 0 ]; then
+		api_package_version_settings["$name"]="$2"
+		version="$2"
+	else
+		version="$(get_package_version_setting "$name")"
+	fi
+	
+	api_download "package" "$name" "$version"
+}
+
+function patch()
+{
+	api_download "patch" "$1" 0
+}
+
+function file()
+{
+	api_download "file" "$1" 0
+}
+
+function keyring()
+{
+	api_download "keyring" "$1" 0
+}
+
+function keyfile()
+{
+	api_download "keyfile" "$1" 0
+}
+
+function hkp()
+{
+	if [ "${context[0]}" != "recipe" ]; then
+		libertine_exitError "keyfile must be inside a recipe"
+	fi
+	keyfile "$1"
+
+	mirror HKP
+	path "$1"
+}
+
+# Intended to be used INSIDE another section
+function signature()
+{
+	case "${context[1]}" in
+		
+		package|patch|file|keyring|keyfile)
+			:
+		;;
+		
+		*)
+			libertine_exitError "signature must be inside a package, patch, file, keyring or keyfile in a recipe"
+		;;
+		
+	esac
+	
+	local -r parentName="$name"
+	local -r parentVersion="$version"
+	local -r parentDownloadKind="$download_kind"
+	local -r parentMirror="$mirror"
+	local -r parentPath="$path"
+	
+	local -r keyKind="$1"
+	local -r keyName="$2"
+	local -r keyCompression="$3"
+	
+	case "$keyKind" in
+		
+		keyring|keyfile)
+			local -r convertedKeyKind="$keyKind"
+		;;
+		
+		hkp)
+			local -i index
+			local downloadName
+			local -i alreadyExists=0
+			for index in ${!api_downloads_name[@]}
+			do
+				downloadName="${api_downloads_name[$index]}"
+				if [ "$downloadName" = "$keyName" ]; then
+					if [ "${api_downloads_kinds[$index]}" = "keyfile" ]; then
+						alreadyExists=1
+						break
+					fi
+				fi
+			done
+			if [ $alreadyExists -eq 0 ]; then
+				hkp "$keyName"
+			fi
+			local -r convertedKeyKind=keyfile
+		;;
+		
+		*)
+			libertine_exitError "Unknown key kind $keyKind"
+		;;
+		
+	esac
+	
+	# some signatures are verified against the decompressed tarball
+	if [ -n "$keyCompression" ]; then
+		if [ "$keyCompression" != "decompressed" ]; then
+			libertine_exitError "Unknown signature compression $1"
+		fi
+	fi
+	
+	api_downloads_signature_key_kind[$api_download_index]="$convertedKeyKind"
+	api_downloads_signature_key_name[$api_download_index]="$keyName"
+	api_downloads_signature_compression[$api_download_index]="$keyCompression"
+	
+	api_download "signature" "${parentName}.${parentVersion}.${parentDownloadKind}" "0"
+	mirror "$parentMirror"
+	path "$parentPath".sig
+}

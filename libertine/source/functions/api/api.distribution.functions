@@ -1,0 +1,11 @@
+function distribution()
+{
+	readonly ourDistributionName="$1"
+	readonly ourDistributionVersion="$2"
+	if [ "$ourDistributionName" != "$machineDistributionName" ]; then
+		libertine_message "fix distribution name in distribution.settings"
+	fi
+	if [ "$ourDistributionVersion" != "$machineDistributionVersion" ]; then
+		libertine_message "fix distribution version in distribution.settings"
+	fi
+}

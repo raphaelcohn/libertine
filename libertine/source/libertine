@@ -1,0 +1,350 @@
+#!/usr/bin/env bash
+
+function FIX()
+{
+	echo FIX: $@
+}
+
+FIX 'CAs'
+FIX Clean up dead recipes by checking if our hash differs to theirs but version and name are the same
+FIX Detect whether to rebuild based on presence of .built / use .downloaded
+FIX "URI escape internal mirror path in distribution_sourceMirrors"
+
+function libertine_message()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	case "$messageKind" in
+		
+		WARN|FAIL|PASS)
+			echo "$ourName: $messageKind: $message" 1>&2
+			if [ "$messageKind" = "FAIL" ]; then
+				exit 1
+			fi
+		;;
+		
+		INFO)
+			if [ "$libertine_beVerbose" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		DEBUG)
+			if [ "$libertine_beDebug" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		*)
+			echo "$ourName: $messageKind: $message" 1>&2
+			exit 3
+		;;
+	
+	esac
+}
+
+# The purpose of these functions is to provide internal implementations of logic we can't be 100%
+# sure of exists in the environment or is implemented as we would like for critical pieces of code.
+# Such a critical piece is code executed before and during command line arg parsing
+function libertine_dirname()
+{
+	local -r converted="${1%/*}"
+	if [ "$converted" = "$1" ]; then
+		echo "."
+	else
+		echo "$converted"
+	fi
+}
+
+function libertine_basename()
+{
+	echo "${1##*/}"
+}
+
+function libertine_setDebugging()
+{
+	# is set -x on?
+	if [[ "$-" == *x* ]]; then
+		export LIBERTINE_BASH_DEBUGGING="yes"
+	elif [ ! -z "$LIBERTINE_BASH_DEBUGGING" ]; then
+		if [ "$LIBERTINE_BASH_DEBUGGING" = "yes" ]; then
+			set -x
+		fi
+	fi
+}
+
+function libertine_setSaneEnvironmentDefaults()
+{
+	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
+	
+	unset BASH_ENV
+	unset BASH_XTRACEFD
+	unset CDPATH
+	unset ENV
+	unset FCEDIT
+	unset FIGNORE
+	unset FUNCNEST
+	unset GLOBIGNORE
+	unset HISTCONTROL
+	unset HISTFILE
+	unset HISTFILESIZE
+	unset HISTIGNORE
+	unset HISTSIZE
+	unset HISTTIMEFORMAT
+	unset HOSTFILE
+	unset IGNOREEOF
+	unset INPUTRC
+	unset MAIL
+	unset MAILCHECK
+	unset MAILPATH
+	unset TMOUT
+	
+	umask 022
+}
+
+function libertine_findOurNameAndPath()
+{
+	readonly ourName="$(libertine_basename "$0")"
+	pushd "$(libertine_dirname "$0")" >/dev/null
+		readonly crudeOurPath="$(pwd)"
+	popd >/dev/null
+}
+
+function libertine_exitError()
+{
+	libertine_message FAIL "$1"
+}
+
+function libertine_exitHelp()
+{
+	echo -n -E "Usage 1: ${ourName} -h
+Usage 2: ${ourName} [-v] [-d] [-c libertine_configPath] [-t libertine_cachePath] [-n libertine_netrcFilePath ] [-r libertine_curlrcFilePath] [-m libertine_mirror] -- [machine files...]
+
+Usages
+    1       Show Help
+    2       Download, verify and build a machine from scratch for each machine file
+
+Argument-less Switches
+    Switch  Explanation            Default           Configuration*
+    -h      show this help
+    -v      be more verbose        ${libertine_beVerbose}  beVerbose
+    -d      output debug messages  ${libertine_beDebug}    beDebug
+
+Argumented Switches
+    Switch  Configuration*         Default
+    -c      libertine_configPath         ${libertine_configPath}
+    -t      libertine_cachePath          ${libertine_cachePath}
+    -n      libertine_netrcFilePath      ${libertine_netrcFilePath}
+    -r      libertine_curlrcFilePath     ${libertine_curlrcFilePath}
+    -m      libertine_mirror             ${libertine_mirror}
+    --                             End of arguments, beginning of machine files
+
+*See Switch Configuration below
+
+Defaults
+Defaults are used to control common use cases. Defaults for values are sourced as key=value pairs from the following locations:-
+    
+    Location                                   Currently
+    <libertine_configPath>/defaults               ${libertine_configPath}.d/defaults
+    <libertine_configPath>/defaults.d/*.defaults  ${libertine_configPath}.d/defaults.d/*.defaults
+
+The values that can be configured are:-
+    
+    Value                                  Built-in Value
+    defaults_curl_supportsNetrcFileOption  ${defaults_curl_supportsNetrcFileOption}
+    defaults_curl_maxRedirs                ${defaults_curl_maxRedirs}
+    defaults_curl_retries                  ${defaults_curl_retries}
+
+Paths
+A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
+to automatically install any missing dependencies. The PATH variable is reset to empty if they are used. Paths are used if a file
+<libertine_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
+" 1>&2
+	exit 2
+}
+
+function libertine_loadAnyConfiguration()
+{
+	readonly libertine_configPathOriginal="$crudeOurPath"/config
+	readonly libertine_cachePathOriginal="$crudeOurPath"/cache
+	
+	# Switch embedded defaults
+	libertine_language="en_GB.UTF-8"
+	libertine_beVerbose="no"
+	libertine_beDebug="no"
+	
+	libertine_netrcFilePath=""
+	libertine_curlrcFilePath=""
+	libertine_mirror="global"
+	libertine_machineFilePaths=()
+#start LIBERTINE_CONFIG_PATH
+	etcPath="/etc"
+	libertine_configPath="$libertine_configPathOriginal"
+#end LIBERTINE_CONFIG_PATH
+#start LIBERTINE_CACHE_PATH
+	cachePath=/var/cache/"${ourName}"
+	libertine_cachePath="$libertine_cachePathOriginal"
+#end LIBERTINE_CACHE_PATH
+#start LIBERTINE_DEFAULTS
+	# Insert all our defaults as shipped, too
+#end LIBERTINE_DEFAULTS
+	
+	function libertine_makeVariablesReadonly()
+	{
+		readonly libertine_language libertine_beVerbose libertine_beDebug etcPath libertine_configPath cachePath libertine_cachePath
+		readonly -a libertine_machines
+	}
+	
+	local -r etcSwitchConfiguration="${libertine_configPath}"/switch-configuration
+	if [ -f "$etcSwitchConfiguration" ]; then
+		source "$etcSwitchConfiguration"
+	fi
+	
+	local -r userSwitchConfiguration=~/."$ourName"
+	if [ -r "$userSwitchConfiguration" ]; then
+		source "$userSwitchConfiguration"
+	fi
+	
+	local -r environmentVariableSwitchConfiguration="$LIBERTINE_CONFIGURATION"
+	if [ -n "$environmentVariableSwitchConfiguration" ]; then
+		if [ -r "$environmentVariableSwitchConfiguration" ]; then
+			source "$environmentVariableSwitchConfiguration"
+		fi
+	fi
+}
+
+function libertine_parseCommandLine()
+{
+	local OPTERR=1
+	local OPTIND=1
+	local OPTARG
+	local option
+	while getopts :hvdc:t:n:r:m: option
+	do
+		case "$option" in
+			
+			h)
+				libertine_exitHelp
+			;;
+			
+			v)
+				libertine_beVerbose="yes"
+			;;
+			
+			d)
+				libertine_beDebug="yes"
+			;;
+			
+			c)
+				libertine_configPath="$OPTARG"
+			;;
+			
+			t)
+				libertine_cachePath="$OPTARG"
+			;;
+			
+			n)
+				libertine_netrcFilePath="$OPTARG"
+			;;
+			
+			r)
+				libertine_curlrcFilePath="$OPTARG"
+			;;
+			
+			m)
+				libertine_mirror="$OPTARG"
+			;;
+			
+			'?')
+				libertine_message FAIL "Invalid option -${OPTARG}"
+			;;
+			
+		esac
+	done
+	
+	shift $((OPTIND - 1))
+
+	libertine_machineFilePaths=("$@")
+}
+
+function libertine_validateCommandLineArguments()
+{
+	if [ ! -d "$libertine_configPath" ]; then
+		libertine_message FAIL "Config path $libertine_configPath does not exist or is not a directory"
+		pushd "$libertine_configPath" 1>/dev/null
+			libertine_configPath="$(pwd)"
+		popd 1>/dev/null
+	fi
+	
+	if [ ! -d "$libertine_cachePath" ]; then
+		libertine_message FAIL "Cache path $libertine_cachePath does not exist or is not a directory"
+		pushd "$libertine_cachePath" 1>/dev/null
+			$libertine_cachePath="$(pwd)"
+		popd 1>/dev/null
+	fi
+	
+	if [ -n "$libertine_netrcFilePath" ]; then
+		if [ ! -f "$libertine_netrcFilePath" ]; then
+			libertine_message FAIL "-n libertine_netrcFilePath $libertine_netrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ -n "$libertine_curlrcFilePath" ]; then
+		if [ ! -f "$libertine_curlrcFilePath" ]; then
+			libertine_message FAIL "-r libertine_curlrcFilePath $libertine_curlrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ "${#libertine_machineFilePaths[@]}" -eq 0 ]; then
+		libertine_message FAIL "Please specify at least one machine file"
+	fi
+}
+
+
+#start LIBERTINE_SOURCE_FUNCTIONS
+function libertine_sourceFunctions()
+{
+	libertine_sourceFunctionsRecursively "$crudeOurPath"/functions
+}
+
+function libertine_sourceFunctionsRecursively()
+{
+	local -r pathToFunctions="$1"
+	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
+		
+		local functionFile
+		for functionFile in *.functions
+		do
+			if [ -f "$functionFile" ]; then
+				source "$functionFile"
+			fi
+		done
+		
+		local functionFolder
+		for functionFolder in *
+		do
+			if [ -d "$functionFolder" ]; then
+				libertine_sourceFunctionsRecursively "$functionFolder"
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+#end LIBERTINE_SOURCE_FUNCTIONS
+
+function libertine_main()
+{
+	libertine_setDebugging
+	libertine_setSaneEnvironmentDefaults
+	libertine_findOurNameAndPath
+	libertine_loadAnyConfiguration
+	libertine_parseCommandLine "$@"
+	libertine_validateCommandLineArguments
+	libertine_makeVariablesReadonly
+	libertine_sourceFunctions
+	
+	main_executeMainFunctions
+}
+
+libertine_main "$@"

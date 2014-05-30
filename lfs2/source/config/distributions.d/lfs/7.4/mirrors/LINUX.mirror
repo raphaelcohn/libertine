@@ -1,5 +1,0 @@
-define_mirror LINUX https://www.kernel.org/pub/linux/
-{
-	supports_range yes
-	ca_name StartCom
-}

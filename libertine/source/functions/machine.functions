@@ -1,0 +1,96 @@
+machine_functions=()
+
+function machine_sourceMachineFile()
+{
+	source "$libertine_machineFilePath"
+}
+machine_functions+=(machine_sourceMachineFile)
+
+function machine_distributionFunctions()
+{
+	local distribution_function
+	for distribution_function in "${distribution_functions[@]}"
+	do
+		libertine_message INFO "${tab}${tab}${distribution_function}"
+		${distribution_function}
+	done
+}
+machine_functions+=(machine_distributionFunctions)
+
+machine_hash=""
+function machine_hashDistributionSettings()
+{
+	machine_hash="$(hash_hashFile "$distribution_distributionSettingsFilePath")"
+}
+machine_functions+=(machine_hashDistributionSettings)
+
+machine_distributionHash=""
+function machine_hashMachine()
+{
+	machine_distributionHash="$(hash_hashFile "$distribution_distributionSettingsFilePath")"
+}
+machine_functions+=(machine_hashMachine)
+
+function machine_setPaths()
+{
+	readonly LIBERTINE_BUILD_ROOT_PATH="$main_cachePath"
+	
+	readonly LIBERTINE_MACHINE_NAME_HASH="$machineName"-"$machine_hash"
+	readonly LIBERTINE_BUILD_ROOT_PATH_MACHINE_RELATIVE="$LIBERTINE_MACHINE_NAME_HASH"
+	readonly LIBERTINE_BUILD_ROOT_PATH_MACHINE="$LIBERTINE_BUILD_ROOT_PATH"/"$LIBERTINE_BUILD_ROOT_PATH_MACHINE_RELATIVE"
+	
+	readonly LIBERTINE_BUILD_ROOT_PATH_MACHINE_PATH_BUILD="$LIBERTINE_BUILD_ROOT_PATH_MACHINE"/paths/build
+	
+	readonly LIBERTINE_DISTRIBUTION_NAME_VERSION_HASH="$ourDistributionName"-"$ourDistributionVersion"-"$machine_distributionHash"
+	readonly LIBERTINE_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE="$LIBERTINE_BUILD_ROOT_PATH_MACHINE_RELATIVE"/"$LIBERTINE_DISTRIBUTION_NAME_VERSION_HASH"
+	readonly LIBERTINE_BUILD_ROOT_PATH_DISTRIBUTION="$LIBERTINE_BUILD_ROOT_PATH"/"$LIBERTINE_BUILD_ROOT_PATH_DISTRIBUTION_RELATIVE"
+}
+machine_functions+=(machine_setPaths)
+
+function machine_makePaths()
+{
+	mkdir -m 0755 -p "$LIBERTINE_BUILD_ROOT_PATH"
+	mkdir -m 0755 -p "$LIBERTINE_BUILD_ROOT_PATH_MACHINE"
+	mkdir -m 0755 -p "$LIBERTINE_BUILD_ROOT_PATH_DISTRIBUTION"
+	mkdir -m 0755 -p "$LIBERTINE_BUILD_ROOT_PATH_MACHINE_PATH_BUILD"
+}
+machine_functions+=(machine_makePaths)
+
+function machine_populateBuildPath()
+{
+	rm -rf "$LIBERTINE_BUILD_ROOT_PATH_MACHINE_PATH_BUILD"
+	mkdir -m 0755 -p "$LIBERTINE_BUILD_ROOT_PATH_MACHINE_PATH_BUILD"
+
+	local irrelevant0 irrelevant1 irrelevant2 binaryPath binaryName
+	while IFS=' ' read -r  irrelevant0 irrelevant1 irrelevant2 binaryPath binaryName
+	do
+		ln -s "$binaryPath" "$LIBERTINE_BUILD_ROOT_PATH_MACHINE_PATH_BUILD"/"$binaryName"
+	done < <(hash -l)
+}
+machine_functions+=(machine_populateBuildPath)
+
+function machine_make()
+{
+	declare -A machine_alreadySourcedRecipes=()
+	
+	readonly make_makeFile="$LIBERTINE_BUILD_ROOT_PATH_MACHINE"/Makefile
+	rm -rf "$make_makeFile"
+	
+	declare -A make_targetsDownloadItem=()
+	declare -a make_targetsDownload=()
+	declare -a make_targetsVerify=()
+	declare -a make_targetsBuild=()
+	declare -a make_targetsPhony=()
+	
+	{
+		make_start
+		
+		mirrors_sourceMirrors
+		
+		recipe_sourceRecipe "$(libertine_dirname "$libertine_machineFilePath")" "$machineName".recipe
+	
+		make_finish
+	} >"$make_makeFile"
+	chmod +x "$make_makeFile"
+}
+machine_functions+=(machine_make)

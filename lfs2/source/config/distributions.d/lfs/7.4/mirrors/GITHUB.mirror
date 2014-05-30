@@ -1,4 +1,0 @@
-define_mirror GITHUB https://codeload.github.com/
-{
-	ca_name DigiCertHACA3
-}

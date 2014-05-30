@@ -1,0 +1,368 @@
+function recipe()
+{
+	if [ $# -ne 2 ]; then
+		libertine_exitError "recipe must have two arguments, name and version"
+	fi
+	
+	recipeName="$1"
+	recipeVersion="$2"
+}
+
+# If we allow each package 256 uids, that gives 1 for the package as a whole and enough for every program in it
+function uidgid()
+{
+	api_verifyOneArgument $#
+	api_recipes_uidgid["${recipeName}"]=$1
+}
+
+function depends()
+{
+	local -r dependsRecipeName="$1"
+	# might be empty
+	local -r dependsRecipeVersion="$2"
+	api_recipe_dependsRecipeName+=("$dependsRecipeName")
+	api_recipe_dependsRecipeValue+=("$dependsRecipeVersion")
+}
+
+
+
+
+
+
+function install()
+{
+	# could check that an install function is defined!
+	:
+}
+
+function remove_unwanted()
+{
+return 0
+
+
+
+
+
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_RemoveResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_RemoveResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_RemoveResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function doc_resources()
+{
+return 0
+
+
+
+
+
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_DocResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_DocResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_DocResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function compile_resources()
+{
+return 0
+
+
+
+
+
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_CompileResourcePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_CompileResourcePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_CompileResourcePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function libtool_archives()
+{
+return 0
+
+
+
+
+
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_LibtoolArchivePaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_LibtoolArchivePaths["$DependencyKey"]="$filePath"
+		else
+			dependency_LibtoolArchivePaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function strip_unneeded()
+{
+return 0
+
+
+
+
+
+	local -r parentPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local file
+	local filePath
+	local existingPaths
+	for file in "$@"
+	do
+		filePath="$parentPath"/"$file"
+		
+		existingPaths="${dependency_BinaryStripPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryStripPaths["$DependencyKey"]="$filePath"
+		else
+			dependency_BinaryStripPaths["$DependencyKey"]="$existingPaths $filePath"
+		fi
+	done
+}
+
+function uidgid_paths()
+{
+return 0
+
+
+
+
+
+	local -r value="$1"
+	local -r parentPath="$2"
+	shift 2
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local path
+	local combination
+	local existingPaths
+	for path in "$@"
+	do
+		combination="${parentPath}/${path}.${value}"
+		
+		existingPaths="${dependency_UidGidPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_UidGidPaths["$DependencyKey"]="$combination"
+		else
+			dependency_UidGidPaths["$DependencyKey"]="$existingPaths $combination"
+		fi
+	done
+}
+
+function capabilities_binaries()
+{
+return 0
+
+
+
+
+
+	local -r value="$1"
+	local -r parentPath="$2"
+	shift 2
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local path
+	local combination
+	local existingPaths
+	for path in "$@"
+	do
+		combination="${parentPath}/${path}.${value}"
+		
+		existingPaths="${dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$combination"
+		else
+			dependency_CapabilitiesBinaryInstallPaths["$DependencyKey"]="$existingPaths $combination"
+		fi
+	done
+}
+
+function _binaryPermissionBits()
+{
+return 0
+
+
+
+
+
+	local -r value="$1"
+	local -r parentPath="$2"
+	shift 2
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local path
+	local combination
+	local existingPaths
+	for path in "$@"
+	do
+		combination="${parentPath}/${path}.${value}"
+		
+		existingPaths="${dependency_BinaryPermissionBitsPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$combination"
+		else
+			dependency_BinaryPermissionBitsPaths["$DependencyKey"]="$existingPaths $combination"
+		fi
+	done
+}
+
+function executable_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits a+x "$parentPath" "$@"
+}
+
+function setuid_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits u+s "$parentPath" "$@"
+}
+
+function setgid_binaries()
+{
+	local -r parentPath="$1"
+	shift 1
+	_binaryPermissionBits g+s "$parentPath" "$@"
+}
+
+function explicit_filemode()
+{
+	local -r fileModeBits="$1"
+	local -r parentPath="$2"
+	shift 2
+	_binaryPermissionBits "$fileModeBits" "$parentPath" "$@"
+}
+
+function install_binaries()
+{
+return 0
+
+
+
+
+
+	local -r relativeBinaryPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local binary
+	local binaryPath
+	local existingPaths
+	for binary in "$@"
+	do
+		binaryPath="$relativeBinaryPath"/"$binary"
+		
+		existingPaths="${dependency_BinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_BinaryInstallPaths["$DependencyKey"]="$binaryPath"
+		else
+			dependency_BinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
+		fi
+	done
+}
+
+function install_system_binaries()
+{
+return 0
+
+
+
+
+
+	local -r relativeBinaryPath="$1"
+	shift 1
+	
+	local -r ourRecipeVersion="${LIBERTINE_RECIPE_VERSION["${LIBERTINE_RECIPE_NAME}"]}"
+	dependency_key "$LIBERTINE_PHASE" "$LIBERTINE_RECIPE_NAME" "$ourRecipeVersion"
+	
+	local binary
+	local binaryPath
+	local existingPaths
+	for binary in "$@"
+	do
+		binaryPath="$relativeBinaryPath"/"$binary"
+		
+		existingPaths="${dependency_SystemBinaryInstallPaths["$DependencyKey"]}"
+		if [ -z "$existingPaths" ]; then
+			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$binaryPath"
+		else
+			dependency_SystemBinaryInstallPaths["$DependencyKey"]="$existingPaths $binaryPath"
+		fi
+	done
+}

@@ -1,0 +1,59 @@
+distribution_functions=()
+
+distribution_namePath=""
+distribution_nameVersionPath=""
+distribution_distributionSettingsFilePath=""
+distribution_gpgPath=""
+distribution_internalMirrorPath=""
+distribution_mirrorsPath=""
+distribution_recipesPath=""
+distribution_snippetsPath=""
+function distribution_checkDistributionPaths()
+{
+	distribution_namePath="$distributionsFolder"/"$machineDistributionName"
+	if [ ! -d "$distribution_namePath" ]; then
+		libertine_exitError "Distributions name path $distribution_namePath for machineDistributionName $machineDistributionName does not exist or is not a directory"
+	fi
+	
+	distribution_nameVersionPath="$distribution_namePath"/"$machineDistributionVersion"
+	if [ ! -d "$distribution_nameVersionPath" ]; then
+		libertine_exitError "Distributions version path $distribution_nameVersionPath for machineDistributionVersion $machineDistributionVersion does not exist or is not a directory"
+	fi
+	
+	distribution_distributionSettingsFilePath="$distribution_nameVersionPath"/distribution.settings
+	if [ ! -dd"$distribution_distributionsMirrorsFolder" ]; then
+		libertine_exitError "Distribution settings file path $distribution_distributionSettingsFilePath does not exist or is not a file"
+	fi
+	
+	distribution_gpgPath="$distribution_nameVersionPath"/gpg
+	if [ ! -d "$distribution_gpgPath" ]; then
+		libertine_exitError "Distribution gpg path $distribution_gpgPath does not exist or is not a directory"
+	fi
+	
+	distribution_internalMirrorPath="$distribution_nameVersionPath"/internal-mirror
+	if [ ! -d "$distribution_internalMirrorPath" ]; then
+		libertine_exitError "Distribution internal-mirror path $distribution_internalMirrorPath does not exist or is not a directory"
+	fi
+	
+	distribution_mirrorsPath="$distribution_nameVersionPath"/mirrors
+	if [ ! -d "$distribution_mirrorsPath" ]; then
+		libertine_exitError "Distribution mirrors path $distribution_mirrorsPath does not exist or is not a directory"
+	fi
+	
+	distribution_recipesPath="$distribution_nameVersionPath"/recipes
+	if [ ! -d "$distribution_recipesPath" ]; then
+		libertine_exitError "Distribution recipes path $distribution_recipesPath does not exist or is not a directory"
+	fi
+	
+	distribution_snippetsPath="$distribution_nameVersionPath"/snippets
+	if [ ! -d "$distribution_snippetsPath" ]; then
+		libertine_exitError "Distribution snippets path $distribution_snippetsPath does not exist or is not a directory"
+	fi
+}
+distribution_functions+=(distribution_checkDistributionPaths)
+
+function distribution_sourceDistributionSettingsFilePath()
+{
+	source "$distribution_distributionSettingsFilePath"
+}
+distribution_functions+=(distribution_sourceDistributionSettingsFilePath)

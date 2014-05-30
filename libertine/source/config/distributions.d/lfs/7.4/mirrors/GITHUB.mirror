@@ -1,0 +1,7 @@
+define_mirror GITHUB https://codeload.github.com/
+{
+	certificate_authority DigiCertHACA3
+	{
+		:
+	}
+}

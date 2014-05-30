@@ -1,0 +1,555 @@
+recipe musl-cross 0
+{
+	uidgid 17
+
+	package binutils 2.23.2
+	{
+		mirror GNU
+		path "$name"/"$name"-"$version".tar.bz2
+		md5 4f8fa651e35ef262edc01d60fb45702e
+		signed_as keyring gnu-keyring.gpg
+	}
+	
+	patch binutils
+	{
+		mirror INTERNAL
+		path patch/"$recipeName"/"$name"-2.23.2.diff
+	}
+
+	local -r gccVersion=4.8.1
+	package gcc $gccVersion
+	{
+		mirror GNU
+		path "$name"/"$name"-"$version"/"$name"-"$version".tar.bz2
+		md5 3b2386c114cd74185aa3754b58a79304
+		signed_as keyring gnu-keyring.gpg
+	}
+	
+	patch gcc
+	{
+		mirror INTERNAL
+		path patch/"$recipeName"/"$name"-4.8.1.diff
+	}
+
+	package gmp 5.1.2
+	{
+		mirror GMP
+		path "$name"/"$name"-"$version".tar.lz
+		size 1817328
+		md5 32e0fbde54c71598228f1be1621e5927
+		sha1 30edb4239c89482c051699da9bcd8b22e74cef83
+		sha256 8893aca3761abfb96ccac66ef5641f002761677555b6eab93c7b8d638860141e
+		sha512 341cf8a23d2a8c9b717fc43ed16a5af77eb1adf3747760f5171459d0622234f1109116d7d5ce6fd3effdd3f6f5d956a2a6ded2c2ec3cbb0d72c92f2063441556
+		signed_as hkp 28C67298
+	}
+
+	# Used for its headers when building GCC
+	package linux 3.10.10
+	{
+		mirror LINUX
+		path kernel/v3.x/"$name"-"$version".tar.xz
+		md5 647f76225dd6bc112369ba573ba3de18
+		signed_as hkp_uncompressed 6092693E "$name"-3.10.10.tar.sign
+	}
+
+	package mpc 1.0.1
+	{
+		mirror MPC
+		path "$name"-"$version".tar.gz 
+		md5 b32a2e1a3daa392372fbd586d1ed3679
+	}
+
+	package mpfr 3.1.2
+	{
+		mirror MPFR
+		path "$name"-"$version"/"$name"-"$version".tar.xz 
+		md5 e3d203d188b8fe60bb6578dd3152e05c
+	}
+
+	package musl 0.9.14
+	{
+		mirror MUSL
+		path releases/"$name"-"$version".tar.gz
+		md5 bfb685695aa942e64c63170589e575b2
+		sha1 162b329bab1f1ec8d257cc401b6614aae23c902c
+		sha512 e5c3f7b1549dc2f9cbd3359cc413f761d5967607c23705f651c33d0ae93f00582193a41fe1f87158467d58d8eba2d7c09e0fe2f2b2c02c1dda78eee1a4cecff6
+	}
+	
+	patch musl
+	{
+		mirror INTERNAL
+		path patch/"$recipeName"/"$name"-0.9.1.4.diff
+	}
+
+	package zlib 1.2.8
+	{
+		mirror ZLIB
+		path "$name"-"$version".tar.xz
+		md5 28f1205d8dd2001f26fec1e8c2cebe37
+		sha1 b598beb7acc96347cbd1020b71aef7871d374677
+		sha256 831df043236df8e9a7667b9e3bb37e1fcb1220a0f163b6de2626774b9590d057
+		sha512 405fbb4fc9ca8a59f34488205f403e77d4f184b08d344efbec6a8f558cac0512ee6cda1dc01b7913d61d9bed04cc710e61db1081bb8782c139fcb727f586fa54
+	}
+	
+	install
+	{
+		remove_unwanted . bootstrap
+	
+		recipe_private_musl-cross_binaries()
+		{
+			local -ir installLdd=$1
+			local -r triple="$2"
+			local -r prefix="$triple"-
+			local -r lib="$triple"/lib/gcc/"$triple"/"$gccVersion"
+			local -r libexec="$triple"/libexec/gcc/"$triple"/"$gccVersion"
+	
+			remove_unwanted "$triple"/bin \
+				${prefix}gcc-ar \
+				${prefix}gcc-nm \
+				${prefix}gcc-ranlib \
+				${prefix}gcc-"$gccVersion" \
+				${prefix}ld.bfd \
+				${prefix}c++
+	
+			remove_unwanted "$triple" \
+				extraconfig.sh \
+				info.txt
+	
+			remove_unwanted "$lib"/install-tools/include README
+	
+			remove_unwanted "$triple"/share \
+				gcc-"$gccVersion" \
+				locale
+	
+			remove_unwanted "$triple"/man/man1 \
+				${prefix}dlltool.1 \
+				${prefix}nlmconv.1 \
+				${prefix}windmc.1 \
+				${prefix}windres.1
+	
+			remove_unwanted "$triple"/"$triple"/lib libstdc++.so.6.0.18-gdb.py
+	
+			if [ "$LIBERTINE_FOREIGN_ARCHITECTURE" = "x86_64" ]; then
+				remove_unwanted "$triple"/"$triple"/lib/ldscripts \
+					elf32_x86_64.x \
+					elf32_x86_64.xbn \
+					elf32_x86_64.xc \
+					elf32_x86_64.xd \
+					elf32_x86_64.xdc \
+					elf32_x86_64.xdw \
+					elf32_x86_64.xn \
+					elf32_x86_64.xr \
+					elf32_x86_64.xs \
+					elf32_x86_64.xsc \
+					elf32_x86_64.xsw \
+					elf32_x86_64.xu \
+					elf32_x86_64.xw \
+					elf_i386.x \
+					elf_i386.xbn \
+					elf_i386.xc \
+					elf_i386.xd \
+					elf_i386.xdc \
+					elf_i386.xdw \
+					elf_i386.xn \
+					elf_i386.xr \
+					elf_i386.xs \
+					elf_i386.xsc \
+					elf_i386.xsw \
+					elf_i386.xu \
+					elf_i386.xw \
+					elf_k1om.x \
+					elf_k1om.xbn \
+					elf_k1om.xc \
+					elf_k1om.xd \
+					elf_k1om.xdc \
+					elf_k1om.xdw \
+					elf_k1om.xn \
+					elf_k1om.xr \
+					elf_k1om.xs \
+					elf_k1om.xsc \
+					elf_k1om.xsw \
+					elf_k1om.xu \
+					elf_k1om.xw \
+					elf_l1om.x \
+					elf_l1om.xbn \
+					elf_l1om.xc \
+					elf_l1om.xd \
+					elf_l1om.xdc \
+					elf_l1om.xdw \
+					elf_l1om.xn \
+					elf_l1om.xr \
+					elf_l1om.xs \
+					elf_l1om.xsc \
+					elf_l1om.xsw \
+					elf_l1om.xu \
+					elf_l1om.xw \
+					i386linux.x \
+					i386linux.xbn \
+					i386linux.xn \
+					i386linux.xr \
+					i386linux.xu
+			fi
+	
+			doc_resources "$triple" share
+	
+			compile_resources "$triple" include
+	
+			compile_resources "$triple"/lib \
+				libiberty.a \
+				gcc/"$triple" "$gccVersion"
+	
+			compile_resources "$triple"/"$triple" include
+	
+			compile_resources "$triple"/"$triple"/lib \
+				ldscripts \
+				crt1.o \
+				crti.o \
+				crtn.o \
+				libatomic.a \
+				libatomic.la \
+				libc.a \
+				libcrypt.a \
+				libdl.a \
+				libgomp.a \
+				libgomp.la \
+				libgomp.spec \
+				libitm.a \
+				libitm.la \
+				libitm.spec \
+				libm.a \
+				libpthread.a \
+				libquadmath.a \
+				libquadmath.la \
+				libresolv.a \
+				librt.a \
+				libssp.a \
+				libssp.la \
+				libssp_nonshared.a \
+				libssp_nonshared.la \
+				libstdc++.a \
+				libstdc++.la \
+				libsupc++.a \
+				libsupc++.la \
+				libutil.a \
+				libxnet.a \
+				Scrt1.o
+	
+			strip_unneeded "$triple"/lib libiberty.a
+	
+			strip_unneeded "$lib" \
+				libgcc.a \
+				libgcc_eh.a \
+				libgcov.a
+	
+			strip_unneeded "$libexec" \
+				cc1 \
+				cc1plus \
+				collect2 \
+				lto1 \
+				lto-wrapper \
+				install-tools/fixincl
+	
+			strip_unneeded "$triple"/"$triple"/lib \
+				libc.a \
+				libc.so \
+				libatomic.a \
+				libatomic.so \
+				libgcc_s.so \
+				libgomp.a \
+				libgomp.so \
+				libitm.a \
+				libitm.so \
+				libquadmath.a \
+				libquadmath.so \
+				libssp.a \
+				libssp.so \
+				libssp_nonshared.a \
+				libstdc++.a \
+				libstdc++.so \
+				libsupc++.a
+	
+			executable_binaries "$libexec" \
+				cc1 \
+				cc1plus \
+				collect2 \
+				lto1 \
+				lto-wrapper
+	
+			executable_binaries "$libexec"/install-tools \
+				fixincl \
+				fixinc.sh \
+				mkheaders \
+				mkinstalldirs
+	
+			executable_binaries "$triple"/"$triple"/lib libc.so
+
+			local -r binPath="$triple"/bin
+	
+			install_binaries "$binPath" \
+				"${prefix}"addr2line \
+				"${prefix}"ar \
+				"${prefix}"as \
+				"${prefix}"c++filt \
+				"${prefix}"cpp \
+				"${prefix}"elfedit \
+				"${prefix}"g++ \
+				"${prefix}"gcc \
+				"${prefix}"gcov \
+				"${prefix}"gprof \
+				"${prefix}"ld \
+				"${prefix}"nm \
+				"${prefix}"objcopy \
+				"${prefix}"objdump \
+				"${prefix}"ranlib \
+				"${prefix}"readelf \
+				"${prefix}"size \
+				"${prefix}"strings \
+				"${prefix}"strip \
+				"${prefix}"ldd
+	
+			if [ $installLdd -eq 1 ]; then
+				install_binaries "$binPath" ldd
+			fi
+		}
+	
+		if get_setting_is_not_cross_compiling; then
+			recipe_private_musl-cross_binaries 1 "$(get_setting_native_architecture_triple)"
+		else
+			recipe_private_musl-cross_binaries 0 "$(get_setting_native_architecture_triple)"
+			recipe_private_musl-cross_binaries 1 "$(get_setting_foreign_architecture_triple)"
+		fi
+	}
+	
+	function recipe_build_musl-cross()
+	{
+		build_extractPackages
+		
+		build_patchPackage binutils binutils
+		build_patchPackage gcc gcc
+		build_patchPackage musl musl
+	
+		sed -i 's,MAKEINFO="$MISSING makeinfo",MAKEINFO=true,g' "${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[binutils]}"/configure
+		
+		# Compilation optimisation (all except final cross compiler)
+		# -Wno-format-security added because libgcc doesn't compile on Ubuntu 13.04 and later ( https://wiki.ubuntu.com/ToolChain/CompilerFlags )
+		export CPPFLAGS="-Wno-format-security"
+		export CFLAGS="-pipe -Wno-format-security"
+		export CXXFLAGS="-pipe -Wno-format-security"
+	
+		local variant
+		declare -a binutilsConfigureFlags
+		declare -a gcc1ConfigureFlags
+		declare -a gcc2ConfigureFlags
+		declare -a muslConfigureFlags
+
+		# Build bootstrap (native architecture)
+		variant="bootstrap"
+		binutilsConfigureFlags=()
+		gcc1ConfigureFlags=()
+		gcc2ConfigureFlags=()
+		muslConfigureFlags=()
+		recipe_private_musl-cross_compile "$variant" "$LIBERTINE_NATIVE_ARCHITECTURE" "$LIBERTINE_NATIVE_TRIPLE"
+	
+		local -r nativeCrossCompiler="$LIBERTINE_BUILD_ROOT_PATH_RECIPE_BUILD_TMP"/"$variant"/bin/"$LIBERTINE_NATIVE_TRIPLE"
+	
+		# Get rid of dlfcn.h as a cheap hack to disable building plugins
+		rm -f "$LIBERTINE_BUILD_ROOT_PATH_RECIPE_BUILD_TMP"/"$variant"/"$triple"/include/dlfcn.h
+
+		# Build for real (foreign architecture) - exports NOT wanted for gcc dependencies...
+		export CC="'"$nativeCrossCompiler-gcc"' -static -Wl,-Bstatic -static-libgcc"
+		export CXX="'"$nativeCrossCompiler-g++"' -static -Wl,-Bstatic -static-libgcc"
+
+		variant="foreign"
+		binutilsConfigureFlags=()
+		gcc1ConfigureFlags=('--disable-lto-plugin')
+		gcc2ConfigureFlags=('--disable-lto-plugin')
+		muslConfigureFlags=()
+		recipe_private_musl-cross_compile "$variant" "$LIBERTINE_FOREIGN_ARCHITECTURE" "$LIBERTINE_FOREIGN_TRIPLE"
+	}
+
+	function recipe_private_musl-cross_gccFlagsArchitectureSpecific()
+	{
+		case "$architecture" in
+		
+			arm*)
+				gcc1ConfigureFlags+=('--with-arch=armv4t')
+				gcc2ConfigureFlags+=('--with-arch=armv4t')
+			;;
+
+			powerpc* | ppc*)
+				gcc1ConfigureFlags+=('--with-long-double-64' '--enable-secureplt')
+				gcc2ConfigureFlags+=('--with-long-double-64' '--enable-secureplt')
+			;;
+		
+		esac
+	
+		# (Mostly) ARM float conventions
+		case "$architecture" in
+			*hf|*-hf*)
+				gcc1ConfigureFlags+=('--with-float=hard')
+				gcc2ConfigureFlags+=('--with-float=hard')
+			;;
+
+			*sf|*-sf*)
+				gcc1ConfigureFlags+=('--with-float=soft')
+				gcc2ConfigureFlags+=('--with-float=soft')
+			;;
+		esac
+	}
+
+	function recipe_private_musl-cross_buildLinuxHeaders()
+	{
+		local -r potentialArchitectureLinux="$(sed 's/-.*//' <<<"$architecture")"
+	
+		case "$potentialArchitectureLinux" in
+		
+			i*86)
+				local -r architectureLinux=i386
+				local -r linuxDefConfigMakeTarget=defconfig
+			;;
+		
+			arm*)
+				local -r architectureLinux=arm
+				local -r linuxDefConfigMakeTarget=defconfig
+			;;
+		
+			mips*)
+				local -r architectureLinux=mips
+				local -r linuxDefConfigMakeTarget=defconfig
+			;;
+		
+			powerpc*|ppc*)
+		        local -r architectureLinux=powerpc
+		        local -r linuxDefConfigMakeTarget=g5_defconfig
+			;;
+		
+			*)
+				local -r architectureLinux="$potentialArchitectureLinux"
+				local -r linuxDefConfigMakeTarget=defconfig
+			;;
+		
+		esac
+
+		# Could we use  http://git.musl-libc.org/cgit/mini-lkh/tree/README ?
+		# musl does not use the headers
+
+		local -r LINUX_HEADERS_VERSION="${LIBERTINE_DOWNLOADS_PACKAGE_VERSIONS[linux]}"
+	
+		# This code ensures linux headers get installed just once (sort of; the configured /installedheaders file is later deleted)
+		if [ ! -e linux-$LINUX_HEADERS_VERSION/configured ]
+		then
+			build_pushPackage linux
+				make $linuxDefConfigMakeTarget ARCH=$architectureLinux
+			build_popPackage
+		fi
+	
+		if [ ! -e linux-$LINUX_HEADERS_VERSION/installedheaders ]
+		then
+			build_pushPackage linux
+				make headers_install ARCH=$architectureLinux INSTALL_HDR_PATH="$sysrootPath"
+			build_popPackage
+		fi
+	}
+
+	function recipe_private_musl-cross_copyGccBuildDependenciesIntoTree()
+	{
+		local gccDependency
+		local inTreePath
+		for gccDependency in gmp mpfr mpc
+		do
+			inTreePath="${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[gcc]}"/"$gccDependency"
+			rm -rf "$inTreePath"
+			mkdir -m 0755 -p "$inTreePath"
+			cp -a "$(build_extractedTarballSourcePath "$gccDependency")"/ "$inTreePath"/
+		done
+	}
+
+	function recipe_private_musl-cross_updateGccZlib()
+	{
+		build_pushPackage gcc
+		
+			if [ -d zlib.orig ]; then
+				return 0
+			fi
+		
+			mv zlib zlib.orig
+		
+			# Can't use a symlink because gcc walks the path .. and ../.. to find things!
+			mkdir -m 0755 zlib
+			cp -a "${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[zlib]}"/* zlib/
+		
+			local zlibOriginalFile
+			for zlibOriginalFile in configure Makefile.in configure.ac acinclude.m4 aclocal.m4 minigzip.c Makefile.am
+			do
+				rm -rf zlib/"$zlibOriginalFile"
+				cp zlib.orig/"$zlibOriginalFile" zlib/"$zlibOriginalFile"
+			done
+		
+		build_popPackage
+	}
+
+	function recipe_private_musl-cross_compile()
+	{
+		local -r variant="$1"
+		local -r architecture="$2"
+		local -r triple="$3"
+
+		declare -a makeFlags=()
+		declare -a makeInstallFlags=()
+	
+		recipe_private_musl-cross_gccFlagsArchitectureSpecific
+	
+		local -r buildPath="$LIBERTINE_BUILD_ROOT_PATH_RECIPE_BUILD_TMP"/"$variant"
+		local -r sysrootPath="$buildPath"/"$triple"
+		local -r originalPath="$PATH"
+		# this flushes bash's hash of binary locations; is not needed when compiling binutils the first time
+		export PATH="$buildPath"/bin:"$originalPath"
+	
+		mkdir -m 0755 -p "$sysrootPath"
+		ln -s . "$sysrootPath"/usr
+		
+		build_outOfTree binutils 1 --prefix="$buildPath" --target="$triple" --disable-werror --with-sysroot="$sysrootPath" "${binutilsConfigureFlags[@]}"
+	
+		recipe_private_musl-cross_copyGccBuildDependenciesIntoTree
+	
+		recipe_private_musl-cross_updateGccZlib
+	
+		build_outOfTree gcc 1 --prefix="$buildPath" --target="$triple" --with-sysroot="$sysrootPath" --enable-languages=c --with-newlib --disable-multilib --disable-libssp --disable-libquadmath --disable-threads --disable-decimal-float --disable-shared --disable-libmudflap --disable-libgomp --disable-libatomic "${gcc1ConfigureFlags[@]}"
+	
+		recipe_private_musl-cross_buildLinuxHeaders
+	
+		build_inTree musl --prefix="$sysrootPath" --enable-debug CC="$triple-gcc" "${muslConfigureFlags[@]}"
+
+	    # if it didn't build libc.so, disable dynamic linking
+	    if [ ! -e "$buildPath"/"$triple"/lib/libc.so ]; then
+			gcc2ConfigureFlags+=('--disable-shared' "${gcc2ConfigureFlags[@]}")
+	    fi
+	
+		build_outOfTree gcc 2 --prefix="$buildPath" --target="$triple" --with-sysroot="$sysrootPath" --enable-languages=c,c++,objc,objc-c++,fortran --disable-multilib --disable-libmudflap --disable-libsanitizer "${gcc2ConfigureFlags[@]}"
+	
+		# un"fix" headers
+		rm -rf "$buildPath"/lib/gcc/"$triple"/*/include-fixed/ "$buildPath"/lib/gcc/"$triple"/*/include/stddef.h
+	
+		export -n CC
+		export -n CXX
+	
+		# TODO: Can we use the newer autotools-config download instead?
+		local -r configSubReplacement="$LIBERTINE_BUILD_ROOT_PATH_RECIPE_DOWNLOADS"/file/config.sub/0
+	
+		cp -f "$configSubReplacement" "${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[gmp]}"/configfsf.sub
+		build_inTree gmp --prefix="$sysrootPath" --host="$triple" --enable-static --disable-shared
+
+		cp -f "$configSubReplacement" "${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[mpfr]}"/config.sub
+		build_inTree mpfr --prefix="$sysrootPath" --host="$triple" --enable-static --disable-shared CC="$triple-gcc"
+
+		cp -f "$configSubReplacement" "${LIBERTINE_DOWNLOADS_PACKAGE_EXTRACT_PATHS[mpc]}"/config.sub
+		build_inTree mpc --prefix="$sysrootPath" --host="$triple" --enable-static --disable-shared
+	
+		export PATH="$originalPath"
+	}
+	# Remove gcc, g++, ar, ld, etc hardlinks and replace with softlinks
+	# Create libc.so
+	# Create ldd
+	# replaces the default search path in ld-musl-XXX (the dynamic linker) so that we're safe from 'drop in /lib' attacks
+	# Adjust patch so that dynamic linker path /lib/ld-musl- is actually our path
+}
