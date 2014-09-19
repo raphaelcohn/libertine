@@ -10,6 +10,8 @@
 * Do not generate build scripts for already built recipes (check .built)
 * ? Do not generate verify scripts for already verified recipes (check .verified)
 
+### Add Packages
+* pam_passwdqc
 
 ### Hard-coded binary locations
 
